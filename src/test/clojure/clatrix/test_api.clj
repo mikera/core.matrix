@@ -1,6 +1,7 @@
 (ns clatrix.test-api
   (:use clojure.test)
-  (:use clatrix.api))
+  (:use clatrix.api)
+  (:refer-clojure :exclude [vector?]))
 
 (deftest test-indexed-access
   (testing "clojure vector indexed access"

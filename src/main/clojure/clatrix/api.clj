@@ -1,4 +1,5 @@
-(ns clatrix.api)
+(ns clatrix.api
+  (:refer-clojure :exclude [vector?]))
 
 (defmacro error
   "Throws an error with the provided message(s)"
@@ -27,10 +28,27 @@
   "Protocol to support matrix multiplication on an arbitrary matrix or vector"
   (mmultiply [m a]))
 
+(defprotocol PMatrixDimensionInfo
+  "Protocol to return standard dimension information about a matrix"
+  (dimensionality [m])
+  (row-count [m])
+  (column-count [m])
+  (dimension-count [m x]))
+
 ;; =============================================================
 ;; Functions operating on standard protocols
 ;;
 ;; API users should prefer these functions to using the protocols directly
+
+(defn matrix? 
+  "Returns true if parameter is a valid matrix (any dimensionality)"
+  ([m]
+    (satisfies? PMatrixDimensionInfo m)))
+
+(defn vector? 
+  "Returns true if parameter is a vector (1 dimensional matrix)"
+  ([m]
+    (and (matrix? m) (== 1 (dimensionality m)))))
 
 (defn mget 
   "Gets a value from a matrix at a specified position. Supports any number of matrix dimensions."
@@ -65,7 +83,7 @@
 (defn coerce-nested 
   "Ensures a vector is fully coerced"
   ([v]
-    (mapv #(if (number? %) % (coerce-nested v)) v)))
+    (mapv #(if (number? %) % (coerce-nested %)) v)))
 
 (extend-protocol PCoercion
   clojure.lang.IPersistentVector
