@@ -16,4 +16,9 @@
   		<scope>test</scope>
   	</dependency>
   </dependencies>
+  <parent>
+  	<groupId>net.mikera</groupId>
+  	<artifactId>clojure-pom</artifactId>
+  	<version>0.0.3</version>
+  </parent>
 </project>
