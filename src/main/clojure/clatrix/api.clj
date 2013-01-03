@@ -5,6 +5,15 @@
   (get-2d [m x y])
   (get-nd [m indexes]))
 
+(defn mget 
+  "Gets a value from a matrix at a specified position. Supports any number of matrix dimensions."
+  ([m x]
+    (get-1d m x))
+  ([m x y]
+    (get-2d m x y))
+  ([m x y & more]
+    (get-nd m (cons x (cons y more)))))
+
 (extend-protocol PIndexedAccess
   clojure.lang.IPersistentVector
     (get-1d [m x]
