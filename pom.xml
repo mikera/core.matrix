@@ -4,6 +4,13 @@
 	<groupId>mikera</groupId>
 	<artifactId>matrix-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	
+	<parent>
+		<groupId>net.mikera</groupId>
+		<artifactId>clojure-pom</artifactId>
+		<version>0.0.3</version>
+	</parent>
+		
 	<dependencies>
 		<dependency>
 			<groupId>org.clojure</groupId>
@@ -17,9 +24,26 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<parent>
-		<groupId>net.mikera</groupId>
-		<artifactId>clojure-pom</artifactId>
-		<version>0.0.3</version>
-	</parent>
+
+	<licenses>
+		<license>
+			<name>Eclipse Public License (EPL)</name>
+			<url>http://www.eclipse.org/legal/epl-v10.html</url>
+		</license>
+	</licenses>
+	
+	<repositories>
+		<repository>
+			<id>clojars.org</id>
+			<name>Clojars repository</name>
+			<url>https://clojars.org/repo</url>
+		</repository>
+	</repositories>
+	
+	<scm>
+		<connection>scm:git:git@github.com:mikera/${project.artifactId}.git</connection>
+		<url>scm:git:git@github.com:mikera/${project.artifactId}.git</url>
+		<developerConnection>scm:git:git@github.com:mikera/${project.artifactId}.git</developerConnection>
+	  <tag>HEAD</tag>
+  </scm>
 </project>
