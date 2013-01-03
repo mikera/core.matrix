@@ -2,6 +2,6 @@
 
 (defprotocol PIndexedAccess
   (get [x])
-  (get [x y]
-  (get-multi-dim [indexes])))
+  (get [x y])
+  (get-multi-dim [indexes]))
 
