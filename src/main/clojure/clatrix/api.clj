@@ -1,19 +1,19 @@
 (ns clatrix.api)
 
 (defprotocol PIndexedAccess
-  (mget-1 [m x])
-  (mget-2 [m x y])
-  (mget-multi-dim [m indexes]))
+  (get-1d [m x])
+  (get-2d [m x y])
+  (get-nd [m indexes]))
 
 (extend-protocol PIndexedAccess
   clojure.lang.IPersistentVector
-    (mget-1 [m x]
+    (get-1d [m x]
       (double (.nth m (int x))))
-    (mget-2 [m x y]
+    (get-2d [m x y]
       (let [row (.nth m (int x))]
-        (mget-1 row y)))
-    (mget-multi-dim [m indexes]
+        (get-1d row y)))
+    (get-nd [m indexes]
       (if-let [next-indexes (next indexes)]
         (let [m (.nth m (int (first indexes)))]
-          (mget-multi-dim m next-indexes))
+          (get-nd m next-indexes))
         (double (.nth m (int (first indexes)))))))
