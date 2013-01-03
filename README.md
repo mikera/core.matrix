@@ -15,6 +15,8 @@ Example implementations we might want to support:
  - Simple matrices constructed from Clojure vectors
  - EJML
  - and probably many more....
+ 
+ [![Build Status](https://travis-ci.org/mikera/matrix-api.png?branch=master)](https://travis-ci.org/mikera/matrix-api)
 
 ### Do not use yet!
 

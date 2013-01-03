@@ -27,4 +27,6 @@
     (is (matrix? [1 2]))
     (is (vector? [1 2]))
     (is (matrix? [[1 2] [3 4]]))
-    (is (not (vector? [[1 2] [3 4]])))))
+    (is (matrix-2d? [[1 2] [3 4]]))
+    (is (not (vector? [[1 2] [3 4]])))
+    (is (not (matrix-2d? [[[1 2] [2 3]] [[3 4] [5 6]]])))))

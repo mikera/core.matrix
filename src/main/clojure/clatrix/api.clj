@@ -45,6 +45,11 @@
   ([m]
     (satisfies? PMatrixDimensionInfo m)))
 
+(defn matrix-2d? 
+  "Returns true if parameter is a regular matrix (2 dimensional matrix)"
+  ([m]
+    (and (matrix? m) (== 2 (dimensionality m)))))
+
 (defn vector? 
   "Returns true if parameter is a vector (1 dimensional matrix)"
   ([m]
