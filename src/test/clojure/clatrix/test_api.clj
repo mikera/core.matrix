@@ -19,7 +19,8 @@
     (is (= 3 (row-count [1 2 3])))
     (is (= 3 (row-count [[1 2] [2 3] [3 4]])))
     (is (= 2 (column-count [[1 2] [2 3] [3 4]])))
-    (is (= [3 2] (all-dimensions [[1 2] [2 3] [3 4]])))))
+    (is (= [3 2] (all-dimensions [[1 2] [2 3] [3 4]])))
+    (is (= [2 2 2] (all-dimensions [[[1 2] [2 3]] [[3 4] [5 6]]])))))
 
 (deftest test-predicates
   (testing "clojure vector predicates"
