@@ -14,6 +14,13 @@
     (is (= [1 2 3] (coerce [[1 0 0] [0 1 0] [0 0 1]] [1 2 3])))
     (is (= [[1 2] [3 4]] (coerce [1] [[1 2] [3 4]])))))
 
+(deftest test-dimensions
+  (testing "vector dimensions"
+    (is (= 3 (row-count [1 2 3])))
+    (is (= 3 (row-count [[1 2] [2 3] [3 4]])))
+    (is (= 2 (column-count [[1 2] [2 3] [3 4]])))
+    (is (= [3 2] (all-dimensions [[1 2] [2 3] [3 4]])))))
+
 (deftest test-predicates
   (testing "clojure vector predicates"
     (is (matrix? [1 2]))

@@ -50,6 +50,11 @@
   ([m]
     (and (matrix? m) (== 1 (dimensionality m)))))
 
+(defn all-dimensions
+  "Returns a sequence of the dimension counts for a matrix"
+  ([m]
+    (for [i (range (dimensionality m))] (dimension-count m i))))
+
 (defn mget 
   "Gets a value from a matrix at a specified position. Supports any number of matrix dimensions."
   ([m x]
