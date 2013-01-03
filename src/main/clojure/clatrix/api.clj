@@ -99,5 +99,22 @@
       (let [a (coerce-param m a)]
         (error "Not yet implemented"))))
 
+(extend-protocol PMatrixDimensionInfo
+  clojure.lang.IPersistentVector
+    (dimensionality [m]
+      (let [fst (.get m 0)]
+        (if (number? fst) 
+          1
+          (inc (dimensionality fst)))))
+    (row-count [m]
+      (count m))
+    (column-count [m]
+      (count (m 0)))
+    (dimension-count [m x]
+      (if (== x 0)
+        (count m)
+        (dimension-count (m 0) (dec x)))))
+
+
 ;; ============================================================
 ;; Fallback implementations for stuff we don't recognise

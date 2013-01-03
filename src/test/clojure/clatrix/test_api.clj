@@ -13,3 +13,10 @@
   (testing "clojure vector"
     (is (= [1 2 3] (coerce [[1 0 0] [0 1 0] [0 0 1]] [1 2 3])))
     (is (= [[1 2] [3 4]] (coerce [1] [[1 2] [3 4]])))))
+
+(deftest test-predicates
+  (testing "clojure vector predicates"
+    (is (matrix? [1 2]))
+    (is (vector? [1 2]))
+    (is (matrix? [[1 2] [3 4]]))
+    (is (not (vector? [[1 2] [3 4]])))))
