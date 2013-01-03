@@ -41,6 +41,11 @@
   ([m x y & more]
     (get-nd m (cons x (cons y more)))))
 
+(defn coerce
+  "Coerces a parameter to a format usable by a specific matrix implementation"
+  ([m a]
+    (coerce-param m a)))
+
 ;; ============================================================
 ;; Implementation for standard Clojure vectors used as matrices
 
@@ -64,7 +69,7 @@
 
 (extend-protocol PCoercion
   clojure.lang.IPersistentVector
-    (coerce [m param]
+    (coerce-param [m param]
       (cond
         (vector? param) param
         (sequential? param) (coerce-nested param)
