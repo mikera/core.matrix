@@ -1,5 +1,6 @@
 (ns clatrix.impl.persistent-vector
-  (:use clatrix.api))
+  (:use clatrix.api)
+  (:refer-clojure :exclude [vector?]))
 
 ;; ============================================================
 ;; Implementation for standard Clojure vectors used as matrices
