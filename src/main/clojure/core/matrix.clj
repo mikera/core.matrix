@@ -34,6 +34,12 @@
   (matrix-add [m a])
   (matrix-sub [m a]))
 
+(defprotocol PVectorOps
+  "Protocol to support common vector operations"
+  (vector-dot [a b])
+  (length-squared [a])
+  (normalise [a]))
+
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of a matrix"
   (get-row [m i])
@@ -139,6 +145,11 @@
     (matrix-sub a b))
   ([a b & more]
     (reduce matrix-sub (matrix-sub a b) more)))
+
+(defn dot
+  "Computes the dot product of two vectors"
+  ([a b]
+    (vector-dot a b)))
 
 
 ;; ============================================================

@@ -52,6 +52,15 @@
     (matrix-sub [m a]
       (mapmatrix - m (coerce m a))))
 
+(extend-protocol PVectorOps
+  clojure.lang.IPersistentVector
+    (vector-dot [a b]
+      (reduce + 0 (map (fn [x y] (* x y)) a (coerce a b))))
+    (length-squared [a]
+      (reduce + (map #(* % %) a)))
+    (normalise [a]
+      (scale a (/ 1.0 (Math/sqrt (length-squared a))))))
+
 (extend-protocol PCoercion
   clojure.lang.IPersistentVector
     (coerce-param [m param]

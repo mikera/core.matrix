@@ -43,6 +43,13 @@
     (is (= [[8.0]] (sub [[12.0]] [[4.0]])))
     (is (= [[[8.0]]] (sub [[[12.0]]] [[[4.0]]])))))
 
+
+(deftest test-normalise
+  (testing "vector normalise"
+    (is (= [1.0] (normalise [1.0])))
+    (is (= [1.0] (normalise [2.0])))
+    (is (= [-1.0 0.0] (normalise [-2.0 0.0])))))
+
 (deftest test-dimensions
   (testing "vector dimensions"
     (is (= 3 (row-count [1 2 3])))
