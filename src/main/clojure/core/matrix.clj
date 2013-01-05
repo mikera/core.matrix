@@ -25,8 +25,9 @@
   (coerce-param [m param]))
 
 (defprotocol PMatrixMultiply
-  "Protocol to support matrix multiplication on an arbitrary matrix or vector"
-  (mmultiply [m a]))
+  "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
+  (matrix-multiply [m a])
+  (scale [m a]))
 
 (defprotocol PMatrixAdd
   "Protocol to support matrix addition on an arbitrary matrix or vector"
@@ -102,9 +103,11 @@
   "Performs matrix multiplication on matrices or vectors"
   ([a] a)
   ([a b]
-    (mmultiply a b))
+    (if (number? b) 
+      (scale a b)
+      (matrix-multiply a b)))
   ([a b & more]
-    (reduce mmultiply (mmultiply a b) more)))
+    (reduce mul (mul a b) more)))
 
 
 ;; ============================================================
