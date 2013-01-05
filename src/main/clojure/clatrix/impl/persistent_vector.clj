@@ -8,7 +8,7 @@
 (extend-protocol PIndexedAccess
   clojure.lang.IPersistentVector
     (get-1d [m x]
-      (double (.nth m (int x))))
+      (.nth m (int x)))
     (get-2d [m x y]
       (let [row (.nth m (int x))]
         (get-1d row y)))
@@ -16,7 +16,7 @@
       (if-let [next-indexes (next indexes)]
         (let [m (.nth m (int (first indexes)))]
           (get-nd m next-indexes))
-        (double (.nth m (int (first indexes)))))))
+        (.nth m (int (first indexes))))))
 
 (defn coerce-nested 
   "Ensures a vector is fully coerced"
