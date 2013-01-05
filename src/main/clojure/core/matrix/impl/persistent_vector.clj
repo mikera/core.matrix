@@ -34,6 +34,10 @@
           (get-nd m next-indexes))
         (.nth m (int (first indexes))))))
 
+(extend-protocol PMatrixSlices
+  clojure.lang.IPersistentVector
+    (get-row [m i]
+      (nth m (long i))))
 
 (extend-protocol PCoercion
   clojure.lang.IPersistentVector

@@ -15,6 +15,10 @@
     (is (= [1 2 3] (coerce [[1 0 0] [0 1 0] [0 0 1]] [1 2 3])))
     (is (= [[1 2] [3 4]] (coerce [1] [[1 2] [3 4]])))))
 
+(deftest test-slices
+  (testing "slices clojure vector"
+    (is (= [1 2 3] (get-row [[1 2 3] [4 5 6]] 0)))))
+
 (deftest test-multiply
   (testing "scalars"
     (is (== 6 (mul 3 2))))

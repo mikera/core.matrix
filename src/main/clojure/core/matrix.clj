@@ -33,6 +33,10 @@
   "Protocol to support matrix addition on an arbitrary matrix or vector"
   (madd [m a]))
 
+(defprotocol PMatrixSlices
+  "Protocol to support getting slices of a matrix"
+  (get-row [m i]))
+
 (defprotocol PMatrixDimensionInfo
   "Protocol to return standard dimension information about a matrix"
   (dimensionality [m])
@@ -97,7 +101,9 @@
 (defn coerce
   "Coerces a parameter to a format usable by a specific matrix implementation"
   ([m a]
-    (coerce-param m a)))
+    (or 
+      (coerce-param m a)
+      (coerce-param m (convert-to-nested-vectors a)))))
 
 (defn mul
   "Performs matrix multiplication with matrices, vectors or scalars"
@@ -117,4 +123,6 @@
 (extend-protocol PConversion
   java.lang.Object
     (convert-to-nested-vectors [m]
-      (error "Not yet implemented")))
+      (if (vector? m)
+        (mapv #(mget m %) (range (row-count m))))
+        (mapv #(convert-to-nested-vectors (get-row m %)) (range (column-count m)))))
