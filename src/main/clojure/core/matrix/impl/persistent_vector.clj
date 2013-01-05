@@ -40,7 +40,7 @@
 (extend-protocol PMatrixSlices
   clojure.lang.IPersistentVector
     (get-row [m i]
-      (nth m (long i)))
+      (.nth m (long i)))
     (get-column [m i]
       (let [i (long i)]
         (mapv #(nth % i) m))))
