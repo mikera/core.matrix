@@ -46,7 +46,7 @@
   clojure.lang.IPersistentVector
     (coerce-param [m param]
       (cond
-        (vector? param) param
+        (clojure.core/vector? param) param
         (sequential? param) (coerce-nested param)
         :default (error "Can't coerce to vector: " (class param)))))
 
