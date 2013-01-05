@@ -100,12 +100,13 @@
     (coerce-param m a)))
 
 (defn mul
-  "Performs matrix multiplication on matrices or vectors"
+  "Performs matrix multiplication with matrices, vectors or scalars"
   ([a] a)
   ([a b]
-    (if (number? b) 
-      (scale a b)
-      (matrix-multiply a b)))
+    (cond 
+      (number? b) (if (number? a) (* a b) (scale a b))
+      (number? a) (scale b a)
+      :else (matrix-multiply a b)))
   ([a b & more]
     (reduce mul (mul a b) more)))
 
