@@ -16,7 +16,11 @@
   ([f m]
     (if (number? (nth m 0))
       (mapv f m)
-      (mapv (partial mapmatrix f) m))))
+      (mapv (partial mapmatrix f) m)))
+  ([f m1 m2]
+    (if (number? (nth m1 0))
+      (mapv f m1 m2)
+      (mapv (partial mapmatrix f) m1 m2))))
 
 ;; =======================================================================
 ;; Implementation for standard Clojure persistent vectors used as matrices
@@ -41,6 +45,13 @@
     (get-column [m i]
       (let [i (long i)]
         (mapv #(nth % i) m))))
+
+(extend-protocol PMatrixAdd
+  clojure.lang.IPersistentVector
+    (matrix-add [m a]
+      (mapmatrix + m (coerce m a)))
+    (matrix-sub [m a]
+      (mapmatrix - m (coerce m a))))
 
 (extend-protocol PCoercion
   clojure.lang.IPersistentVector

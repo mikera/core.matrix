@@ -1,6 +1,7 @@
 (ns core.matrix.test-api
   (:use clojure.test)
   (:use core.matrix)
+  (:require [core.matrix.operators :as op])
   (:require core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
@@ -29,6 +30,18 @@
     (is (= [6.0] (mul 2 [3])))
     (is (= [[6.0]] (mul 2 [[3]])))
     (is (= [[6.0]] (mul [[2]] 3)))))
+
+(deftest test-addition
+  (testing "matrix addition"
+    (is (= [5.0] (add [3.0] [2.0])))
+    (is (= [[6.0]] (add [[2.0]] [[4.0]])))
+    (is (= [[[6.0]]] (add [[[2.0]]] [[[4.0]]])))))
+
+(deftest test-subtraction
+  (testing "matrix subtraction"
+    (is (= [1.0] (sub [3.0] [2.0])))
+    (is (= [[8.0]] (sub [[12.0]] [[4.0]])))
+    (is (= [[[8.0]]] (sub [[[12.0]]] [[[4.0]]])))))
 
 (deftest test-dimensions
   (testing "vector dimensions"

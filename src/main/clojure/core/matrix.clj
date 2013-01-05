@@ -30,8 +30,9 @@
   (scale [m a]))
 
 (defprotocol PMatrixAdd
-  "Protocol to support matrix addition on an arbitrary matrix or vector"
-  (madd [m a]))
+  "Protocol to support matrix addition on an arbitrary matrices of same size"
+  (matrix-add [m a])
+  (matrix-sub [m a]))
 
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of a matrix"
@@ -116,6 +117,22 @@
       :else (matrix-multiply a b)))
   ([a b & more]
     (reduce mul (mul a b) more)))
+
+(defn add
+  "Performs matrix addition on two matrices of same size"
+  ([a] a)
+  ([a b] 
+    (matrix-add a b))
+  ([a b & more]
+    (reduce matrix-add (matrix-add a b) more)))
+
+(defn sub
+  "Performs matrix subtraction on two matrices of same size"
+  ([a] a)
+  ([a b] 
+    (matrix-sub a b))
+  ([a b & more]
+    (reduce matrix-sub (matrix-sub a b) more)))
 
 
 ;; ============================================================
