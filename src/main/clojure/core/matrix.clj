@@ -28,9 +28,14 @@
   "Protocol to support matrix multiplication on an arbitrary matrix or vector"
   (mmultiply [m a]))
 
+(defprotocol PMatrixAdd
+  "Protocol to support matrix addition on an arbitrary matrix or vector"
+  (madd [m a]))
+
 (defprotocol PMatrixDimensionInfo
   "Protocol to return standard dimension information about a matrix"
   (dimensionality [m])
+  (vector? [m])
   (row-count [m])
   (column-count [m])
   (dimension-count [m x]))
@@ -42,7 +47,7 @@
 ;; =============================================================
 ;; Functions operating on standard protocols
 ;;
-;; API users should prefer these functions to using the protocols directly
+;; API users should probably prefer these functions to using the protocols directly?
 
 (defn matrix? 
   "Returns true if parameter is a valid matrix (any dimensionality)"
@@ -54,10 +59,25 @@
   ([m]
     (and (matrix? m) (== 2 (dimensionality m)))))
 
-(defn vector? 
-  "Returns true if parameter is a vector (1 dimensional matrix)"
+(defn matrix-1d? 
+  "Returns true if parameter is a 1 dimensional matrix"
   ([m]
     (and (matrix? m) (== 1 (dimensionality m)))))
+
+(defn row-matrix?
+  "Returns true if a matrix is a row-matrix"
+  ([m]
+    (== 1 (row-count m))))
+
+(defn square?
+  "Returns true if matrix is square (same number of rows and columns)"
+  ([m]
+    (== (row-count m) (column-count m))))
+
+(defn column-matrix?
+  "Returns true if a matrix is a column-matrix (same as vector?)"
+  ([m]
+    (== 1 (column-count m))))
 
 (defn all-dimensions
   "Returns a sequence of the dimension counts for a matrix"
