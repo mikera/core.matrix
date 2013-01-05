@@ -42,7 +42,7 @@
 (defprotocol PMatrixDimensionInfo
   "Protocol to return standard dimension information about a matrix"
   (dimensionality [m])
-  (vector? [m])
+  (is-vector? [m])
   (row-count [m])
   (column-count [m])
   (dimension-count [m x]))
@@ -50,6 +50,7 @@
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))
+
 
 ;; =============================================================
 ;; Functions operating on standard protocols
@@ -60,6 +61,11 @@
   "Returns true if parameter is a valid matrix (any dimensionality)"
   ([m]
     (satisfies? PMatrixDimensionInfo m)))
+
+(defn vector?
+  "Returns true if parameter is a vector (1 simensional column matrix or equivalent"
+  ([m]
+    (is-vector? m)))
 
 (defn matrix-2d? 
   "Returns true if parameter is a regular matrix (2 dimensional matrix)"

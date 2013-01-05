@@ -5,7 +5,6 @@
 ;; =======================================================================
 ;; utility functions for manipulating persistent vector matrices
 
-
 (defn coerce-nested 
   "Ensures a vector is fully coerced"
   ([v]
@@ -79,7 +78,7 @@
           (inc (dimensionality fst)))))
     (row-count [m]
       (count m))
-    (vector? [m]
+    (is-vector? [m]
       (number? (m 0)))
     (column-count [m]
       (let [x (m 0)] 
