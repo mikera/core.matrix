@@ -50,6 +50,12 @@
     (is (= [1.0] (normalise [2.0])))
     (is (= [-1.0 0.0] (normalise [-2.0 0.0])))))
 
+
+(deftest test-vector-ops
+  (testing "vector dot product"
+    (is (== 1.0 (dot [1.0] [1.0])))
+    (is (== -1.0 (dot [1 2] [1 -1])))))
+
 (deftest test-dimensions
   (testing "vector dimensions"
     (is (= 3 (row-count [1 2 3])))
