@@ -17,7 +17,12 @@
 
 (deftest test-multiply
   (testing "scalars"
-    (is (== 6 (mul 3 2)))))
+    (is (== 6 (mul 3 2))))
+  (testing "matrix scaling"
+    (is (= [6.0] (mul [3] 2)))
+    (is (= [6.0] (mul 2 [3])))
+    (is (= [[6.0]] (mul 2 [[3]])))
+    (is (= [[6.0]] (mul [[2]] 3)))))
 
 (deftest test-dimensions
   (testing "vector dimensions"

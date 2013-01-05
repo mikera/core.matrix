@@ -3,6 +3,22 @@
   (:refer-clojure :exclude [vector?]))
 
 ;; =======================================================================
+;; utility functions for manipulating persistent vector matrices
+
+
+(defn coerce-nested 
+  "Ensures a vector is fully coerced"
+  ([v]
+    (mapv #(if (number? %) % (coerce-nested %)) v)))
+
+(defn mapmatrix
+  "Maps a function over all components of a matrix. Like mapv but for matrices"
+  ([f m]
+    (if (number? (nth m 0))
+      (mapv f m)
+      (mapv (partial mapmatrix f) m))))
+
+;; =======================================================================
 ;; Implementation for standard Clojure persistent vectors used as matrices
 
 (extend-protocol PIndexedAccess
@@ -18,10 +34,6 @@
           (get-nd m next-indexes))
         (.nth m (int (first indexes))))))
 
-(defn coerce-nested 
-  "Ensures a vector is fully coerced"
-  ([v]
-    (mapv #(if (number? %) % (coerce-nested %)) v)))
 
 (extend-protocol PCoercion
   clojure.lang.IPersistentVector
@@ -33,9 +45,12 @@
 
 (extend-protocol PMatrixMultiply
   clojure.lang.IPersistentVector
-    (mmultiply [m a]
+    (matrix-multiply [m a]
       (let [a (coerce-param m a)]
-        (error "Not yet implemented"))))
+        (error "Not yet implemented")))
+    (scale [m a]
+      (let [a (double a)]
+        (mapmatrix (partial * a) m))))
 
 (extend-protocol PMatrixDimensionInfo
   clojure.lang.IPersistentVector
