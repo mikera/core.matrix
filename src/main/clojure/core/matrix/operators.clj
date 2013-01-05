@@ -2,6 +2,9 @@
   (:require [core.matrix :as m])
   (:refer-clojure :exclude [* - + /]))
 
+;; =====================================================================
+;; Mathematical operators defined for matrices and vectors as applicable
+
 (defn *
   "Matrix multiply operator"
   ([a] a)
