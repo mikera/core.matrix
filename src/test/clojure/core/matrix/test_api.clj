@@ -17,7 +17,8 @@
 
 (deftest test-slices
   (testing "slices clojure vector"
-    (is (= [1 2 3] (get-row [[1 2 3] [4 5 6]] 0)))))
+    (is (= [1 2 3] (get-row [[1 2 3] [4 5 6]] 0)))
+    (is (= [2 5] (get-column [[1 2 3] [4 5 6]] 1)))))
 
 (deftest test-multiply
   (testing "scalars"

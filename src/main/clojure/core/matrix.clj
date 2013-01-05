@@ -35,7 +35,8 @@
 
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of a matrix"
-  (get-row [m i]))
+  (get-row [m i])
+  (get-column [m i]))
 
 (defprotocol PMatrixDimensionInfo
   "Protocol to return standard dimension information about a matrix"
