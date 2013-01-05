@@ -1,10 +1,18 @@
 matrix-api
 ==========
 
-Experimental Matrix / Vector API for Clojure
+Experimental Matrix / Vector API for Clojure.
 
 The idea is to provide a common abstraction for matrix maths in Clojure, 
-independent of underlying implementations.
+independent of underlying implementations. If it works, there would be an option to 
+propose this library to be part of Clojure contrib as `core.matrix`.
+
+Key objectives:
+
+ - Provide a clear, standard API / abstraction for matrix and vector maths in Clojure
+ - Enable support for different underlying implementations
+ - Provide a base layer for other projects (e.g. Incanter)
+ - Maintain good performance where possible
 
 Example implementations we might want to support:
 
@@ -20,9 +28,9 @@ Example implementations we might want to support:
 
 ### Do not use yet!
 
-Contributions / ideas welcome however.
+This library is experimental / subject to rapid change.
 
-This is an open proof of concept.
+Contributions / ideas welcome however.
 
 see discussions:
  - https://github.com/tel/clatrix/issues/7
