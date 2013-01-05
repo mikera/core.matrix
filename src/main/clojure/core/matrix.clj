@@ -98,6 +98,14 @@
   ([m a]
     (coerce-param m a)))
 
+(defn mul
+  "Performs matrix multiplication on matrices or vectors"
+  ([a] a)
+  ([a b]
+    (mmultiply a b))
+  ([a b & more]
+    (reduce mmultiply (mmultiply a b) more)))
+
 
 ;; ============================================================
 ;; Fallback implementations for stuff we don't recognise
