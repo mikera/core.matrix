@@ -1,4 +1,4 @@
-(ns clatrix.api
+(ns core.matrix
   (:refer-clojure :exclude [vector?]))
 
 (defmacro error

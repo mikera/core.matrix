@@ -1,9 +1,9 @@
-(ns clatrix.impl.persistent-vector
-  (:use clatrix.api)
+(ns core.matrix.impl.persistent-vector
+  (:use core.matrix)
   (:refer-clojure :exclude [vector?]))
 
-;; ============================================================
-;; Implementation for standard Clojure vectors used as matrices
+;; =======================================================================
+;; Implementation for standard Clojure persistent vectors used as matrices
 
 (extend-protocol PIndexedAccess
   clojure.lang.IPersistentVector

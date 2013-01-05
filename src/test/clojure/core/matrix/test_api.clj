@@ -1,7 +1,7 @@
-(ns clatrix.test-api
+(ns core.matrix.test-api
   (:use clojure.test)
-  (:use clatrix.api)
-  (:require clatrix.impl.persistent-vector)
+  (:use core.matrix)
+  (:require core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
 (deftest test-indexed-access

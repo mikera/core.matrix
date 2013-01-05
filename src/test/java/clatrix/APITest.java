@@ -6,6 +6,6 @@ public class APITest extends NamespaceTest {
 	
 	@Override
 	public String namespace() {
-		return "clatrix.test-api";
+		return "core.matrix.test-api";
 	}
 }
