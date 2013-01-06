@@ -16,7 +16,9 @@
 
 (deftest test-addition
   (testing "scalars"
-    (is (== 5 (+ 3 2))))
+    (is (== 4 (+ 4)))
+    (is (== 5 (+ 3 2)))
+    (is (== 6 (+ 3 2 1))))
   (testing "matrix addition"
     (is (= [5.0] (+ [3.0] [2.0])))
     (is (= [[6.0 2.0]] (+ [[2.0 1.0]] [[4.0 1.0]])))
@@ -24,7 +26,8 @@
 
 (deftest test-subtraction
   (testing "scalars"
-    (is (== 5 (- 7 2))))
+    (is (== 5 (- 7 2)))
+    (is (== 6 (- 10 2 2))))
   (testing "matrix subtraction"
     (is (= [1.0] (- [3.0] [2.0])))
     (is (= [[8.0]] (- [[12.0]] [[4.0]])))
