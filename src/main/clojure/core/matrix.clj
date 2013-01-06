@@ -44,7 +44,31 @@
   "Protocol to support common matrix operations"
   (trace [m])
   (determinant [m])
-  (inverse [m]))
+  (inverse [m])
+  (negate [m])
+  (transpose [m]))
+
+(defprotocol PMathsFunctions
+  "Protocol to support mathematic functions applied element-wise to a matrix"
+  (exp [m])
+  (abs [m])
+  (acos [m])
+  (asin [m])
+  (atan [m])
+  (cbrt [m])
+  (ceil [m])
+  (cos [m])
+  (cosh [m])
+  (exp [m])
+  (floor [m])
+  (log [m])
+  (log10 [m])
+  (signum [m])
+  (sin [m])
+  (sinh [m])
+  (sqrt [m])
+  (tan [m])
+  (tanh [m]))
 
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of a matrix"
@@ -77,7 +101,7 @@
     (satisfies? PMatrixDimensionInfo m)))
 
 (defn vector?
-  "Returns true if parameter is a vector (1 simensional column matrix or equivalent"
+  "Returns true if parameter is a vector (1 dimensional column matrix or equivalent"
   ([m]
     (is-vector? m)))
 
@@ -194,3 +218,5 @@
       (if (vector? m)
         (mapv #(mget m %) (range (row-count m))))
         (mapv #(convert-to-nested-vectors (get-row m %)) (range (column-count m)))))
+
+
