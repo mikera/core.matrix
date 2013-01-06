@@ -162,6 +162,8 @@
 
 ;; ============================================================
 ;; Fallback implementations for stuff we don't recognise
+;;
+;; often we can implement in terms of simpler operations.
 
 (extend-protocol PMatrixOps
   java.lang.Object
