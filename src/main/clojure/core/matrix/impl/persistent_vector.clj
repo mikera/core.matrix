@@ -68,6 +68,7 @@
         (clojure.core/vector? param) param
         (sequential? param) (coerce-nested param)
         (instance? java.util.List param) (coerce-nested param)
+        (instance? java.lang.Iterable param) (coerce-nested param)
         :default (error "Can't coerce to vector: " (class param)))))
 
 (extend-protocol PMatrixMultiply
