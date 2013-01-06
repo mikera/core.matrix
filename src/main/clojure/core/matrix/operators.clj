@@ -21,7 +21,7 @@
       (clojure.core/+ a b)
       (m/add a b)))
   ([a b & more]
-    (reduce m/add (m/add a b) more)))
+    (reduce + (+ a b) more)))
 
 (defn -
   "Matrix subtraction operator"

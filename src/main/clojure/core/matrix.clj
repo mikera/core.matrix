@@ -155,6 +155,19 @@
 ;; ============================================================
 ;; Fallback implementations for stuff we don't recognise
 
+;; support indexed gets on any kind of java.util.List
+(extend-protocol PIndexedAccess
+  java.util.List
+    (get-1d [m x]
+      (.get m (int x)))
+    (get-2d [m x y]
+      (get-1d (.get m (int x)) y))
+    (get-nd [m indexes]
+      (if-let [next-indexes (next indexes)]
+        (let [m (.get m (int (first indexes)))]
+          (get-nd m next-indexes))
+        (.get m (int (first indexes))))))
+
 (extend-protocol PConversion
   java.lang.Object
     (convert-to-nested-vectors [m]
