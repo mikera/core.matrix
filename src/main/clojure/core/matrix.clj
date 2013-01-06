@@ -40,6 +40,12 @@
   (length-squared [a])
   (normalise [a]))
 
+(defprotocol PMatrixOps
+  "Protocol to support common matrix operations"
+  (trace [m])
+  (determinant [m])
+  (inverse [m]))
+
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of a matrix"
   (get-row [m i])
@@ -56,6 +62,8 @@
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))
+
+
 
 
 ;; =============================================================
@@ -154,6 +162,16 @@
 
 ;; ============================================================
 ;; Fallback implementations for stuff we don't recognise
+
+(extend-protocol PMatrixOps
+  java.lang.Object
+    (trace [m]
+      (if-not (square? m) (error "Can't compute trace of non-square matrix"))
+	    (let [dims (long (row-count m))]
+	      (loop [i 0 res 0.0]
+	        (if (>= i dims)
+	          res
+	          (recur (inc i) (+ res (double (get-2d m i i)))))))))
 
 ;; support indexed gets on any kind of java.util.List
 (extend-protocol PIndexedAccess

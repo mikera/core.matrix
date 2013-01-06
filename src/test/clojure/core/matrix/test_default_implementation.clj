@@ -12,4 +12,7 @@
       (.add al 2.0)
       (.add al 3.0)
       (is (= [1.0 2.0 3.0] (coerce [] al)))
-      (is (== 1.0 (mget al 0))))))
+      (is (== 1.0 (mget al 0)))))
+  
+  (testing "trace"
+    (is (== 5 (trace [[1 2] [3 4]])))))
