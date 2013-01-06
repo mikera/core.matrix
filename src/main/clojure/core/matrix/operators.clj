@@ -31,6 +31,6 @@
       (clojure.core/- a b)
       (m/sub a b)))
   ([a b & more]
-    (reduce m/sub (m/sub a b) more)))
+    (reduce - (- a b) more)))
 
 
