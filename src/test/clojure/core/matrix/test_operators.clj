@@ -25,7 +25,8 @@
 
 (deftest test-maths-ops
   (testing "scalars"
-    (is (== 1 (signum 2.5))))
+    (is (== 1 (signum 2.5)))
+    (is (== 1.0 (round 0.8))))
   (testing "matrices"
     (is (= [1.0] (signum [1.3])))
     (is (= [-1.0] (signum [-100])))))

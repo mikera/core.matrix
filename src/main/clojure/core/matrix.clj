@@ -48,6 +48,7 @@
   (negate [m])
   (transpose [m]))
 
+;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 (eval
   `(defprotocol PMathsFunctions
   "Protocol to support mathematic functions applied element-wise to a matrix"
@@ -69,9 +70,6 @@
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))
-
-
-
 
 ;; =============================================================
 ;; Functions operating on standard protocols
