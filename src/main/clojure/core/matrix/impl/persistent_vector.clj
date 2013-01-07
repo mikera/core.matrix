@@ -67,6 +67,7 @@
     (coerce-param [m param]
       (cond
         (clojure.core/vector? param) param
+        (number? param) (if (instance? Double param) param (double param)) 
         (sequential? param) (coerce-nested param)
         (instance? java.util.List param) (coerce-nested param)
         (instance? java.lang.Iterable param) (coerce-nested param)
