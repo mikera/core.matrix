@@ -1,5 +1,6 @@
 (ns core.matrix.impl.persistent-vector
   (:use core.matrix)
+  (:require [core.matrix.impl.mathsops :as mops])
   (:refer-clojure :exclude [vector?]))
 
 ;; =======================================================================
@@ -86,35 +87,10 @@
     `(~name [~'m]
             (mapmatrix (fn [x#] (double (~func (double x#)))) ~'m))))
 
-(def maths-ops
-  '[(exp Math/exp)
-	  (abs Math/abs)
-	  (acos Math/acos)
-	  (asin Math/asin)
-	  (atan Math/atan)
-	  (cbrt Math/cbrt)
-	  (ceil Math/ceil)
-	  (cos Math/cos)
-	  (cosh Math/cosh)
-	  (exp Math/exp)
-	  (floor Math/floor)
-	  (log Math/log)
-	  (log10 Math/log)
-	  (signum Math/signum)
-	  (sin Math/sin)
-	  (sinh Math/sinh)
-	  (sqrt Math/sqrt)
-	  (tan Math/tan)
-	  (tanh Math/tanh)])
-
 (eval
   `(extend-protocol PMathsFunctions
      clojure.lang.IPersistentVector
-       ~@(map build-maths-function maths-ops)
-     java.lang.Number
-       ~@(map (fn [[name func]]
-                `(~name [~'m] (double (~func (double ~'m)))))
-              maths-ops)))
+       ~@(map build-maths-function mops/maths-ops)))
 
 (extend-protocol PMatrixDimensionInfo
   clojure.lang.IPersistentVector

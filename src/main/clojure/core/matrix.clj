@@ -1,4 +1,5 @@
-(ns core.matrix)
+(ns core.matrix
+  (:require [core.matrix.impl.mathsops :as mops]))
 
 (defmacro error
   "Throws an error with the provided message(s)"
@@ -47,27 +48,10 @@
   (negate [m])
   (transpose [m]))
 
-(defprotocol PMathsFunctions
+(eval
+  `(defprotocol PMathsFunctions
   "Protocol to support mathematic functions applied element-wise to a matrix"
-  (exp [m])
-  (abs [m])
-  (acos [m])
-  (asin [m])
-  (atan [m])
-  (cbrt [m])
-  (ceil [m])
-  (cos [m])
-  (cosh [m])
-  (exp [m])
-  (floor [m])
-  (log [m])
-  (log10 [m])
-  (signum [m])
-  (sin [m])
-  (sinh [m])
-  (sqrt [m])
-  (tan [m])
-  (tanh [m]))
+  ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)))
 
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of a matrix"
@@ -212,5 +196,12 @@
       (if (vector? m)
         (mapv #(mget m %) (range (row-count m))))
         (mapv #(convert-to-nested-vectors (get-row m %)) (range (column-count m)))))
+
+(eval
+  `(extend-protocol PMathsFunctions
+     java.lang.Number
+       ~@(map (fn [[name func]]
+                `(~name [~'m] (double (~func (double ~'m)))))
+              mops/maths-ops)))
 
 
