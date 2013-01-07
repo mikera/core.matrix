@@ -84,7 +84,7 @@
 (defn build-maths-function 
   ([[name func]]
     `(~name [~'m]
-            (mapmatrix (fn [x#] (~func (double x#))) ~'m))))
+            (mapmatrix (fn [x#] (double (~func (double x#)))) ~'m))))
 
 (def maths-ops
   '[(exp Math/exp)
@@ -113,7 +113,7 @@
        ~@(map build-maths-function maths-ops)
      java.lang.Number
        ~@(map (fn [[name func]]
-                `(~name [~'m] (~func (double ~'m))))
+                `(~name [~'m] (double (~func (double ~'m)))))
               maths-ops)))
 
 (extend-protocol PMatrixDimensionInfo
