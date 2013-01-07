@@ -188,6 +188,17 @@
           (get-nd m next-indexes))
         (.get m (int (first indexes))))))
 
+(extend-protocol PMatrixMultiply
+  java.lang.Number
+    (matrix-multiply [m a]
+      (if (number? a) 
+        (* m a)
+        (scale a m)))
+    (scale [m a]
+      (if (number? a) 
+        (* m a)
+        (scale a m))))
+
 (extend-protocol PConversion
   java.lang.Object
     (convert-to-nested-vectors [m]
