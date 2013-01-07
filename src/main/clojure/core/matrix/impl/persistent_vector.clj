@@ -6,7 +6,7 @@
 ;; utility functions for manipulating persistent vector matrices
 
 (defn coerce-nested 
-  "Ensures a vector is fully coerced"
+  "Ensures a vector is fully coerced to nested persistent vectors"
   ([v]
     (mapv #(if (number? %) % (coerce-nested %)) v)))
 
@@ -79,6 +79,42 @@
     (scale [m a]
       (let [a (double a)]
         (mapmatrix (partial * a) m))))
+
+;; helper functin to build generic maths operations
+(defn build-maths-function 
+  ([[name func]]
+    `(~name [~'m]
+            (mapmatrix (fn [x#] (~func (double x#))) ~'m))))
+
+(def maths-ops
+  '[(exp Math/exp)
+	  (abs Math/abs)
+	  (acos Math/acos)
+	  (asin Math/asin)
+	  (atan Math/atan)
+	  (cbrt Math/cbrt)
+	  (ceil Math/ceil)
+	  (cos Math/cos)
+	  (cosh Math/cosh)
+	  (exp Math/exp)
+	  (floor Math/floor)
+	  (log Math/log)
+	  (log10 Math/log)
+	  (signum Math/signum)
+	  (sin Math/sin)
+	  (sinh Math/sinh)
+	  (sqrt Math/sqrt)
+	  (tan Math/tan)
+	  (tanh Math/tanh)])
+
+(eval
+  `(extend-protocol PMathsFunctions
+     clojure.lang.IPersistentVector
+       ~@(map build-maths-function maths-ops)
+     java.lang.Number
+       ~@(map (fn [[name func]]
+                `(~name [~'m] (~func (double ~'m))))
+              maths-ops)))
 
 (extend-protocol PMatrixDimensionInfo
   clojure.lang.IPersistentVector

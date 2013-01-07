@@ -14,15 +14,21 @@
     (is (= [[6.0]] (* 2 [[3]])))
     (is (= [[6.0]] (* [[2]] 3)))))
 
-(deftest test-addition
+(deftest test-multiply
   (testing "scalars"
-    (is (== 4 (+ 4)))
-    (is (== 5 (+ 3 2)))
-    (is (== 6 (+ 3 2 1))))
-  (testing "matrix addition"
-    (is (= [5.0] (+ [3.0] [2.0])))
-    (is (= [[6.0 2.0]] (+ [[2.0 1.0]] [[4.0 1.0]])))
-    (is (= [[[6.0] [5.0]]] (+ [[[2.0] [3.0]]] [[[4.0] [2.0]]])))))
+    (is (== 6 (* 3 2))))
+  (testing "matrix scaling"
+    (is (= [6.0] (* [3] 2)))
+    (is (= [6.0] (* 2 [3])))
+    (is (= [[6.0]] (* 2 [[3]])))
+    (is (= [[6.0]] (* [[2]] 3)))))
+
+(deftest test-maths-ops
+  (testing "scalars"
+    (is (== 1 (signum 2.5))))
+  (testing "matrices"
+    (is (= [1.0] (signum [1.3])))
+    (is (= [-1.0] (signum [-100])))))
 
 (deftest test-subtraction
   (testing "scalars"
