@@ -30,6 +30,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>criterium</groupId>
+			<artifactId>criterium</artifactId>
+			<version>0.3.1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<licenses>
