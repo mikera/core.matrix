@@ -11,7 +11,7 @@
     (mapv #(if (number? %) % (coerce-nested %)) v)))
 
 (defn mapmatrix
-  "Maps a function over all components of a matrix. Like mapv but for matrices"
+  "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices"
   ([f m]
     (if (number? (nth m 0))
       (mapv f m)
