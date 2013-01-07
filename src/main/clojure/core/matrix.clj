@@ -165,6 +165,7 @@
 ;;
 ;; often we can implement in terms of simpler operations.
 
+;; default implementation for matrix ops
 (extend-protocol PMatrixOps
   java.lang.Object
     (trace [m]
@@ -173,7 +174,9 @@
 	      (loop [i 0 res 0.0]
 	        (if (>= i dims)
 	          res
-	          (recur (inc i) (+ res (double (get-2d m i i)))))))))
+	          (recur (inc i) (+ res (double (get-2d m i i))))))))
+    (negate [m]
+      (scale m -1.0)))
 
 ;; support indexed gets on any kind of java.util.List
 (extend-protocol PIndexedAccess
@@ -188,6 +191,7 @@
           (get-nd m next-indexes))
         (.get m (int (first indexes))))))
 
+;; matrix multiply for scalars
 (extend-protocol PMatrixMultiply
   java.lang.Number
     (matrix-multiply [m a]
@@ -199,6 +203,7 @@
         (* m a)
         (scale a m))))
 
+;; attempt conversion to nested vectors
 (extend-protocol PConversion
   java.lang.Object
     (convert-to-nested-vectors [m]
@@ -206,6 +211,7 @@
         (mapv #(mget m %) (range (row-count m))))
         (mapv #(convert-to-nested-vectors (get-row m %)) (range (column-count m)))))
 
+;; define standard Java maths functions for numbers
 (eval
   `(extend-protocol PMathsFunctions
      java.lang.Number
