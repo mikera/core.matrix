@@ -67,10 +67,10 @@
 (deftest test-predicates
   (testing "clojure vector predicates"
     (is (matrix? [1 2]))
-    (is (vector? [1 2]))
+    (is (is-vector? [1 2]))
     (is (matrix? [[1 2] [3 4]]))
     (is (matrix-2d? [[1 2] [3 4]]))
-    (is (not (vector? [[1 2] [3 4]])))
+    (is (not (is-vector? [[1 2] [3 4]])))
     (is (not (matrix-2d? [[[1 2] [2 3]] [[3 4] [5 6]]]))))
   (testing "row and column predicates"
     (is (column-matrix? [1]))

@@ -1,6 +1,6 @@
 (ns core.matrix.operators
   (:require [core.matrix :as m])
-  (:refer-clojure :exclude [* - + /]))
+  (:refer-clojure :exclude [* - + / vector?]))
 
 ;; =====================================================================
 ;; Mathematical operators defined for matrices and vectors as applicable
@@ -32,5 +32,10 @@
       (m/sub a b)))
   ([a b & more]
     (reduce - (- a b) more)))
+
+(defn vector?
+  "Returns true if parameter is a vector (1 dimensional column matrix or equivalent"
+  ([m]
+    (m/is-vector? m)))
 
 

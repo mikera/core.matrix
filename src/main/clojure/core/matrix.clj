@@ -1,5 +1,4 @@
-(ns core.matrix
-  (:refer-clojure :exclude [vector?]))
+(ns core.matrix)
 
 (defmacro error
   "Throws an error with the provided message(s)"
@@ -100,11 +99,6 @@
   ([m]
     (satisfies? PMatrixDimensionInfo m)))
 
-(defn vector?
-  "Returns true if parameter is a vector (1 dimensional column matrix or equivalent"
-  ([m]
-    (is-vector? m)))
-
 (defn matrix-2d? 
   "Returns true if parameter is a regular matrix (2 dimensional matrix)"
   ([m]
@@ -126,7 +120,7 @@
     (== (row-count m) (column-count m))))
 
 (defn column-matrix?
-  "Returns true if a matrix is a column-matrix (same as vector?)"
+  "Returns true if a matrix is a column-matrix"
   ([m]
     (== 1 (column-count m))))
 
