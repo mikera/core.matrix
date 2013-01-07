@@ -29,7 +29,10 @@
     (is (== 1.0 (round 0.8))))
   (testing "matrices"
     (is (= [1.0] (signum [1.3])))
-    (is (= [-1.0] (signum [-100])))))
+    (is (= [-1.0] (signum [-100]))))
+  (testing "nested matrices"
+    (is (= [[[1.0]]] (exp [[[0.0]]])))
+    (is (= [[0.0]] (sin [[0.0]])))))
 
 (deftest test-subtraction
   (testing "scalars"

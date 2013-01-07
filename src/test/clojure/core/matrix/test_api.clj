@@ -12,7 +12,7 @@
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
 
 (deftest test-coerce
-  (testing "clojure vector"
+  (testing "clojure vector coercion"
     (is (== 1.0 (coerce [] 1))) 
     (is (= [1 2 3] (coerce [[1 0 0] [0 1 0] [0 0 1]] [1 2 3])))
     (is (= [[1 2] [3 4]] (coerce [1] [[1 2] [3 4]])))
@@ -22,7 +22,7 @@
   (testing "slices clojure vector"
     (is (= [1 2 3] (get-row [[1 2 3] [4 5 6]] 0)))
     (is (= [2 5] (get-column [[1 2 3] [4 5 6]] 1))))
-  (testing "get-nd on scalar"
+  (testing "get-nd on scalar with zero dimensions"
     (is (== 10.0 (get-nd 10.0 [])))))
 
 (deftest test-multiply
