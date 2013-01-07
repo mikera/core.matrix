@@ -161,9 +161,9 @@
 
 
 ;; ============================================================
-;; Fallback implementations for stuff we don't recognise
-;;
-;; often we can implement in terms of simpler operations.
+;; Fallback implementations 
+;; - default behaviour for java.lang.Number scalars
+;; - for stuff we don't recognise often we can implement in terms of simpler operations.
 
 ;; default implementation for matrix ops
 (extend-protocol PMatrixOps
@@ -180,6 +180,15 @@
 
 ;; support indexed gets on any kind of java.util.List
 (extend-protocol PIndexedAccess
+  java.lang.Number
+    (get-1d [m x]
+      (error "Scalar has zero dimensionality!"))
+    (get-2d [m x y]
+      (error "Scalar has zero dimensionality!"))
+    (get-nd [m indexes]
+      (if (seq indexes)
+        (error "Scalar has zero dimensionality!")
+        m))
   java.util.List
     (get-1d [m x]
       (.get m (int x)))
@@ -202,6 +211,14 @@
       (if (number? a) 
         (* m a)
         (scale a m))))
+
+;; matrix add for scalars
+(extend-protocol PMatrixAdd
+  java.lang.Number
+    (matrix-add [m a]
+      (if (number? a) (+ m a) (error "Can't add scalar number to a matrix")))
+    (matrix-sub [m a]
+      (if (number? a) (- m a) (error "Can't a matrix from a scalar number"))))
 
 ;; attempt conversion to nested vectors
 (extend-protocol PConversion

@@ -5,6 +5,8 @@
 
 ;; =======================================================================
 ;; utility functions for manipulating persistent vector matrices
+;;
+;; format assumed to be a nested vector of Numbers
 
 (defn coerce-nested 
   "Ensures a vector is fully coerced to nested persistent vectors"
@@ -67,7 +69,7 @@
     (coerce-param [m param]
       (cond
         (clojure.core/vector? param) param
-        (number? param) (if (instance? Double param) param (double param)) 
+        (number? param) param 
         (sequential? param) (coerce-nested param)
         (instance? java.util.List param) (coerce-nested param)
         (instance? java.lang.Iterable param) (coerce-nested param)
