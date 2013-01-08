@@ -160,6 +160,11 @@
   ([a b]
     (vector-dot a b)))
 
+(defn det
+  "Calculates the determinant of a matrix"
+  ([a]
+    (determinant a)))
+
 
 ;; ============================================================
 ;; Fallback implementations 

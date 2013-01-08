@@ -10,9 +10,24 @@
 
 ;; heirarchies for matrix types
 
+;; square matrices
 (derive ::square-matrix ::matrix)
 (derive ::diagonal-matrix ::square-matrix)
 (derive ::scalar-matrix ::diagonal-matrix)
 (derive ::identity-matrix ::scalar-matrix)
+(derive ::lower-triangular-matrix ::square-matrix)
+(derive ::upper-triangular-matrix ::square-matrix)
+
+;; sparse matrices
+(derive ::sparse-matrix ::matrix)
+
+;; specialised matrix sizes
+(derive ::matrix-3x3 ::square-matrix)
+(derive ::matrix-2x2 ::square-matrix)
+
+;; specialised 3d matrices
+(derive ::matrix-rotation-3d ::matrix-3x3) 
+
+
 
 
