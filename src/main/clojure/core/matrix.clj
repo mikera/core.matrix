@@ -1,4 +1,5 @@
 (ns core.matrix
+  (:require [core.matrix.multimethods :as mm])
   (:require [core.matrix.impl.mathsops :as mops]))
 
 (defmacro error
