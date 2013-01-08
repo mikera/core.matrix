@@ -1,6 +1,7 @@
 (ns core.matrix.impl.persistent-vector
   (:use core.matrix)
   (:require [core.matrix.impl.mathsops :as mops])
+  (:require [core.matrix.multimethods :as mm])
   (:refer-clojure :exclude [vector?]))
 
 ;; =======================================================================
@@ -78,8 +79,9 @@
 (extend-protocol PMatrixMultiply
   clojure.lang.IPersistentVector
     (matrix-multiply [m a]
-      (let [a (coerce-param m a)]
-        (error "Not yet implemented")))
+      (if (is-vector? a)
+        (error "not yet implemented")
+        (mm/mul m a)))
     (scale [m a]
       (let [a (double a)]
         (mapmatrix (partial * a) m))))

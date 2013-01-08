@@ -237,6 +237,12 @@
                 `(~name [~'m] (double (~func (double ~'m)))))
               mops/maths-ops)))
 
+;; =======================================================
+;; default multimethod implementations
+
+
+(defmethod mm/mul :default [x y]
+  (error "Don't know how to multiply " (class x) " with " (class y)))
 
 ;; =========================================================
 ;; Final setup
