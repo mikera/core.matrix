@@ -32,10 +32,3 @@
       (m/sub a b)))
   ([a b & more]
     (reduce - (- a b) more)))
-
-(defn vector?
-  "Returns true if parameter is a vector (1 dimensional column matrix or equivalent"
-  ([m]
-    (m/is-vector? m)))
-
-

@@ -1,4 +1,5 @@
 (ns core.matrix.impl.ndarray
+  (:require [core.matrix.protocols :as mp])
   (:use core.matrix)
   (:use core.matrix.utils)
   (:require [core.matrix.multimethods :as mm])
@@ -15,7 +16,7 @@
 (deftype NDArray 
   [^objects data
    ^longs dims]
-  PIndexedAccess
+  mp/PIndexedAccess
     (get-1d [m x]
       (aget data x))
     (get-2d [m x y]
@@ -30,7 +31,7 @@
                                 0)))]
         (aget data index))) 
     
-  PDimensionInfo
+  mp/PDimensionInfo
     (dimensionality [m]
       (count dims))
     (dimension-count [m x]

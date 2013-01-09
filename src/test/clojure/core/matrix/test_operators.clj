@@ -3,16 +3,7 @@
   (:use core.matrix)
   (:use core.matrix.operators)
   (:require core.matrix.impl.persistent-vector)
-  (:refer-clojure :exclude [vector? * - + /]))
-
-(deftest test-multiply
-  (testing "scalars"
-    (is (== 6 (* 3 2))))
-  (testing "matrix scaling"
-    (is (= [6.0] (* [3] 2)))
-    (is (= [6.0] (* 2 [3])))
-    (is (= [[6.0]] (* 2 [[3]])))
-    (is (= [[6.0]] (* [[2]] 3)))))
+  (:refer-clojure :exclude [* - + /]))
 
 (deftest test-multiply
   (testing "scalars"

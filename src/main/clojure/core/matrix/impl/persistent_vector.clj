@@ -1,9 +1,9 @@
 (ns core.matrix.impl.persistent-vector
+  (:require [core.matrix.protocols :as mp])
   (:use core.matrix)
   (:use core.matrix.utils)
   (:require [core.matrix.impl.mathsops :as mops])
-  (:require [core.matrix.multimethods :as mm])
-  (:refer-clojure :exclude [vector?]))
+  (:require [core.matrix.multimethods :as mm]))
 
 ;; =======================================================================
 ;; utility functions for manipulating persistent vector matrices
@@ -29,20 +29,20 @@
 ;; =======================================================================
 ;; Implementation for standard Clojure persistent vectors used as matrices
 
-(extend-protocol PIndexedAccess
+(extend-protocol mp/PIndexedAccess
   clojure.lang.IPersistentVector
     (get-1d [m x]
       (.nth m (int x)))
     (get-2d [m x y]
       (let [row (.nth m (int x))]
-        (get-1d row y)))
+        (mp/get-1d row y)))
     (get-nd [m indexes]
       (if-let [next-indexes (next indexes)]
         (let [m (.nth m (int (first indexes)))]
-          (get-nd m next-indexes))
+          (mp/get-nd m next-indexes))
         (.nth m (int (first indexes))))))
 
-(extend-protocol PMatrixSlices
+(extend-protocol mp/PMatrixSlices
   clojure.lang.IPersistentVector
     (get-row [m i]
       (.nth m (long i)))
@@ -50,23 +50,23 @@
       (let [i (long i)]
         (mapv #(nth % i) m))))
 
-(extend-protocol PMatrixAdd
+(extend-protocol mp/PMatrixAdd
   clojure.lang.IPersistentVector
     (matrix-add [m a]
       (mapmatrix + m (coerce m a)))
     (matrix-sub [m a]
       (mapmatrix - m (coerce m a))))
 
-(extend-protocol PVectorOps
+(extend-protocol mp/PVectorOps
   clojure.lang.IPersistentVector
     (vector-dot [a b]
       (reduce + 0 (map (fn [x y] (* x y)) a (coerce a b))))
     (length-squared [a]
       (reduce + (map #(* % %) a)))
     (normalise [a]
-      (scale a (/ 1.0 (Math/sqrt (length-squared a))))))
+      (mp/scale a (/ 1.0 (Math/sqrt (length-squared a))))))
 
-(extend-protocol PCoercion
+(extend-protocol mp/PCoercion
   clojure.lang.IPersistentVector
     (coerce-param [m param]
       (cond
@@ -77,10 +77,10 @@
         (instance? java.lang.Iterable param) (coerce-nested param)
         :default (error "Can't coerce to vector: " (class param)))))
 
-(extend-protocol PMatrixMultiply
+(extend-protocol mp/PMatrixMultiply
   clojure.lang.IPersistentVector
     (matrix-multiply [m a]
-      (if (is-vector? a)
+      (if (vector? a)
         (error "not yet implemented")
         (mm/mul m a)))
     (scale [m a]
@@ -94,11 +94,11 @@
             (mapmatrix (fn [x#] (double (~func (double x#)))) ~'m))))
 
 (eval
-  `(extend-protocol PMathsFunctions
+  `(extend-protocol mp/PMathsFunctions
      clojure.lang.IPersistentVector
        ~@(map build-maths-function mops/maths-ops)))
 
-(extend-protocol PDimensionInfo
+(extend-protocol mp/PDimensionInfo
   clojure.lang.IPersistentVector
     (dimensionality [m]
       (let [fst (.get m 0)]
@@ -117,5 +117,5 @@
     (dimension-count [m x]
       (if (== x 0)
         (count m)
-        (dimension-count (m 0) (dec x)))))
+        (mp/dimension-count (m 0) (dec x)))))
 

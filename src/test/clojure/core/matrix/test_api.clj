@@ -1,6 +1,7 @@
 (ns core.matrix.test-api
   (:use clojure.test)
   (:use core.matrix)
+  (:require [core.matrix.protocols :as mp])
   (:require [core.matrix.operators :as op])
   (:require core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
@@ -23,7 +24,8 @@
     (is (= [1 2 3] (get-row [[1 2 3] [4 5 6]] 0)))
     (is (= [2 5] (get-column [[1 2 3] [4 5 6]] 1))))
   (testing "get-nd on scalar with zero dimensions"
-    (is (== 10.0 (get-nd 10.0 [])))))
+    (is (== 10.0 (mget 10.0)))
+    (is (== 10.0 (mp/get-nd 10.0 [])))))
 
 (deftest test-multiply
   (testing "scalars"
@@ -71,10 +73,10 @@
 (deftest test-predicates
   (testing "clojure vector predicates"
     (is (matrix? [1 2]))
-    (is (is-vector? [1 2]))
+    (is (vec? [1 2]))
     (is (matrix? [[1 2] [3 4]]))
     (is (matrix-2d? [[1 2] [3 4]]))
-    (is (not (is-vector? [[1 2] [3 4]])))
+    (is (not (vec? [[1 2] [3 4]])))
     (is (not (matrix-2d? [[[1 2] [2 3]] [[3 4] [5 6]]]))))
   (testing "row and column predicates"
     (is (column-matrix? [1]))
