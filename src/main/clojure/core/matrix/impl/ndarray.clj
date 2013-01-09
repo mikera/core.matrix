@@ -3,7 +3,10 @@
   (:require [core.matrix.multimethods :as mm])
   (:refer-clojure :exclude [vector?]))
 
-;; TODO: implementations of protocols
+;; Lightweight support for n-dimensional arrays of arbitrary objects conforming to core.matrix API 
+;; 1D / 2D arrays of java.lang.Number can be safely used as vectors and matrices respectively
+
+;; TODO: implementations of protocols for ND arrays
 
 ;; =======================================================
 ;; N-dimensional array object
