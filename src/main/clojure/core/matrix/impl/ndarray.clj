@@ -13,8 +13,35 @@
 
 (deftype NDArray 
   [^objects data
-   ^ints dims]
-  )
+   ^longs dims]
+  PIndexedAccess
+    (get-1d [m x]
+      (aget data x))
+    (get-2d [m x y]
+      (let [ystride (long (aget dims 1))]
+        (aget data (+ (long x) (* ystride (long y))))))
+    (get-nd [m indexes]
+      (let [ndims (count dims)
+            index (areduce dims i result 0 
+                           (+ (long (aget indexes i)) 
+                              (if (> i 0) 
+                                (* result (aget dims (dec i)))
+                                0)))]
+        (aget data index))) 
+    
+  PDimensionInfo
+    (dimensionality [m]
+      (count dims))
+    (dimension-count [m x]
+      (aget dims x))
+    )
+
+(defn make-ndarray [dims]
+  "Construct an NDArray with the specified dimensions. All values are initially null."
+  (let [^longs dims (long-array dims)
+        asize (areduce dims i result 1 (* result (aget dims i)))]
+    (NDArray. (object-array asize)
+              dims)))
 
 
 ;; =======================================================
@@ -25,9 +52,9 @@
 
 (deftype NDView
   [source
-   ^ints dims
-   ^ints strides
-   ^int offset])
+   ^longs dims
+   ^longs strides
+   ^long offset])
 
 ;; =======================================================
 ;; N-dimensional view over an array
@@ -36,7 +63,7 @@
 
 (deftype NDArrayView
   [^objects data
-   ^ints dims
-   ^ints strides
-   ^int offset]
+   ^longs dims
+   ^longs strides
+   ^long offset]
   )

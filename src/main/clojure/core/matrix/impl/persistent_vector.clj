@@ -97,7 +97,7 @@
      clojure.lang.IPersistentVector
        ~@(map build-maths-function mops/maths-ops)))
 
-(extend-protocol PMatrixDimensionInfo
+(extend-protocol PDimensionInfo
   clojure.lang.IPersistentVector
     (dimensionality [m]
       (let [fst (.get m 0)]

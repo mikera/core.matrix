@@ -60,7 +60,7 @@
   (get-row [m i])
   (get-column [m i]))
 
-(defprotocol PMatrixDimensionInfo
+(defprotocol PDimensionInfo
   "Protocol to return standard dimension information about a matrix"
   (dimensionality [m])
   (is-vector? [m])
@@ -80,7 +80,7 @@
 (defn matrix? 
   "Returns true if parameter is a valid matrix (any dimensionality)"
   ([m]
-    (satisfies? PMatrixDimensionInfo m)))
+    (satisfies? PDimensionInfo m)))
 
 (defn matrix-2d? 
   "Returns true if parameter is a regular matrix (2 dimensional matrix)"
