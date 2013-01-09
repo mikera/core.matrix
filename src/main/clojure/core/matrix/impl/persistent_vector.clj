@@ -104,12 +104,10 @@
 (extend-protocol mp/PDimensionInfo
   clojure.lang.IPersistentVector
     (dimensionality [m]
-      (let [fst (.get m (int 0))]
-        (if (number? fst) 
-          1
-          (inc (dimensionality fst)))))
+      (let [fst (.nth m (int 0))]
+        (inc (mp/dimensionality fst))))
     (is-vector? [m]
-      (number? (m 0)))
+      (== 1 (mp/dimensionality m)))
     (dimension-count [m x]
       (if (== x 0)
         (count m)
