@@ -96,10 +96,15 @@
     `(~name [~'m]
             (mapmatrix (fn [x#] (double (~func (double x#)))) ~'m))))
 
+;; code generation for maths functions
+;; we generate both name and name! versions
 (eval
   `(extend-protocol mp/PMathsFunctions
      clojure.lang.IPersistentVector
-       ~@(map build-maths-function mops/maths-ops)))
+       ~@(map build-maths-function mops/maths-ops)
+       ~@(map (fn [[name func]]
+                `(~(symbol (str name "!")) [~'m]
+                   (error "Persistent vector matrices are not mutable!"))) mops/maths-ops)))
 
 (extend-protocol mp/PDimensionInfo
   clojure.lang.IPersistentVector
