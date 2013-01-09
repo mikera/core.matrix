@@ -6,4 +6,5 @@
   :test-paths ["src/test" "src/test/clojure"]
   :dependencies [[org.clojure/clojure "1.4.0"]]
   :profiles {:dev {:dependencies [[com.google.caliper/caliper "0.5-rc1"]
-                                  [net.mikera/cljunit "0.1.4"]]}})
+                                  [net.mikera/cljunit "0.1.4"]
+                                  [criterium/criterium "0.3.1"]]}})
