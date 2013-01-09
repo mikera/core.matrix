@@ -4,6 +4,20 @@
   (:require [core.matrix.multimethods :as mm])
   (:require [core.matrix.impl.mathsops :as mops]))
 
+;; ==================================================================================
+;; core.matrix API namespace
+;;
+;; This is the public API for core.matrix
+;;
+;; General handling of operations is as follows
+;; 1. user calls public AI function defined in core.matrix
+;; 2. core.matrix function delegates to a protocol for the appropriate function
+;;    with protocols as defined in the core.matrix.protocols namespace
+;; 3. The underlying matrix implementation implements the protocol to handle the API
+;;    function call
+;; 4. It's up to the implementation to decide what to do then
+;; ==================================================================================
+
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 

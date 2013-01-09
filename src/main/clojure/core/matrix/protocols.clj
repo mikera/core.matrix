@@ -5,10 +5,15 @@
 (set! *unchecked-math* true)
 
 
-;; =============================================================
+;; ================================================================
 ;; core.matrix API protocols
 ;;
 ;; Matrix implementations should extend these for full API support
+;;
+;; This namespace is intended for use by API implementers only
+;; core.matrix users should not access these protocols directly
+;;
+;; ================================================================
 
 ;; protocol arity overloads behave oddly, so different names used for simplicity
 ;; we provide fast paths for 1D and 2D access (common case)
