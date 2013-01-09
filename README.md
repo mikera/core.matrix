@@ -3,7 +3,7 @@ matrix-api
 
 Experimental N-dimensional Array / Matrix / Vector API for Clojure.
 
-Like NumPy, but for Clojure.
+Like NumPy, but with more parentheses.
 
 The idea is to provide a common abstraction for matrix maths in Clojure, 
 independent of underlying implementations. If it works, there would be an option to 
@@ -21,6 +21,7 @@ Example implementations we might want to support:
  - Parallel Colt
  - JBLAS / clatrix
  - Vectorz
+ - Apache Commons maths
  - javax.vecmath (part of Java3D)
  - Simple matrices constructed from Clojure vectors
  - EJML
