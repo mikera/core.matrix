@@ -1,4 +1,5 @@
 (ns core.matrix
+  (:use core.matrix.protocols)
   (:require [core.matrix.multimethods :as mm])
   (:require [core.matrix.impl.mathsops :as mops]))
 
