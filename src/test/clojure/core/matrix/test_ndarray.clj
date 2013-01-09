@@ -11,3 +11,4 @@
   (testing "getters"
     (is (= nil (mget (make-ndarray [3 3]) 2 2)))
     (is (= nil (mget (make-ndarray [3 3 3]) 1 1 1)))))
+
