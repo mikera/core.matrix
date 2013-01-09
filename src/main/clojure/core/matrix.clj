@@ -6,9 +6,9 @@
 
 
 ;; =============================================================
-;; API protocols
+;; core.matrix API protocols
 ;;
-;; Matrix implementations should extend all of these for full API support
+;; Matrix implementations should extend these for full API support
 
 ;; protocol arity overloads behave oddly, so different names used for simplicity
 ;; we provide fast paths for 1D and 2D access (common case)
@@ -69,6 +69,28 @@
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))
+
+;; =============================================================
+;; matrix construction functions
+
+(def ^:dynamic *matrix-implementation* nil)
+
+(defn matrix 
+  "Constructs a matrix from the given data. The data should be in the for of nested sequences."
+  ([data]
+    (error "not yet implemented")))
+
+(defn clone
+  "Constructs a clone of the matrix, using the same implementation. This function is intended to
+   allow safe defensive copying of matrices / vectors.
+
+   Guarantees that:
+   1. Mutating the returned matrix will not modify any other matrix (defensive copy)
+   2. The return matrix will be mutable, if the implementation supports mutable matrices.
+
+   A matrix implementation which only provides immutable matrices may safely return the same matrix."
+  ([m]
+    (error "not yet implemented")))
 
 ;; =============================================================
 ;; Functions operating on standard protocols

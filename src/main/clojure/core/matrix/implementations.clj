@@ -2,6 +2,8 @@
 
 ;; map of known implementation tags to namespace imports
 
+;; default implementation to use
+;; should be included with core.matrix for easy of use
 (def DEFAULT-IMPLEMENTATION :perstistent-vector)
 
 (def KNOWN-IMPLEMENTATIONS
