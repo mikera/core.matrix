@@ -16,6 +16,10 @@
 ;; 3. The underlying matrix implementation implements the protocol to handle the API
 ;;    function call
 ;; 4. It's up to the implementation to decide what to do then
+;; 5. If the implementation does not understand one or more parameters, then it is
+;;    expected to call the multimethod version in core.matrix.multimethods as this
+;;    will allow an alternative implementation to be found via multiple dispatch  
+;; 
 ;; ==================================================================================
 
 (set! *warn-on-reflection* true)
@@ -235,6 +239,7 @@
     (dimensionality [m] 0)
     (dimension-count [m i] 1))
 
+;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps
   java.lang.Object
     (trace [m]
