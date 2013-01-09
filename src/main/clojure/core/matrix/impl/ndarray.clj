@@ -23,7 +23,7 @@
     (get-nd [m indexes]
       (let [ndims (count dims)
             index (areduce dims i result 0 
-                           (+ (long (aget indexes i)) 
+                           (+ (long (nth indexes i)) 
                               (if (> i 0) 
                                 (* result (aget dims (dec i)))
                                 0)))]
