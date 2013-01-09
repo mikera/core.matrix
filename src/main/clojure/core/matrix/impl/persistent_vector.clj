@@ -1,5 +1,6 @@
 (ns core.matrix.impl.persistent-vector
   (:use core.matrix)
+  (:use core.matrix.utils)
   (:require [core.matrix.impl.mathsops :as mops])
   (:require [core.matrix.multimethods :as mm])
   (:refer-clojure :exclude [vector?]))

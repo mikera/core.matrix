@@ -1,5 +1,6 @@
 (ns core.matrix.impl.ndarray
   (:use core.matrix)
+  (:use core.matrix.utils)
   (:require [core.matrix.multimethods :as mm])
   (:refer-clojure :exclude [vector?]))
 

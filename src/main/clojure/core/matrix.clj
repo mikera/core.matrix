@@ -1,12 +1,8 @@
 (ns core.matrix
+  (:use core.matrix.utils)
   (:use core.matrix.protocols)
   (:require [core.matrix.multimethods :as mm])
   (:require [core.matrix.impl.mathsops :as mops]))
-
-(defmacro error
-  "Throws an error with the provided message(s)"
-  ([& vals]
-    `(throw (java.lang.RuntimeException. (str ~@vals)))))
 
 
 ;; =============================================================
@@ -15,6 +11,7 @@
 ;; Matrix implementations should extend all of these for full API support
 
 ;; protocol arity overloads behave oddly, so different names used for simplicity
+;; we provide fast paths for 1D and 2D access (common case)
 (defprotocol PIndexedAccess
   "Protocol for indexed read access to matrices and vectors."
   (get-1d [m x])
