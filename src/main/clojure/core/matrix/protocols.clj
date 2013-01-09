@@ -1,6 +1,10 @@
 (ns core.matrix.protocols
   (:require [core.matrix.impl.mathsops :as mops]))
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
+
 ;; =============================================================
 ;; core.matrix API protocols
 ;;

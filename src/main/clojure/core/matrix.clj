@@ -4,6 +4,9 @@
   (:require [core.matrix.multimethods :as mm])
   (:require [core.matrix.impl.mathsops :as mops]))
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
 ;; =============================================================
 ;; matrix construction functions
 

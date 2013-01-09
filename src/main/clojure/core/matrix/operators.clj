@@ -2,6 +2,9 @@
   (:require [core.matrix :as m])
   (:refer-clojure :exclude [* - + / vector?]))
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
 ;; =====================================================================
 ;; Mathematical operators defined for matrices and vectors as applicable
 

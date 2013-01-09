@@ -5,6 +5,9 @@
   (:require [core.matrix.impl.mathsops :as mops])
   (:require [core.matrix.multimethods :as mm]))
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
 ;; =======================================================================
 ;; utility functions for manipulating persistent vector matrices
 ;;
