@@ -235,23 +235,6 @@
     (dimensionality [m] 0)
     (dimension-count [m i] 1))
 
-
-(extend-protocol mp/PMatrixOps
-  java.lang.Object
-    (trace [m]
-      (if-not (square? m) (error "Can't compute trace of non-square matrix"))
-	    (let [dims (long (row-count m))]
-	      (loop [i 0 res 0.0]
-	        (if (>= i dims)
-	          res
-	          (recur (inc i) (+ res (double (mp/get-2d m i i))))))))
-    (negate [m]
-      (mp/scale m -1.0))
-    (length-squared [m]
-      (reduce #(+ %1 (mget m %2)) 0 (range (row-count m))))
-    (length [m]
-      (Math/sqrt (mp/length-squared m))))
-
 (extend-protocol mp/PMatrixOps
   java.lang.Object
     (trace [m]

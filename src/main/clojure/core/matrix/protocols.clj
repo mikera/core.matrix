@@ -54,6 +54,7 @@
   (transpose [m]))
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
+;; also generate in-place versions e.g. signum!
 (eval
   `(defprotocol PMathsFunctions
   "Protocol to support mathematic functions applied element-wise to a matrix"
