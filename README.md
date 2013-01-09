@@ -1,7 +1,9 @@
 matrix-api
 ==========
 
-Experimental Matrix / Vector API for Clojure.
+Experimental N-dimensional Array / Matrix / Vector API for Clojure.
+
+Like NumPy, but for Clojure.
 
 The idea is to provide a common abstraction for matrix maths in Clojure, 
 independent of underlying implementations. If it works, there would be an option to 
