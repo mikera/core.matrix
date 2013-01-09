@@ -78,15 +78,15 @@
 (defn matrix-2d? 
   "Returns true if parameter is a regular matrix (2 dimensional matrix)"
   ([m]
-    (and (matrix? m) (== 2 (mp/dimensionality m)))))
+    (== 2 (mp/dimensionality m))))
 
 (defn matrix-1d? 
   "Returns true if parameter is a 1 dimensional matrix"
   ([m]
-    (and (matrix? m) (== 1 (mp/dimensionality m)))))
+    (== 1 (mp/dimensionality m))))
 
 (defn row-matrix?
-  "Returns true if a matrix is a row-matrix"
+  "Returns true if a matrix is a row-matrix (i.e. has exactly one row)"
   ([m]
     (== 1 (mp/dimension-count m 0))))
 
@@ -96,7 +96,7 @@
     (== (mp/dimension-count m 0) (mp/dimension-count m 1))))
 
 (defn column-matrix?
-  "Returns true if a matrix is a column-matrix"
+  "Returns true if a matrix is a column-matrix (i.e. has exactly one column)"
   ([m]
     (== 1 (mp/dimension-count m 1))))
 
