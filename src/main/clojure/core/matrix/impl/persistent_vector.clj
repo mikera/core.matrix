@@ -105,15 +105,8 @@
         (if (number? fst) 
           1
           (inc (dimensionality fst)))))
-    (row-count [m]
-      (count m))
     (is-vector? [m]
       (number? (m 0)))
-    (column-count [m]
-      (let [x (m 0)] 
-        (if (number? x) 
-          1 
-          (count (m 0)))))
     (dimension-count [m x]
       (if (== x 0)
         (count m)

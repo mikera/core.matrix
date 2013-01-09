@@ -59,8 +59,6 @@
   "Protocol to return standard dimension information about a matrix"
   (dimensionality [m])
   (is-vector? [m])
-  (row-count [m])
-  (column-count [m])
   (dimension-count [m x]))
 
 (defprotocol PConversion

@@ -10,7 +10,9 @@
 (def ^:dynamic *matrix-implementation* nil)
 
 (defn matrix 
-  "Constructs a matrix from the given data. The data should be in the for of nested sequences."
+  "Constructs a matrix from the given data. The data should be in the form of nested sequences.
+
+   Uses the current matrix library as specified in *matrix-implementation*"
   ([data]
     (error "not yet implemented")))
 
@@ -34,9 +36,10 @@
 (defn matrix? 
   "Returns true if parameter is a valid matrix (any dimensionality)"
   ([m]
-    (satisfies? mp/PDimensionInfo m)))
+    (> (mp/dimensionality m) 0)))
 
 (defn vec?
+  "Returns true if the parameter is a vector"
   ([m]
     (mp/is-vector? m)))
 
@@ -48,12 +51,12 @@
 (defn row-count
   "Returns the number of rows in a matrix"
   ([m]
-    (mp/row-count m)))
+    (mp/dimension-count m 0)))
 
 (defn column-count
   "Returns the number of columns in a matrix"
   ([m]
-    (mp/column-count m)))
+    (mp/dimension-count m 1)))
 
 (defn matrix-2d? 
   "Returns true if parameter is a regular matrix (2 dimensional matrix)"
@@ -68,17 +71,17 @@
 (defn row-matrix?
   "Returns true if a matrix is a row-matrix"
   ([m]
-    (== 1 (mp/row-count m))))
+    (== 1 (mp/dimension-count m 0))))
 
 (defn square?
   "Returns true if matrix is square (same number of rows and columns)"
   ([m]
-    (== (mp/row-count m) (mp/column-count m))))
+    (== (mp/dimension-count m 0) (mp/dimension-count m 1))))
 
 (defn column-matrix?
   "Returns true if a matrix is a column-matrix"
   ([m]
-    (== 1 (mp/column-count m))))
+    (== 1 (mp/dimension-count m 1))))
 
 (defn all-dimensions
   "Returns a sequence of the dimension counts for a matrix"
@@ -190,6 +193,32 @@
 ;; - for stuff we don't recognise often we can implement in terms of simpler operations.
 
 ;; default implementation for matrix ops
+
+(extend-protocol mp/PIndexedAccess
+  java.util.List
+    (get-1d [m x]
+      (.get m (int x)))
+    (get-2d [m x y]
+      (mp/get-1d (.get m (int x)) y))
+    (get-nd [m indexes]
+      (if-let [s (seq indexes)] 
+        (mp/get-nd (.get m (int (first s))) (next s))
+        m))
+  java.lang.Object
+    (get-1d [m x] (error "Can't get-1d from an object that has no dimensions"))
+    (get-2d [m x y] (error "Can't get-2d from an object that has no dimensions"))
+    (get-nd [m indexes] 
+      (if (seq indexes)
+        (error "Can't get from an object that has no dimensions")
+        m)))
+
+;; support indexed gets on any kind of java.util.List
+(extend-protocol mp/PDimensionInfo
+  java.lang.Object
+    (dimensionality [m] 0)
+    (dimension-count [m i] 1))
+
+
 (extend-protocol mp/PMatrixOps
   java.lang.Object
     (trace [m]
@@ -206,27 +235,21 @@
     (length [m]
       (Math/sqrt (mp/length-squared m))))
 
-;; support indexed gets on any kind of java.util.List
-(extend-protocol mp/PIndexedAccess
-  java.lang.Number
-    (get-1d [m x]
-      (error "Scalar has zero dimensionality!"))
-    (get-2d [m x y]
-      (error "Scalar has zero dimensionality!"))
-    (get-nd [m indexes]
-      (if (seq indexes)
-        (error "Scalar has zero dimensionality!")
-        m))
-  java.util.List
-    (get-1d [m x]
-      (.get m (int x)))
-    (get-2d [m x y]
-      (mp/get-1d (.get m (int x)) y))
-    (get-nd [m indexes]
-      (if-let [next-indexes (next indexes)]
-        (let [m (.get m (int (first indexes)))]
-          (mp/get-nd m next-indexes))
-        (.get m (int (first indexes))))))
+(extend-protocol mp/PMatrixOps
+  java.lang.Object
+    (trace [m]
+      (if-not (square? m) (error "Can't compute trace of non-square matrix"))
+	    (let [dims (long (row-count m))]
+	      (loop [i 0 res 0.0]
+	        (if (>= i dims)
+	          res
+	          (recur (inc i) (+ res (double (mp/get-2d m i i))))))))
+    (negate [m]
+      (mp/scale m -1.0))
+    (length-squared [m]
+      (reduce #(+ %1 (mget m %2)) 0 (range (row-count m))))
+    (length [m]
+      (Math/sqrt (mp/length-squared m))))
 
 ;; matrix multiply for scalars
 (extend-protocol mp/PMatrixMultiply
@@ -254,7 +277,7 @@
     (convert-to-nested-vectors [m]
       (if (vector? m)
         (mapv #(mget m %) (range (row-count m))))
-        (mapv #(mp/convert-to-nested-vectors (mp/get-row m %)) (range (mp/column-count m)))))
+        (mapv #(mp/convert-to-nested-vectors (mp/get-row m %)) (range (column-count m)))))
 
 ;; define standard Java maths functions for numbers
 (eval
