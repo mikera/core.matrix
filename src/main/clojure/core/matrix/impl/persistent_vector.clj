@@ -104,7 +104,7 @@
 (extend-protocol mp/PDimensionInfo
   clojure.lang.IPersistentVector
     (dimensionality [m]
-      (let [fst (.get m 0)]
+      (let [fst (.get m (int 0))]
         (if (number? fst) 
           1
           (inc (dimensionality fst)))))
