@@ -68,7 +68,7 @@
     (mp/is-vector? m)))
 
 (defn scalar? 
-  "Returns true if the parameter is a scalar (has no dimensions)."
+  "Returns true if the parameter is a scalar (has zero dimensionality)."
   ([m]
     (mp/is-scalar? m)))
 
@@ -97,20 +97,24 @@
   ([m]
     (== 1 (mp/dimensionality m))))
 
+(defn square?
+  "Returns true if matrix is square (2D with same number of rows and columns)"
+  ([m]
+    (and
+      (== 2 (mp/dimensionality m))
+      (== (mp/dimension-count m 0) (mp/dimension-count m 1)))))
+
 (defn row-matrix?
   "Returns true if a matrix is a row-matrix (i.e. has exactly one row)"
   ([m]
-    (== 1 (mp/dimension-count m 0))))
-
-(defn square?
-  "Returns true if matrix is square (same number of rows and columns)"
-  ([m]
-    (== (mp/dimension-count m 0) (mp/dimension-count m 1))))
+    (and (>= (mp/dimensionality m) 1) 
+         (== 1 (mp/dimension-count m 0)))))
 
 (defn column-matrix?
   "Returns true if a matrix is a column-matrix (i.e. has exactly one column)"
   ([m]
-    (== 1 (mp/dimension-count m 1))))
+    (or (== (mp/dimensionality m) 1)
+        (== 1 (mp/dimension-count m 1)))))
 
 (defn all-dimensions
   "Returns a sequence of the dimension counts for a matrix"
@@ -121,9 +125,11 @@
 ;; matrix access
 
 (defn mget 
-  "Gets a value from a matrix at a specified position. Supports any number of matrix dimensions."
+  "Gets a scalar value from a matrix at a specified position. Supports any number of matrix dimensions."
   ([m]
-    m)
+    (if (mp/is-scalar? m) 
+      m 
+      (error "Can't mget from a non-scalar value without indexes")))
   ([m x]
     (mp/get-1d m x))
   ([m x y]
@@ -285,11 +291,12 @@
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false) 
-    (dimension-count [m i] 1)
+    (dimension-count [m i] (error "java.lang.Number has zero dimensionality, cannot get dimension count"))
   java.lang.Object
     (dimensionality [m] 0)
-    (is-vector? [m] false) 
-    (dimension-count [m i] 1))
+    (is-vector? [m] (== 1 (mp/dimensionality m))) 
+    (is-scalar? [m] (== 0 (mp/dimensionality m))) 
+    (dimension-count [m i] (error "Can't determine count of dimension " i " on object " (class m))))
 
 ;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps
