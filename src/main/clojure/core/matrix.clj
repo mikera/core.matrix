@@ -240,10 +240,18 @@
   ([f m & more]
     (TODO)))
 
+(defn emap! 
+  "Element-wise map over all elements of one or more matrices. 
+   Performs in-place modification of the first matrix argument."
+  ([f m]
+    (TODO))
+  ([f m & more]
+    (TODO)))
+
 ;; ============================================================
 ;; Fallback implementations 
 ;; - default behaviour for java.lang.Number scalars
-;; - for stuff we don't recognise often we can implement in terms of simpler operations.
+;; - for stuff we don't recognise often we can try to implement in terms of simpler operations.
 
 ;; default implementation for matrix ops
 
