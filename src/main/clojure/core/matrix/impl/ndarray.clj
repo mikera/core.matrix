@@ -11,7 +11,7 @@
 ;; Lightweight support for n-dimensional arrays of arbitrary objects conforming to core.matrix API 
 ;; 1D / 2D arrays of java.lang.Number can be safely used as vectors and matrices respectively
 
-;; TODO: implementations of protocols for ND arrays
+
 
 ;; =======================================================
 ;; N-dimensional array object
@@ -53,7 +53,10 @@
                               (if (> i 0) 
                                 (* result (aget dims (dec i)))
                                 0)))]
-        (aget data index v))))
+        (aget data index v)))
+    
+    ;; TODO: implementations of other protocols for ND arrays
+    )
 
 (defn make-ndarray [dims]
   "Construct an NDArray with the specified dimensions. All values are initially null."
@@ -85,4 +88,6 @@
    ^longs dims
    ^longs strides
    ^long offset]
+  
+   ;; TODO: implementations of other protocols for ND array views
   )
