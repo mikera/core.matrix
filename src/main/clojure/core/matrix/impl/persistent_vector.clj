@@ -118,3 +118,23 @@
         (count m)
         (mp/dimension-count (m 0) (dec x)))))
 
+(extend-protocol mp/PFunctionalOperations
+  clojure.lang.IPersistentVector
+    (element-seq [m]
+      (mapcat mp/element-seq m))
+    (element-map 
+      ([m f]
+        (mapmatrix f m))
+      ([m f & more]
+        (apply mapmatrix f m more)))
+    (element-map! 
+      ([m f]
+        (error "Persistent vector matrices are not mutable!"))
+      ([m f & more]
+        (error "Persistent vector matrices are not mutable!")))
+    (element-reduce 
+      ([m f]
+        (reduce f (mp/element-seq m))) 
+      ([m f init]
+        (reduce f init (mp/element-seq m)))))
+
