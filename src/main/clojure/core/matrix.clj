@@ -295,7 +295,7 @@
     (is-vector? [m] false) 
     (dimension-count [m i] (error "java.lang.Number has zero dimensionality, cannot get dimension count"))
   java.lang.Object
-    (dimensionality [m] 0)
+    (dimensionality [m] (error "Can't determine dimensionality: " (class m)))
     (is-vector? [m] (== 1 (mp/dimensionality m))) 
     (is-scalar? [m] (== 0 (mp/dimensionality m))) 
     (dimension-count [m i] (error "Can't determine count of dimension " i " on object " (class m))))

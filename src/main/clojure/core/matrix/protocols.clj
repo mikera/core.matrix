@@ -15,6 +15,16 @@
 ;;
 ;; ================================================================
 
+;; MANDATORY PROTOCOLS
+
+(defprotocol PDimensionInfo
+  "Protocol to return standard dimension information about a matrix. 
+   dimensionality and dimension-count are mandatory for implementations"
+  (dimensionality [m])
+  (is-scalar? [m])
+  (is-vector? [m])
+  (dimension-count [m x]))
+
 ;; protocol arity overloads behave oddly, so different names used for simplicity
 ;; we provide fast paths for 1D and 2D access (common case)
 (defprotocol PIndexedAccess
@@ -27,6 +37,16 @@
   "Protocol to coerce a parameter to a format usable by a specific implementation. It is 
    up to the implementation to determine what parameter types they support" 
   (coerce-param [m param]))
+
+(defprotocol PConversion
+  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
+  (convert-to-nested-vectors [m]))
+
+
+;; OPTTIONAL PROTOCOLS
+;; 
+;; implementations don't need to provide these since fallback default implementations
+;; are provided. However, they should consider doing so for performance reasons
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
@@ -66,17 +86,6 @@
   "Protocol to support getting slices of a matrix"
   (get-row [m i])
   (get-column [m i]))
-
-(defprotocol PDimensionInfo
-  "Protocol to return standard dimension information about a matrix"
-  (dimensionality [m])
-  (is-scalar? [m])
-  (is-vector? [m])
-  (dimension-count [m x]))
-
-(defprotocol PConversion
-  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
-  (convert-to-nested-vectors [m]))
 
 
 (defprotocol PFunctionalOperations
