@@ -127,12 +127,16 @@
     (element-map 
       ([m f]
         (mapmatrix f m))
-      ([m f more]
-        (apply mapmatrix f m more)))
+      ([m f a]
+        (mapmatrix f m a))
+      ([m f a more]
+        (apply mapmatrix f m a more)))
     (element-map! 
       ([m f]
         (error "Persistent vector matrices are not mutable!"))
-      ([m f more]
+      ([m f a]
+        (error "Persistent vector matrices are not mutable!"))
+      ([m f a more]
         (error "Persistent vector matrices are not mutable!")))
     (element-reduce 
       ([m f]

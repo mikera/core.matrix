@@ -256,16 +256,20 @@
    Returns a new matrix of the same type."
   ([f m]
     (mp/element-map m f))
-  ([f m & more]
-    (mp/element-map m f more)))
+  ([f m a]
+    (mp/element-map m f a))
+  ([f m a & more]
+    (mp/element-map m f a more)))
 
 (defn emap! 
   "Element-wise map over all elements of one or more matrices. 
    Performs in-place modification of the first matrix argument."
   ([f m]
     (mp/element-map! m f))
-  ([f m & more]
-    (mp/element-map! m f more)))
+  ([f m a]
+    (mp/element-map! m f a))
+  ([f m a & more]
+    (mp/element-map! m f a more)))
 
 ;; ============================================================
 ;; Fallback implementations 
@@ -366,12 +370,16 @@
     (element-map 
       ([m f]
         (list (f m)))
-      ([m f more]
-        (list (apply f m more))))
+      ([m f a]
+        (list (f m a)))
+      ([m f a more]
+        (list (apply f m a more))))
     (element-map! 
       ([m f]
         (error "java.lang.Number instance is not mutable!"))
-      ([m f more]
+      ([m f a]
+        (error "java.lang.Number instance is not mutable!"))
+      ([m f a more]
         (error "java.lang.Number instance is not mutable!")))
     (element-reduce 
       ([m f]

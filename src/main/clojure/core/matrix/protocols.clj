@@ -95,9 +95,11 @@
   ;; note that protocols don't like variadic args, so we convert to regular args
   (element-seq [m])
   (element-map [m f]
-               [m f more])
+               [m f a]
+               [m f a more])
   (element-map! [m f]
-                [m f more])
+                [m f a]
+                [m f a more])
   (element-reduce [m f] [m f init]))
 
 (defprotocol PConversion
