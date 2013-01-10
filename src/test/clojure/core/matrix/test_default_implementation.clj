@@ -16,3 +16,8 @@
   
   (testing "trace"
     (is (== 5 (trace [[1 2] [3 4]])))))
+
+(deftest test-functional-op
+  (testing "map"
+    (is (= [1 2] (emap inc [0 1])))
+    (is (= [[2.0 0.0] [0.0 2.0]] (emap #(* 2 %) [[1.0 0.0] [0.0 1.0]])))))

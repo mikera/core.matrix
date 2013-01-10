@@ -234,30 +234,30 @@
 (defn eseq
   "Returns all elements of a matrix as a sequence in row-major order"
   ([m]
-    (TODO)))
+    (mp/element-seq m)))
 
 (defn ereduce 
   "Element-wise reduce on all elements of a matrix."
   ([f m]
-    (TODO))
+    (mp/element-reduce m f))
   ([f init m]
-    (TODO)))
+    (mp/element-reduce m f init)))
     
 (defn emap 
   "Element-wise map over all elements of one or more matrices. 
    Returns a new matrix of the same type."
   ([f m]
-    (TODO))
+    (mp/element-map m f))
   ([f m & more]
-    (TODO)))
+    (apply mp/element-map m f more)))
 
 (defn emap! 
   "Element-wise map over all elements of one or more matrices. 
    Performs in-place modification of the first matrix argument."
   ([f m]
-    (TODO))
+    (mp/element-map! m f))
   ([f m & more]
-    (TODO)))
+    (apply mp/element-map! m f more)))
 
 ;; ============================================================
 ;; Fallback implementations 
