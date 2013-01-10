@@ -82,7 +82,7 @@
   "Protocol to allow functional-style operations on matrix elements"
   (element-seq [m])
   (element-map [m f]
-               [m f & more])
+               [m f more])
   (element-map! [m f]
-                [m f & more])
+                [m f more])
   (element-reduce [m f] [m f init]))

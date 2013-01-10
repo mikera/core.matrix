@@ -249,7 +249,7 @@
   ([f m]
     (mp/element-map m f))
   ([f m & more]
-    (apply mp/element-map m f more)))
+    (mp/element-map m f more)))
 
 (defn emap! 
   "Element-wise map over all elements of one or more matrices. 
@@ -257,7 +257,7 @@
   ([f m]
     (mp/element-map! m f))
   ([f m & more]
-    (apply mp/element-map! m f more)))
+    (mp/element-map! m f more)))
 
 ;; ============================================================
 ;; Fallback implementations 
@@ -343,12 +343,12 @@
     (element-map 
       ([m f]
         (list (f m)))
-      ([m f & more]
+      ([m f more]
         (list (apply f m more))))
     (element-map! 
       ([m f]
         (error "java.lang.Number instance is not mutable!"))
-      ([m f & more]
+      ([m f more]
         (error "java.lang.Number instance is not mutable!")))
     (element-reduce 
       ([m f]
