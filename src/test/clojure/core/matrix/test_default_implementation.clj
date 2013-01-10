@@ -20,4 +20,6 @@
 (deftest test-functional-op
   (testing "map"
     (is (= [1 2] (emap inc [0 1])))
+    (is (= [1 2] (emap + [0 1] [1 1])))
+    (is (= [3 5] (emap + [0 1] [1 1] [2 3])))
     (is (= [[2.0 0.0] [0.0 2.0]] (emap #(* 2 %) [[1.0 0.0] [0.0 1.0]])))))

@@ -68,6 +68,7 @@
     (is (= [] (all-dimensions 1.0))))
   (testing "functional operations"
     (is (= [2.0] (emap inc 1.0)))
+    (is (= [10.0] (emap + 4.0 6.0)))
     (is (= [10.0] (emap + 1.0 2.0 3.0 4.0)))
     (is (== 10.0 (ereduce #(+ %1 %2) 10.0)))
     (is (== 3.0 (ereduce + 1.0 2.0)))

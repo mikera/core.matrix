@@ -27,7 +27,11 @@
   ([f m1 m2]
     (if (number? (nth m1 0))
       (mapv f m1 m2)
-      (mapv (partial mapmatrix f) m1 m2))))
+      (mapv (partial mapmatrix f) m1 m2)))
+  ([f m1 m2 & more]
+    (if (number? (nth m1 0))
+      (apply mapv f m1 m2 more)
+      (apply mapv (partial mapmatrix f) m1 m2 more))))
 
 ;; =======================================================================
 ;; Implementation for standard Clojure persistent vectors used as matrices
