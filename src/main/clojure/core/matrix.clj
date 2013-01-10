@@ -67,8 +67,13 @@
   ([m]
     (mp/is-vector? m)))
 
+(defn scalar? 
+  "Returns true if the parameter is a scalar (has no dimensions)."
+  ([m]
+    (mp/is-scalar? m)))
+
 (defn dimensionality
-  "Returns the dimensionality (number of array dimensions) of a matrix"
+  "Returns the dimensionality (number of array dimensions) of a matrix / array"
   ([m]
     (mp/dimensionality m)))
 
@@ -270,13 +275,20 @@
     (get-2d [m x y] (error "Can't get-2d from an object that has no dimensions"))
     (get-nd [m indexes] 
       (if (seq indexes)
-        (error "Can't get from an object that has no dimensions")
-        m)))
+        (error "Can't determine dimensionality of:" (class m))
+        (if (scalar? m) m
+          (error "Not a scalar, cannot do zero dimensional get")))))
 
 ;; support indexed gets on any kind of java.util.List
 (extend-protocol mp/PDimensionInfo
+  java.lang.Number
+    (dimensionality [m] 0)
+    (is-scalar? [m] true)
+    (is-vector? [m] false) 
+    (dimension-count [m i] 1)
   java.lang.Object
     (dimensionality [m] 0)
+    (is-vector? [m] false) 
     (dimension-count [m i] 1))
 
 ;; generic versions of matrix ops
