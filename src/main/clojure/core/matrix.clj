@@ -168,6 +168,14 @@
   ([a b & more]
     (reduce mul (mul a b) more)))
 
+(defn emul
+  "Performs element-wise matrix multiplication. Matrices must be same size."
+  ([a] a)
+  ([a b]
+    (mp/element-multiply a b))
+  ([a b & more]
+    (reduce mp/element-multiply (mp/element-multiply a b) more)))
+
 (defn add
   "Performs matrix addition on two matrices of same size"
   ([a] a)
@@ -333,6 +341,8 @@
         (* a m)
         (mp/scale a m)))
   java.lang.Object
+    (element-multiply [m a]
+      (emap clojure.core/* m a))
     (scale [m a]
       (emap (partial * a) m))
     (pre-scale [m a]
