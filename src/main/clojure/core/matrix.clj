@@ -372,6 +372,13 @@
      java.lang.Number
        ~@(map (fn [[name func]]
                 `(~name [~'m] (double (~func (double ~'m)))))
+              mops/maths-ops)
+     java.lang.Object
+       ~@(map (fn [[name func]]
+                `(~name [~'m] (emap #(double (~func (double %))) ~'m)))
+              mops/maths-ops)
+       ~@(map (fn [[name func]]
+                `(~(symbol (str name "!")) [~'m] (emap! #(double (~func (double %))) ~'m)))
               mops/maths-ops)))
 
 ;; =======================================================
