@@ -53,9 +53,9 @@
 (defprotocol PIndexedSetting
   "Protocol for indexed setter access to matrices and vectors. 
    Must be supported for any mutable matrix type."
-  (set-1d [m x])
-  (set-2d [m x y])
-  (set-nd [m indexes]))
+  (set-1d [m x v])
+  (set-2d [m x y v])
+  (set-nd [m indexes v]))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"

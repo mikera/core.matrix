@@ -39,7 +39,21 @@
       (count dims))
     (dimension-count [m x]
       (aget dims x))
-    )
+    
+  mp/PIndexedSetting
+    (set-1d [m x v]
+      (aset data x v))
+    (set-2d [m x y v]
+      (let [ystride (long (aget dims 1))]
+        (aset data (+ (long x) (* ystride (long y))) v)))
+    (set-nd [m indexes v]
+      (let [ndims (count dims)
+            index (areduce dims i result 0 
+                           (+ (long (nth indexes i)) 
+                              (if (> i 0) 
+                                (* result (aget dims (dec i)))
+                                0)))]
+        (aget data index v))))
 
 (defn make-ndarray [dims]
   "Construct an NDArray with the specified dimensions. All values are initially null."
