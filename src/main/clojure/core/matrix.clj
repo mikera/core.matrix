@@ -226,10 +226,18 @@
     (TODO)))
 
 (defn ereduce 
-  "Element-wise reduce on all elements of a matrix"
+  "Element-wise reduce on all elements of a matrix."
   ([f m]
     (TODO))
   ([f init m]
+    (TODO)))
+    
+(defn emap 
+  "Element-wise map over all elements of one or more matrices. 
+   Returns a new matrix of the same type."
+  ([f m]
+    (TODO))
+  ([f m & more]
     (TODO)))
 
 ;; ============================================================
