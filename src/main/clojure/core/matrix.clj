@@ -335,6 +335,27 @@
     (matrix-sub [m a]
       (if (number? a) (- m a) (error "Can't a matrix from a scalar number"))))
 
+;; functional operations
+(extend-protocol mp/PFunctionalOperations
+  java.lang.Number
+    (element-seq [m]
+      (list m))
+    (element-map 
+      ([m f]
+        (list (f m)))
+      ([m f & more]
+        (list (apply f m more))))
+    (element-map! 
+      ([m f]
+        (error "java.lang.Number instance is not mutable!"))
+      ([m f & more]
+        (error "java.lang.Number instance is not mutable!")))
+    (element-reduce 
+      ([m f]
+        m) 
+      ([m f init]
+        (f init m))))
+
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
   java.lang.Object

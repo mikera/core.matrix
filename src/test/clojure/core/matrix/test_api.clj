@@ -64,7 +64,12 @@
   (testing "scalar dimensionality"
     (is (== 0 (dimensionality 1.0)))
     (is (== 1.0 (mget 1.0)))
-    (is (= [] (all-dimensions 1.0)))))
+    (is (= [] (all-dimensions 1.0))))
+  (testing "functional operations"
+    (is (= [2.0] (emap inc 1.0)))
+    (is (== 10.0 (ereduce #(+ %1 %2) 10.0)))
+    (is (== 3.0 (ereduce + 1.0 2.0)))
+    (is (= [1.0] (eseq 1.0)))))
 
 (deftest test-vector-ops
   (testing "vector dot product"
