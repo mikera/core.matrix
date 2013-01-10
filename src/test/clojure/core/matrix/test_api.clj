@@ -65,7 +65,7 @@
   (testing "scalar dimensionality"
     (is (== 0 (dimensionality 1.0)))
     (is (== 1.0 (mget 1.0)))
-    (is (= [] (all-dimensions 1.0))))
+    (is (= [] (dimensions 1.0))))
   (testing "functional operations"
     (is (= [2.0] (emap inc 1.0)))
     (is (= [10.0] (emap + 4.0 6.0)))
@@ -84,8 +84,8 @@
     (is (= 3 (row-count [1 2 3])))
     (is (= 3 (row-count [[1 2] [2 3] [3 4]])))
     (is (= 2 (column-count [[1 2] [2 3] [3 4]])))
-    (is (= [3 2] (all-dimensions [[1 2] [2 3] [3 4]])))
-    (is (= [2 2 2] (all-dimensions [[[1 2] [2 3]] [[3 4] [5 6]]])))))
+    (is (= [3 2] (dimensions [[1 2] [2 3] [3 4]])))
+    (is (= [2 2 2] (dimensions [[[1 2] [2 3]] [[3 4] [5 6]]])))))
 
 (deftest test-predicates
   (testing "clojure vector predicates"

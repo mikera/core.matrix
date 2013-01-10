@@ -49,11 +49,6 @@
   ([m]
     (error "not yet implemented")))
 
-;; =============================================================
-;; Functions operating on standard protocols
-;;
-;; API users should probably prefer these functions to using the protocols directly?
-
 ;; ==============================
 ;; Matrix predicates and querying
 
@@ -116,7 +111,7 @@
     (or (== (mp/dimensionality m) 1)
         (== 1 (mp/dimension-count m 1)))))
 
-(defn all-dimensions
+(defn dimensions
   "Returns a sequence of the dimension counts for a matrix"
   ([m]
     (for [i (range (mp/dimensionality m))] (mp/dimension-count m i))))
