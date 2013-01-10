@@ -15,7 +15,11 @@
 ;;
 ;; ================================================================
 
+;; ===================================================================================
 ;; MANDATORY PROTOCOLS
+;;
+;; A compliant core.matrix implementation must implement these. 
+;; Otherwise things will fail.
 
 (defprotocol PDimensionInfo
   "Protocol to return standard dimension information about a matrix. 
@@ -35,14 +39,11 @@
 
 (defprotocol PCoercion
   "Protocol to coerce a parameter to a format usable by a specific implementation. It is 
-   up to the implementation to determine what parameter types they support" 
+   up to the implementation to determine what parameter types they support. If the
+   implementation is unable to perform coercion, it may return nil." 
   (coerce-param [m param]))
 
-(defprotocol PConversion
-  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
-  (convert-to-nested-vectors [m]))
-
-
+;; ===================================================================================
 ;; OPTTIONAL PROTOCOLS
 ;; 
 ;; implementations don't need to provide these since fallback default implementations
@@ -97,3 +98,7 @@
   (element-map! [m f]
                 [m f more])
   (element-reduce [m f] [m f init]))
+
+(defprotocol PConversion
+  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
+  (convert-to-nested-vectors [m]))
