@@ -112,7 +112,8 @@
         (== 1 (mp/dimension-count m 1)))))
 
 (defn dimensions
-  "Returns a sequence of the dimension counts for a matrix"
+  "Returns all the dimension sizes for a matrix, as a sequable result.
+   Result may be a sequence or Java array."
   ([m]
     (for [i (range (mp/dimensionality m))] (mp/dimension-count m i))))
 
@@ -131,6 +132,20 @@
     (mp/get-2d m x y))
   ([m x y & more]
     (mp/get-nd m (cons x (cons y more)))))
+
+(defn mset 
+  "Sets a scalar value in a matrix at a specified position. Supports any number of matrix dimensions.
+   Will throw an error if the matrix is not mutable."
+  ([m]
+    (if (mp/is-scalar? m) 
+      (error "Can't set a scalar value!") 
+      (error "Can't mset a non-scalar value without indexes")))
+  ([m x]
+    (mp/set-1d m x))
+  ([m x y]
+    (mp/set-2d m x y))
+  ([m x y & more]
+    (mp/set-nd m (cons x (cons y more)))))
 
 (defn get-row
   "Gets a row of a 2D matrix"
