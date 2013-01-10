@@ -313,7 +313,7 @@
     (negate [m]
       (mp/scale m -1.0))
     (length-squared [m]
-      (reduce #(+ %1 (mget m %2)) 0 (range (row-count m))))
+      (ereduce #(+ %1 (* %2 *2)) 0.0 m))
     (length [m]
       (Math/sqrt (mp/length-squared m))))
 
@@ -323,11 +323,20 @@
     (matrix-multiply [m a]
       (if (number? a) 
         (* m a)
-        (mp/scale a m)))
+        (mp/pre-scale a m)))
     (scale [m a]
       (if (number? a) 
         (* m a)
-        (mp/scale a m))))
+        (mp/pre-scale a m)))
+    (pre-scale [m a]
+      (if (number? a) 
+        (* a m)
+        (mp/scale a m)))
+  java.lang.Object
+    (scale [m a]
+      (emap (partial * a) m))
+    (pre-scale [m a]
+      (emap (partial * a) m)))
 
 ;; matrix add for scalars
 (extend-protocol mp/PMatrixAdd
@@ -360,6 +369,10 @@
 
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
+  java.lang.Number
+    (convert-to-nested-vectors [m]
+      ;; we accept a scalar as a "nested vector" for these purposes?
+      m) 
   java.lang.Object
     (convert-to-nested-vectors [m]
       (if (vector? m)
