@@ -56,6 +56,15 @@
     (is (= [1.0] (normalise [2.0])))
     (is (= [-1.0 0.0] (normalise [-2.0 0.0])))))
 
+(deftest test-scalar
+  (testing "numbers as scalars"
+    (is (scalar? 1))
+    (is (scalar? 1.0))
+    (is (scalar? 1/7)))
+  (testing "scalar dimensionality"
+    (is (== 0 (dimensionality 1.0)))
+    (is (== 1.0 (mget 1.0)))
+    (is (= [] (all-dimensions 1.0)))))
 
 (deftest test-vector-ops
   (testing "vector dot product"
