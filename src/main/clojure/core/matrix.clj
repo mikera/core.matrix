@@ -54,6 +54,9 @@
 ;;
 ;; API users should probably prefer these functions to using the protocols directly?
 
+;; ==============================
+;; Matrix predicates and querying
+
 (defn matrix? 
   "Returns true if parameter is a valid matrix (any dimensionality)"
   ([m]
@@ -109,6 +112,9 @@
   ([m]
     (for [i (range (mp/dimensionality m))] (mp/dimension-count m i))))
 
+;; =======================================
+;; matrix access
+
 (defn mget 
   "Gets a value from a matrix at a specified position. Supports any number of matrix dimensions."
   ([m]
@@ -136,6 +142,9 @@
     (or 
       (mp/coerce-param m a)
       (mp/coerce-param m (mp/convert-to-nested-vectors a)))))
+
+;; ======================================
+;; matrix maths / operations
 
 (defn mul
   "Performs matrix multiplication with matrices, vectors or scalars"
@@ -207,6 +216,21 @@
            `(defn ~name 
               ([~'m]
                 (~(symbol "core.matrix.protocols" (str name)) ~'m)))) mops/maths-ops)))
+
+;; ====================================
+;; functional operations
+
+(defn eseq
+  "Returns all elements of a matrix as a sequence in row-major order"
+  ([m]
+    (TODO)))
+
+(defn ereduce 
+  "Element-wise reduce on all elements of a matrix"
+  ([f m]
+    (TODO))
+  ([f init m]
+    (TODO)))
 
 ;; ============================================================
 ;; Fallback implementations 
