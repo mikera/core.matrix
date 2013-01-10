@@ -262,7 +262,9 @@
 ;; ============================================================
 ;; Fallback implementations 
 ;; - default behaviour for java.lang.Number scalars
-;; - for stuff we don't recognise often we can try to implement in terms of simpler operations.
+;; - for stuff we don't recognise (java.lang.Object) we should try to 
+;;   implement in terms of simpler operations, on assumption that
+;;   we have fallen through to the default implementation
 
 ;; default implementation for matrix ops
 
@@ -277,8 +279,8 @@
         (mp/get-nd (.get m (int (first s))) (next s))
         m))
   java.lang.Object
-    (get-1d [m x] (error "Can't get-1d from an object that has no dimensions"))
-    (get-2d [m x y] (error "Can't get-2d from an object that has no dimensions"))
+    (get-1d [m x] (mp/get-nd m [x]))
+    (get-2d [m x y] (mp/get-nd m [x y]))
     (get-nd [m indexes] 
       (if (seq indexes)
         (error "Can't determine dimensionality of:" (class m))
