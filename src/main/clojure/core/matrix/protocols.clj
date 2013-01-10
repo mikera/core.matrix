@@ -31,7 +31,8 @@
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
   (matrix-multiply [m a])
-  (scale [m a]))
+  (scale [m a])
+  (pre-scale [m a]))
 
 (defprotocol PMatrixAdd
   "Protocol to support matrix addition on an arbitrary matrices of same size"
@@ -39,7 +40,7 @@
   (matrix-sub [m a]))
 
 (defprotocol PVectorOps
-  "Protocol to support common vector operations"
+  "Protocol to support common vector operations."
   (vector-dot [a b])
   (length [a])
   (length-squared [a])
@@ -79,7 +80,8 @@
 
 
 (defprotocol PFunctionalOperations
-  "Protocol to allow functional-style operations on matrix elements"
+  "Protocol to allow functional-style operations on matrix elements."
+  ;; note that protocols don't like variadic args, so we convert to regular args
   (element-seq [m])
   (element-map [m f]
                [m f more])
