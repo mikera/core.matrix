@@ -34,7 +34,7 @@
       (apply mapv (partial mapmatrix f) m1 m2 more))))
 
 ;; =======================================================================
-;; Implementation for standard Clojure persistent vectors used as matrices
+;; Implementation for nested Clojure persistent vectors used as matrices
 
 (extend-protocol mp/PIndexedAccess
   clojure.lang.IPersistentVector
