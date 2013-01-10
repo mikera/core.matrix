@@ -82,6 +82,8 @@
 
 (extend-protocol mp/PMatrixMultiply
   clojure.lang.IPersistentVector
+    (element-multiply [m a]
+      (emap * m a))
     (matrix-multiply [m a]
       (if (vector? a)
         (error "not yet implemented")

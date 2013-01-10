@@ -328,6 +328,8 @@
 ;; matrix multiply for scalars
 (extend-protocol mp/PMatrixMultiply
   java.lang.Number
+    (element-multiply [m a]
+      (clojure.core/* m a))
     (matrix-multiply [m a]
       (if (number? a) 
         (* m a)
