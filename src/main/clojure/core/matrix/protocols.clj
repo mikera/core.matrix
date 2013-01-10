@@ -52,7 +52,10 @@
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
   (matrix-multiply [m a])
-  (element-multiply [m a])
+  (element-multiply [m a]))
+
+(defprotocol PMatrixScaling
+  "Protocol to support matrix scaling by scalar values"
   (scale [m a])
   (pre-scale [m a]))
 

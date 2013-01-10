@@ -329,7 +329,7 @@
     (length [m]
       (Math/sqrt (mp/length-squared m))))
 
-;; matrix multiply for scalars
+;; matrix multiply
 (extend-protocol mp/PMatrixMultiply
   java.lang.Number
     (element-multiply [m a]
@@ -338,6 +338,13 @@
       (if (number? a) 
         (* m a)
         (mp/pre-scale a m)))
+  java.lang.Object
+    (element-multiply [m a]
+      (emap clojure.core/* m a)))
+
+;; matrix scaling
+(extend-protocol mp/PMatrixScaling
+  java.lang.Number
     (scale [m a]
       (if (number? a) 
         (* m a)
@@ -347,10 +354,8 @@
         (* a m)
         (mp/scale a m)))
   java.lang.Object
-    (element-multiply [m a]
-      (emap clojure.core/* m a))
     (scale [m a]
-      (emap (partial * a) m))
+      (emap #(* % a) m))
     (pre-scale [m a]
       (emap (partial * a) m)))
 

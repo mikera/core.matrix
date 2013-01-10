@@ -91,8 +91,14 @@
     (matrix-multiply [m a]
       (if (vector? a)
         (error "not yet implemented")
-        (mm/mul m a)))
+        (mm/mul m a))))
+
+(extend-protocol mp/PMatrixScaling
+  clojure.lang.IPersistentVector
     (scale [m a]
+      (let [a (double a)]
+        (mapmatrix #(* % a) m)))
+    (pre-scale [m a]
       (let [a (double a)]
         (mapmatrix (partial * a) m))))
 
