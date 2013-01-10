@@ -326,7 +326,7 @@
 (extend-protocol mp/PMatrixOps
   java.lang.Object
     (trace [m]
-      (if-not (square? m) (error "Can't compute trace of non-square matrix"))
+      (when-not (square? m) (error "Can't compute trace of non-square matrix"))
 	    (let [dims (long (row-count m))]
 	      (loop [i 0 res 0.0]
 	        (if (>= i dims)

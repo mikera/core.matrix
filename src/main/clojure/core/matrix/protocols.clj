@@ -37,11 +37,6 @@
   (get-2d [m x y])
   (get-nd [m indexes]))
 
-(defprotocol PIndexedSetting
-  "Protocol for indexed setter access to matrices and vectors."
-  (set-1d [m x])
-  (set-2d [m x y])
-  (set-nd [m indexes]))
 
 (defprotocol PCoercion
   "Protocol to coerce a parameter to a format usable by a specific implementation. It is 
@@ -54,6 +49,13 @@
 ;; 
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
+
+(defprotocol PIndexedSetting
+  "Protocol for indexed setter access to matrices and vectors. 
+   Must be supported for any mutable matrix type."
+  (set-1d [m x])
+  (set-2d [m x y])
+  (set-nd [m indexes]))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
