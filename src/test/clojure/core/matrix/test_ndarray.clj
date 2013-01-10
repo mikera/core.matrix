@@ -10,5 +10,11 @@
     (is (= [3 3] (dimensions (make-ndarray [3 3])))))
   (testing "getters"
     (is (= nil (mget (make-ndarray [3 3]) 2 2)))
-    (is (= nil (mget (make-ndarray [3 3 3]) 1 1 1)))))
+    (is (= nil (mget (make-ndarray [3 3 3]) 1 1 1))))
+  (testing "setters"
+    (let [m (make-ndarray [2 2])]
+      (mset! m 0 0 1)
+      (is (== 1.0 (mget m 0 0))))))
+
+
 

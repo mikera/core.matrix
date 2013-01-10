@@ -133,7 +133,7 @@
   ([m x y & more]
     (mp/get-nd m (cons x (cons y more)))))
 
-(defn mset 
+(defn mset! 
   "Sets a scalar value in a matrix at a specified position. Supports any number of matrix dimensions.
    Will throw an error if the matrix is not mutable."
   ([m v]
