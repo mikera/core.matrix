@@ -69,9 +69,20 @@
 (defprotocol PDimensionInfo
   "Protocol to return standard dimension information about a matrix"
   (dimensionality [m])
+  (is-scalar? [m])
   (is-vector? [m])
   (dimension-count [m x]))
 
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))
+
+
+(defprotocol PFunctionalOperations
+  "Protocol to allow functional-style operations on matrix elements"
+  (element-seq [m])
+  (element-map [m f]
+               [m f & more])
+  (element-map! [m f]
+                [m f & more])
+  (element-reduce [m f] [m f init]))
