@@ -16,7 +16,7 @@
 ;; ================================================================
 
 ;; ===================================================================================
-;; MANDATORY PROTOCOLS
+;; MANDATORY PROTOCOLS FOR ALL IMPLEMENTATIONS
 ;;
 ;; A compliant core.matrix implementation must implement these. 
 ;; Otherwise things will fail.
@@ -45,10 +45,10 @@
   (coerce-param [m param]))
 
 ;; ===================================================================================
-;; OPTTIONAL PROTOCOLS
-;; 
-;; implementations don't need to provide these since fallback default implementations
-;; are provided. However, they should consider doing so for performance reasons
+;; MANDATORY PROTOCOLS FOR MUTABLE MATRICES
+;;
+;; A compliant core.matrix mutable implementation must implement these. 
+;; Otherwise things will fail.
 
 (defprotocol PIndexedSetting
   "Protocol for indexed setter access to matrices and vectors. 
@@ -56,6 +56,13 @@
   (set-1d [m x v])
   (set-2d [m x y v])
   (set-nd [m indexes v]))
+
+;; ===================================================================================
+;; OPTTIONAL PROTOCOLS
+;; 
+;; implementations don't need to provide these since fallback default implementations
+;; are provided. However, they should consider doing so for performance reasons
+
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"

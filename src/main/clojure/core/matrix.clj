@@ -369,8 +369,8 @@
     (pre-scale [m a]
       (emap (partial * a) m)))
 
-;; matrix add for scalars
 (extend-protocol mp/PMatrixAdd
+  ;; matrix add for scalars
   java.lang.Number
     (matrix-add [m a]
       (if (number? a) (+ m a) (error "Can't add scalar number to a matrix")))
