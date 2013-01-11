@@ -29,11 +29,15 @@ Example implementations we might want to support:
  
  [![Build Status](https://travis-ci.org/mikera/matrix-api.png?branch=master)](https://travis-ci.org/mikera/matrix-api)
 
-### Do not use yet!
+### WARNING: Subject to change
 
-This library is experimental / subject to rapid change.
+This API is experimental / subject to rapid change.
 
-Contributions / ideas welcome however.
+If you build anything on top of it, don't be surprised if it breaks with the next release. You have been warned.
+
+### Contributing
+
+All contributions / ideas welcome!
 
 If you wish to contribute code, please ensure you have a **Clojure Contributors Agreement** signed and on file. For more information see:
 - http://clojure.org/contributing
