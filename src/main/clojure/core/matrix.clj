@@ -198,8 +198,8 @@
   ([a] a)
   ([a b]
     (cond 
-      (number? b) (if (number? a) (* a b) (mp/scale a b))
-      (number? a) (mp/scale b a)
+      (scalar? b) (if (scalar? a) (* a b) (mp/scale a b))
+      (scalar? a) (mp/pre-scale b a)
       :else (mp/matrix-multiply a b)))
   ([a b & more]
     (reduce mul (mul a b) more)))

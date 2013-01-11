@@ -125,6 +125,8 @@
         (inc (mp/dimensionality fst))))
     (is-vector? [m]
       (== 1 (mp/dimensionality m)))
+    (is-scalar? [m]
+      false)
     (dimension-count [m x]
       (if (== x 0)
         (count m)
