@@ -169,15 +169,24 @@
 
 (defn sub-matrix 
   "Gets a view of a submatrix, for a set of index-ranges.
-   Index ranges should be [start, end] pairs.
+   Index ranges should be [start, length] pairs.
    Index ranges can be nil (gets the whole range) "
   ([m index-ranges]
+    (TODO)))
+
+(defn sub-vector
+  "Gets a view of part of a vector. The view maintains a reference to the original,
+   so can be used to modify the original vector if it is mutable."
+  ([m start length]
     (TODO)))
 
 (defn slice 
   "Gets a view of a slice of a matrix along a specific dimension.
    The returned matrix will have one less dimension. 
-   Slicing a 1D vector will return a scalar."
+   Slicing a 1D vector will return a scalar.
+
+   Slicing on the first dimension (dimension 0) is likely to perform better
+   for many matrix implementations."
   ([m dimension index]
     (TODO)))
 
