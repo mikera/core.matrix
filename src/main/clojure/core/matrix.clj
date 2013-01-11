@@ -164,6 +164,23 @@
       (mp/coerce-param m a)
       (mp/coerce-param m (mp/convert-to-nested-vectors a)))))
 
+;; =====================================
+;; matrix slicing and views
+
+(defn sub-matrix 
+  "Gets a view of a submatrix, for a set of index-ranges.
+   Index ranges should be [start, end] pairs.
+   Index ranges can be nil (gets the whole range) "
+  ([m index-ranges]
+    (TODO)))
+
+(defn slice 
+  "Gets a view of a slice of a matrix along a specific dimension.
+   The returned matrix will have one less dimension. 
+   Slicing a 1D vector will return a scalar."
+  ([m dimension index]
+    (TODO)))
+
 ;; ======================================
 ;; matrix maths / operations
 
