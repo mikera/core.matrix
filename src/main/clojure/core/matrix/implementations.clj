@@ -33,8 +33,8 @@
 (defn register-implementation
   "Registers a matrix implementation for use. Should be called by all implementations
    when they are loaded."
-  ([key canonical-object-example]
-  (swap! canonical-objects assoc key canonical-object-example)))
+  ([canonical-object]
+  (swap! canonical-objects assoc (mp/implementation-key canonical-object) canonical-object)))
 
 (defn get-canonical-object 
   "Gets the canonical object for a specific implementation"

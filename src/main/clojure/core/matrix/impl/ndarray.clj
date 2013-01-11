@@ -2,6 +2,7 @@
   (:require [core.matrix.protocols :as mp])
   (:use core.matrix)
   (:use core.matrix.utils)
+  (:require [core.matrix.implementations :as imp])
   (:require [core.matrix.multimethods :as mm])
   (:refer-clojure :exclude [vector?]))
 
@@ -19,6 +20,9 @@
 (deftype NDArray 
   [^objects data
    ^longs dims]
+  mp/PImplementation
+    (implementation-key [m] :ndarray)
+  
   mp/PIndexedAccess
     (get-1d [m x]
       (aget data x))
@@ -91,3 +95,8 @@
   
    ;; TODO: implementations of other protocols for ND array views
   )
+
+;; =====================================
+;; Register implementation
+
+(imp/register-implementation (make-ndarray [1]))

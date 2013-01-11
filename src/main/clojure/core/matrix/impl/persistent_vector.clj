@@ -37,6 +37,11 @@
 ;; =======================================================================
 ;; Implementation for nested Clojure persistent vectors used as matrices
 
+
+(extend-protocol mp/PImplementation
+  clojure.lang.IPersistentVector
+    (implementation-key [m] :persistent-vector))
+
 (extend-protocol mp/PIndexedAccess
   clojure.lang.IPersistentVector
     (get-1d [m x]
@@ -165,4 +170,4 @@
 ;; =====================================
 ;; Register implementation
 
-(imp/register-implementation :persistent-vector [])
+(imp/register-implementation [])
