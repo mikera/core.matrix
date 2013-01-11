@@ -1,4 +1,4 @@
-package clatrix;
+package core.matrix;
 
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;

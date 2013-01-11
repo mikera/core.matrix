@@ -1,4 +1,4 @@
-package clatrix;
+package core.matrix;
 
 import mikera.cljunit.NamespaceTest;
 
