@@ -2,6 +2,7 @@
   (:require [core.matrix.protocols :as mp])
   (:use core.matrix)
   (:use core.matrix.utils)
+  (:require [core.matrix.implementations :as imp])
   (:require [core.matrix.impl.mathsops :as mops])
   (:require [core.matrix.multimethods :as mm]))
 
@@ -156,3 +157,7 @@
       ([m f init]
         (reduce f init (mp/element-seq m)))))
 
+;; =====================================
+;; Register implementation
+
+(imp/register-implementation :persistent-vector [])

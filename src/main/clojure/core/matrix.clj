@@ -1,7 +1,7 @@
 (ns core.matrix
   (:use core.matrix.utils)
   (:require [core.matrix.protocols :as mp])
-  (:require [core.matrix.implementations :as impl])
+  (:require [core.matrix.implementations :as imp])
   (:require [core.matrix.multimethods :as mm])
   (:require [core.matrix.impl.mathsops :as mops]))
 
