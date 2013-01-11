@@ -35,7 +35,10 @@ This library is experimental / subject to rapid change.
 
 Contributions / ideas welcome however.
 
-see discussions:
+If you wish to contribute code, please ensure you have a **Clojure Contributors Agreement** signed and on file. For more information see:
+- http://clojure.org/contributing
+
+Also see relevant discussions:
  - https://github.com/tel/clatrix/issues/7
  - https://github.com/tel/clatrix/issues/2
  
