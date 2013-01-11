@@ -2,6 +2,7 @@
   (:use clojure.test)
   (:use core.matrix)
   (:require [core.matrix.operators :as op])
+  (:require [core.matrix.compliance-tester])
   (:require core.matrix.impl.persistent-vector)
   (:use core.matrix.impl.ndarray))
 
@@ -18,3 +19,6 @@
 
 
 
+;; run complicance tests
+(deftest compliance-test
+  (core.matrix.compliance-tester/compliance-test (make-ndarray [3 3]))) 
