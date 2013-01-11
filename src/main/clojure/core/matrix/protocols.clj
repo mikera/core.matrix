@@ -22,22 +22,29 @@
 ;; Otherwise things will fail.
 
 (defprotocol PImplementation
-  (implementation-key [m]))
+  "Protocol for "
+  (implementation-key [m]
+    "Returns a keyword representing this implementation. 
+     Each implementation should have one unique key."))
 
 (defprotocol PDimensionInfo
   "Protocol to return standard dimension information about a matrix. 
    dimensionality and dimension-count are mandatory for implementations"
-  (dimensionality [m])
-  (is-scalar? [m])
-  (is-vector? [m])
-  (dimension-count [m x]))
+  (dimensionality [m] 
+    "Returns the number of dimensions of a matrix")
+  (is-scalar? [m] 
+    "Tests whether an object is a scalar value")
+  (is-vector? [m] 
+    "Tests whether an object is a vector (1D matrix)")
+  (dimension-count [m dimension-number] 
+    "Returns the size of a specific dimension "))
 
 ;; protocol arity overloads behave oddly, so different names used for simplicity
 ;; we provide fast paths for 1D and 2D access (common case)
 (defprotocol PIndexedAccess
   "Protocol for indexed read access to matrices and vectors."
-  (get-1d [m x])
-  (get-2d [m x y])
+  (get-1d [m row])
+  (get-2d [m row column])
   (get-nd [m indexes]))
 
 
@@ -56,8 +63,8 @@
 (defprotocol PIndexedSetting
   "Protocol for indexed setter access to matrices and vectors. 
    Must be supported for any mutable matrix type."
-  (set-1d [m x v])
-  (set-2d [m x y v])
+  (set-1d [m row v])
+  (set-2d [m row column v])
   (set-nd [m indexes v]))
 
 ;; ===================================================================================
