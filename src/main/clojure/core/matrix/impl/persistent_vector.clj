@@ -90,7 +90,12 @@
       (emap * m a))
     (matrix-multiply [m a]
       (if (vector? a)
-        (error "not yet implemented")
+        (let [rows (first (dimensions m))
+              cols (second (dimensions a))]
+          (vec (for [i (range rows)]
+                 (let [r (get-row m i)]
+                   (vec (for [j (range cols)]
+                          (dot r (get-column a j))))))))
         (mm/mul m a))))
 
 (extend-protocol mp/PMatrixScaling
