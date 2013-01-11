@@ -1,6 +1,7 @@
 (ns core.matrix
   (:use core.matrix.utils)
   (:require [core.matrix.protocols :as mp])
+  (:require [core.matrix.implementations :as impl])
   (:require [core.matrix.multimethods :as mm])
   (:require [core.matrix.impl.mathsops :as mops]))
 
@@ -31,10 +32,17 @@
 (def ^:dynamic *matrix-implementation* nil)
 
 (defn matrix 
-  "Constructs a matrix from the given data. The data should be in the form of nested sequences.
+  "Constructs a matrix from the given data. 
 
-   Uses the current matrix library as specified in *matrix-implementation*"
+   The data may be in one of the following forms:
+   - Nested sequences, e.g. Clojure vectors
+   - A valid existing matrix
+
+   If implementation is not specified, uses the current matrix library as specified 
+   in *matrix-implementation*"
   ([data]
+    (error "not yet implemented"))
+  ([implementation data]
     (error "not yet implemented")))
 
 (defn clone
@@ -463,6 +471,8 @@
   (error "Don't know how to multiply " (class x) " with " (class y)))
 
 ;; =========================================================
-;; Final setup
+;; Final implementation setup
 
-
+(defn current-implementation 
+  "Gets the currently active matrix implementation"
+  ([] core.matrix/*matrix-implementation*))

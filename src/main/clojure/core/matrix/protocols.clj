@@ -21,6 +21,9 @@
 ;; A compliant core.matrix implementation must implement these. 
 ;; Otherwise things will fail.
 
+(defprotocol PImplementation
+  (implementation-key [m]))
+
 (defprotocol PDimensionInfo
   "Protocol to return standard dimension information about a matrix. 
    dimensionality and dimension-count are mandatory for implementations"
