@@ -1,0 +1,7 @@
+Copyright (c) Rich Hickey, Mike Anderson and contributors. All rights reserved. 
+
+The use and distribution terms for this software are covered by the Eclipse Public License 1.0 
+- http://www.eclipse.org/legal/epl-v10.html
+
+All contributors agree to submit their code under the terms of the Clojure contributors agreement
+- http://clojure.org/contributing
