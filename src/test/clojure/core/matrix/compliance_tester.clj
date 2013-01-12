@@ -9,6 +9,11 @@
 ;;
 ;; test suite that implementations can call to test
 ;; adherence to core.matrix API contracts
+;;
+;; Note that tests need to be written in a very generic way
+;; - they can't assume anything other than documented API behaviour!
+;; 
+;; e.g. can't assume that scalar values are always Doubles etc.
 
 (defn test-implementation-key
   [m]
@@ -16,7 +21,11 @@
     (is (keyword? (imp/get-implementation-key m)))
     (is (= (imp/get-implementation-key m) (imp/get-implementation-key (imp/get-canonical-object m))))))
 
+
+;; implementations should call this with either their
 (defn compliance-test 
-  "Runs the compliance test suite on a given matrix implementation"
+  "Runs the compliance test suite on a given matrix implementation. 
+   m can be either a matrix instance or the implementation keyword."
   [m]
-  (test-implementation-key m))
+  (let [m (imp/get-canonical-object m)]
+    (test-implementation-key m)))
