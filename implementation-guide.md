@@ -6,7 +6,17 @@ i.e. extend core.matrix to work with a new underlying matrix library
 
 ### Minimum requirements
 
-#### 1. Add core.matrix as a dependency to your project
+#### 1. Create a project for your matrix implementation
+
+This can be any project type (leiningen or Maven).
+
+You want to have a separate project for your core.matrix implementation, which can pull in 
+any dependencies it needs. Typically you might import any .jar libraries that are needed
+for your underlying matrix implementation.
+
+e.g. if you are wrapping the UJMP Java matrix library, you would add UJMP as a dependency.
+
+#### 2. Add core.matrix as a dependency to your project
 
 This is necessary to get access to the key namespaces you need:
 
@@ -14,11 +24,11 @@ This is necessary to get access to the key namespaces you need:
  - **core.matrix.implementations** : contains code to register / manage your implementation
  - **core.matrix.compliance-tester**: test code to verify your implementation is correct
  
-#### 2. Implement the mandatory protocols
+#### 3. Implement the mandatory protocols
 
 These are documented in `src/main/clojure/core/matrix/protocols.clj`
 
-#### 3. Register your implementation
+#### 4. Register your implementation
 
 You should call `core.matrix.implementations/register-implementation` with an instance of your matrix library.
 
@@ -29,7 +39,7 @@ You should call `core.matrix.implementations/register-implementation` with an in
 You can call this at any point during the loading of your implementation *after* you have
 implemented the mandatory protocols for the given instance.
 
-#### 4. Run compliance tests
+#### 5. Run compliance tests
 
 In your test suite you should call into the compliance tester tool to verify that you have correctly
 implemented the core.matrix API.
