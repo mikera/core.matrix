@@ -8,7 +8,7 @@
 
 (deftest test-ndarray-base
   (testing "construction"
-    (is (= [3 3] (dimensions (make-ndarray [3 3])))))
+    (is (= [3 3] (shape (make-ndarray [3 3])))))
   (testing "getters"
     (is (= nil (mget (make-ndarray [3 3]) 2 2)))
     (is (= nil (mget (make-ndarray [3 3 3]) 1 1 1))))
@@ -21,4 +21,4 @@
 
 ;; run complicance tests
 (deftest compliance-test
-  (core.matrix.compliance-tester/compliance-test (make-ndarray [3 3]))) 
+  (core.matrix.compliance-tester/compliance-test (make-ndarray [3 3])))
