@@ -35,6 +35,15 @@ This API is experimental / subject to rapid change.
 
 If you build anything on top of it, don't be surprised if it breaks with the next release. You have been warned.
 
+### Getting started
+
+Right now the code base is primarily intended for people working on the API + implementation.
+
+You can include the latest released version by adding it as a leiningen or Maven dependency from Clojars, but be aware that this is probably out of data compared to the latest master branch.
+
+ - https://clojars.org/mikera/matrix-api
+
+
 ### Contributing
 
 All contributions / ideas welcome!

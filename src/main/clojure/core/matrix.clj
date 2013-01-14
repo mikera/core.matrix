@@ -97,7 +97,7 @@
     (== 2 (mp/dimensionality m))))
 
 (defn matrix-1d?
-  "Returns true if parameter is a 1 dimensional matrix"
+  "Returns true if parameter is a 1 dimensional matrix (equivalent to a column vector)"
   ([m]
     (== 1 (mp/dimensionality m))))
 
@@ -121,8 +121,12 @@
         (== 1 (mp/dimension-count m 1)))))
 
 (defn shape
-  "Returns all the dimension sizes for a matrix, as a sequable result.
-   Result may be a sequence or Java array."
+  "Returns the shape of a matrix, i.e. the dimension sizes for all dimensions.
+
+   Result may be a sequence or Java array, to allow implemenations flexibility to return 
+   their own internal representation of dimension shape.
+
+   You are guaranteed however that you can call `seq` on this to get a sequence of dimension sizes."
   ([m]
     (for [i (range (mp/dimensionality m))] (mp/dimension-count m i))))
 
