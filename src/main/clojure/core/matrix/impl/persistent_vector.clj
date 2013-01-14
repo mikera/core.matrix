@@ -14,7 +14,7 @@
 ;;
 ;; format assumed to be a nested vector of Numbers
 
-(defn coerce-nested 
+(defn coerce-nested
   "Ensures a vector is fully coerced to nested persistent vectors"
   ([v]
     (mapv #(if (number? %) % (coerce-nested %)) v)))
@@ -84,7 +84,7 @@
     (coerce-param [m param]
       (cond
         (clojure.core/vector? param) param
-        (number? param) param 
+        (number? param) param
         (sequential? param) (coerce-nested param)
         (instance? java.util.List param) (coerce-nested param)
         (instance? java.lang.Iterable param) (coerce-nested param)
@@ -96,8 +96,8 @@
       (emap * m a))
     (matrix-multiply [m a]
       (if (vector? a)
-        (let [rows (first (dimensions m))
-              cols (second (dimensions a))]
+        (let [rows (first (shape m))
+              cols (second (shape a))]
           (vec (for [i (range rows)]
                  (let [r (get-row m i)]
                    (vec (for [j (range cols)]
@@ -114,7 +114,7 @@
         (mapmatrix (partial * a) m))))
 
 ;; helper functin to build generic maths operations
-(defn build-maths-function 
+(defn build-maths-function
   ([[name func]]
     `(~name [~'m]
             (mapmatrix (fn [x#] (double (~func (double x#)))) ~'m))))
@@ -147,23 +147,23 @@
   clojure.lang.IPersistentVector
     (element-seq [m]
       (mapcat mp/element-seq m))
-    (element-map 
+    (element-map
       ([m f]
         (mapmatrix f m))
       ([m f a]
         (mapmatrix f m a))
       ([m f a more]
         (apply mapmatrix f m a more)))
-    (element-map! 
+    (element-map!
       ([m f]
         (error "Persistent vector matrices are not mutable!"))
       ([m f a]
         (error "Persistent vector matrices are not mutable!"))
       ([m f a more]
         (error "Persistent vector matrices are not mutable!")))
-    (element-reduce 
+    (element-reduce
       ([m f]
-        (reduce f (mp/element-seq m))) 
+        (reduce f (mp/element-seq m)))
       ([m f init]
         (reduce f init (mp/element-seq m)))))
 

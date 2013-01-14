@@ -19,8 +19,8 @@
 ;; 4. It's up to the implementation to decide what to do then
 ;; 5. If the implementation does not understand one or more parameters, then it is
 ;;    expected to call the multimethod version in core.matrix.multimethods as this
-;;    will allow an alternative implementation to be found via multiple dispatch  
-;; 
+;;    will allow an alternative implementation to be found via multiple dispatch
+;;
 ;; ==================================================================================
 
 (set! *warn-on-reflection* true)
@@ -31,14 +31,14 @@
 
 (def ^:dynamic *matrix-implementation* nil)
 
-(defn matrix 
-  "Constructs a matrix from the given data. 
+(defn matrix
+  "Constructs a matrix from the given data.
 
    The data may be in one of the following forms:
    - Nested sequences, e.g. Clojure vectors
    - A valid existing matrix
 
-   If implementation is not specified, uses the current matrix library as specified 
+   If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
   ([data]
     (error "not yet implemented"))
@@ -60,7 +60,7 @@
 ;; ==============================
 ;; Matrix predicates and querying
 
-(defn matrix? 
+(defn matrix?
   "Returns true if parameter is a valid matrix (any dimensionality)"
   ([m]
     (> (mp/dimensionality m) 0)))
@@ -70,7 +70,7 @@
   ([m]
     (mp/is-vector? m)))
 
-(defn scalar? 
+(defn scalar?
   "Returns true if the parameter is a scalar (has zero dimensionality)."
   ([m]
     (mp/is-scalar? m)))
@@ -90,12 +90,12 @@
   ([m]
     (mp/dimension-count m 1)))
 
-(defn matrix-2d? 
+(defn matrix-2d?
   "Returns true if parameter is a regular matrix (2 dimensional matrix)"
   ([m]
     (== 2 (mp/dimensionality m))))
 
-(defn matrix-1d? 
+(defn matrix-1d?
   "Returns true if parameter is a 1 dimensional matrix"
   ([m]
     (== 1 (mp/dimensionality m))))
@@ -110,7 +110,7 @@
 (defn row-matrix?
   "Returns true if a matrix is a row-matrix (i.e. has exactly one row)"
   ([m]
-    (and (>= (mp/dimensionality m) 1) 
+    (and (>= (mp/dimensionality m) 1)
          (== 1 (mp/dimension-count m 0)))))
 
 (defn column-matrix?
@@ -119,7 +119,7 @@
     (or (== (mp/dimensionality m) 1)
         (== 1 (mp/dimension-count m 1)))))
 
-(defn dimensions
+(defn shape
   "Returns all the dimension sizes for a matrix, as a sequable result.
    Result may be a sequence or Java array."
   ([m]
@@ -128,11 +128,11 @@
 ;; =======================================
 ;; matrix access
 
-(defn mget 
+(defn mget
   "Gets a scalar value from a matrix at a specified position. Supports any number of matrix dimensions."
   ([m]
-    (if (mp/is-scalar? m) 
-      m 
+    (if (mp/is-scalar? m)
+      m
       (error "Can't mget from a non-scalar value without indexes")))
   ([m x]
     (mp/get-1d m x))
@@ -141,12 +141,12 @@
   ([m x y & more]
     (mp/get-nd m (cons x (cons y more)))))
 
-(defn mset! 
+(defn mset!
   "Sets a scalar value in a matrix at a specified position. Supports any number of matrix dimensions.
    Will throw an error if the matrix is not mutable."
   ([m v]
-    (if (mp/is-scalar? m) 
-      (error "Can't set a scalar value!") 
+    (if (mp/is-scalar? m)
+      (error "Can't set a scalar value!")
       (error "Can't mset a non-scalar value without indexes")))
   ([m x v]
     (mp/set-1d m x v))
@@ -168,14 +168,14 @@
 (defn coerce
   "Coerces a parameter to a format usable by a specific matrix implementation"
   ([m a]
-    (or 
+    (or
       (mp/coerce-param m a)
       (mp/coerce-param m (mp/convert-to-nested-vectors a)))))
 
 ;; =====================================
 ;; matrix slicing and views
 
-(defn sub-matrix 
+(defn sub-matrix
   "Gets a view of a submatrix, for a set of index-ranges.
    Index ranges should be [start, length] pairs.
    Index ranges can be nil (gets the whole range) "
@@ -188,9 +188,9 @@
   ([m start length]
     (TODO)))
 
-(defn slice 
+(defn slice
   "Gets a view of a slice of a matrix along a specific dimension.
-   The returned matrix will have one less dimension. 
+   The returned matrix will have one less dimension.
    Slicing a 1D vector will return a scalar.
 
    Slicing on the first dimension (dimension 0) is likely to perform better
@@ -205,7 +205,7 @@
   "Performs matrix multiplication with matrices, vectors or scalars"
   ([a] a)
   ([a b]
-    (cond 
+    (cond
       (scalar? b) (if (scalar? a) (* a b) (mp/scale a b))
       (scalar? a) (mp/pre-scale b a)
       :else (mp/matrix-multiply a b)))
@@ -223,7 +223,7 @@
 (defn add
   "Performs matrix addition on two matrices of same size"
   ([a] a)
-  ([a b] 
+  ([a b]
     (mp/matrix-add a b))
   ([a b & more]
     (reduce mp/matrix-add (mp/matrix-add a b) more)))
@@ -231,7 +231,7 @@
 (defn sub
   "Performs matrix subtraction on two matrices of same size"
   ([a] a)
-  ([a b] 
+  ([a b]
     (mp/matrix-sub a b))
   ([a b & more]
     (reduce mp/matrix-sub (mp/matrix-sub a b) more)))
@@ -275,8 +275,8 @@
 
 ;; create all unary maths operators
 (eval
-  `(do ~@(map (fn [[name func]] 
-           `(defn ~name 
+  `(do ~@(map (fn [[name func]]
+           `(defn ~name
               ([~'m]
                 (~(symbol "core.matrix.protocols" (str name)) ~'m)))) mops/maths-ops)))
 
@@ -288,15 +288,15 @@
   ([m]
     (mp/element-seq m)))
 
-(defn ereduce 
+(defn ereduce
   "Element-wise reduce on all elements of a matrix."
   ([f m]
     (mp/element-reduce m f))
   ([f init m]
     (mp/element-reduce m f init)))
-    
-(defn emap 
-  "Element-wise map over all elements of one or more matrices. 
+
+(defn emap
+  "Element-wise map over all elements of one or more matrices.
    Returns a new matrix of the same type."
   ([f m]
     (mp/element-map m f))
@@ -305,8 +305,8 @@
   ([f m a & more]
     (mp/element-map m f a more)))
 
-(defn emap! 
-  "Element-wise map over all elements of one or more matrices. 
+(defn emap!
+  "Element-wise map over all elements of one or more matrices.
    Performs in-place modification of the first matrix argument."
   ([f m]
     (mp/element-map! m f))
@@ -316,9 +316,9 @@
     (mp/element-map! m f a more)))
 
 ;; ============================================================
-;; Fallback implementations 
+;; Fallback implementations
 ;; - default behaviour for java.lang.Number scalars
-;; - for stuff we don't recognise (java.lang.Object) we should try to 
+;; - for stuff we don't recognise (java.lang.Object) we should try to
 ;;   implement in terms of simpler operations, on assumption that
 ;;   we have fallen through to the default implementation
 
@@ -331,13 +331,13 @@
     (get-2d [m x y]
       (mp/get-1d (.get m (int x)) y))
     (get-nd [m indexes]
-      (if-let [s (seq indexes)] 
+      (if-let [s (seq indexes)]
         (mp/get-nd (.get m (int (first s))) (next s))
         m))
   java.lang.Object
     (get-1d [m x] (mp/get-nd m [x]))
     (get-2d [m x y] (mp/get-nd m [x y]))
-    (get-nd [m indexes] 
+    (get-nd [m indexes]
       (if (seq indexes)
         (error "Can't determine dimensionality of:" (class m))
         (if (scalar? m) m
@@ -348,12 +348,12 @@
   java.lang.Number
     (dimensionality [m] 0)
     (is-scalar? [m] true)
-    (is-vector? [m] false) 
+    (is-vector? [m] false)
     (dimension-count [m i] (error "java.lang.Number has zero dimensionality, cannot get dimension count"))
   java.lang.Object
     (dimensionality [m] (error "Can't determine dimensionality: " (class m)))
-    (is-vector? [m] (== 1 (mp/dimensionality m))) 
-    (is-scalar? [m] (== 0 (mp/dimensionality m))) 
+    (is-vector? [m] (== 1 (mp/dimensionality m)))
+    (is-scalar? [m] (== 0 (mp/dimensionality m)))
     (dimension-count [m i] (error "Can't determine count of dimension " i " on object " (class m))))
 
 ;; generic versions of matrix ops
@@ -361,11 +361,11 @@
   java.lang.Object
     (trace [m]
       (when-not (square? m) (error "Can't compute trace of non-square matrix"))
-	    (let [dims (long (row-count m))]
-	      (loop [i 0 res 0.0]
-	        (if (>= i dims)
-	          res
-	          (recur (inc i) (+ res (double (mp/get-2d m i i))))))))
+            (let [dims (long (row-count m))]
+              (loop [i 0 res 0.0]
+                (if (>= i dims)
+                  res
+                  (recur (inc i) (+ res (double (mp/get-2d m i i))))))))
     (negate [m]
       (mp/scale m -1.0))
     (length-squared [m]
@@ -379,7 +379,7 @@
     (element-multiply [m a]
       (clojure.core/* m a))
     (matrix-multiply [m a]
-      (if (number? a) 
+      (if (number? a)
         (* m a)
         (mp/pre-scale a m)))
   java.lang.Object
@@ -390,11 +390,11 @@
 (extend-protocol mp/PMatrixScaling
   java.lang.Number
     (scale [m a]
-      (if (number? a) 
+      (if (number? a)
         (* m a)
         (mp/pre-scale a m)))
     (pre-scale [m a]
-      (if (number? a) 
+      (if (number? a)
         (* a m)
         (mp/scale a m)))
   java.lang.Object
@@ -416,23 +416,23 @@
   java.lang.Number
     (element-seq [m]
       (list m))
-    (element-map 
+    (element-map
       ([m f]
         (list (f m)))
       ([m f a]
         (list (f m a)))
       ([m f a more]
         (list (apply f m a more))))
-    (element-map! 
+    (element-map!
       ([m f]
         (error "java.lang.Number instance is not mutable!"))
       ([m f a]
         (error "java.lang.Number instance is not mutable!"))
       ([m f a more]
         (error "java.lang.Number instance is not mutable!")))
-    (element-reduce 
+    (element-reduce
       ([m f]
-        m) 
+        m)
       ([m f init]
         (f init m))))
 
@@ -441,7 +441,7 @@
   java.lang.Number
     (convert-to-nested-vectors [m]
       ;; we accept a scalar as a "nested vector" for these purposes?
-      m) 
+      m)
   java.lang.Object
     (convert-to-nested-vectors [m]
       (if (vector? m)
@@ -473,6 +473,6 @@
 ;; =========================================================
 ;; Final implementation setup
 
-(defn current-implementation 
+(defn current-implementation
   "Gets the currently active matrix implementation"
   ([] core.matrix/*matrix-implementation*))
