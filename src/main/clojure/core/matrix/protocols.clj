@@ -22,10 +22,17 @@
 ;; Otherwise things will fail.
 
 (defprotocol PImplementation
-  "Protocol for general information about an implementation"
+  "Protocol for general implementation functionality"
   (implementation-key [m]
     "Returns a keyword representing this implementation. 
-     Each implementation should have one unique key."))
+     Each implementation should have one unique key.")
+  (new-vector [m length]
+    "Returns a new vector (1D column matrix) of the given length.")
+  (new-matrix [m rows columns]
+    "Returns a new matrix (regular 2D matrix) with the given number of rows and columns.")
+  (new-matrix-nd [m shape]
+    "Returns a new general matrix of the given shape.
+     Shape must be a sequence of dimension sizes."))
 
 (defprotocol PDimensionInfo
   "Protocol to return standard dimension information about a matrix. 
