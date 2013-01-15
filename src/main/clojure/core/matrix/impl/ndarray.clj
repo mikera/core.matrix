@@ -22,6 +22,10 @@
    ^longs dims]
   mp/PImplementation
     (implementation-key [m] :ndarray)
+    (new-vector [m length] (TODO))
+    (new-matrix [m rows columns] (TODO))
+    (new-matrix-nd [m dims] (TODO))
+    (construct-matrix [m data] (TODO))
   
   mp/PIndexedAccess
     (get-1d [m x]

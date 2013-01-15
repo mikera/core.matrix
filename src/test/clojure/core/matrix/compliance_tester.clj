@@ -24,7 +24,10 @@
 (defn test-new-matrices [m]
   (testing "Vector construction"
     (let [v (matrix [1])]
-      (is (== 1.0 (mget v 0))))))
+      (is (== 1.0 (mget v 0)))))
+  (testing "Matrix construction"
+    (let [m (matrix [[1 2] [3 4]])]
+      (is (== 3.0 (mget m 1 0))))))
 
 
 ;; implementations should call this with either their
@@ -32,6 +35,8 @@
   "Runs the compliance test suite on a given matrix implementation. 
    m can be either a matrix instance or the implementation keyword."
   [m]
-  (let [m (imp/get-canonical-object m)]
-    (test-implementation-key m)
-    (test-new-matrices m)))
+  (let [m (imp/get-canonical-object m)
+        ik (imp/get-implementation-key m)]
+    (binding [*matrix-implementation* ik]
+      (test-implementation-key m)
+      (test-new-matrices m))))

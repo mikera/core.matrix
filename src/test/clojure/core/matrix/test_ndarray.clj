@@ -20,5 +20,5 @@
 
 
 ;; run complicance tests
-(deftest compliance-test
-  (core.matrix.compliance-tester/compliance-test (make-ndarray [3 3])))
+;;(deftest compliance-test
+;;   (core.matrix.compliance-tester/compliance-test (make-ndarray [3 3])))
