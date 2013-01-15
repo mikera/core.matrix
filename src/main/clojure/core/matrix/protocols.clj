@@ -22,7 +22,7 @@
 ;; Otherwise things will fail.
 
 (defprotocol PImplementation
-  "Protocol for "
+  "Protocol for general information about an implementation"
   (implementation-key [m]
     "Returns a keyword representing this implementation. 
      Each implementation should have one unique key."))
@@ -69,12 +69,17 @@
   (set-2d [m row column v])
   (set-nd [m indexes v]))
 
+
 ;; ===================================================================================
 ;; OPTTIONAL PROTOCOLS
 ;; 
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
 
+(defprotocol PAssignment
+  "Protocol for assigning values to mutable matrices."
+  (assign-array! [m arr] "Sets all the values in a matrix from a Java array, in row-major order")
+  (assign! [m source] "Sets all the values in a matrix from a matrix source"))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
