@@ -40,7 +40,23 @@
 
 (extend-protocol mp/PImplementation
   clojure.lang.IPersistentVector
-    (implementation-key [m] :persistent-vector))
+    (implementation-key [m] :persistent-vector)
+    (new-vector [m length] (vec (repeat length 0.0)))
+    (new-matrix [m rows columns] (vec (repeat rows (mp/new-vector m columns))))
+    (new-matrix-nd [m dims] 
+      (if-let [dims (seq dims)] 
+        (vec (repeat (first dims) (mp/new-matrix-nd m (next dims))))
+        0.0))
+    (construct-matrix [m data]
+      (cond 
+        (mp/is-scalar? data) 
+          data
+        (>= (dimensionality data) 1) 
+          (mapv #(mp/construct-matrix m %) (slices data))
+        (sequential? data)
+          (mapv #(mp/construct-matrix m %) data)
+        :default
+          (error "Don't know how to construct matrix from: " (class data)))))
 
 (extend-protocol mp/PIndexedAccess
   clojure.lang.IPersistentVector
@@ -61,7 +77,15 @@
       (.nth m (long i)))
     (get-column [m i]
       (let [i (long i)]
-        (mapv #(nth % i) m))))
+        (mapv #(nth % i) m)))
+    (get-major-slice [m i]
+      (m i))
+    (get-slice [m dimension i]
+      (let [i (long i)
+            dimension (long dimension)]
+        (if (== dimension 0)
+          (mp/get-major-slice m i)
+          (mapv #(mp/get-slice % (dec dimension) i) m)))))
 
 (extend-protocol mp/PMatrixAdd
   clojure.lang.IPersistentVector

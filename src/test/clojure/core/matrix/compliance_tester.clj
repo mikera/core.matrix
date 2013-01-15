@@ -21,6 +21,11 @@
     (is (keyword? (imp/get-implementation-key m)))
     (is (= (imp/get-implementation-key m) (imp/get-implementation-key (imp/get-canonical-object m))))))
 
+(defn test-new-matrices [m]
+  (testing "Vector construction"
+    (let [v (matrix [1])]
+      (is (== 1.0 (mget v 0))))))
+
 
 ;; implementations should call this with either their
 (defn compliance-test 
@@ -28,4 +33,5 @@
    m can be either a matrix instance or the implementation keyword."
   [m]
   (let [m (imp/get-canonical-object m)]
-    (test-implementation-key m)))
+    (test-implementation-key m)
+    (test-new-matrices m)))

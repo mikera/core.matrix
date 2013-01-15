@@ -30,7 +30,8 @@
 ;; =============================================================
 ;; matrix construction functions
 
-(def ^:dynamic *matrix-implementation* nil)
+(declare current-implementation)
+(def ^:dynamic *matrix-implementation* :persistent-vector)
 
 (defn matrix
   "Constructs a matrix from the given data.
@@ -42,9 +43,31 @@
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
   ([data]
-    (error "not yet implemented"))
+    (if-let [ik (current-implementation)]
+      (matrix (imp/get-canonical-object ik) data)
+      (error "No matrix implementation available")))
   ([implementation data]
-    (error "not yet implemented")))
+    (mp/construct-matrix implementation data)))
+
+(defn new-vector
+  "Constructs a new zero-filled vector with the given length"
+  ([length]
+    (if-let [ik (current-implementation)]
+      (mp/new-vector (imp/get-canonical-object ik) length) 
+      (error "No vector implementation available")))
+  ([length implementation]
+    (mp/new-vector (imp/get-canonical-object implementation) length)))
+
+(defn new-matrix
+  "Constructs a new zero-filled matrix with the given dimensions"
+  ([rows columns]
+    (if-let [ik (current-implementation)]
+      (mp/new-matrix (imp/get-canonical-object ik) rows columns)
+      (error "No matrix implementation available")))
+  ([dim-1 dim-2 & more-dim]
+    (if-let [ik (current-implementation)]
+      (mp/new-matrix-nd (imp/get-canonical-object ik) (cons dim-1 (cons dim-2 more-dim)))
+      (error "No matrix implementation available"))))
 
 (defn clone
   "Constructs a clone of the matrix, using the same implementation. This function is intended to
@@ -201,7 +224,15 @@
    Slicing on the first dimension (dimension 0) is likely to perform better
    for many matrix implementations."
   ([m dimension index]
-    (TODO)))
+    (mp/get-slice m dimension index)))
+
+(defn slices
+  "Gets a lazy sequence of slices of a matrix. If dimension is supplied, slices along a given dimension,
+   otherwise slices along the first dimension."
+  ([m]
+    (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0))))
+  ([m dimension]
+    (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
 
 ;; ======================================
 ;; matrix maths / operations

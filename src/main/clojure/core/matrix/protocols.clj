@@ -26,6 +26,9 @@
   (implementation-key [m]
     "Returns a keyword representing this implementation. 
      Each implementation should have one unique key.")
+  (construct-matrix [m data]
+    "Returns a new matrix containing the given data. Data should be in the form of either 
+     nested sequences or a valid existing matrix")
   (new-vector [m length]
     "Returns a new vector (1D column matrix) of the given length.")
   (new-matrix [m rows columns]
@@ -129,7 +132,9 @@
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of a matrix"
   (get-row [m i])
-  (get-column [m i]))
+  (get-column [m i])
+  (get-major-slice [m i])
+  (get-slice [m dimension i]))
 
 
 (defprotocol PFunctionalOperations

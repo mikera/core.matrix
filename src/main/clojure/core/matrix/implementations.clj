@@ -16,7 +16,7 @@
 
 ;; default implementation to use
 ;; should be included with core.matrix for easy of use
-(def DEFAULT-IMPLEMENTATION :perstistent-vector)
+(def DEFAULT-IMPLEMENTATION :persistent-vector)
 
 ;; hashmap of implementation keys to canonical objects
 ;; objects must implement PImplementation protocol at a minimum
