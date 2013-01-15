@@ -21,6 +21,8 @@
     (is (keyword? (imp/get-implementation-key m)))
     (is (= (imp/get-implementation-key m) (imp/get-implementation-key (imp/get-canonical-object m))))))
 
+
+;; TODO: figure out what to do with implementations that only support specific types?
 (defn test-new-matrices [m]
   (testing "Vector construction"
     (let [v (matrix [1])]
@@ -30,7 +32,7 @@
       (is (== 3.0 (mget m 1 0))))))
 
 
-;; implementations should call this with either their
+;; implementations should call this with either a valid instance or their registered implementation key
 (defn compliance-test 
   "Runs the compliance test suite on a given matrix implementation. 
    m can be either a matrix instance or the implementation keyword."
