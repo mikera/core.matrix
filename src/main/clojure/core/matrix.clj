@@ -443,11 +443,15 @@
 
 ;; general transformation of a vector
 (extend-protocol mp/PVectorTransform
+  clojure.lang.IFn
+    (vector-transform [m a]
+      (m a))
+    (vector-transform! [m a]
+      (assign! a (m a)))
   java.lang.Object
     (vector-transform [m a]
       (cond 
         (matrix? m) (mul m a)
-        (ifn? m) (m a)
         :else (error "Don't know how to transform using: " (class m))))
     (vector-transform! [m a]
       (assign! a (mp/vector-transform m a))))

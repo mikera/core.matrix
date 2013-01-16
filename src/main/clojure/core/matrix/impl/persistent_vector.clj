@@ -135,6 +135,13 @@
         :default
           (mm/mul m a))))
 
+(extend-protocol mp/PVectorTransform
+  clojure.lang.PersistentVector
+    (vector-transform [m a]
+      (mul m a))
+    (vector-transform! [m a]
+      (assign! a (mul m a))))
+
 (extend-protocol mp/PMatrixScaling
   clojure.lang.IPersistentVector
     (scale [m a]
