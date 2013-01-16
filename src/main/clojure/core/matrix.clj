@@ -410,6 +410,22 @@
         (if (scalar? m) m
           (error "Not a scalar, cannot do zero dimensional get")))))
 
+(extend-protocol mp/PAssignment
+  java.lang.Object
+    (assign! [m x] 
+      (cond 
+        (vector? m)
+          (dotimes [i (row-count m)]
+            (mset! m i (mget x i)))
+        (matrix? m)
+          (doall (map (fn [a b] (mp/assign! a b)) 
+                      (slices m) 
+                      (slices x)))
+        :else 
+          (error "Can't assign to a non-matrix object")))
+    (assign-array! [m arr] 
+      (TODO)))
+
 
 (extend-protocol mp/PDimensionInfo
   java.lang.Number
