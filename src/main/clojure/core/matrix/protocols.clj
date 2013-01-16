@@ -96,6 +96,11 @@
   (matrix-multiply [m a])
   (element-multiply [m a]))
 
+(defprotocol PVectorTransform
+  "Protocol to support transformation of a vector"
+  (vector-transform [m v] "Transforms a vector")
+  (vector-transform! [m v] "Transforms a vector in place - mutates the vector argument"))
+
 (defprotocol PMatrixScaling
   "Protocol to support matrix scaling by scalar values"
   (scale [m a])
