@@ -1,4 +1,4 @@
-(ns core.matrix.test-ndarray
+(ns core.matrix.test-ndarray-implementation
   (:use clojure.test)
   (:use core.matrix)
   (:require [core.matrix.operators :as op])

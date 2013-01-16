@@ -6,6 +6,6 @@ public class NDArrayTest extends NamespaceTest {
 	
 	@Override
 	public String namespace() {
-		return "core.matrix.test-ndarray";
+		return "core.matrix.test-ndarray-implementation";
 	}
 }

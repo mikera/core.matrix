@@ -1,4 +1,4 @@
-(ns core.matrix.test-default-implementation
+(ns core.matrix.test-persistent-vector-implementation
   (:use clojure.test)
   (:use core.matrix)
   (:require [core.matrix.operators :as op])
