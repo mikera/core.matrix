@@ -412,7 +412,7 @@
     (dimensionality [m] 0)
     (is-vector? [m] (== 1 (mp/dimensionality m)))
     (is-scalar? [m] false)
-    (dimension-count [m i] (error "Can't determine count of dimension " i " on object " (class m))))
+    (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
     
 
 ;; generic versions of matrix ops
@@ -550,7 +550,7 @@
       (cond 
         (scalar? m) m
         (mp/is-vector? m) (mapv #(mget m %) (range (row-count m))))
-        :default (mapv #(mp/convert-to-nested-vectors (mp/get-row m %)) (range (row-count m)))))
+        :default (mapv mp/convert-to-nested-vectors (slices m))))
 
 ;; define standard Java maths functions for numbers
 (eval
