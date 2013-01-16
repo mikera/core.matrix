@@ -125,4 +125,6 @@
     (is (column-matrix? [[1] [2]]))
     (is (not (column-matrix? [[1 2 3]])))
     (is (row-matrix? [[1 2 3]]))
-    (is (not (row-matrix? [1 2])))))
+    (is (not (row-matrix? [1 2]))))
+  (testing "mutability"
+    (is (not (mutable? [1 2])))))

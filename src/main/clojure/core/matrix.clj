@@ -168,6 +168,11 @@
   ([m]
     (for [i (range (mp/dimensionality m))] (mp/dimension-count m i))))
 
+(defn mutable?
+  "Returns true if the matrix is mutable, i.e. supports setting of values"
+  ([m]
+    (and (satisfies? mp/PIndexedSetting m) (mp/is-mutable? m))))
+
 ;; =======================================
 ;; matrix access
 

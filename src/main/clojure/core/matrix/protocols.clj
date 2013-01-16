@@ -77,7 +77,8 @@
    Must be supported for any mutable matrix type."
   (set-1d [m row v])
   (set-2d [m row column v])
-  (set-nd [m indexes v]))
+  (set-nd [m indexes v])
+  (is-mutable? [m]))
 
 
 ;; ===================================================================================
