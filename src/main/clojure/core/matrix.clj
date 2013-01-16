@@ -89,6 +89,11 @@
   ([m]
     (error "not yet implemented")))
 
+(defn to-nested-vectors
+  "Converts a matrix to nested vectors"
+  ([m]
+    (mp/convert-to-nested-vectors m)))
+
 ;; ==============================
 ;; Matrix predicates and querying
 
@@ -544,8 +549,8 @@
     (convert-to-nested-vectors [m]
       (cond 
         (scalar? m) m
-        (vector? m) (mapv #(mget m %) (range (row-count m))))
-        :default (mapv #(mp/convert-to-nested-vectors (mp/get-row m %)) (range (column-count m)))))
+        (mp/is-vector? m) (mapv #(mget m %) (range (row-count m))))
+        :default (mapv #(mp/convert-to-nested-vectors (mp/get-row m %)) (range (row-count m)))))
 
 ;; define standard Java maths functions for numbers
 (eval

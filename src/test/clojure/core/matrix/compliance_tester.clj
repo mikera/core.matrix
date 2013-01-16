@@ -31,6 +31,14 @@
     (let [m (matrix [[1 2] [3 4]])]
       (is (== 3.0 (mget m 1 0))))))
 
+(defn test-coerce-via-vectors [m]
+  (testing "Vector coercion"
+    (let [v (matrix [1])]
+      (is (= [1] (to-nested-vectors v)))))
+  (testing "Matrix coercion"
+    (let [m (matrix [[1 2] [3 4]])]
+      (is (= [[1 2] [3 4]] (to-nested-vectors m))))))
+
 
 ;; implementations should call this with either a valid instance or their registered implementation key
 (defn compliance-test 
@@ -41,4 +49,5 @@
         ik (imp/get-implementation-key m)]
     (binding [*matrix-implementation* ik]
       (test-implementation-key m)
+      (test-coerce-via-vectors m)
       (test-new-matrices m))))
