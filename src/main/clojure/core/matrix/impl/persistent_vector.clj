@@ -97,7 +97,7 @@
 (extend-protocol mp/PVectorOps
   clojure.lang.IPersistentVector
     (vector-dot [a b]
-      (reduce + 0 (map (fn [x y] (* x y)) a (coerce a b))))
+      (reduce + 0 (map * a (coerce a b))))
     (length-squared [a]
       (reduce + (map #(* % %) a)))
     (normalise [a]
@@ -110,6 +110,7 @@
         (clojure.core/vector? param) param
         (number? param) param
         (sequential? param) (coerce-nested param)
+        (scalar? param) param
         (instance? java.util.List param) (coerce-nested param)
         (instance? java.lang.Iterable param) (coerce-nested param)
         :default (error "Can't coerce to vector: " (class param)))))
@@ -119,14 +120,20 @@
     (element-multiply [m a]
       (emap * m a))
     (matrix-multiply [m a]
-      (if (vector? a)
-        (let [rows (first (shape m))
-              cols (second (shape a))]
-          (vec (for [i (range rows)]
-                 (let [r (get-row m i)]
-                   (vec (for [j (range cols)]
-                          (dot r (get-column a j))))))))
-        (mm/mul m a))))
+      (cond 
+        (and (matrix-2d? m) (mp/is-vector? a))
+	        (let [[rows cols] (shape m)]
+	          (vec (for [i (range rows)]
+	                 (let [r (get-row m i)]
+	                   (dot r a)))))
+        (and (matrix-2d? m) (matrix-2d? m))
+          (let [[rows cols] (shape m)]
+            (vec (for [i (range rows)]
+                   (let [r (get-row m i)]
+                     (vec (for [j (range cols)]
+                            (dot r (get-column a j))))))))
+        :default
+          (mm/mul m a))))
 
 (extend-protocol mp/PMatrixScaling
   clojure.lang.IPersistentVector

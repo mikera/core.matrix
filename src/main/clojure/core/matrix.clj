@@ -103,7 +103,7 @@
     (mp/is-vector? m)))
 
 (defn scalar?
-  "Returns true if the parameter is a scalar (has zero dimensionality)."
+  "Returns true if the parameter is a scalar (zero dimensionality, acceptable as matrix value)."
   ([m]
     (mp/is-scalar? m)))
 
@@ -265,6 +265,14 @@
   ([a b & more]
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
+(defn transform
+  "Transforms a given vector, returning a new vector"
+  ([m v] (mp/vector-transform m v)))
+
+(defn transform!
+  "Transforms a given vector in place"
+  ([m v] (mp/vector-transform! m v)))
+
 (defn add
   "Performs matrix addition on two matrices of same size"
   ([a] a)
@@ -388,7 +396,7 @@
         (if (scalar? m) m
           (error "Not a scalar, cannot do zero dimensional get")))))
 
-;; support indexed gets on any kind of java.util.List
+
 (extend-protocol mp/PDimensionInfo
   java.lang.Number
     (dimensionality [m] 0)
@@ -396,10 +404,11 @@
     (is-vector? [m] false)
     (dimension-count [m i] (error "java.lang.Number has zero dimensionality, cannot get dimension count"))
   java.lang.Object
-    (dimensionality [m] (error "Can't determine dimensionality: " (class m)))
+    (dimensionality [m] 0)
     (is-vector? [m] (== 1 (mp/dimensionality m)))
-    (is-scalar? [m] (== 0 (mp/dimensionality m)))
+    (is-scalar? [m] false)
     (dimension-count [m i] (error "Can't determine count of dimension " i " on object " (class m))))
+    
 
 ;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps
@@ -424,14 +433,15 @@
     (element-multiply [m a]
       (clojure.core/* m a))
     (matrix-multiply [m a]
-      (if (number? a)
-        (* m a)
-        (mp/pre-scale a m)))
+      (cond 
+        (number? a) (* m a)
+        (matrix? a) (mp/pre-scale a m)
+        :else (error "Don't know how to multiply number with: " (class a))))
   java.lang.Object
     (element-multiply [m a]
       (emap clojure.core/* m a)))
 
-;; matrix multiply
+;; general transformation of a vector
 (extend-protocol mp/PVectorTransform
   java.lang.Object
     (vector-transform [m a]
@@ -465,7 +475,13 @@
     (matrix-add [m a]
       (if (number? a) (+ m a) (error "Can't add scalar number to a matrix")))
     (matrix-sub [m a]
-      (if (number? a) (- m a) (error "Can't a matrix from a scalar number"))))
+      (if (number? a) (- m a) (error "Can't a matrix from a scalar number")))
+  ;; default impelementation - assume we can use emap?
+  java.lang.Object
+    (matrix-add [m a]
+      (emap + m a))
+    (matrix-sub [m a]
+      (emap - m a)))
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
@@ -500,9 +516,10 @@
       m)
   java.lang.Object
     (convert-to-nested-vectors [m]
-      (if (vector? m)
-        (mapv #(mget m %) (range (row-count m))))
-        (mapv #(mp/convert-to-nested-vectors (mp/get-row m %)) (range (column-count m)))))
+      (cond 
+        (scalar? m) m
+        (vector? m) (mapv #(mget m %) (range (row-count m))))
+        :default (mapv #(mp/convert-to-nested-vectors (mp/get-row m %)) (range (column-count m)))))
 
 ;; define standard Java maths functions for numbers
 (eval
@@ -521,7 +538,6 @@
 
 ;; =======================================================
 ;; default multimethod implementations
-
 
 (defmethod mm/mul :default [x y]
   (error "Don't know how to multiply " (class x) " with " (class y)))

@@ -31,6 +31,12 @@
     (is (= [[1 0] [2 2] [5 0]] (mul [[1 0] [0 2] [5 0]] [[1 0] [1 1]])))
     (is (= [[1 2] [3 4]] (mul [[1 2] [3 4]] [[1 0] [0 1]])))))
 
+(deftest test-transform
+  (testing "matrix transform"
+    (is (= [5 10] (transform [[1 0] [0 2]] [5 5]))))
+  (testing "function transform"
+    (is (= [1 2] (transform (fn [_] [1 2]) [5 5])))))
+
 ;; run complicance tests
 
 (deftest compliance-test
