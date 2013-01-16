@@ -34,10 +34,10 @@
 (defn test-coerce-via-vectors [m]
   (testing "Vector coercion"
     (let [v (matrix [1])]
-      (is (= [1] (to-nested-vectors v)))))
+      (is (equals [1] (to-nested-vectors v)))))
   (testing "Matrix coercion"
     (let [m (matrix [[1 2] [3 4]])]
-      (is (= [[1 2] [3 4]] (to-nested-vectors m))))))
+      (is (equals [[1 2] [3 4]] (to-nested-vectors m))))))
 
 
 ;; implementations should call this with either a valid instance or their registered implementation key
