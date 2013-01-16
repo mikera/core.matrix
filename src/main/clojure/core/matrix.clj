@@ -73,9 +73,11 @@
 ;; matrix assignment and copying
 
 (defn assign! 
-  "Assigns a value to a matrix"
+  "Assigns a value to a matrix. 
+   Returns the mutated matrix"
   ([m a]
-    (mp/assign! m a)))
+    (mp/assign! m a)
+    m))
 
 (defn clone
   "Constructs a clone of the matrix, using the same implementation. This function is intended to
