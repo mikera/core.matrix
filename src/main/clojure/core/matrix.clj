@@ -539,11 +539,11 @@
       (mapcat mp/element-seq (slices m)))
     (element-map
       ([m f]
-        (coerce m (mp/element-map f (mp/convert-to-nested-vectors m))))
+        (coerce m (mp/element-map (mp/convert-to-nested-vectors m) f)))
       ([m f a]
-        (coerce m (mp/element-map f (mp/convert-to-nested-vectors m) a)))
+        (coerce m (mp/element-map (mp/convert-to-nested-vectors m) f a)))
       ([m f a more]
-        (coerce m (mp/element-map f (mp/convert-to-nested-vectors m) a more))))
+        (coerce m (mp/element-map (mp/convert-to-nested-vectors m) f a more))))
     (element-map!
       ([m f]
         (assign! m (mp/element-map m f)))
@@ -553,9 +553,9 @@
         (assign! m (mp/element-map m f a more))))
     (element-reduce
       ([m f]
-        (coerce m (mp/element-reduce f (mp/convert-to-nested-vectors m))))
+        (coerce m (mp/element-reduce (mp/convert-to-nested-vectors m) f)))
       ([m f init]
-        (coerce m (mp/element-reduce f init (mp/convert-to-nested-vectors m))))))
+        (coerce m (mp/element-reduce (mp/convert-to-nested-vectors m) f init)))))
 
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
