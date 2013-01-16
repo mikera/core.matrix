@@ -510,7 +510,29 @@
       ([m f]
         m)
       ([m f init]
-        (f init m))))
+        (f init m)))
+  java.lang.Object
+    (element-seq [m]
+      (mapcat mp/element-seq (slices m)))
+    (element-map
+      ([m f]
+        (coerce m (mp/element-map f (mp/convert-to-nested-vectors m))))
+      ([m f a]
+        (coerce m (mp/element-map f (mp/convert-to-nested-vectors m) a)))
+      ([m f a more]
+        (coerce m (mp/element-map f (mp/convert-to-nested-vectors m) a more))))
+    (element-map!
+      ([m f]
+        (assign! m (mp/element-map m f)))
+      ([m f a]
+        (assign! m (mp/element-map m f a)))
+      ([m f a more]
+        (assign! m (mp/element-map m f a more))))
+    (element-reduce
+      ([m f]
+        (coerce m (mp/element-reduce f (mp/convert-to-nested-vectors m))))
+      ([m f init]
+        (coerce m (mp/element-reduce f init (mp/convert-to-nested-vectors m))))))
 
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion

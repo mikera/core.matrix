@@ -4,7 +4,7 @@
 ;; benchmark for a few different calling conventions
 
 (set! *unchecked-math* true)
-(set! *warn-on-reflection* true)
+;; (set! *warn-on-reflection* true)
 
 ;; an array to mutate: gives methods something to do with a side effect
 (def arr (long-array 1))
