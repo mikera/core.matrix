@@ -69,6 +69,14 @@
       (mp/new-matrix-nd (imp/get-canonical-object ik) (cons dim-1 (cons dim-2 more-dim)))
       (error "No matrix implementation available"))))
 
+;; ======================================
+;; matrix assignment and copying
+
+(defn assign! 
+  "Assigns a value to a matrix"
+  ([m a]
+    (mp/assign! m a)))
+
 (defn clone
   "Constructs a clone of the matrix, using the same implementation. This function is intended to
    allow safe defensive copying of matrices / vectors.
@@ -233,6 +241,7 @@
     (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0))))
   ([m dimension]
     (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
+
 
 ;; ======================================
 ;; matrix maths / operations
@@ -421,6 +430,14 @@
   java.lang.Object
     (element-multiply [m a]
       (emap clojure.core/* m a)))
+
+;; matrix multiply
+(extend-protocol mp/PVectorTransform
+  java.lang.Object
+    (vector-transform [m a]
+      (mul m a))
+    (vector-transform! [m a]
+      (assign! a (mp/vector-transform m a))))
 
 ;; matrix scaling
 (extend-protocol mp/PMatrixScaling
