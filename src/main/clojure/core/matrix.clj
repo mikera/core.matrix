@@ -243,7 +243,8 @@
   "Gets a lazy sequence of slices of a matrix. If dimension is supplied, slices along a given dimension,
    otherwise slices along the first dimension."
   ([m]
-    (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0))))
+    (let [sc (try (mp/dimension-count m 0) (catch Throwable t (error "No dimensionality for getting slices: " (class m))))]
+      (map #(mp/get-major-slice m %) (range sc))))
   ([m dimension]
     (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
 

@@ -18,14 +18,15 @@
     (is (= [1 2 3] (coerce [[1 0 0] [0 1 0] [0 0 1]] [1 2 3])))
     (is (= [[1 2] [3 4]] (coerce [1] [[1 2] [3 4]])))
     (is (= [[1 2] [3 4]] (coerce [1] '((1 2) (3 4)))))))
-
 (deftest test-slices
-  (testing "slices clojure vector"
+  (testing "rows and columns of clojure vector matrix"
     (is (= [1 2 3] (get-row [[1 2 3] [4 5 6]] 0)))
     (is (= [2 5] (get-column [[1 2 3] [4 5 6]] 1))))
   (testing "get-nd on scalar with zero dimensions"
     (is (== 10.0 (mget 10.0)))
-    (is (== 10.0 (mp/get-nd 10.0 [])))))
+    (is (== 10.0 (mp/get-nd 10.0 []))))
+  (testing "slices clojure vector"
+    (is (= [1 2 3] (slices [1 2 3])))))
 
 (deftest test-functional-ops
   (testing "eseq"
