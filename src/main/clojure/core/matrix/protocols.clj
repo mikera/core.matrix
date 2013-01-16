@@ -66,18 +66,24 @@
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
      May return nil if unable to do so, in which case a default implementation can be used."))
 
+(defprotocol PIndexedSetting
+  "Protocol for indexed setter access to matrices and vectors."
+  (set-1d [m row v])
+  (set-2d [m row column v])
+  (set-nd [m indexes v]))
+
 ;; ===================================================================================
 ;; MANDATORY PROTOCOLS FOR MUTABLE MATRICES
 ;;
 ;; A compliant core.matrix mutable implementation must implement these. 
 ;; Otherwise things will fail.
 
-(defprotocol PIndexedSetting
+(defprotocol PIndexedSettingMutable
   "Protocol for indexed setter access to matrices and vectors. 
    Must be supported for any mutable matrix type."
-  (set-1d [m row v])
-  (set-2d [m row column v])
-  (set-nd [m indexes v]))
+  (set-1d! [m row v])
+  (set-2d! [m row column v])
+  (set-nd! [m indexes v]))
 
 
 ;; ===================================================================================
@@ -92,8 +98,10 @@
 
 (defprotocol PAssignment
   "Protocol for assigning values to mutable matrices."
-  (assign-array! [m arr] "Sets all the values in a matrix from a Java array, in row-major order")
-  (assign! [m source] "Sets all the values in a matrix from a matrix source"))
+  (assign-array! [m arr]
+    "Sets all the values in a matrix from a Java array, in row-major order")
+  (assign! [m source]
+    "Sets all the values in a matrix from a matrix source"))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
@@ -104,8 +112,10 @@
   "Protocol to support transformation of a vector to another vector. 
    Is equivalent to matrix multiplication when 2D matrices are used as transformations.
    But other transformations are possible, e.g. affine transformations."
-  (vector-transform [m v] "Transforms a vector")
-  (vector-transform! [m v] "Transforms a vector in place - mutates the vector argument"))
+  (vector-transform [m v]
+    "Transforms a vector")
+  (vector-transform! [m v]
+    "Transforms a vector in place - mutates the vector argument"))
 
 (defprotocol PMatrixScaling
   "Protocol to support matrix scaling by scalar values"
