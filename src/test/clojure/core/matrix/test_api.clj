@@ -27,6 +27,26 @@
     (is (== 10.0 (mget 10.0)))
     (is (== 10.0 (mp/get-nd 10.0 [])))))
 
+(deftest test-functional-ops
+  (testing "eseq"
+    (is (= [1] (eseq 1)))
+    (is (= [1] (eseq [1])))
+    (is (= [1] (eseq [[1]])))
+    (is (= [1] (eseq [[[1]]])))))
+
+(deftest test-equals
+  (testing "scalars"
+    (is (equals 6 6.0))
+    (is (equals 6 (mul 3 2)))
+    (is (equals 6.0 (scale 3 2))))
+  (testing "vectors"
+    (is (not (equals [6] [3])))
+    (is (equals [6] [6.0]))
+    (is (equals [6] (mul [3] 2)))
+    (is (equals [6.0] (mul 2 [3]))))
+  (testing "matrices"
+    (is (equals [[1 0.0] [0 1.0]] [[1.0 0] [0.0 1]]))))
+
 (deftest test-multiply
   (testing "scalars"
     (is (== 6 (mul 3 2)))

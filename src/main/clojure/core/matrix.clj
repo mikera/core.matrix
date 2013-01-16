@@ -249,6 +249,14 @@
 
 
 ;; ======================================
+;; matrix comparisons
+
+(defn equals
+  "Returns true if two matrices are numerically equal."
+  ([a b]
+    (mp/matrix-equals a b)))
+
+;; ======================================
 ;; matrix maths / operations
 
 (defn mul
@@ -491,6 +499,15 @@
       (emap + m a))
     (matrix-sub [m a]
       (emap - m a)))
+
+;; equality checking
+(extend-protocol mp/PMatrixEquality
+  java.lang.Number
+    (matrix-equals [a b]
+      (== a b))
+  java.lang.Object
+    (matrix-equals [a b]
+      (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))) 
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations

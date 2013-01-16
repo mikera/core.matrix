@@ -86,6 +86,10 @@
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
 
+(defprotocol PMatrixEquality
+  "Protocol for matrix equality operations"
+  (matrix-equals [a b]))
+
 (defprotocol PAssignment
   "Protocol for assigning values to mutable matrices."
   (assign-array! [m arr] "Sets all the values in a matrix from a Java array, in row-major order")
