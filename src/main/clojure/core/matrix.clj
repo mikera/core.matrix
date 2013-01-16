@@ -435,7 +435,10 @@
 (extend-protocol mp/PVectorTransform
   java.lang.Object
     (vector-transform [m a]
-      (mul m a))
+      (cond 
+        (matrix? m) (mul m a)
+        (ifn? m) (m a)
+        :else (error "Don't know how to transform using: " (class m))))
     (vector-transform! [m a]
       (assign! a (mp/vector-transform m a))))
 

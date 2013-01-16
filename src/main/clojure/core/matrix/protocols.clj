@@ -97,7 +97,9 @@
   (element-multiply [m a]))
 
 (defprotocol PVectorTransform
-  "Protocol to support transformation of a vector"
+  "Protocol to support transformation of a vector to another vector. 
+   Is equivalent to matrix multiplication when 2D matrices are used as transformations.
+   But other transformations are possible, e.g. affine transformations."
   (vector-transform [m v] "Transforms a vector")
   (vector-transform! [m v] "Transforms a vector in place - mutates the vector argument"))
 
