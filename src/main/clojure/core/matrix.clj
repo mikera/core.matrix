@@ -494,11 +494,11 @@
       (list m))
     (element-map
       ([m f]
-        (list (f m)))
+        (f m))
       ([m f a]
-        (list (f m a)))
+        (f m a))
       ([m f a more]
-        (list (apply f m a more))))
+        (apply f m a more)))
     (element-map!
       ([m f]
         (error "java.lang.Number instance is not mutable!"))
