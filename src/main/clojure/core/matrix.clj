@@ -567,8 +567,16 @@
     (convert-to-nested-vectors [m]
       (cond 
         (scalar? m) m
-        (mp/is-vector? m) (mapv #(mget m %) (range (row-count m))))
-        :default (mapv mp/convert-to-nested-vectors (slices m))))
+        (mp/is-vector? m) 
+          (mapv #(mget m %) (range (row-count m)))
+        (matrix? m) 
+          (mapv mp/convert-to-nested-vectors (slices m))
+        (sequential? m) 
+          (mapv mp/convert-to-nested-vectors m)
+        (seq? m) 
+          (mapv mp/convert-to-nested-vectors m)
+        :default 
+          (error "Can't work out how to convert to nested vectors: " (class m) " = " m))))
 
 ;; define standard Java maths functions for numbers
 (eval
