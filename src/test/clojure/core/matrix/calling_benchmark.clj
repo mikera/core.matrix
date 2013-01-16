@@ -72,7 +72,7 @@
 
 (c/quick-bench (dotimes [i 1000] (boxed-call i)))
 ;; 7.95 us
-;; fast - boxing adds overhead
+;; fast - boxing adds moderate overhead
 
 (c/quick-bench (dotimes [i 1000] (aset arr 0 i)))
 ;; 9002.24 us
@@ -92,7 +92,11 @@
 ;; fast
 
 (c/quick-bench (dotimes [i 1000] (.interfaceCallPrim ^IInterface my-type i)))
-;; 2.28 us
+;; 1.89 us
+;; very fast!
+
+(c/quick-bench (dotimes [i 1000] (.interfaceCallPrim ^MyType my-type i)))
+;; 1.86 us
 ;; very fast!
 
 (c/quick-bench (dotimes [i 1000] (class-multimethod my-type i)))
