@@ -414,7 +414,7 @@
   java.lang.Object
     (assign! [m x] 
       (cond 
-        (vector? m)
+        (mp/is-vector? m)
           (dotimes [i (row-count m)]
             (mset! m i (mget x i)))
         (matrix? m)
@@ -422,7 +422,7 @@
                       (slices m) 
                       (slices x)))
         :else 
-          (error "Can't assign to a non-matrix object")))
+          (error "Can't assign to a non-matrix object: " (class m))))
     (assign-array! [m arr] 
       (TODO)))
 
@@ -621,3 +621,10 @@
 (defn current-implementation
   "Gets the currently active matrix implementation"
   ([] core.matrix/*matrix-implementation*))
+
+(defn set-current-implementation
+  "Sets the currently active matrix implementation"
+  ([m] 
+    (alter-var-root (var core.matrix/*matrix-implementation*) 
+                    (fn [_] (imp/get-implementation-key m)))))
+
