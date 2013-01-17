@@ -44,10 +44,10 @@
    in *matrix-implementation*"
   ([data]
     (if-let [ik (current-implementation)]
-      (matrix (imp/get-canonical-object ik) data)
+      (mp/construct-matrix (imp/get-canonical-object ik) data)
       (error "No matrix implementation available")))
   ([implementation data]
-    (mp/construct-matrix implementation data)))
+    (mp/construct-matrix (imp/get-canonical-object implementation) data)))
 
 (defn new-vector
   "Constructs a new zero-filled vector with the given length"
