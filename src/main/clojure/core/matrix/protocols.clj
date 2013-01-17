@@ -57,8 +57,6 @@
   (get-2d [m row column])
   (get-nd [m indexes]))
 
-
-
 ;; ===================================================================================
 ;; MANDATORY PROTOCOLS FOR MUTABLE MATRICES
 ;;
