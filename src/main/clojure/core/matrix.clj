@@ -601,6 +601,11 @@
         :default 
           (error "Can't work out how to convert to nested vectors: " (class m) " = " m))))
 
+(extend-protocol mp/PCoercion
+  java.lang.Object
+    (coerce-param [m param]
+      (mp/construct-matrix m (mp/convert-to-nested-vectors m))))
+
 ;; define standard Java maths functions for numbers
 (eval
   `(extend-protocol mp/PMathsFunctions
