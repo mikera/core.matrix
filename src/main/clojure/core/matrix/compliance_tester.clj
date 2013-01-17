@@ -28,16 +28,18 @@
     (let [v (matrix [1])]
       (is (== 1.0 (mget v 0)))))
   (testing "Matrix construction"
-    (let [m (matrix [[1 2] [3 4]])]
-      (is (== 3.0 (mget m 1 0))))))
+    (when (supports-dimensionality? m 2)
+      (let [m (matrix [[1 2] [3 4]])]
+        (is (== 3.0 (mget m 1 0)))))))
 
 (defn test-coerce-via-vectors [m]
   (testing "Vector coercion"
     (let [v (matrix [1])]
       (is (equals [1] (to-nested-vectors v)))))
   (testing "Matrix coercion"
-    (let [m (matrix [[1 2] [3 4]])]
-      (is (equals [[1 2] [3 4]] (to-nested-vectors m))))))
+    (when (supports-dimensionality? m 2)
+      (let [m (matrix [[1 2] [3 4]])]
+        (is (equals [[1 2] [3 4]] (to-nested-vectors m)))))))
 
 
 ;; implementations should call this with either a valid instance or their registered implementation key

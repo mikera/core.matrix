@@ -26,6 +26,7 @@
     (new-matrix [m rows columns] (TODO))
     (new-matrix-nd [m dims] (TODO))
     (construct-matrix [m data] (TODO))
+    (supports-dimensionality? [m dims] true)
   
   mp/PIndexedAccess
     (get-1d [m x]

@@ -33,7 +33,37 @@
         (== (dimensionality data) 1) 
           (double-array (eseq data))
         :default
-          (error "Don't know how to construct double array from " (class data)))))
+          (error "Don't know how to construct double array from " (class data))))
+    (supports-dimensionality? [m dims]
+      (<= dims 1)))
+
+(extend-protocol mp/PIndexedAccess
+  (Class/forName "[D")
+    (get-1d [m x]
+      (aget m (int x)))
+    (get-2d [m x y]
+      (error "Can't do 2D get from double array"))
+    (get-nd [m indexes]
+      (if (== 1 (count indexes)) 
+        (aget m (int (first indexes)))
+        (error "Can't get from double array with dimensionality: " (count indexes)))))
+
+
+(extend-protocol mp/PConversion
+  (Class/forName "[D")
+    (convert-to-nested-vectors [m]
+      (vec m)))
+
+
+(extend-protocol mp/PDimensionInfo
+  (Class/forName "[D")
+    (dimensionality [m] 1)
+    (is-vector? [m] true)
+    (is-scalar? [m] false)
+    (dimension-count [m x]
+      (if (== x 0)
+        (count m)
+        (error "Double array does not have dimension: " x))))
 
 ;; registration
 

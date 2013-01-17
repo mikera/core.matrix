@@ -10,3 +10,7 @@
     (let [da (matrix :double-array [1 2])]
       (is (= [1.0 2.0] (seq da)))
       (is (= (class (double-array [1])) (class da))))))
+
+
+(deftest compliance-test
+  (core.matrix.compliance-tester/compliance-test (double-array [0.23]))) 

@@ -56,7 +56,9 @@
         (sequential? data)
           (mapv #(mp/construct-matrix m %) data)
         :default
-          (error "Don't know how to construct matrix from: " (class data)))))
+          (error "Don't know how to construct matrix from: " (class data))))
+    (supports-dimensionality? [m dims]
+      true))
 
 (extend-protocol mp/PIndexedAccess
   clojure.lang.IPersistentVector

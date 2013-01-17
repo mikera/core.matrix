@@ -35,7 +35,9 @@
     "Returns a new matrix (regular 2D matrix) with the given number of rows and columns.")
   (new-matrix-nd [m shape]
     "Returns a new general matrix of the given shape.
-     Shape must be a sequence of dimension sizes."))
+     Shape must be a sequence of dimension sizes.")
+  (supports-dimensionality? [m dimensions]
+    "Returns true if the implementation supports matrices with the given number of dimensions."))
 
 (defprotocol PDimensionInfo
   "Protocol to return standard dimension information about a matrix. 

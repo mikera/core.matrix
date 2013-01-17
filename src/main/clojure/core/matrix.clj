@@ -173,6 +173,12 @@
   ([m]
     (and (satisfies? mp/PIndexedSetting m) (mp/is-mutable? m))))
 
+(defn supports-dimensionality? 
+  "Returns true if the implementation for a given matrix supports a specific dimensionality, i.e.
+   can create an manipulate matrices with the given number of dimensions"
+  ([m dimension-count]
+    (mp/supports-dimensionality? m dimension-count)))
+
 ;; =======================================
 ;; matrix access
 
@@ -413,7 +419,7 @@
     (get-2d [m x y] (mp/get-nd m [x y]))
     (get-nd [m indexes]
       (if (seq indexes)
-        (error "Can't determine dimensionality of:" (class m))
+        (error "Indexed get failed, not defined for:" (class m))
         (if (scalar? m) m
           (error "Not a scalar, cannot do zero dimensional get")))))
 
