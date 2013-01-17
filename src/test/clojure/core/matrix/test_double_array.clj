@@ -12,5 +12,12 @@
       (is (= (class (double-array [1])) (class da))))))
 
 
+(deftest test-assign
+  (testing "assign from a persistent vector"
+    (let [da (double-array [1 2])]
+      (assign! da [2 3]) 
+      (is (= [2.0 3.0] (seq da))))))
+
+
 (deftest compliance-test
   (core.matrix.compliance-tester/compliance-test (double-array [0.23]))) 

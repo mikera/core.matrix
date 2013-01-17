@@ -49,6 +49,19 @@
         (error "Can't get from double array with dimensionality: " (count indexes)))))
 
 
+(extend-protocol mp/PIndexedSetting
+  (Class/forName "[D")
+    (set-1d [m x v]
+      (aset ^doubles m (int x) (double v)))
+    (set-2d [m x y v]
+      (error "Can't do 2D set on double array"))
+    (set-nd [m indexes v]
+      (if (== 1 (count indexes)) 
+        (aset ^doubles m (int (first indexes)) (double v))
+        (error "Can't set on double array with dimensionality: " (count indexes))))
+    (is-mutable? [m] true))
+
+
 (extend-protocol mp/PConversion
   (Class/forName "[D")
     (convert-to-nested-vectors [m]
