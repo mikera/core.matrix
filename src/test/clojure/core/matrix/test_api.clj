@@ -78,6 +78,13 @@
     (is (= [1.0] (normalise [2.0])))
     (is (= [-1.0 0.0] (normalise [-2.0 0.0])))))
 
+(deftest test-mathsops
+  (testing "ops on scalars"
+    (is (== 1.0 (floor 1.2)))
+    (is (thrown? Throwable (floor! 1.2))))
+  (testing "ops"
+    (is (= [1.0 2.0] (floor [1.2 2.7]))))) 
+
 (deftest test-scalar
   (testing "numbers as scalars"
     (is (scalar? 1))

@@ -22,7 +22,7 @@
 (defn mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices"
   ([f m]
-    (if (number? (nth m 0))
+    (if (mp/is-scalar? (nth m 0))
       (mapv f m)
       (mapv (partial mapmatrix f) m)))
   ([f m1 m2]

@@ -257,7 +257,9 @@
    otherwise slices along the first dimension."
   ([m]
     (let [sc (try (mp/dimension-count m 0) (catch Throwable t (error "No dimensionality for getting slices: " (class m))))]
-      (map #(mp/get-major-slice m %) (range sc))))
+      (if (== 1 (dimensionality m))
+        (for [i (range sc)] (mp/get-1d m i))
+        (map #(mp/get-major-slice m %) (range sc)))))
   ([m dimension]
     (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
 
@@ -358,7 +360,12 @@
   `(do ~@(map (fn [[name func]]
            `(defn ~name
               ([~'m]
-                (~(symbol "core.matrix.protocols" (str name)) ~'m)))) mops/maths-ops)))
+                (~(symbol "core.matrix.protocols" (str name)) ~'m)))) mops/maths-ops)
+     ~@(map (fn [[name func]]
+           `(defn ~(symbol (str name "!"))
+              ([~'m]
+                (~(symbol "core.matrix.protocols" (str name "!")) ~'m)))) mops/maths-ops))
+       )
 
 ;; ====================================
 ;; functional operations
@@ -610,7 +617,7 @@
 (extend-protocol mp/PCoercion
   java.lang.Object
     (coerce-param [m param]
-      (mp/construct-matrix m (mp/convert-to-nested-vectors m))))
+      (mp/construct-matrix m (mp/convert-to-nested-vectors param))))
 
 ;; define standard Java maths functions for numbers
 (eval
