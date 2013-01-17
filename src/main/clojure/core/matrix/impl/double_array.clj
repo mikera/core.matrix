@@ -40,12 +40,12 @@
 (extend-protocol mp/PIndexedAccess
   (Class/forName "[D")
     (get-1d [m x]
-      (aget m (int x)))
+      (aget ^doubles m (int x)))
     (get-2d [m x y]
       (error "Can't do 2D get from double array"))
     (get-nd [m indexes]
       (if (== 1 (count indexes)) 
-        (aget m (int (first indexes)))
+        (aget ^doubles m (int (first indexes)))
         (error "Can't get from double array with dimensionality: " (count indexes)))))
 
 
