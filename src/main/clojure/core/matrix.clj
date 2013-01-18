@@ -120,17 +120,17 @@
     (mp/dimensionality m)))
 
 (defn row-count
-  "Returns the number of rows in a matrix"
+  "Returns the number of rows in a matrix (must be 1D or more)"
   ([m]
     (mp/dimension-count m 0)))
 
 (defn column-count
-  "Returns the number of columns in a matrix"
+  "Returns the number of columns in a matrix (must be 2D or more)"
   ([m]
     (mp/dimension-count m 1)))
 
 (defn dimension-count
-  "Returns the size of the specified dimension in a matrix"
+  "Returns the size of the specified dimension in a matrix."
   ([m dim]
     (mp/dimension-count m dim)))
 
@@ -167,7 +167,7 @@
   "Returns the shape of a matrix, i.e. the dimension sizes for all dimensions.
 
    Result may be a sequence or Java array, to allow implemenations flexibility to return 
-   their own internal representation of dimension shape.
+   their own internal representation of matrix shape.
 
    You are guaranteed however that you can call `seq` on this to get a sequence of dimension sizes."
   ([m]
