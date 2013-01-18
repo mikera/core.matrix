@@ -1,6 +1,5 @@
 (ns core.matrix.impl.double-array
   (:require [core.matrix.protocols :as mp])
-  (:use core.matrix)
   (:use core.matrix.utils)
   (:require core.matrix.impl.persistent-vector)
   (:require [core.matrix.implementations :as imp])
