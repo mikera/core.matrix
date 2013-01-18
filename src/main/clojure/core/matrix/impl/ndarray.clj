@@ -1,6 +1,5 @@
 (ns core.matrix.impl.ndarray
   (:require [core.matrix.protocols :as mp])
-  (:use core.matrix)
   (:use core.matrix.utils)
   (:require [core.matrix.implementations :as imp])
   (:require [core.matrix.multimethods :as mm])
@@ -46,6 +45,10 @@
   mp/PDimensionInfo
     (get-shape [m]
       dims)
+    (is-vector? [m]
+      (== 1 (count dims))) 
+    (is-scalar? [m]
+      false) ;; TODO: what about zero dimension case??
     (dimensionality [m]
       (count dims))
     (dimension-count [m x]
