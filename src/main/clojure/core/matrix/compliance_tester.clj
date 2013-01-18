@@ -41,6 +41,10 @@
       (let [m (matrix [[1 2] [3 4]])]
         (is (equals [[1 2] [3 4]] (to-nested-vectors m)))))))
 
+(defn test-dimensionality [m]
+  (testing "shape"
+    (is (>= (count (shape m)) 0))))
+
 
 ;; implementations should call this with either a valid instance or their registered implementation key
 (defn compliance-test 
@@ -52,4 +56,5 @@
     (binding [*matrix-implementation* ik]
       (test-implementation-key m)
       (test-coerce-via-vectors m)
+      (test-dimensionality m)
       (test-new-matrices m))))

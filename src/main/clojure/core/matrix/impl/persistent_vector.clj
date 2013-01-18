@@ -188,7 +188,10 @@
     (is-scalar? [m]
       false)
     (get-shape [m]
-      (cons (count m) (mp/get-shape (m 0)))) 
+      (let [c (long (count m))]
+        (cons c (if (> c 0) 
+                  (mp/get-shape (m 0))
+                  nil)))) 
     (dimension-count [m x]
       (if (== x 0)
         (count m)

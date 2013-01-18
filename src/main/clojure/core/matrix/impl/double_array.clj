@@ -73,6 +73,7 @@
     (dimensionality [m] 1)
     (is-vector? [m] true)
     (is-scalar? [m] false)
+    (get-shape [m] (cons (count m) nil))
     (dimension-count [m x]
       (if (== (long x) 0)
         (count m)
