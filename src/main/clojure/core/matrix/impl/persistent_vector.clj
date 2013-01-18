@@ -13,10 +13,12 @@
 ;;
 ;; format assumed to be a nested vector of Numbers
 
+(declare persistent-vector-coerce)
+
 (defn coerce-nested
   "Ensures a vector is fully coerced to nested persistent vectors"
   ([v]
-    (mapv #(if (number? %) % (coerce-nested %)) v)))
+    (mapv persistent-vector-coerce v)))
 
 (defn mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices"
