@@ -13,7 +13,7 @@
   a
   
   ;; core.matrix.operators overloads operators to work on matrices
-  (* 2 a)
+  (* a a)
   
   ;; a range of mathematical functions are defined for matrices
   (sqrt a)  
@@ -28,5 +28,14 @@
   (let [a (double-array [1 4 9])]
     (sqrt! a)
     (seq a))
+  
+  ;; you can coerce matrices between different types
+  (coerce [] (double-array [1 2 3]))
+  
+  ;; scalars can be used in many places that you can use a matrix
+  (* [1 2 3] 2)
+  
+  ;; operations on scalars alone behave as you would expect
+  (* 1 2 3 4 5)
 )
 
