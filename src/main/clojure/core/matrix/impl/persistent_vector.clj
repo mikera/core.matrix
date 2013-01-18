@@ -51,7 +51,7 @@
       (cond 
         (mp/is-scalar? data) 
           data
-        (>= (dimensionality data) 1) 
+        (>= (mp/dimensionality data) 1) 
           (mapv #(mp/construct-matrix m %) (slices data))
         (sequential? data)
           (mapv #(mp/construct-matrix m %) data)
@@ -92,9 +92,9 @@
 (extend-protocol mp/PMatrixAdd
   clojure.lang.IPersistentVector
     (matrix-add [m a]
-      (mapmatrix + m (coerce m a)))
+      (mapmatrix + m (mp/coerce-param m a)))
     (matrix-sub [m a]
-      (mapmatrix - m (coerce m a))))
+      (mapmatrix - m (mp/coerce-param m a))))
 
 (extend-protocol mp/PVectorOps
   clojure.lang.IPersistentVector

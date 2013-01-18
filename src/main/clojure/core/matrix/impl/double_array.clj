@@ -30,8 +30,8 @@
       (cond 
         (mp/is-scalar? data) 
           data
-        (== (dimensionality data) 1) 
-          (double-array (eseq data))
+        (== (mp/dimensionality data) 1) 
+          (double-array (mp/element-seq data))
         :default
           (error "Don't know how to construct double array from " (class data))))
     (supports-dimensionality? [m dims]
@@ -74,7 +74,7 @@
     (is-vector? [m] true)
     (is-scalar? [m] false)
     (dimension-count [m x]
-      (if (== x 0)
+      (if (== (long x) 0)
         (count m)
         (error "Double array does not have dimension: " x))))
 
