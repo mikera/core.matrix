@@ -11,7 +11,14 @@
 ;; Lightweight support for n-dimensional arrays of arbitrary objects conforming to core.matrix API 
 ;; 1D / 2D arrays of java.lang.Number can be safely used as vectors and matrices respectively
 
+;; utility functions
 
+(defn ^long calc-total-size [^longs dims]
+  (let [c (count dims)]
+    (loop [i (long 0) result (long 1)]
+      (if (>= 0 c)
+        result
+        (recur (inc i) (* result (aget dims i)))))))
 
 ;; =======================================================
 ;; N-dimensional array object
