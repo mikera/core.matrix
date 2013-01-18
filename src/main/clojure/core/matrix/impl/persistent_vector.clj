@@ -11,7 +11,9 @@
 ;; =======================================================================
 ;; utility functions for manipulating persistent vector matrices
 ;;
-;; format assumed to be a nested vector of Numbers
+;; Format assumed to be a nested vector
+;;
+;; Vector can contain other matrices to add an extra dimension to another implementation.
 
 (declare persistent-vector-coerce)
 
