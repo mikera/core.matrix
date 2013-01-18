@@ -34,6 +34,17 @@
       (apply mapv f m1 m2 more)
       (apply mapv (partial mapmatrix f) m1 m2 more))))
 
+(defn persistent-vector-coerce [x]
+  "Coerces to persistent vectors"
+  (cond
+    (clojure.core/vector? x) x
+    (number? x) x
+    (sequential? x) (coerce-nested x)
+    (mp/is-scalar? x) x
+    (instance? java.util.List x) (coerce-nested x)
+    (instance? java.lang.Iterable x) (coerce-nested x)
+    :default (error "Can't coerce to vector: " (class x)))) 
+
 ;; =======================================================================
 ;; Implementation for nested Clojure persistent vectors used as matrices
 
@@ -92,9 +103,9 @@
 (extend-protocol mp/PMatrixAdd
   clojure.lang.IPersistentVector
     (matrix-add [m a]
-      (mapmatrix + m (mp/coerce-param m a)))
+      (mapmatrix + m (persistent-vector-coerce a)))
     (matrix-sub [m a]
-      (mapmatrix - m (mp/coerce-param m a))))
+      (mapmatrix - m (persistent-vector-coerce a))))
 
 (extend-protocol mp/PVectorOps
   clojure.lang.IPersistentVector
@@ -108,14 +119,7 @@
 (extend-protocol mp/PCoercion
   clojure.lang.IPersistentVector
     (coerce-param [m param]
-      (cond
-        (clojure.core/vector? param) param
-        (number? param) param
-        (sequential? param) (coerce-nested param)
-        (scalar? param) param
-        (instance? java.util.List param) (coerce-nested param)
-        (instance? java.lang.Iterable param) (coerce-nested param)
-        :default (error "Can't coerce to vector: " (class param)))))
+      (persistent-vector-coerce param)))
 
 (extend-protocol mp/PMatrixMultiply
   clojure.lang.IPersistentVector
