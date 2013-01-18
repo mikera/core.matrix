@@ -44,6 +44,8 @@
         (aget data index))) 
     
   mp/PDimensionInfo
+    (get-shape [m]
+      dims)
     (dimensionality [m]
       (count dims))
     (dimension-count [m x]

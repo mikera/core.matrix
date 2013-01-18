@@ -1,6 +1,5 @@
 (ns core.matrix.impl.persistent-vector
   (:require [core.matrix.protocols :as mp])
-  (:use core.matrix)
   (:use core.matrix.utils)
   (:require [core.matrix.implementations :as imp])
   (:require [core.matrix.impl.mathsops :as mops])
@@ -45,6 +44,13 @@
     (instance? java.lang.Iterable x) (coerce-nested x)
     :default (error "Can't coerce to vector: " (class x)))) 
 
+(defn vector-dimensionality ^long [m]
+  "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
+  (cond
+    (clojure.core/vector? m) (+ 1 (vector-dimensionality (m 0)))
+    (mp/is-scalar? m) 0
+    :else (mp/dimensionality m))) 
+
 ;; =======================================================================
 ;; Implementation for nested Clojure persistent vectors used as matrices
 
@@ -63,7 +69,7 @@
         (mp/is-scalar? data) 
           data
         (>= (mp/dimensionality data) 1) 
-          (mapv #(mp/construct-matrix m %) (slices data))
+          (mapv #(mp/construct-matrix m %) (for [i (range (mp/dimension-count data 0))] (mp/get-major-slice data i)))
         (sequential? data)
           (mapv #(mp/construct-matrix m %) data)
         :default
@@ -110,11 +116,11 @@
 (extend-protocol mp/PVectorOps
   clojure.lang.IPersistentVector
     (vector-dot [a b]
-      (reduce + 0 (map * a (coerce a b))))
+      (reduce + 0 (map * a (persistent-vector-coerce b))))
     (length-squared [a]
       (reduce + (map #(* % %) a)))
     (normalise [a]
-      (mp/scale a (/ 1.0 (Math/sqrt (length-squared a))))))
+      (mp/scale a (/ 1.0 (Math/sqrt (mp/length-squared a))))))
 
 (extend-protocol mp/PCoercion
   clojure.lang.IPersistentVector
@@ -124,29 +130,29 @@
 (extend-protocol mp/PMatrixMultiply
   clojure.lang.IPersistentVector
     (element-multiply [m a]
-      (emap * m a))
+      (mp/element-map m * a))
     (matrix-multiply [m a]
       (cond 
-        (and (matrix-2d? m) (mp/is-vector? a))
-	        (let [[rows cols] (shape m)]
+        (and (mp/is-vector? a)  )
+	        (let [[rows cols] (mp/get-shape m)]
 	          (vec (for [i (range rows)]
-	                 (let [r (get-row m i)]
-	                   (dot r a)))))
-        (and (matrix-2d? m) (matrix-2d? m))
-          (let [[rows cols] (shape m)]
+	                 (let [r (m i)]
+	                   (mp/vector-dot r a)))))
+        (and (== 2 (vector-dimensionality m)) (== 2 (mp/dimensionality m)))
+          (let [[rows cols] (mp/get-shape m)]
             (vec (for [i (range rows)]
-                   (let [r (get-row m i)]
+                   (let [r (m i)]
                      (vec (for [j (range cols)]
-                            (dot r (get-column a j))))))))
+                            (mp/vector-dot r (mp/get-column a j))))))))
         :default
           (mm/mul m a))))
 
 (extend-protocol mp/PVectorTransform
   clojure.lang.PersistentVector
     (vector-transform [m a]
-      (mul m a))
+      (mp/matrix-multiply m a))
     (vector-transform! [m a]
-      (assign! a (mul m a))))
+      (mp/assign! a (mp/matrix-multiply m a))))
 
 (extend-protocol mp/PMatrixScaling
   clojure.lang.IPersistentVector
@@ -176,12 +182,13 @@
 (extend-protocol mp/PDimensionInfo
   clojure.lang.IPersistentVector
     (dimensionality [m]
-      (let [fst (.nth m (int 0))]
-        (inc (mp/dimensionality fst))))
+      (vector-dimensionality m))
     (is-vector? [m]
       (== 1 (mp/dimensionality m)))
     (is-scalar? [m]
       false)
+    (get-shape [m]
+      (cons (count m) (mp/get-shape (m 0)))) 
     (dimension-count [m x]
       (if (== x 0)
         (count m)

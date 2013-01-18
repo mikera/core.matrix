@@ -166,7 +166,7 @@
 
    You are guaranteed however that you can call `seq` on this to get a sequence of dimension sizes."
   ([m]
-    (for [i (range (mp/dimensionality m))] (mp/dimension-count m i))))
+    (mp/get-shape m)))
 
 (defn mutable?
   "Returns true if the matrix is mutable, i.e. supports setting of values"
@@ -452,11 +452,13 @@
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
+    (get-shape [m] [])
     (dimension-count [m i] (error "java.lang.Number has zero dimensionality, cannot get dimension count"))
   java.lang.Object
     (dimensionality [m] 0)
     (is-vector? [m] (== 1 (mp/dimensionality m)))
     (is-scalar? [m] false)
+    (get-shape [m] (for [i (range (mp/dimensionality m))] (mp/dimension-count m i)))
     (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
     
 

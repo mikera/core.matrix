@@ -44,6 +44,8 @@
    dimensionality and dimension-count are mandatory for implementations"
   (dimensionality [m] 
     "Returns the number of dimensions of a matrix")
+  (get-shape [m]
+    "Returns the shape of the matrix, as an array or sequence of dimension sizes") 
   (is-scalar? [m] 
     "Tests whether an object is a scalar value")
   (is-vector? [m] 
