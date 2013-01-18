@@ -3,6 +3,7 @@
   (:use core.matrix)
   (:require [core.matrix.protocols :as mp])
   (:require [core.matrix.operators :as op])
+  (:require core.matrix.examples)
   (:require core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
@@ -114,6 +115,10 @@
     (is (= 2 (column-count [[1 2] [2 3] [3 4]])))
     (is (= [3 2] (shape [[1 2] [2 3] [3 4]])))
     (is (= [2 2 2] (shape [[[1 2] [2 3]] [[3 4] [5 6]]])))))
+
+(deftest check-examples
+  (testing "example code"
+    (core.matrix.examples/all-examples)))
 
 (deftest test-predicates
   (testing "clojure vector predicates"
