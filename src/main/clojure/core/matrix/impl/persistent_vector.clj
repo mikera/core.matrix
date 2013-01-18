@@ -46,6 +46,7 @@
     (mp/is-scalar? x) x
     (instance? java.util.List x) (coerce-nested x)
     (instance? java.lang.Iterable x) (coerce-nested x)
+    (.isArray (class x)) (vec x)
     :default (error "Can't coerce to vector: " (class x)))) 
 
 (defn vector-dimensionality ^long [m]

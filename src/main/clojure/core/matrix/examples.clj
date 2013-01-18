@@ -21,7 +21,12 @@
   ;; you can get rows and columns of matrices individually
   (get-row a 0)
   
-  ;; Java double arrays can be used as vectors
-  ;;(* a (double-array [1 2]))
+  ;; Java double arrays can be used as input vectors
+  (* a (double-array [1 2]))
+  
+  ;; you can also modify double arrays in place - they are examples of mutable vectors
+  (let [a (double-array [1 4 9])]
+    (sqrt! a)
+    (seq a))
 )
 
