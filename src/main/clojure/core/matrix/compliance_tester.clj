@@ -43,7 +43,8 @@
 
 (defn test-dimensionality [m]
   (testing "shape"
-    (is (>= (count (shape m)) 0))))
+    (is (>= (count (shape m)) 0))
+    (is (= (seq (shape m)) (for [i (range (dimensionality m))] (dimension-count m i))))))
 
 
 ;; implementations should call this with either a valid instance or their registered implementation key

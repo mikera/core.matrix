@@ -47,7 +47,10 @@
 (defn vector-dimensionality ^long [m]
   "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
   (cond
-    (clojure.core/vector? m) (+ 1 (vector-dimensionality (m 0)))
+    (clojure.core/vector? m) 
+      (if (> (count m) 0) 
+        (+ 1 (vector-dimensionality (m 0))) 
+        1)
     (mp/is-scalar? m) 0
     :else (mp/dimensionality m))) 
 

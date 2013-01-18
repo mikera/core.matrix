@@ -129,6 +129,11 @@
   ([m]
     (mp/dimension-count m 1)))
 
+(defn dimension-count
+  "Returns the size of the specified dimension in a matrix"
+  ([m dim]
+    (mp/dimension-count m dim)))
+
 (defn matrix-2d?
   "Returns true if parameter is a regular matrix (2 dimensional matrix)"
   ([m]
