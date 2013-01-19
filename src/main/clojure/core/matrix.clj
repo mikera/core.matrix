@@ -350,6 +350,11 @@
   ([a]
     (mp/trace a)))
 
+(defn transpose
+  "Transposes a 2D matrix"
+  ([m]
+    (mp/transpose m)))
+
 
 (defn length
   "Calculates the length (magnitude) of a vector"
