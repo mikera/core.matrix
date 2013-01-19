@@ -507,7 +507,7 @@
     (transpose [m]
       (case (long (dimensionality m))
         0 m
-        1 (row-matrix (eseq m))
+        1 m
         2 (coerce m (apply map vector (map #(coerce [] %) (slices m))))
         (error "Don't know how to transpose matrix of dimensionality: " m))))
 

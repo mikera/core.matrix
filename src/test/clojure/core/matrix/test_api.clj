@@ -72,6 +72,12 @@
     (is (= [[8.0]] (sub [[12.0]] [[4.0]])))
     (is (= [[[8.0]]] (sub [[[12.0]]] [[[4.0]]])))))
 
+(deftest test-transpose
+  (testing "transpose different dimensionalities"
+    (is (= 1 (transpose 1)))
+    (is (= [1.0] (transpose [1.0])))
+    (is (= [[1 3] [2 4]] (transpose [[1 2] [3 4]])))
+    (is (= [[1] [2] [3]] (transpose [[1 2 3]])))))
 
 (deftest test-normalise
   (testing "vector normalise"
