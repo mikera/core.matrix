@@ -355,6 +355,11 @@
   ([m]
     (mp/transpose m)))
 
+(defn transpose!
+  "Transposes a 2D matrix in-place"
+  ([m]
+    (TODO)))
+
 
 (defn length
   "Calculates the length (magnitude) of a vector"
