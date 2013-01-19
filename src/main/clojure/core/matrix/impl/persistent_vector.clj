@@ -140,19 +140,24 @@
     (element-multiply [m a]
       (mp/element-map m * a))
     (matrix-multiply [m a]
-      (cond 
-        (and (mp/is-vector? a)  )
-	        (let [[rows cols] (mp/get-shape m)]
-	          (vec (for [i (range rows)]
+      (let [mdims (long (mp/dimensionality m))
+            adims (long (mp/dimensionality a))]
+        (cond 
+          (and (== mdims 1) (== adims 2))
+            (vec (for [i (range (mp/dimension-count a 1))]
+	                 (let [r (mp/get-column a i)]
+	                   (mp/vector-dot m r))))
+          (and (== mdims 2) (== adims 1))
+            (vec (for [i (range (mp/dimension-count m 0))]
 	                 (let [r (m i)]
-	                   (mp/vector-dot r a)))))
-        (and (== 2 (vector-dimensionality m)) (== 2 (mp/dimensionality m)))
-          (vec (for [i (range (mp/dimension-count m 0))]
+	                   (mp/vector-dot r a))))
+          (and (== mdims 2) (== adims 2))
+            (vec (for [i (range (mp/dimension-count m 0))]
                    (let [r (m i)]
                      (vec (for [j (range (mp/dimension-count a 1))]
                             (mp/vector-dot r (mp/get-column a j)))))))
         :default
-          (mm/mul m a))))
+          (mm/mul m a)))))
 
 (extend-protocol mp/PVectorTransform
   clojure.lang.PersistentVector
