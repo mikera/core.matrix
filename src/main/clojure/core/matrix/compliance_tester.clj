@@ -46,7 +46,20 @@
     (is (>= (count (shape m)) 0))
     (is (= (seq (shape m)) (for [i (range (dimensionality m))] (dimension-count m i))))))
 
+;; ========================================
+;; 2D tests
 
+(defn test-transpose [m]
+  (testing "2D transpose"
+    (let [m (matrix [[1 2] [3 4]])]
+      (is (equals [[1 3] [2 4]] (transpose m))))))
+
+(defn matrix-tests-2d [m]
+  (test-transpose m))
+
+;; ======================================
+;; Main compliance test method
+;; 
 ;; implementations should call this with either a valid instance or their registered implementation key
 (defn compliance-test 
   "Runs the compliance test suite on a given matrix implementation. 
@@ -57,5 +70,7 @@
     (binding [*matrix-implementation* ik]
       (test-implementation-key m)
       (test-coerce-via-vectors m)
+      (when (supports-dimensionality? m 2)
+        (matrix-tests-2d m))
       (test-dimensionality m)
       (test-new-matrices m))))

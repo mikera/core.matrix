@@ -488,7 +488,9 @@
     (length-squared [m]
       (ereduce #(+ %1 (* %2 *2)) 0.0 m))
     (length [m]
-      (Math/sqrt (mp/length-squared m))))
+      (Math/sqrt (mp/length-squared m)))
+    (transpose [m]
+      (coerce m (apply map vector (map #(coerce [] %) (slices m))))))
 
 ;; matrix multiply
 (extend-protocol mp/PMatrixMultiply
