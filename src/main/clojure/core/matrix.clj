@@ -70,6 +70,16 @@
       (mp/new-matrix-nd (imp/get-canonical-object ik) (cons dim-1 (cons dim-2 more-dim)))
       (error "No matrix implementation available"))))
 
+(defn row-matrix
+  "Constucts a row matrix with the given values"
+  ([data]
+   (if-let [ik (current-implementation)]
+      (mp/construct-matrix (imp/get-canonical-object ik) (vector data))
+      (error "No matrix implementation available")))
+  ([implementation data]
+    (mp/construct-matrix (imp/get-canonical-object implementation) (vector data))))
+  
+
 ;; ======================================
 ;; matrix assignment and copying
 
@@ -495,7 +505,11 @@
     (length [m]
       (Math/sqrt (mp/length-squared m)))
     (transpose [m]
-      (coerce m (apply map vector (map #(coerce [] %) (slices m))))))
+      (case (long (dimensionality m))
+        0 m
+        1 (row-matrix (eseq m))
+        2 (coerce m (apply map vector (map #(coerce [] %) (slices m))))
+        (error "Don't know how to transpose matrix of dimensionality: " m))))
 
 ;; matrix multiply
 (extend-protocol mp/PMatrixMultiply

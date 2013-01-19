@@ -18,6 +18,11 @@
   (testing "trace"
     (is (== 5 (trace [[1 2] [3 4]])))))
 
+(deftest test-transpose
+  (testing "vector transpose"
+    (= [[1 3] [2 3]] (transpose [[1 2] [3 4]]))
+    (= [[1 2 3]] (transpose [1 2 3]))))
+
 (deftest test-functional-op
   (testing "map"
     (is (= [1 2] (emap inc [0 1])))
@@ -29,7 +34,8 @@
   (testing "matrix multiplication"
     (is (= [[5.0 10.0] [15.0 20.0]] (mul [[1 2] [3 4]] 5)))
     (is (= [[1 0] [2 2] [5 0]] (mul [[1 0] [0 2] [5 0]] [[1 0] [1 1]])))
-    (is (= [[1 2] [3 4]] (mul [[1 2] [3 4]] [[1 0] [0 1]])))))
+    (is (= [[1 2] [3 4]] (mul [[1 2] [3 4]] [[1 0] [0 1]])))
+    (is (= [[5]] (mul [[1 2]] [[1] [2]])))))
 
 (deftest test-transform
   (testing "matrix transform"

@@ -147,11 +147,10 @@
 	                 (let [r (m i)]
 	                   (mp/vector-dot r a)))))
         (and (== 2 (vector-dimensionality m)) (== 2 (mp/dimensionality m)))
-          (let [[rows cols] (mp/get-shape m)]
-            (vec (for [i (range rows)]
+          (vec (for [i (range (mp/dimension-count m 0))]
                    (let [r (m i)]
-                     (vec (for [j (range cols)]
-                            (mp/vector-dot r (mp/get-column a j))))))))
+                     (vec (for [j (range (mp/dimension-count a 1))]
+                            (mp/vector-dot r (mp/get-column a j)))))))
         :default
           (mm/mul m a))))
 
