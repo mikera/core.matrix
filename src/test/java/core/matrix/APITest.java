@@ -1,11 +1,12 @@
 package core.matrix;
 
+import mikera.cljunit.ClojureTest;
 import mikera.cljunit.NamespaceTest;
 
-public class APITest extends NamespaceTest {
+public class APITest extends ClojureTest {
 	
 	@Override
-	public String namespace() {
-		return "core.matrix.test-api";
+	public String filter() {
+		return "core.matrix";
 	}
 }
