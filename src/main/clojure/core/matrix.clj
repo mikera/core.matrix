@@ -126,6 +126,7 @@
     (mp/is-scalar? m)))
 
 (defn dimensionality
+;; TODO: alternative names to consider: order, tensor-rank?
   "Returns the dimensionality (number of array dimensions) of a matrix / array"
   ([m]
     (mp/dimensionality m)))
