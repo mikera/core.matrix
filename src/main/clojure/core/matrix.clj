@@ -91,9 +91,9 @@
   "Constructs a 2D diagonal matrix with the given values on the main diagonal.
    Diagonal values may be a vector or any Clojure sequence of values."
   ([diagonal-values]
-    (mp/identity-matrix (current-implementation-object) diagonal-values))
+    (mp/diagonal-matrix (current-implementation-object) diagonal-values))
   ([implementation diagonal-values]
-    (mp/identity-matrix (imp/get-canonical-object implementation) diagonal-values)))
+    (mp/diagonal-matrix (imp/get-canonical-object implementation) diagonal-values)))
 
 
 ;; ======================================
@@ -701,9 +701,11 @@
       (diagonal-matrix (repeat dims 1.0)))
     (diagonal-matrix [m diagonal-values] 
       (let [dims (count diagonal-values)
-            nm (new-matrix m dims dims)]
-        (TODO)
-        (coerce m nm))))
+            diagonal-values (coerce [] diagonal-values)
+            zs (vec (repeat dims 0.0))
+            dm (vec (for [i (range dims)]
+                 (assoc zs i (nth diagonal-values i))))]
+        (coerce m dm))))
 
 ;; =======================================================
 ;; default multimethod implementations

@@ -44,7 +44,10 @@
 (defn test-dimensionality [m]
   (testing "shape"
     (is (>= (count (shape m)) 0))
-    (is (= (seq (shape m)) (for [i (range (dimensionality m))] (dimension-count m i))))))
+    (is (= (seq (shape m)) (for [i (range (dimensionality m))] (dimension-count m i)))))
+  (testing "element count"
+    (is (== (ecount m) (reduce * 1 (shape m))))))
+
 
 ;; ========================================
 ;; 2D tests
@@ -54,8 +57,14 @@
     (let [m (matrix [[1 2] [3 4]])]
       (is (equals [[1 3] [2 4]] (transpose m))))))
 
+(defn test-identity [m]
+  (let [I (identity-matrix m 3)]
+    (is (equals [1 2 3] (mul I [1 2 3])))))
+
+
 (defn matrix-tests-2d [m]
-  (test-transpose m))
+  (test-transpose m)
+  (test-identity m))
 
 ;; ======================================
 ;; Main compliance test method
