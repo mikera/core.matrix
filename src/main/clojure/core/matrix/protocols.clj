@@ -85,7 +85,7 @@
 (defprotocol PSpecialisedConstructors
   "Protocol for construction of special matrices."
   (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions")
-  (diagonal-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions"))
+  (diagonal-matrix [m diagonal-values] "Create a diagonal matrix with the specified leading diagonal values"))
 
 (defprotocol PCoercion
   "Protocol to coerce a parameter to a format usable by a specific implementation. It is 

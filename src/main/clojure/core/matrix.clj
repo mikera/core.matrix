@@ -32,6 +32,7 @@
 ;; matrix construction functions
 
 (declare current-implementation)
+(declare current-implementation-object)
 (def ^:dynamic *matrix-implementation* :persistent-vector)
 
 (defn matrix
@@ -44,8 +45,8 @@
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
   ([data]
-    (if-let [ik (current-implementation)]
-      (mp/construct-matrix (imp/get-canonical-object ik) data)
+    (if-let [m (current-implementation-object)]
+      (mp/construct-matrix m data)
       (error "No matrix implementation available")))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) data)))
@@ -53,8 +54,8 @@
 (defn new-vector
   "Constructs a new zero-filled vector with the given length"
   ([length]
-    (if-let [ik (current-implementation)]
-      (mp/new-vector (imp/get-canonical-object ik) length) 
+    (if-let [m (current-implementation-object)]
+      (mp/new-vector m length) 
       (error "No vector implementation available")))
   ([length implementation]
     (mp/new-vector (imp/get-canonical-object implementation) length)))
@@ -81,8 +82,19 @@
   
 (defn identity-matrix
   "Constructs a 2D identity matrix with the given number or rows"
-  [dims]
-  (mp/identity-matrix dims))
+  ([dims]
+    (mp/identity-matrix (current-implementation-object) dims))
+  ([implementation dims]
+    (mp/identity-matrix (imp/get-canonical-object implementation) dims)))
+
+(defn diagonal-matrix
+  "Constructs a 2D diagonal matrix with the given values on the main diagonal.
+   Diagonal values may be a vector or any Clojure sequence of values."
+  ([diagonal-values]
+    (mp/identity-matrix (current-implementation-object) diagonal-values))
+  ([implementation diagonal-values]
+    (mp/identity-matrix (imp/get-canonical-object implementation) diagonal-values)))
+
 
 ;; ======================================
 ;; matrix assignment and copying
@@ -611,7 +623,9 @@
         (f init m)))
   java.lang.Object
     (element-seq [m]
-      (mapcat mp/element-seq (slices m)))
+      (cond 
+        (matrix? m) (mapcat mp/element-seq (slices m))
+        :else (seq m)))
     (element-map
       ([m f]
         (coerce m (mp/element-map (mp/convert-to-nested-vectors m) f)))
@@ -673,6 +687,17 @@
                 `(~(symbol (str name "!")) [~'m] (emap! #(double (~func (double %))) ~'m)))
               mops/maths-ops)))
 
+
+(extend-protocol mp/PSpecialisedConstructors
+  java.lang.Object
+    (identity-matrix [m dims] 
+      (diagonal-matrix (repeat dims 1.0)))
+    (diagonal-matrix [m diagonal-values] 
+      (let [dims (count diagonal-values)
+            nm (new-matrix m dims dims)]
+        (TODO)
+        (coerce m nm))))
+
 ;; =======================================================
 ;; default multimethod implementations
 
@@ -685,6 +710,10 @@
 (defn current-implementation
   "Gets the currently active matrix implementation"
   ([] core.matrix/*matrix-implementation*))
+
+(defn current-implementation-object
+  "Gets the currently active matrix implementation"
+  ([] (imp/get-canonical-object (current-implementation))))
 
 (defn set-current-implementation
   "Sets the currently active matrix implementation"
