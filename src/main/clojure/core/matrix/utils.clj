@@ -13,4 +13,4 @@
 ;; useful TODO macro facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO 
   ([]
-    `(error "TODO: noy yet implemented"))) 
+    `(error "TODO: not yet implemented"))) 
