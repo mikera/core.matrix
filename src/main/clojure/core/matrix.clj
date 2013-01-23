@@ -413,6 +413,13 @@
 ;; ====================================
 ;; functional operations
 
+(defn ecount
+  "Returns the count of elements in a matrix"
+  ([m]
+    (cond
+      (matrix? m) (reduce * 1 (shape m)))
+      :else (count m)))
+
 (defn eseq
   "Returns all elements of a matrix as a sequence in row-major order"
   ([m]
