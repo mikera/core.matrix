@@ -82,6 +82,10 @@
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
 
+(defprotocol PSpecialisedConstructors
+  "Protocol for construction of special matrices."
+  (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions")
+  (diagonal-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions"))
 
 (defprotocol PCoercion
   "Protocol to coerce a parameter to a format usable by a specific implementation. It is 

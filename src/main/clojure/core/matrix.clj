@@ -79,6 +79,10 @@
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) (vector data))))
   
+(defn identity-matrix
+  "Constructs a 2D identity matrix with the given number or rows"
+  [dims]
+  (mp/identity-matrix dims))
 
 ;; ======================================
 ;; matrix assignment and copying
