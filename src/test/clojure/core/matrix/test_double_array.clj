@@ -41,7 +41,6 @@
 (deftest test-maths-ops
   (testing "basic ops"
     (let [da (double-array [1.2 2.3])]
-      (println (seq (floor da))) 
       (is (equals [1.0 2.0] (floor da))))))
 
 

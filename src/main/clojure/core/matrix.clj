@@ -116,7 +116,7 @@
 
    A matrix implementation which only provides immutable matrices may safely return the same matrix."
   ([m]
-    (error "not yet implemented")))
+    (mp/clone m)))
 
 (defn to-nested-vectors
   "Converts a matrix to nested vectors"
@@ -356,6 +356,11 @@
   ([m factor]
     (mp/scale m factor)))
 
+(defn scale!
+  "Scales a matrix in place by a scalar factor"
+  ([m factor]
+    (mp/scale! m factor)))
+
 (defn normalise
   "Normalises a matrix (scales to unit length)"
   ([m]
@@ -496,6 +501,13 @@
     (assign-array! [m arr] 
       (TODO)))
 
+(extend-protocol mp/PMatrixCloning
+  java.lang.Cloneable
+    (clone [m] 
+      (.clone ^Object m))
+  java.lang.Object
+    (clone [m]
+      (coerce m (coerce [] m))))
 
 (extend-protocol mp/PDimensionInfo
   java.lang.Number
@@ -580,6 +592,18 @@
       (emap #(* % a) m))
     (pre-scale [m a]
       (emap (partial * a) m)))
+
+(extend-protocol mp/PMatrixMutableScaling
+  java.lang.Number
+    (scale! [m a]
+      (error "Can't scale! a numeric value: " m))
+    (pre-scale! [m a]
+      (error "Can't pre-scale! a numeric value: " m))
+  java.lang.Object
+    (scale! [m a]
+      (emap! #(* % a) m))
+    (pre-scale! [m a]
+      (emap! (partial * a) m)))
 
 (extend-protocol mp/PMatrixAdd
   ;; matrix add for scalars

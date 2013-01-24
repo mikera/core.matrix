@@ -66,6 +66,11 @@
     (convert-to-nested-vectors [m]
       (vec m)))
 
+(extend-protocol mp/PMatrixCloning
+  (Class/forName "[D")
+    (clone [m]
+      (java.util.Arrays/copyOf ^doubles m (int (count m)))))
+
 
 (extend-protocol mp/PDimensionInfo
   (Class/forName "[D")

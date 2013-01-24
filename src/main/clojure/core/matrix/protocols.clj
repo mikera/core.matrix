@@ -75,6 +75,11 @@
   (set-nd [m indexes v])
   (is-mutable? [m]))
 
+(defprotocol PMatrixCloning
+  "Protocol for cloining a matrix value."
+  (clone [m] "Returns a clone of a matrix value. Must be a new independent (non-view) 
+              instance if the matrix is mutable."))
+
 
 ;; ===================================================================================
 ;; OPTTIONAL PROTOCOLS
@@ -120,6 +125,11 @@
   "Protocol to support matrix scaling by scalar values"
   (scale [m a])
   (pre-scale [m a]))
+
+(defprotocol PMatrixMutableScaling
+  "Protocol to support matrix scaling by scalar values"
+  (scale! [m a])
+  (pre-scale! [m a]))
 
 (defprotocol PMatrixAdd
   "Protocol to support matrix addition on an arbitrary matrices of same size"

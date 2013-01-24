@@ -15,6 +15,20 @@
 ;; 
 ;; e.g. can't assume that scalar values are always Doubles etc.
 
+;; ===========================================
+;; Utility functions
+
+(defn mutable-equivalent? 
+  [m mutable-fn immutable-fn]
+  (or
+    (not (mutable? m))
+    (let [clonem (clone m)]
+      (mutable-fn clonem)
+      (equals clonem (immutable-fn m)))))
+
+;; ===========================================
+;; General implementation tests
+
 (defn test-implementation-key
   [m]
   (testing "Implementation keyword"
@@ -48,6 +62,21 @@
   (testing "element count"
     (is (== (ecount m) (reduce * 1 (shape m))))))
 
+;; ========================================
+;; numeric function tests
+
+(defn test-scale
+  ([m]
+    (is (mutable-equivalent? m #(scale! % 2) #(scale % 2)))))
+
+(defn test-numeric-functions [m]
+  (when (supports-dimensionality? m 2)
+    (let [m (matrix m [[1 2] [3 4]])]
+      (test-scale m)))
+  (when (supports-dimensionality? m 1)
+    (let [m (matrix m [1 2 3])]
+      (test-scale m))))
+
 
 ;; ========================================
 ;; 2D tests
@@ -65,7 +94,6 @@
 (defn test-diagonal [m]
   (let [I (diagonal-matrix m [1 2 3])]
     (is (equals [1 4 9] (mul I [1 2 3])))))
-
 
 (defn matrix-tests-2d [m]
   (test-transpose m)
@@ -86,5 +114,6 @@
       (test-coerce-via-vectors m)
       (when (supports-dimensionality? m 2)
         (matrix-tests-2d m))
+      (test-numeric-functions m)
       (test-dimensionality m)
       (test-new-matrices m))))
