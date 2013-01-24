@@ -62,6 +62,11 @@
     (is (equals [1 2 3] (mul I [1 2 3])))))
 
 
+(defn test-diagonal [m]
+  (let [I (diagonal-matrix m [1 2 3])]
+    (is (equals [1 4 9] (mul I [1 2 3])))))
+
+
 (defn matrix-tests-2d [m]
   (test-transpose m)
   (test-identity m))
