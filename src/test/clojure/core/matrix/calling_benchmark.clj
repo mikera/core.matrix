@@ -1,5 +1,6 @@
 (ns core.matrix.calling-benchmark
-  (:require [criterium.core :as c]))
+  (:require [criterium.core :as c])
+  (:import [core.matrix ClassPair]))
 
 ;; benchmark for a few different calling conventions
 
@@ -38,7 +39,7 @@
 (extend-protocol PExtendedOperation
   MyType
     (extended-call [m i]
-      (aset ^longs arr 0 (long i)))) 
+      (aset ^longs arr 0 (long i))))
 
 ;; an instance of MyType
 (def ^MyType my-type (MyType.))
@@ -57,11 +58,21 @@
 (defmethod double-multimethod [MyType Long] [m i] (aset ^longs arr 0 (long i)))
 (defmethod double-multimethod :default [m i] (throw (IllegalArgumentException.)))
 
+;; Experiment using a fast dedicated java implementation for the vector of two
+;; classes with an optimised hashCode etc. This speeds up multimethod
+;; dispatch by over 2x for me.
+;; For completeness, we'd also want ClassPair to implement
+;; IPersistentVector so this works with clojure.core/isa?
+(defmulti fast-double-multimethod (fn [m i] (ClassPair/fromObjects m i)))
+(defmethod fast-double-multimethod (ClassPair. MyType Long) [m i] (aset ^longs arr 0 (long i)))
+(defmethod fast-double-multimethod :default [m i] (throw (IllegalArgumentException.)))
+
+
 ;; =============================================================
 ;; Benchmark code follows
 
 (defn all-benchmarks []
-  
+
 (c/quick-bench (dotimes [i 1000] (aset ^longs arr 0 i)))
 ;; 1.23 us
 ;; extremely fast!
@@ -101,9 +112,13 @@
 
 (c/quick-bench (dotimes [i 1000] (class-multimethod my-type i)))
 ;; 88.98 us
-;; slower 
+;; slower
 
 (c/quick-bench (dotimes [i 1000] (double-multimethod my-type i)))
 ;; 231.00 us
 ;; much slower! still better than reflection though....
+
+(c/quick-bench (dotimes [i 1000] (fast-double-multimethod my-type i)))
+;; This is over 2x faster than the above for me (138us vs 320us on a
+;; different machine)
 )
