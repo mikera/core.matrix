@@ -103,6 +103,7 @@
             arr (into-array vs)]
         (is (= vs (eseq m)))
         (scale! m 0.0)
+        (is (== 0.0 (first (eseq m))))
         (assign! m arr)
         (is (= vs (eseq m)))))))
 
