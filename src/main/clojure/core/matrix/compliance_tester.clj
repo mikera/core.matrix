@@ -51,7 +51,9 @@
   [m]
   (testing "Implementation keyword"
     (is (keyword? (imp/get-implementation-key m)))
-    (is (= (imp/get-implementation-key m) (imp/get-implementation-key (imp/get-canonical-object m))))))
+    (is (= (imp/get-implementation-key m) (imp/get-implementation-key (imp/get-canonical-object m)))))
+  (testing "Implementation building same type"
+    (is (= (imp/get-implementation-key m) (imp/get-implementation-key (matrix m))))))
 
 ;; TODO: figure out what to do with implementations that only support specific types?
 (defn test-new-matrices [m]
@@ -89,6 +91,9 @@
       (let [m (coerce m vm)]
         (is (= (seq (shape m)) (seq (shape vm))))
         (is (= (ecount m) (ecount vm)))))))
+
+(defn test-implementation [im]
+  (test-implementation-key im))
 
 ;; =======================================
 ;; array interop tests
@@ -143,26 +148,28 @@
   (let [I (diagonal-matrix m [1 2 3])]
     (is (equals [1 4 9] (mul I [1 2 3])))))
 
-(defn matrix-tests-2d [m]
-  (test-transpose m)
-  (test-identity m))
+(defn matrix-tests-2d [im]
+  (test-transpose im)
+  (test-identity im))
 
 ;; ======================================
 ;; Main compliance test method
 ;; 
 ;; implementations should call this with either a valid instance or their registered implementation key
+;;
+;; Convention: im refers to the origincal matrix implementatin object
 (defn compliance-test 
   "Runs the compliance test suite on a given matrix implementation. 
    m can be either a matrix instance or the implementation keyword."
   [m]
-  (let [m (imp/get-canonical-object m)
-        ik (imp/get-implementation-key m)]
+  (let [im (imp/get-canonical-object m)
+        ik (imp/get-implementation-key im)]
     (binding [*matrix-implementation* ik]
-      (test-implementation-key m)
-      (test-coerce-via-vectors m)
-      (when (supports-dimensionality? m 2)
-        (matrix-tests-2d m))
-      (test-array-interop m)
-      (test-numeric-functions m)
-      (test-dimensionality m)
-      (test-new-matrices m))))
+      (test-implementation im)
+      (test-coerce-via-vectors im)
+      (when (supports-dimensionality? im 2)
+        (matrix-tests-2d im))
+      (test-array-interop im)
+      (test-numeric-functions im)
+      (test-dimensionality im)
+      (test-new-matrices im))))

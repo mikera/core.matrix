@@ -167,6 +167,9 @@
   (get-major-slice [m i])
   (get-slice [m dimension i]))
 
+(defprotocol PMatrixSubComponents
+  (main-diagonal [m])) 
+
 
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."

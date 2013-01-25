@@ -296,6 +296,10 @@
   ([m dimension]
     (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
 
+(defn main-diagonal
+  "Returns the main diagonal of a matrix or general array, as a vector"
+  ([m]
+    (mp/main-diagonal m)))
 
 ;; ======================================
 ;; matrix comparisons
@@ -730,6 +734,15 @@
                 `(~(symbol (str name "!")) [~'m] (emap! #(double (~func (double %))) ~'m)))
               mops/maths-ops)))
 
+
+(extend-protocol mp/PMatrixSubComponents
+  java.lang.Object
+    (main-diagonal [m]
+      (let [sh (shape m)
+            rank (count sh)
+            dims (first sh)]
+        (if-not (reduce = sh) (error "Not a square array!"))
+        (matrix m (for [i (range dims)] (apply mget m (repeat rank i)))))))
 
 (extend-protocol mp/PSpecialisedConstructors
   java.lang.Object
