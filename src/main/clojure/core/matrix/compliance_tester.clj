@@ -26,6 +26,24 @@
       (mutable-fn clonem)
       (equals clonem (immutable-fn m)))))
 
+(defn create-dimensioned 
+  "Create a test nested vector array with the specified number of dims. will have 2^dims numeric elements"
+  ([dims]
+    (create-dimensioned dims 1))
+  ([dims start]
+    (cond 
+      (<= dims 0) start
+      :else (vector (create-dimensioned (dec dims) start)
+                    (create-dimensioned (dec dims) (+ start (bit-shift-left 1 (dec dims))))))))
+
+(defn create-supported-matrices
+  "Creates a set of vector matrices of supported dimensionalities from 1 to 4"
+  ([m]
+    (map 
+      #(create-dimensioned %)
+      (filter #(supports-dimensionality? m %)
+              (range 1 5)))))
+
 ;; ===========================================
 ;; General implementation tests
 
@@ -44,7 +62,11 @@
   (testing "Matrix construction"
     (when (supports-dimensionality? m 2)
       (let [m (matrix [[1 2] [3 4]])]
-        (is (== 3.0 (mget m 1 0)))))))
+        (is (== 3.0 (mget m 1 0))))))
+  (testing "All supported sizes")
+    (doseq [vm (create-supported-matrices m)]
+      (let [m (matrix vm)]
+        (equals vm m))))
 
 (defn test-coerce-via-vectors [m]
   (testing "Vector coercion"
@@ -62,6 +84,17 @@
     (is (= (seq (shape m)) (for [i (range (dimensionality m))] (dimension-count m i)))))
   (testing "element count"
     (is (== (ecount m) (reduce * 1 (shape m))))))
+
+;; =======================================
+;; array interop tests
+
+(defn test-array-assignment
+  [m]
+  (when (mutable? m)
+    ()))
+
+(defn array-interop-tests [m]
+  (test-array-assignment [m]))
 
 ;; ========================================
 ;; numeric function tests
