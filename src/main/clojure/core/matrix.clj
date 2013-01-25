@@ -499,7 +499,19 @@
         :else 
           (error "Can't assign to a non-matrix object: " (class m))))
     (assign-array! [m arr] 
-      (TODO)))
+      (let [alen (count arr)]
+        (if (mp/is-vector? m)
+          (dotimes [i alen]
+            (mp/set-1d m i (aget arr i)))
+          (mp/assign-array! m arr 0 alen))))
+    (assign-array! [m arr start length] 
+      (if (mp/is-vector? m)
+          (dotimes [i (long length)]
+            (mp/set-1d m i (aget arr i)))
+          (let [ss (seq (slices m))
+                skip (long (if ss (ecount (first (slices m))) 0))]
+            (doseq-indexed [s ss i] 
+              (mp/assign-array! s arr (* skip i) skip))))))
 
 (extend-protocol mp/PMatrixCloning
   java.lang.Cloneable
