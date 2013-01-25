@@ -96,9 +96,17 @@
 (defn test-array-assignment
   [m]
   (when (mutable? m)
-    ()))
+    (doseq [vm (create-supported-matrices m)]
+      (let [m (coerce m vm)
+            len (ecount m)
+            vs (range 1 (inc len))
+            arr (into-array vs)]
+        (is (= vs (eseq m)))
+        (scale! m 0.0)
+        (assign! m arr)
+        (is (= vs (eseq m)))))))
 
-(defn array-interop-tests [m]
+(defn test-array-interop [m]
   (test-array-assignment [m]))
 
 ;; ========================================
@@ -153,6 +161,7 @@
       (test-coerce-via-vectors m)
       (when (supports-dimensionality? m 2)
         (matrix-tests-2d m))
+      (test-array-interop m)
       (test-numeric-functions m)
       (test-dimensionality m)
       (test-new-matrices m))))
