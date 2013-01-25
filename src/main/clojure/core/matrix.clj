@@ -518,12 +518,12 @@
               (mp/assign-array! s arr (* skip i) skip))))))
 
 (extend-protocol mp/PMatrixCloning
-  java.lang.Cloneable
-    (clone [m] 
-      (.clone ^Cloneable m))
-  java.lang.Object
-    (clone [m]
-      (coerce m (coerce [] m))))
+	  java.lang.Cloneable
+	    (clone [m] 
+	      (.invoke ^java.lang.reflect.Method (.getDeclaredMethod (class m) "clone" nil) m nil))
+	  java.lang.Object
+	    (clone [m]
+	      (coerce m (coerce [] m))))
 
 (extend-protocol mp/PDimensionInfo
   java.lang.Number
