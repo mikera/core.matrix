@@ -39,8 +39,9 @@
 ;; TODO: figure out what to do with implementations that only support specific types?
 (defn test-new-matrices [m]
   (testing "Vector construction"
-    (let [v (matrix [1])]
-      (is (== 1.0 (mget v 0)))))
+    (when (supports-dimensionality? m 1)
+      (let [v (matrix [1])]
+        (is (== 1.0 (mget v 0))))))
   (testing "Matrix construction"
     (when (supports-dimensionality? m 2)
       (let [m (matrix [[1 2] [3 4]])]
