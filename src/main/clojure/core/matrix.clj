@@ -502,12 +502,12 @@
       (let [alen (count arr)]
         (if (mp/is-vector? m)
           (dotimes [i alen]
-            (mp/set-1d m i (aget arr i)))
+            (mp/set-1d m i (nth arr i)))
           (mp/assign-array! m arr 0 alen))))
     (assign-array! [m arr start length] 
       (if (mp/is-vector? m)
           (dotimes [i (long length)]
-            (mp/set-1d m i (aget arr i)))
+            (mp/set-1d m i (nth arr i)))
           (let [ss (seq (slices m))
                 skip (long (if ss (ecount (first (slices m))) 0))]
             (doseq-indexed [s ss i] 
@@ -516,7 +516,7 @@
 (extend-protocol mp/PMatrixCloning
   java.lang.Cloneable
     (clone [m] 
-      (.clone ^Object m))
+      (.clone ^Cloneable m))
   java.lang.Object
     (clone [m]
       (coerce m (coerce [] m))))
