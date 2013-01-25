@@ -106,8 +106,9 @@
 
 (defprotocol PAssignment
   "Protocol for assigning values to mutable matrices."
+  (assign! [m source] "Sets all the values in a matrix from a matrix source")
   (assign-array! [m arr] "Sets all the values in a matrix from a Java array, in row-major order")
-  (assign! [m source] "Sets all the values in a matrix from a matrix source"))
+  (assign-array! [m arr start length] "Sets all the values in a matrix from a subset of a Java array, in row-major order"))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
