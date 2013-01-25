@@ -35,7 +35,6 @@
     (is (keyword? (imp/get-implementation-key m)))
     (is (= (imp/get-implementation-key m) (imp/get-implementation-key (imp/get-canonical-object m))))))
 
-
 ;; TODO: figure out what to do with implementations that only support specific types?
 (defn test-new-matrices [m]
   (testing "Vector construction"
@@ -49,8 +48,9 @@
 
 (defn test-coerce-via-vectors [m]
   (testing "Vector coercion"
-    (let [v (matrix [1])]
-      (is (equals [1] (to-nested-vectors v)))))
+    (when (supports-dimensionality? m 1)
+      (let [v (matrix [1])]
+        (is (equals [1] (to-nested-vectors v))))))
   (testing "Matrix coercion"
     (when (supports-dimensionality? m 2)
       (let [m (matrix [[1 2] [3 4]])]
