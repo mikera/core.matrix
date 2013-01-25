@@ -423,11 +423,11 @@
 ;; functional operations
 
 (defn ecount
-  "Returns the count of elements in a matrix"
+  "Returns the total count of elements in a matrix"
   ([m]
     (cond
-      (matrix? m) (reduce * 1 (shape m)))
-      :else (count m)))
+      (matrix? m) (reduce * 1 (shape m))
+      :else (count m))))
 
 (defn eseq
   "Returns all elements of a matrix as a sequence in row-major order"
@@ -560,7 +560,7 @@
       (case (long (dimensionality m))
         0 m
         1 m
-        2 (coerce m (apply map vector (map #(coerce [] %) (slices m))))
+        2 (coerce m (vec (apply map vector (map #(coerce [] %) (slices m)))))
         (error "Don't know how to transpose matrix of dimensionality: " m))))
 
 ;; matrix multiply
