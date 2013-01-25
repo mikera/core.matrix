@@ -282,6 +282,8 @@
 
    Slicing on the first dimension (dimension 0) is likely to perform better
    for many matrix implementations."
+  ([m index]
+    (mp/get-slice m 0 index))
   ([m dimension index]
     (mp/get-slice m dimension index)))
 
