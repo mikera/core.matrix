@@ -83,7 +83,12 @@
     (is (>= (count (shape m)) 0))
     (is (= (seq (shape m)) (for [i (range (dimensionality m))] (dimension-count m i)))))
   (testing "element count"
-    (is (== (ecount m) (reduce * 1 (shape m))))))
+    (is (== (ecount m) (reduce * 1 (shape m)))))
+  (testing "supported matrix size tests"
+    (doseq [vm (create-supported-matrices m)]
+      (let [m (coerce m vm)]
+        (is (= (seq (shape m)) (seq (shape vm))))
+        (is (= (ecount m) (ecount vm)))))))
 
 ;; =======================================
 ;; array interop tests
