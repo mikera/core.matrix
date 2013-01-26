@@ -566,6 +566,12 @@
 	      (coerce m (coerce [] m))))
 
 (extend-protocol mp/PDimensionInfo
+  nil
+    (dimensionality [m] 0)
+    (is-scalar? [m] true)
+    (is-vector? [m] false)
+    (get-shape [m] [])
+    (dimension-count [m i] (error "nil has zero dimensionality, cannot get dimension count"))
   java.lang.Number
     (dimensionality [m] 0)
     (is-scalar? [m] true)

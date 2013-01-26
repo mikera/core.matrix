@@ -93,6 +93,8 @@
     (is (= [1.0 2.0] (floor [1.2 2.7]))))) 
 
 (deftest test-scalar
+  (testing "special scalars"
+    (is (scalar? nil)))
   (testing "numbers as scalars"
     (is (scalar? 1))
     (is (scalar? 1.0))
