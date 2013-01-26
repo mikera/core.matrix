@@ -430,7 +430,7 @@
   "Returns the total count of elements in an array"
   ([m]
     (cond
-      (matrix? m) (reduce * 1 (shape m))
+      (array? m) (reduce * 1 (shape m))
       :else (count m))))
 
 (defn eseq
