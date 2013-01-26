@@ -51,6 +51,22 @@
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) data)))
 
+(defn array
+  "Constructs a new n-dimensional array from the given data.
+
+   The data may be in one of the following forms:
+   - Nested sequences, e.g. Clojure vectors
+   - A valid existing array
+
+   If implementation is not specified, uses the current matrix library as specified
+   in *matrix-implementation*"
+  ([data]
+    (if-let [m (current-implementation-object)]
+      (mp/construct-matrix m data)
+      (error "No core.matrix implementation available")))
+  ([implementation data]
+    (mp/construct-matrix (imp/get-canonical-object implementation) data)))
+
 (defn new-vector
   "Constructs a new zero-filled vector with the given length"
   ([length]
