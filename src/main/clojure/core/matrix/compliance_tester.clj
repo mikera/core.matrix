@@ -112,8 +112,8 @@
         (assign! m arr)
         (is (= vs (eseq m)))))))
 
-(defn test-array-interop [m]
-  (test-array-assignment [m]))
+(defn test-array-interop [im]
+  (test-array-assignment [im]))
 
 ;; ========================================
 ;; numeric function tests
@@ -122,12 +122,12 @@
   ([m]
     (is (mutable-equivalent? m #(scale! % 2) #(scale % 2)))))
 
-(defn test-numeric-functions [m]
-  (when (supports-dimensionality? m 2)
-    (let [m (matrix m [[1 2] [3 4]])]
+(defn test-numeric-functions [im]
+  (when (supports-dimensionality? im 2)
+    (let [m (matrix im [[1 2] [3 4]])]
       (test-scale m)))
-  (when (supports-dimensionality? m 1)
-    (let [m (matrix m [1 2 3])]
+  (when (supports-dimensionality? im 1)
+    (let [m (matrix im [1 2 3])]
       (test-scale m))))
 
 

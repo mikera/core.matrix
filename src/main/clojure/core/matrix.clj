@@ -77,7 +77,7 @@
       (error "No core.matrix implementation available"))))
 
 (defn row-matrix
-  "Constucts a row matrix with the given values"
+  "Constucts a row matrix with the given values. The returned matrix is a 2D 1xN row matrix."
   ([data]
    (if-let [ik (current-implementation)]
       (mp/construct-matrix (imp/get-canonical-object ik) (vector data))
@@ -86,7 +86,7 @@
     (mp/construct-matrix (imp/get-canonical-object implementation) (vector data))))
 
 (defn column-matrix
-  "Constucts a column matrix with the given values"
+  "Constucts a column matrix with the given values. The returned matrix is a 2D Nx1 column matrix."
   ([data]
    (if-let [ik (current-implementation)]
       (mp/construct-matrix (imp/get-canonical-object ik) (map vector data))
