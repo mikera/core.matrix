@@ -150,6 +150,7 @@
 
 (defn matrix-tests-2d [im]
   (test-transpose im)
+  (test-diagonal im)
   (test-identity im))
 
 ;; ======================================
