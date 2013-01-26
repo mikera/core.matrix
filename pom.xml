@@ -53,9 +53,9 @@
 	</repositories>
 
 	<scm>
-		<connection>scm:git:git@github.com:mikera/${project.artifactId}.git</connection>
-		<url>scm:git:git@github.com:mikera/${project.artifactId}.git</url>
-		<developerConnection>scm:git:git@github.com:mikera/${project.artifactId}.git</developerConnection>
+		<connection>scm:git:git@github.com:mikera/matrix-api.git</connection>
+		<url>scm:git:git@github.com:mikera/matrix-api.git</url>
+		<developerConnection>scm:git:git@github.com:mikera/matrix-api.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
 </project>
