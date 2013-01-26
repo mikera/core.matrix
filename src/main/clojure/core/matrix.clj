@@ -183,13 +183,13 @@
 (defn row-matrix?
   "Returns true if a matrix is a row-matrix (i.e. has exactly one row)"
   ([m]
-    (and (>= (mp/dimensionality m) 1)
+    (and (== (mp/dimensionality m) 2)
          (== 1 (mp/dimension-count m 0)))))
 
 (defn column-matrix?
   "Returns true if a matrix is a column-matrix (i.e. has exactly one column)"
   ([m]
-    (or (== (mp/dimensionality m) 1)
+    (and (== (mp/dimensionality m) 2)
         (== 1 (mp/dimension-count m 1)))))
 
 (defn shape
