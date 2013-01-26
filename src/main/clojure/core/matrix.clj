@@ -47,7 +47,7 @@
   ([data]
     (if-let [m (current-implementation-object)]
       (mp/construct-matrix m data)
-      (error "No matrix implementation available")))
+      (error "No core.matrix implementation available")))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) data)))
 
@@ -56,7 +56,7 @@
   ([length]
     (if-let [m (current-implementation-object)]
       (mp/new-vector m length) 
-      (error "No vector implementation available")))
+      (error "No core.matrix implementation available")))
   ([length implementation]
     (mp/new-vector (imp/get-canonical-object implementation) length)))
 
@@ -65,7 +65,7 @@
   ([rows columns]
     (if-let [ik (current-implementation)]
       (mp/new-matrix (imp/get-canonical-object ik) rows columns)
-      (error "No matrix implementation available"))))
+      (error "No core.matrix implementation available"))))
 
 (defn new-array
   "Creates a new array with the given dimensions. "
@@ -74,14 +74,14 @@
   ([dim-1 dim-2 & more-dim]
     (if-let [ik (current-implementation)]
       (mp/new-matrix-nd (imp/get-canonical-object ik) (cons dim-1 (cons dim-2 more-dim)))
-      (error "No matrix implementation available"))))
+      (error "No core.matrix implementation available"))))
 
 (defn row-matrix
   "Constucts a row matrix with the given values"
   ([data]
    (if-let [ik (current-implementation)]
       (mp/construct-matrix (imp/get-canonical-object ik) (vector data))
-      (error "No matrix implementation available")))
+      (error "No core.matrix implementation available")))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) (vector data))))
   
@@ -124,12 +124,18 @@
     (mp/clone m)))
 
 (defn to-nested-vectors
-  "Converts a matrix to nested vectors"
+  "Converts an array to nested vectors. 
+   The depth of nesting is equal to the dimensionality of the array."
   ([m]
     (mp/convert-to-nested-vectors m)))
 
 ;; ==============================
 ;; Matrix predicates and querying
+
+(defn array?
+  "Returns true if the parameter is an N-dimensional array, for any N>=1"
+  ([m]
+    (> (mp/dimensionality m) 0)))
 
 (defn matrix?
   "Returns true if parameter is a valid matrix (any dimensionality)"
