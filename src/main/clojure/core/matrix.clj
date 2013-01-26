@@ -396,7 +396,8 @@
 (defn transpose!
   "Transposes a 2D matrix in-place"
   ([m]
-    (TODO)))
+    ;; TODO: implement with a proper protocol
+    (assign! m (transpose m))))
 
 
 (defn length
