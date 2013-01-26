@@ -173,16 +173,6 @@
   ([m dim]
     (mp/dimension-count m dim)))
 
-(defn matrix-2d?
-  "Returns true if parameter is a regular matrix (2 dimensional matrix)"
-  ([m]
-    (== 2 (mp/dimensionality m))))
-
-(defn matrix-1d?
-  "Returns true if parameter is a 1 dimensional matrix (equivalent to a column vector)"
-  ([m]
-    (== 1 (mp/dimensionality m))))
-
 (defn square?
   "Returns true if matrix is square (2D with same number of rows and columns)"
   ([m]
