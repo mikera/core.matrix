@@ -426,27 +426,27 @@
 ;; functional operations
 
 (defn ecount
-  "Returns the total count of elements in a matrix"
+  "Returns the total count of elements in an array"
   ([m]
     (cond
       (matrix? m) (reduce * 1 (shape m))
       :else (count m))))
 
 (defn eseq
-  "Returns all elements of a matrix as a sequence in row-major order"
+  "Returns all elements of an array as a sequence in row-major order"
   ([m]
     (mp/element-seq m)))
 
 (defn ereduce
-  "Element-wise reduce on all elements of a matrix."
+  "Element-wise reduce on all elements of an array."
   ([f m]
     (mp/element-reduce m f))
   ([f init m]
     (mp/element-reduce m f init)))
 
 (defn emap
-  "Element-wise map over all elements of one or more matrices.
-   Returns a new matrix of the same type."
+  "Element-wise map over all elements of one or more arrays.
+   Returns a new array of the same type and shape."
   ([f m]
     (mp/element-map m f))
   ([f m a]
@@ -455,8 +455,8 @@
     (mp/element-map m f a more)))
 
 (defn emap!
-  "Element-wise map over all elements of one or more matrices.
-   Performs in-place modification of the first matrix argument."
+  "Element-wise map over all elements of one or more arrays.
+   Performs in-place modification of the first array argument."
   ([f m]
     (mp/element-map! m f))
   ([f m a]
