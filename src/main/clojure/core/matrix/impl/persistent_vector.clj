@@ -25,7 +25,7 @@
     (mapv persistent-vector-coerce v)))
 
 (defn vector-1d? [^clojure.lang.IPersistentVector pv]
-  (or (== 0 (count pv)) (mp/is-scalar? (nth pv 0))))
+  (or (== 0 (.length pv)) (mp/is-scalar? (.nth pv 0))))
 
 (defn mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices"
@@ -62,7 +62,7 @@
         (+ 1 (vector-dimensionality (m 0))) 
         1)
     (mp/is-scalar? m) 0
-    :else (mp/dimensionality m))) 
+    :else (long (mp/dimensionality m)))) 
 
 ;; =======================================================================
 ;; Implementation for nested Clojure persistent vectors used as matrices
@@ -201,17 +201,17 @@
     (dimensionality [m]
       (vector-dimensionality m))
     (is-vector? [m]
-      (== 1 (mp/dimensionality m)))
+      (== 1 (vector-dimensionality m)))
     (is-scalar? [m]
       false)
     (get-shape [m]
-      (let [c (long (count m))]
+      (let [c (.length m)]
         (cons c (if (> c 0) 
                   (mp/get-shape (m 0))
                   nil)))) 
     (dimension-count [m x]
       (if (== x 0)
-        (count m)
+        (.length m)
         (mp/dimension-count (m 0) (dec x)))))
 
 (extend-protocol mp/PFunctionalOperations
