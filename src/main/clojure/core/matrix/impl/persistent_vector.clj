@@ -24,18 +24,21 @@
   ([v]
     (mapv persistent-vector-coerce v)))
 
+(defn vector-1d? [^clojure.lang.IPersistentVector pv]
+  (or (== 0 (count pv)) (mp/is-scalar? (nth pv 0))))
+
 (defn mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices"
   ([f m]
-    (if (mp/is-scalar? (nth m 0))
+    (if (vector-1d? m)
       (mapv f m)
       (mapv (partial mapmatrix f) m)))
   ([f m1 m2]
-    (if (number? (nth m1 0))
+    (if (vector-1d? m1)
       (mapv f m1 m2)
       (mapv (partial mapmatrix f) m1 m2)))
   ([f m1 m2 & more]
-    (if (number? (nth m1 0))
+    (if (vector-1d? m1)
       (apply mapv f m1 m2 more)
       (apply mapv (partial mapmatrix f) m1 m2 more))))
 
