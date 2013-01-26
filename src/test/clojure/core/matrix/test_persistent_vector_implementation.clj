@@ -48,7 +48,8 @@
   (testing "nested double arrays"
     (let [m [(double-array [1 2]) (double-array [3 4])]]
       (is (== 2 (dimensionality m)))
-      (is (equals [3 7] (mul m [1 1]))))))
+      (is (equals [3 7] (mul m [1 1])))
+      (is (equals [2 4] (get-column m 1))))))
 
 ;; run complicance tests
 

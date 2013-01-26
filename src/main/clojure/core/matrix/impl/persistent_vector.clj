@@ -13,7 +13,9 @@
 ;;
 ;; Format assumed to be a nested vector
 ;;
-;; Vector can contain other matrices to add an extra dimension to another implementation.
+;; Vectors can contain other matrices to add an extra dimension to another implementation.
+;; this is a powerful feature - it means we can do higher dimensional work with matrices
+;; even if the underlying implementation does not natively support this
 
 (declare persistent-vector-coerce)
 
