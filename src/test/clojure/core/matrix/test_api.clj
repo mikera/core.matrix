@@ -145,4 +145,5 @@
     (is (row-matrix? [[1 2 3]]))
     (is (not (row-matrix? [1 2]))))
   (testing "mutability"
-    (is (not (mutable? [1 2])))))
+    (is (not (mutable? [1 2])))
+    (is (mutable? (double-array [1 2])))))
