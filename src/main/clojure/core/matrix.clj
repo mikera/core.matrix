@@ -65,7 +65,12 @@
   ([rows columns]
     (if-let [ik (current-implementation)]
       (mp/new-matrix (imp/get-canonical-object ik) rows columns)
-      (error "No matrix implementation available")))
+      (error "No matrix implementation available"))))
+
+(defn new-array
+  "Creates a new array with the given dimensions. "
+  ([length] (new-vector length))
+  ([rows columns] (new-matrix rows columns))
   ([dim-1 dim-2 & more-dim]
     (if-let [ik (current-implementation)]
       (mp/new-matrix-nd (imp/get-canonical-object ik) (cons dim-1 (cons dim-2 more-dim)))
