@@ -138,9 +138,9 @@
     (> (mp/dimensionality m) 0)))
 
 (defn matrix?
-  "Returns true if parameter is a valid matrix (any dimensionality)"
+  "Returns true if parameter is a valid matrix (dimensionality == 2)"
   ([m]
-    (> (mp/dimensionality m) 0)))
+    (== (mp/dimensionality m) 2)))
 
 (defn vec?
   "Returns true if the parameter is a vector"
