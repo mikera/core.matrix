@@ -6,6 +6,10 @@
   (:require core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
+(deftest test-properties
+  (is (not (mutable? [1 2])))
+  (is (not (mutable? [[1 2] [3 4]]))))
+
 (deftest test-indexed-access
   (testing "indexed access to java.util.List"
     (let [al (java.util.ArrayList.)]
@@ -47,6 +51,7 @@
 (deftest test-nested-implementation
   (testing "nested double arrays"
     (let [m [(double-array [1 2]) (double-array [3 4])]]
+      (is (mutable? m))
       (is (== 2 (dimensionality m)))
       (is (equals [3 7] (mul m [1 1])))
       (is (equals [2 4] (get-column m 1))))))

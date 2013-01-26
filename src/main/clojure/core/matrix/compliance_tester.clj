@@ -73,10 +73,14 @@
 (defn test-coerce-via-vectors [m]
   (testing "Vector coercion"
     (when (supports-dimensionality? m 1)
+      (testing "coerce works"
+        (or (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [1])))))
       (let [v (matrix [1])]
         (is (equals [1] (to-nested-vectors v))))))
   (testing "Matrix coercion"
     (when (supports-dimensionality? m 2)
+      (testing "coerce works"
+        (or (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [[1 2] [3 4]])))))
       (let [m (matrix [[1 2] [3 4]])]
         (is (equals [[1 2] [3 4]] (to-nested-vectors m)))))))
 
@@ -99,21 +103,23 @@
 ;; array interop tests
 
 (defn test-array-assignment
-  [m]
-  (when (mutable? m)
-    (doseq [vm (create-supported-matrices m)]
-      (let [m (coerce m vm)
+  [im]
+  (when (mutable? im)
+    (doseq [vm (create-supported-matrices im)]
+      (let [m (coerce im vm)
             len (ecount m)
             vs (range 1 (inc len))
             arr (into-array vs)]
-        (is (= vs (eseq m)))
+        (is (every? true? (map == vs (eseq m))))
+        (when-not (mutable? m) 
+          (error "Problem: coerced object not mutable?"))
         (scale! m 0.0)
         (is (== 0.0 (first (eseq m))))
         (assign! m arr)
-        (is (= vs (eseq m)))))))
+        (is (every? true? (map == vs (eseq m))))))))
 
 (defn test-array-interop [im]
-  (test-array-assignment [im]))
+  (test-array-assignment im))
 
 ;; ========================================
 ;; numeric function tests

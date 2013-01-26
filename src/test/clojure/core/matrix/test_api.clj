@@ -94,7 +94,8 @@
 
 (deftest test-scalar
   (testing "special scalars"
-    (is (scalar? nil)))
+    (is (scalar? nil))
+    (is (not (scalar? [1]))))
   (testing "numbers as scalars"
     (is (scalar? 1))
     (is (scalar? 1.0))

@@ -51,7 +51,7 @@
     (mp/is-scalar? x) x
     (instance? java.util.List x) (coerce-nested x)
     (instance? java.lang.Iterable x) (coerce-nested x)
-    (.isArray (class x)) (vec x)
+    (.isArray (class x)) (vec (seq x))
     :default (error "Can't coerce to vector: " (class x)))) 
 
 (defn vector-dimensionality ^long [m]
@@ -103,6 +103,24 @@
           (mp/get-nd m next-indexes))
         (.nth m (int (first indexes))))))
 
+;; we extend this so that nested mutable implemenations are possible
+(extend-protocol mp/PIndexedSetting
+  clojure.lang.IPersistentVector
+    (set-1d [m row v] 
+      (error "Persistent vectors are not mutable!"))
+    (set-2d [m row column v] 
+      (mp/set-1d (m 0) column v))
+    (set-nd [m indexes v]
+      (if-let [ixs (seq indexes)]
+        (if-let [nixs (next ixs)]
+          (mp/set-nd (m (first ixs))  nixs v)
+          (error "Persistent vectors are not mutable!"))
+        (error "Trying to set on a persistent vector with insufficient indexes?")))
+    (is-mutable? [m]
+      (if (vector-1d? m) 
+        false
+        (mp/is-mutable? (m 0)))))
+
 (extend-protocol mp/PMatrixSlices
   clojure.lang.IPersistentVector
     (get-row [m i]
@@ -117,7 +135,8 @@
             dimension (long dimension)]
         (if (== dimension 0)
           (mp/get-major-slice m i)
-          (mapv #(mp/get-slice % (dec dimension) i) m)))))
+          (let [sd (dec dimension)]
+            (mapv #(mp/get-slice % sd i) m))))))
 
 (extend-protocol mp/PMatrixAdd
   clojure.lang.IPersistentVector
@@ -227,7 +246,9 @@
         (apply mapmatrix f m a more)))
     (element-map!
       ([m f]
-        (error "Persistent vector matrices are not mutable!"))
+        (if (vector-1d? m) 
+          (error "Persistent vector matrices are not mutable!")
+          (doseq [s m] (mp/element-map! s f))))
       ([m f a]
         (error "Persistent vector matrices are not mutable!"))
       ([m f a more]

@@ -27,7 +27,15 @@
   (testing "assign from a persistent vector"
     (let [da (double-array [1 2])]
       (assign! da [2 3]) 
-      (is (= [2.0 3.0] (seq da))))))
+      (is (= [2.0 3.0] (seq da)))))
+  (testing "assign from an array"
+    (let [da (double-array [1 2])]
+      (assign! da (double-array [2 4])) 
+      (is (= [2.0 4.0] (seq da)))))
+  (testing "assign from a Number array"
+    (let [da (double-array [1 2])]
+      (assign! da (into-array java.lang.Number [2 5])) 
+      (is (= [2.0 5.0] (seq da))))))
 
 (deftest test-equals
   (testing "equality with persistent vector"

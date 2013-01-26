@@ -15,6 +15,19 @@
 ;;
 ;; Useful as a fast, mutable 1D vector implementation. Not good for much else.
 
+(def DOUBLE-ARRAY-CLASS (Class/forName "[D"))
+
+(defn is-double-array? [m]
+  (instance? DOUBLE-ARRAY-CLASS m))
+
+(defn construct-double-array [data]
+  (cond 
+    (== (mp/dimensionality data) 1) 
+      (double-array (mp/element-seq data))
+    (mp/is-scalar? data) 
+      data
+    :default
+      nil))
 
 (extend-protocol mp/PImplementation
   (Class/forName "[D")
@@ -26,13 +39,7 @@
         (double-array (int (first dims)))
         (error "Can't make a double array of dimensionality: " (count dims))))
     (construct-matrix [m data]
-      (cond 
-        (mp/is-scalar? data) 
-          data
-        (== (mp/dimensionality data) 1) 
-          (double-array (mp/element-seq data))
-        :default
-          (error "Don't know how to construct double array from " (class data))))
+      (construct-double-array data))
     (supports-dimensionality? [m dims]
       (<= dims 1)))
 
@@ -65,6 +72,13 @@
   (Class/forName "[D")
     (convert-to-nested-vectors [m]
       (vec m)))
+
+(extend-protocol mp/PCoercion
+  (Class/forName "[D")
+    (coerce-param [m param]
+      (cond
+        (is-double-array? param) param
+        :else (construct-double-array param))))
 
 (extend-protocol mp/PMatrixCloning
   (Class/forName "[D")

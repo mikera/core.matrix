@@ -533,29 +533,32 @@
   java.lang.Object
     (assign! [m x] 
       (cond 
-        (mp/is-vector? m)
+        (mp/is-vector? x)
           (dotimes [i (row-count m)]
             (mset! m i (mget x i)))
-        (matrix? m)
+        (array? x)
           (doall (map (fn [a b] (mp/assign! a b)) 
                       (slices m) 
                       (slices x)))
+        (.isArray (class x))
+          (mp/assign-array! m x)
         :else 
           (error "Can't assign to a non-matrix object: " (class m))))
-    (assign-array! [m arr] 
-      (let [alen (count arr)]
-        (if (mp/is-vector? m)
-          (dotimes [i alen]
-            (mp/set-1d m i (nth arr i)))
-          (mp/assign-array! m arr 0 alen))))
-    (assign-array! [m arr start length] 
-      (if (mp/is-vector? m)
-          (dotimes [i (long length)]
-            (mp/set-1d m i (nth arr i)))
-          (let [ss (seq (slices m))
-                skip (long (if ss (ecount (first (slices m))) 0))]
-            (doseq-indexed [s ss i] 
-              (mp/assign-array! s arr (* skip i) skip))))))
+    (assign-array! 
+      ([m arr] 
+	      (let [alen (long (count arr))]
+	        (if (mp/is-vector? m)
+	          (dotimes [i alen]
+	            (mp/set-1d m i (nth arr i)))
+	          (mp/assign-array! m arr 0 alen))))
+      ([m arr start length] 
+	      (if (mp/is-vector? m)
+	          (dotimes [i (long length)]
+	            (mp/set-1d m i (nth arr i)))
+	          (let [ss (seq (slices m))
+	                skip (long (if ss (ecount (first (slices m))) 0))]
+	            (doseq-indexed [s ss i] 
+	              (mp/assign-array! s arr (* skip i) skip)))))))
 
 (extend-protocol mp/PMatrixCloning
 	  java.lang.Cloneable

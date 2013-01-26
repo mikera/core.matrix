@@ -87,6 +87,7 @@
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
 
+
 (defprotocol PSpecialisedConstructors
   "Protocol for construction of special matrices."
   (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions")
@@ -107,8 +108,9 @@
 (defprotocol PAssignment
   "Protocol for assigning values to mutable matrices."
   (assign! [m source] "Sets all the values in a matrix from a matrix source")
-  (assign-array! [m arr] "Sets all the values in a matrix from a Java array, in row-major order")
-  (assign-array! [m arr start length] "Sets all the values in a matrix from a subset of a Java array, in row-major order"))
+  (assign-array! 
+    [m arr]
+    [m arr start length]))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
