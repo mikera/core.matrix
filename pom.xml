@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>mikera</groupId>
 	<artifactId>core.matrix</artifactId>
-	<version>0.0.5-SNAPSHOT</version>
+	<version>0.0.5</version>
 
 	<parent>
 		<groupId>net.mikera</groupId>
@@ -56,6 +56,6 @@
 		<connection>scm:git:git@github.com:mikera/matrix-api.git</connection>
 		<url>scm:git:git@github.com:mikera/matrix-api.git</url>
 		<developerConnection>scm:git:git@github.com:mikera/matrix-api.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>core.matrix-0.0.5</tag>
 	</scm>
 </project>
