@@ -134,21 +134,30 @@
 ;; ========================================
 ;; 2D tests
 
-(defn test-transpose [m]
+(defn test-transpose [im]
   (testing "2D transpose"
-    (let [m (matrix [[1 2] [3 4]])]
-      (is (equals [[1 3] [2 4]] (transpose m))))))
+    (let [im (matrix [[1 2] [3 4]])]
+      (is (equals [[1 3] [2 4]] (transpose im))))))
 
-(defn test-identity [m]
-  (let [I (identity-matrix m 3)]
+(defn test-identity [im]
+  (let [I (identity-matrix im 3)]
     (is (equals [1 2 3] (mul I [1 2 3])))))
 
 
-(defn test-diagonal [m]
-  (let [I (diagonal-matrix m [1 2 3])]
+(defn test-diagonal [im]
+  (let [I (diagonal-matrix im [1 2 3])]
     (is (equals [1 4 9] (mul I [1 2 3])))))
 
+(defn test-row-column-matrices [im]
+  (let [rm (row-matrix im [1 2 3])]
+    (is (equals [[1 2 3]] rm))
+    (is (row-matrix? rm)))
+  (let [cm (column-matrix im [1 2 3])]
+    (is (equals [[1] [2] [3]] cm))
+    (is (column-matrix? cm))))
+
 (defn matrix-tests-2d [im]
+  (test-row-column-matrices im)
   (test-transpose im)
   (test-diagonal im)
   (test-identity im))
