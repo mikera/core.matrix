@@ -44,6 +44,12 @@
   (testing "function transform"
     (is (= [1 2] (transform (fn [_] [1 2]) [5 5])))))
 
+(deftest test-nested-implementation
+  (testing "nested double arrays"
+    (let [m [(double-array [1 2]) (double-array [3 4])]]
+      (is (== 2 (dimensionality m)))
+      (is (equals [3 7] (mul m [1 1]))))))
+
 ;; run complicance tests
 
 (deftest compliance-test

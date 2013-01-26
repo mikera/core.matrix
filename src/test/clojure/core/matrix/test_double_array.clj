@@ -37,7 +37,6 @@
       (is (equals [1 2] da))
       (is (equals da [1.0 2.0])))))
 
-
 (deftest test-maths-ops
   (testing "basic ops"
     (let [da (double-array [1.2 2.3])]

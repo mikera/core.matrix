@@ -518,6 +518,17 @@
         (if (scalar? m) m
           (error "Not a scalar, cannot do zero dimensional get")))))
 
+(extend-protocol mp/PVectorOps
+  java.lang.Object
+    (vector-dot [a b])
+    (length [a]
+      (Math/sqrt (double (mp/length-squared a))))
+    (length-squared [a]
+      (ereduce (fn [r x] (+ r (* x x))) 0 a))
+    (normalise [a]
+      (scale a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
+
+
 (extend-protocol mp/PAssignment
   java.lang.Object
     (assign! [m x] 
@@ -720,7 +731,20 @@
       ([m f]
         (coerce m (mp/element-reduce (mp/convert-to-nested-vectors m) f)))
       ([m f init]
-        (coerce m (mp/element-reduce (mp/convert-to-nested-vectors m) f init)))))
+        (coerce m (mp/element-reduce (mp/convert-to-nested-vectors m) f init))))
+  nil
+    (element-seq [m] nil)
+    (element-map 
+      ([m f] nil)
+      ([m f a] nil)
+      ([m f a more] nil))
+    (element-map! 
+      ([m f] nil)
+      ([m f a] nil)
+      ([m f a more] nil))
+    (element-reduce
+      ([m f] (f))
+      ([m f init] init)))
 
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
