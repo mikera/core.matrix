@@ -84,6 +84,15 @@
       (error "No core.matrix implementation available")))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) (vector data))))
+
+(defn column-matrix
+  "Constucts a column matrix with the given values"
+  ([data]
+   (if-let [ik (current-implementation)]
+      (mp/construct-matrix (imp/get-canonical-object ik) (map vector data))
+      (error "No core.matrix implementation available")))
+  ([implementation data]
+    (mp/construct-matrix (imp/get-canonical-object implementation) (map vector data))))
   
 (defn identity-matrix
   "Constructs a 2D identity matrix with the given number or rows"
