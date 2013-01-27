@@ -269,28 +269,31 @@
     (mp/set-nd m (cons x (cons y (cons z (butlast more)))) (last more))))
 
 (defn get-row
-  "Gets a row of a 2D matrix"
+  "Gets a row of a 2D matrix.
+   May  return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
 (defn get-column
-  "Gets a column of a 2D matrix"
+  "Gets a column of a 2D matrix.
+   May return a mutable view if supported by the implementation."
   ([m y]
     (mp/get-column m y)))
 
 (defn coerce
-  "Coerces a parameter to a format usable by a specific matrix implementation"
-  ([m a]
+  "Coerces param to a format usable by a specific matrix implementation. 
+   If param is already in a format deemed useable by the implementation, returns it unchanged."
+  ([m param]
     (or
-      (mp/coerce-param m a)
-      (mp/coerce-param m (mp/convert-to-nested-vectors a)))))
+      (mp/coerce-param m param)
+      (mp/coerce-param m (mp/convert-to-nested-vectors param)))))
 
 ;; =====================================
 ;; matrix slicing and views
 
 (defn sub-matrix
   "Gets a view of a submatrix, for a set of index-ranges.
-   Index ranges should be [start, length] pairs.
+   Index ranges should be  a sequence of [start, length] pairs.
    Index ranges can be nil (gets the whole range) "
   ([m index-ranges]
     (TODO)))
