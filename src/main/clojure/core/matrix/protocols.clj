@@ -146,6 +146,9 @@
   (length-squared [a])
   (normalise [a]))
 
+(defprotocol PMutableVectorOps
+  (normalise! [a])) 
+
 (defprotocol PMatrixOps
   "Protocol to support common matrix operations"
   (trace [m])

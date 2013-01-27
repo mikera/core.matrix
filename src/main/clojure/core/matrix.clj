@@ -401,6 +401,11 @@
   ([m]
     (mp/normalise m)))
 
+(defn normalise!
+  "Normalises a matrix in-place (scales to unit length)"
+  ([m]
+    (mp/normalise! m)))
+
 (defn dot
   "Computes the dot product of two vectors"
   ([a b]
@@ -530,6 +535,11 @@
       (ereduce (fn [r x] (+ r (* x x))) 0 a))
     (normalise [a]
       (scale a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
+
+(extend-protocol mp/PMutableVectorOps
+  java.lang.Object
+    (normalise! [a]
+      (scale! a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
 
 
 (extend-protocol mp/PAssignment
