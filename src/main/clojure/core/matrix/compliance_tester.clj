@@ -19,6 +19,7 @@
 ;; Utility functions
 
 (defn mutable-equivalent? 
+  "Returns true if mutable-fn? is the in-place equivalent of immutable-fn? when applied to m"
   [m mutable-fn immutable-fn]
   (or
     (not (mutable? m))
@@ -48,12 +49,19 @@
 ;; General implementation tests
 
 (defn test-implementation-key
-  [m]
+  [im]
   (testing "Implementation keyword"
-    (is (keyword? (imp/get-implementation-key m)))
-    (is (= (imp/get-implementation-key m) (imp/get-implementation-key (imp/get-canonical-object m)))))
+    (is (keyword? (imp/get-implementation-key im)))
+    (is (= (imp/get-implementation-key im) (imp/get-implementation-key (imp/get-canonical-object im)))))
   (testing "Implementation building same type"
-    (is (= (imp/get-implementation-key m) (imp/get-implementation-key (matrix m))))))
+    (is (= (imp/get-implementation-key im) (imp/get-implementation-key (matrix im))))))
+
+
+(defn test-implementation [im]
+  (test-implementation-key im))
+
+;; ==============================================
+;; misc tests
 
 ;; TODO: figure out what to do with implementations that only support specific types?
 (defn test-new-matrices [m]
@@ -96,8 +104,6 @@
         (is (= (seq (shape m)) (seq (shape vm))))
         (is (= (ecount m) (ecount vm)))))))
 
-(defn test-implementation [im]
-  (test-implementation-key im))
 
 ;; =======================================
 ;; array interop tests
