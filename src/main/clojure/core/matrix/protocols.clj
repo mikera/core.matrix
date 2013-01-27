@@ -75,9 +75,9 @@
   (is-mutable? [m]))
 
 (defprotocol PMatrixCloning
-  "Protocol for cloining a matrix value."
-  (clone [m] "Returns a clone of a matrix value. Must be a new independent (non-view)
-              instance if the matrix is mutable."))
+  "Protocol for cloning a matrix value."
+  (clone [m] "Returns a clone of an array. Must be a new independent (non-view)
+              instance if the array is mutable."))
 
 ;; ===================================================================================
 ;; OPTTIONAL PROTOCOLS
