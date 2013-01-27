@@ -154,6 +154,11 @@
     (normalise [a]
       (mp/scale a (/ 1.0 (Math/sqrt (mp/length-squared a))))))
 
+(extend-protocol mp/PSummable
+  clojure.lang.IPersistentVector
+    (sum [a]
+      (mp/element-reduce a +)))
+
 (extend-protocol mp/PCoercion
   clojure.lang.IPersistentVector
     (coerce-param [m param]

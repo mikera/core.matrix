@@ -442,7 +442,12 @@
 (defn length-squared
   "Calculates the squared length (squared magnitude) of a vector"
   ([m]
-    (mp/length-squared m)))
+     (mp/length-squared m)))
+
+(defn sum
+  "Calculates the sum of all the elements"
+  [m]
+  (mp/sum m))
 
 ;; create all unary maths operators
 (eval

@@ -56,7 +56,12 @@
       (is (equals [3 7] (mul m [1 1])))
       (is (equals [2 4] (get-column m 1))))))
 
+(deftest test-sum
+  (testing "summing"
+    (is (= 2.0 (sum [[1.0 0.0] [0.0 1.0]])))
+    (is (= 1.5 (sum [1.0 0.5])))))
+
 ;; run complicance tests
 
 (deftest compliance-test
-  (core.matrix.compliance-tester/compliance-test [])) 
+  (core.matrix.compliance-tester/compliance-test []))
