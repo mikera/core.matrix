@@ -45,6 +45,14 @@
       (is (equals [1 2] da))
       (is (equals da [1.0 2.0])))))
 
+(deftest test-vector-ops
+  (testing "scale!"
+    (let [da (double-array [1.0 2.0])]
+      (is (equals [2.0 4.0] (scale! da 2)))))
+  (testing "normalise!"
+    (let [da (double-array [4.0])]
+      (is (equals [1.0] (normalise! da))))))
+
 (deftest test-maths-ops
   (testing "basic ops"
     (let [da (double-array [1.2 2.3])]
