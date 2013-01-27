@@ -148,6 +148,7 @@
   (normalise [a]))
 
 (defprotocol PMutableVectorOps
+  "Protocol for mutable versions of commn vector operations" 
   (normalise! [a]))
 
 (defprotocol PMatrixOps
@@ -172,15 +173,17 @@
   ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
 
 (defprotocol PMatrixSlices
-  "Protocol to support getting slices of a matrix"
+  "Protocol to support getting slices of an array.
+   Functions should return either the actual components or a mutable view if possible,
+   i.e. making a full copy should be avoided."
   (get-row [m i])
   (get-column [m i])
   (get-major-slice [m i])
   (get-slice [m dimension i]))
 
 (defprotocol PMatrixSubComponents
+  "Protocol for picking out subsections of a matrix" 
   (main-diagonal [m]))
-
 
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."
