@@ -2,11 +2,18 @@
   (:use [core.matrix.utils])
   (:require [core.matrix.protocols :as mp]))
 
+;; =====================================================
+;; Implementation utilities
+;;
+;; Tools to support the registration / manangement of core.matrix implementations 
+
 ;; map of known implementation tags to namespace imports
+;; we use this to attempt to load an implementation
 (def KNOWN-IMPLEMENTATIONS
   {:vectorz 'mikera.vectorz.matrix-api
    :ndarray 'core.matrix.impl.ndarray
    :persistent-vector 'core.matrix.impl.persistent-vector
+   :double-array 'core.matrix.impl.double-array
    :jblas :TODO
    :clatrix :TODO
    :parallel-colt :TODO
@@ -36,9 +43,17 @@
   ([canonical-object]
   (swap! canonical-objects assoc (mp/implementation-key canonical-object) canonical-object)))
 
+(defn- try-load-implementation [k]
+  (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
+    (try 
+      (require ns-sym)
+      (catch Throwable t nil))))
+
 (defn get-canonical-object 
   "Gets the canonical object for a specific implementation"
   ([m]
     (let [k (get-implementation-key m)
           obj (@canonical-objects k)]
-      (or obj (error "Unable to find implementation: [" k "]")))))
+      (or obj 
+          (try-load-implementation k)
+          (error "Unable to find implementation: [" k "]")))))
