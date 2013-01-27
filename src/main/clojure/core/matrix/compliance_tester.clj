@@ -56,7 +56,6 @@
   (testing "Implementation building same type"
     (is (= (imp/get-implementation-key im) (imp/get-implementation-key (matrix im))))))
 
-
 (defn test-implementation [im]
   (test-implementation-key im))
 
@@ -64,18 +63,18 @@
 ;; misc tests
 
 ;; TODO: figure out what to do with implementations that only support specific types?
-(defn test-new-matrices [m]
+(defn test-new-matrices [im]
   (testing "Vector construction"
-    (when (supports-dimensionality? m 1)
-      (let [v (matrix [1])]
+    (when (supports-dimensionality? im 1)
+      (let [v (matrix im [1])]
         (is (== 1.0 (mget v 0))))))
   (testing "Matrix construction"
-    (when (supports-dimensionality? m 2)
-      (let [m (matrix [[1 2] [3 4]])]
+    (when (supports-dimensionality? im 2)
+      (let [m (matrix im [[1 2] [3 4]])]
         (is (== 3.0 (mget m 1 0))))))
   (testing "All supported sizes")
-    (doseq [vm (create-supported-matrices m)]
-      (let [m (matrix vm)]
+    (doseq [vm (create-supported-matrices im)]
+      (let [m (matrix im vm)]
         (equals vm m))))
 
 (defn test-coerce-via-vectors [m]
