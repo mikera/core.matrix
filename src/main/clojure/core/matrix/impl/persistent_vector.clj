@@ -52,17 +52,17 @@
     (instance? java.util.List x) (coerce-nested x)
     (instance? java.lang.Iterable x) (coerce-nested x)
     (.isArray (class x)) (vec (seq x))
-    :default (error "Can't coerce to vector: " (class x)))) 
+    :default (error "Can't coerce to vector: " (class x))))
 
 (defn vector-dimensionality ^long [m]
   "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
   (cond
-    (clojure.core/vector? m) 
-      (if (> (count m) 0) 
-        (+ 1 (vector-dimensionality (m 0))) 
+    (clojure.core/vector? m)
+      (if (> (count m) 0)
+        (+ 1 (vector-dimensionality (m 0)))
         1)
     (mp/is-scalar? m) 0
-    :else (long (mp/dimensionality m)))) 
+    :else (long (mp/dimensionality m))))
 
 ;; =======================================================================
 ;; Implementation for nested Clojure persistent vectors used as matrices
@@ -73,15 +73,15 @@
     (implementation-key [m] :persistent-vector)
     (new-vector [m length] (vec (repeat length 0.0)))
     (new-matrix [m rows columns] (vec (repeat rows (mp/new-vector m columns))))
-    (new-matrix-nd [m dims] 
-      (if-let [dims (seq dims)] 
+    (new-matrix-nd [m dims]
+      (if-let [dims (seq dims)]
         (vec (repeat (first dims) (mp/new-matrix-nd m (next dims))))
         0.0))
     (construct-matrix [m data]
-      (cond 
-        (mp/is-scalar? data) 
+      (cond
+        (mp/is-scalar? data)
           data
-        (>= (mp/dimensionality data) 1) 
+        (>= (mp/dimensionality data) 1)
           (mapv #(mp/construct-matrix m %) (for [i (range (mp/dimension-count data 0))] (mp/get-major-slice data i)))
         (sequential? data)
           (mapv #(mp/construct-matrix m %) data)
@@ -106,9 +106,9 @@
 ;; we extend this so that nested mutable implemenations are possible
 (extend-protocol mp/PIndexedSetting
   clojure.lang.IPersistentVector
-    (set-1d [m row v] 
+    (set-1d [m row v]
       (error "Persistent vectors are not mutable!"))
-    (set-2d [m row column v] 
+    (set-2d [m row column v]
       (mp/set-1d (m 0) column v))
     (set-nd [m indexes v]
       (if-let [ixs (seq indexes)]
@@ -117,7 +117,7 @@
           (error "Persistent vectors are not mutable!"))
         (error "Trying to set on a persistent vector with insufficient indexes?")))
     (is-mutable? [m]
-      (if (vector-1d? m) 
+      (if (vector-1d? m)
         false
         (mp/is-mutable? (m 0)))))
 
@@ -154,6 +154,11 @@
     (normalise [a]
       (mp/scale a (/ 1.0 (Math/sqrt (mp/length-squared a))))))
 
+(extend-protocol mp/PSummable
+  clojure.lang.IPersistentVector
+    (sum [a]
+      (mp/element-reduce a +)))
+
 (extend-protocol mp/PCoercion
   clojure.lang.IPersistentVector
     (coerce-param [m param]
@@ -166,7 +171,7 @@
     (matrix-multiply [m a]
       (let [mdims (long (mp/dimensionality m))
             adims (long (mp/dimensionality a))]
-        (cond 
+        (cond
           (and (== mdims 1) (== adims 2))
             (vec (for [i (range (mp/dimension-count a 1))]
 	                 (let [r (mp/get-column a i)]
@@ -225,9 +230,9 @@
       false)
     (get-shape [m]
       (let [c (.length m)]
-        (cons c (if (> c 0) 
+        (cons c (if (> c 0)
                   (mp/get-shape (m 0))
-                  nil)))) 
+                  nil))))
     (dimension-count [m x]
       (if (== x 0)
         (.length m)
@@ -246,7 +251,7 @@
         (apply mapmatrix f m a more)))
     (element-map!
       ([m f]
-        (if (vector-1d? m) 
+        (if (vector-1d? m)
           (error "Persistent vector matrices are not mutable!")
           (doseq [s m] (mp/element-map! s f))))
       ([m f a]

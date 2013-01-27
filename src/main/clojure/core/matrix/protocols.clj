@@ -18,16 +18,16 @@
 ;; ===================================================================================
 ;; MANDATORY PROTOCOLS FOR ALL IMPLEMENTATIONS
 ;;
-;; A compliant core.matrix implementation must implement these. 
+;; A compliant core.matrix implementation must implement these.
 ;; Otherwise things will fail.
 
 (defprotocol PImplementation
   "Protocol for general implementation functionality"
   (implementation-key [m]
-    "Returns a keyword representing this implementation. 
+    "Returns a keyword representing this implementation.
      Each implementation should have one unique key.")
   (construct-matrix [m data]
-    "Returns a new matrix containing the given data. Data should be in the form of either 
+    "Returns a new matrix containing the given data. Data should be in the form of either
      nested sequences or a valid existing matrix")
   (new-vector [m length]
     "Returns a new vector (1D column matrix) of the given length.")
@@ -40,17 +40,17 @@
     "Returns true if the implementation supports matrices with the given number of dimensions."))
 
 (defprotocol PDimensionInfo
-  "Protocol to return standard dimension information about a matrix. 
+  "Protocol to return standard dimension information about a matrix.
    dimensionality and dimension-count are mandatory for implementations"
-  (dimensionality [m] 
+  (dimensionality [m]
     "Returns the number of dimensions of a matrix")
   (get-shape [m]
-    "Returns the shape of the matrix, as an array or sequence of dimension sizes") 
-  (is-scalar? [m] 
+    "Returns the shape of the matrix, as an array or sequence of dimension sizes")
+  (is-scalar? [m]
     "Tests whether an object is a scalar value")
-  (is-vector? [m] 
+  (is-vector? [m]
     "Tests whether an object is a vector (1D matrix)")
-  (dimension-count [m dimension-number] 
+  (dimension-count [m dimension-number]
     "Returns the size of a specific dimension "))
 
 ;; protocol arity overloads behave oddly, so different names used for simplicity
@@ -64,11 +64,11 @@
 ;; ===================================================================================
 ;; MANDATORY PROTOCOLS FOR MUTABLE MATRICES
 ;;
-;; A compliant core.matrix mutable implementation must implement these. 
+;; A compliant core.matrix mutable implementation must implement these.
 ;; Otherwise things will fail.
 
 (defprotocol PIndexedSetting
-  "Protocol for indexed setter access to matrices and vectors. 
+  "Protocol for indexed setter access to matrices and vectors.
    Must be supported for any mutable matrix type."
   (set-1d [m row v])
   (set-2d [m row column v])
@@ -77,13 +77,13 @@
 
 (defprotocol PMatrixCloning
   "Protocol for cloining a matrix value."
-  (clone [m] "Returns a clone of a matrix value. Must be a new independent (non-view) 
+  (clone [m] "Returns a clone of a matrix value. Must be a new independent (non-view)
               instance if the matrix is mutable."))
 
 
 ;; ===================================================================================
 ;; OPTTIONAL PROTOCOLS
-;; 
+;;
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
 
@@ -94,9 +94,9 @@
   (diagonal-matrix [m diagonal-values] "Create a diagonal matrix with the specified leading diagonal values"))
 
 (defprotocol PCoercion
-  "Protocol to coerce a parameter to a format usable by a specific implementation. It is 
+  "Protocol to coerce a parameter to a format usable by a specific implementation. It is
    up to the implementation to determine what parameter types they support. If the
-   implementation is unable to perform coercion, it may return nil." 
+   implementation is unable to perform coercion, it may return nil."
   (coerce-param [m param]
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
      May return nil if unable to do so, in which case a default implementation can be used."))
@@ -108,7 +108,7 @@
 (defprotocol PAssignment
   "Protocol for assigning values to mutable matrices."
   (assign! [m source] "Sets all the values in a matrix from a matrix source")
-  (assign-array! 
+  (assign-array!
     [m arr]
     [m arr start length]))
 
@@ -118,7 +118,7 @@
   (element-multiply [m a]))
 
 (defprotocol PVectorTransform
-  "Protocol to support transformation of a vector to another vector. 
+  "Protocol to support transformation of a vector to another vector.
    Is equivalent to matrix multiplication when 2D matrices are used as transformations.
    But other transformations are possible, e.g. affine transformations."
   (vector-transform [m v] "Transforms a vector")
@@ -147,7 +147,7 @@
   (normalise [a]))
 
 (defprotocol PMutableVectorOps
-  (normalise! [a])) 
+  (normalise! [a]))
 
 (defprotocol PMatrixOps
   "Protocol to support common matrix operations"
@@ -156,6 +156,10 @@
   (inverse [m])
   (negate [m])
   (transpose [m]))
+
+(defprotocol PSummable
+  "Protocol to support the summing of all elements in a matrix or vector."
+  (sum [m]))
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
@@ -173,7 +177,7 @@
   (get-slice [m dimension i]))
 
 (defprotocol PMatrixSubComponents
-  (main-diagonal [m])) 
+  (main-diagonal [m]))
 
 
 (defprotocol PFunctionalOperations
