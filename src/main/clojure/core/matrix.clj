@@ -527,6 +527,16 @@
           (error "Not a scalar, cannot do zero dimensional get")))))
 
 (extend-protocol mp/PVectorOps
+  java.lang.Number
+    (vector-dot [a b] (* a b))
+    (length [a] (double a))
+    (length-squared [a] (Math/sqrt (double a)))
+    (normalise [a] 
+      (let [a (double a)] 
+        (cond 
+          (> a 0.0) 1.0
+          (< a 0.0) -1.0
+          :else 0.0))) 
   java.lang.Object
     (vector-dot [a b])
     (length [a]
