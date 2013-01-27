@@ -654,6 +654,14 @@
     (element-multiply [m a]
       (emap clojure.core/* m a)))
 
+;; matrix element summation
+(extend-protocol mp/PSummable
+  java.lang.Number
+    (sum [a] a)
+  java.lang.Object
+    (sum [a]
+      (mp/element-reduce a +)))
+
 ;; general transformation of a vector
 (extend-protocol mp/PVectorTransform
   clojure.lang.IFn
