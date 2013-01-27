@@ -215,7 +215,7 @@
   "Returns true if a matrix is a column-matrix (i.e. has exactly one column)"
   ([m]
     (and (== (mp/dimensionality m) 2)
-        (== 1 (mp/dimension-count m 1)))))
+         (== 1 (mp/dimension-count m 1)))))
 
 (defn shape
   "Returns the shape of a matrix, i.e. the dimension sizes for all dimensions.
@@ -234,7 +234,7 @@
 
 (defn supports-dimensionality?
   "Returns true if the implementation for a given matrix supports a specific dimensionality, i.e.
-   can create an manipulate matrices with the given number of dimensions"
+   can create and manipulate matrices with the given number of dimensions"
   ([m dimension-count]
     (mp/supports-dimensionality? m dimension-count)))
 
@@ -260,7 +260,7 @@
   ([m v]
     (if (mp/is-scalar? m)
       (error "Can't set a scalar value!")
-      (error "Can't mset a non-scalar value without indexes")))
+      (error "Can't mset! on a non-scalar value without indexes")))
   ([m x v]
     (mp/set-1d m x v))
   ([m x y v]
@@ -270,7 +270,7 @@
 
 (defn get-row
   "Gets a row of a 2D matrix.
-   May  return a mutable view if supported by the implementation."
+   May return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
@@ -371,7 +371,7 @@
   ([m v] (mp/vector-transform! m v)))
 
 (defn add
-  "Performs matrix addition on two matrices of same size"
+  "Performs element-wise matrix addition on one or more matrices."
   ([a] a)
   ([a b]
     (mp/matrix-add a b))
@@ -379,7 +379,7 @@
     (reduce mp/matrix-add (mp/matrix-add a b) more)))
 
 (defn sub
-  "Performs matrix subtraction on two matrices of same size"
+  "Performs element-wise matrix subtraction on one or more matrices."
   ([a] a)
   ([a b]
     (mp/matrix-sub a b))
@@ -392,7 +392,7 @@
     (mp/scale m factor)))
 
 (defn scale!
-  "Scales a matrix in place by a scalar factor"
+  "Scales a matrix by a scalar factor (in place)"
   ([m factor]
     (mp/scale! m factor)))
 
@@ -402,12 +402,13 @@
     (mp/normalise m)))
 
 (defn normalise!
-  "Normalises a matrix in-place (scales to unit length)"
+  "Normalises a matrix in-place (scales to unit length).
+   Returns the modified vector."
   ([m]
     (mp/normalise! m)))
 
 (defn dot
-  "Computes the dot product of two vectors"
+  "Computes the dot product (inner product) of two vectors"
   ([a b]
     (mp/vector-dot a b)))
 
@@ -428,11 +429,10 @@
     (mp/transpose m)))
 
 (defn transpose!
-  "Transposes a 2D matrix in-place"
+  "Transposes a square 2D matrix in-place"
   ([m]
     ;; TODO: implement with a proper protocol
     (assign! m (transpose m))))
-
 
 (defn length
   "Calculates the length (magnitude) of a vector"
@@ -556,7 +556,6 @@
     (normalise! [a]
       (scale! a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
 
-
 (extend-protocol mp/PAssignment
   java.lang.Object
     (assign! [m x]
@@ -602,7 +601,7 @@
     (is-scalar? [m] true)
     (is-vector? [m] false)
     (get-shape [m] [])
-    (dimension-count [m i] (error "nil has zero dimensionality, cannot get dimension count"))
+    (dimension-count [m i] (error "cannot get dimension count from nil"))
   java.lang.Number
     (dimensionality [m] 0)
     (is-scalar? [m] true)
@@ -831,7 +830,6 @@
        ~@(map (fn [[name func]]
                 `(~(symbol (str name "!")) [~'m] (emap! #(double (~func (double %))) ~'m)))
               mops/maths-ops)))
-
 
 (extend-protocol mp/PMatrixSubComponents
   java.lang.Object

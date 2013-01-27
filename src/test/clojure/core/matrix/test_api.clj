@@ -3,6 +3,7 @@
   (:use core.matrix)
   (:require [core.matrix.protocols :as mp])
   (:require [core.matrix.operators :as op])
+  (:require [core.matrix.implementations :as imp])
   (:require core.matrix.examples)
   (:require core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
@@ -12,6 +13,13 @@
     (is (== 1 (mget [1 2 3] 0)))
     (is (== 1 (mget [[1 2 3] [4 5 6]] 0 0)))
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
+
+(deftest test-implementations
+  (testing "vector implementation"
+    (is (clojure.core/vector? (imp/get-canonical-object :persistent-vector)))
+    (is (= :persistent-vector (imp/get-implementation-key []))))
+  (testing "non-existent implementation"
+    (is (thrown? Throwable (imp/get-canonical-object :random-fictitious-implementation-key)))))
 
 (deftest test-coerce
   (testing "clojure vector coercion"
