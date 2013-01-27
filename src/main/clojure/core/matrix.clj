@@ -71,7 +71,7 @@
   "Constructs a new zero-filled vector with the given length"
   ([length]
     (if-let [m (current-implementation-object)]
-      (mp/new-vector m length) 
+      (mp/new-vector m length)
       (error "No core.matrix implementation available")))
   ([length implementation]
     (mp/new-vector (imp/get-canonical-object implementation) length)))
@@ -109,7 +109,7 @@
       (error "No core.matrix implementation available")))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) (map vector data))))
-  
+
 (defn identity-matrix
   "Constructs a 2D identity matrix with the given number or rows"
   ([dims]
@@ -129,8 +129,8 @@
 ;; ======================================
 ;; matrix assignment and copying
 
-(defn assign! 
-  "Assigns a value to a matrix. 
+(defn assign!
+  "Assigns a value to a matrix.
    Returns the mutated matrix"
   ([m a]
     (mp/assign! m a)
@@ -149,7 +149,7 @@
     (mp/clone m)))
 
 (defn to-nested-vectors
-  "Converts an array to nested vectors. 
+  "Converts an array to nested vectors.
    The depth of nesting is equal to the dimensionality of the array."
   ([m]
     (mp/convert-to-nested-vectors m)))
@@ -220,7 +220,7 @@
 (defn shape
   "Returns the shape of a matrix, i.e. the dimension sizes for all dimensions.
 
-   Result may be a sequence or Java array, to allow implemenations flexibility to return 
+   Result may be a sequence or Java array, to allow implemenations flexibility to return
    their own internal representation of matrix shape.
 
    You are guaranteed however that you can call `seq` on this to get a sequence of dimension sizes."
@@ -232,7 +232,7 @@
   ([m]
     (and (satisfies? mp/PIndexedSetting m) (mp/is-mutable? m))))
 
-(defn supports-dimensionality? 
+(defn supports-dimensionality?
   "Returns true if the implementation for a given matrix supports a specific dimensionality, i.e.
    can create an manipulate matrices with the given number of dimensions"
   ([m dimension-count]
@@ -281,7 +281,7 @@
     (mp/get-column m y)))
 
 (defn coerce
-  "Coerces param to a format usable by a specific matrix implementation. 
+  "Coerces param to a format usable by a specific matrix implementation.
    If param is already in a format deemed useable by the implementation, returns it unchanged."
   ([m param]
     (or
@@ -536,12 +536,12 @@
     (vector-dot [a b] (* a b))
     (length [a] (double a))
     (length-squared [a] (Math/sqrt (double a)))
-    (normalise [a] 
-      (let [a (double a)] 
-        (cond 
+    (normalise [a]
+      (let [a (double a)]
+        (cond
           (> a 0.0) 1.0
           (< a 0.0) -1.0
-          :else 0.0))) 
+          :else 0.0)))
   java.lang.Object
     (vector-dot [a b])
     (length [a]
@@ -559,38 +559,38 @@
 
 (extend-protocol mp/PAssignment
   java.lang.Object
-    (assign! [m x] 
-      (cond 
+    (assign! [m x]
+      (cond
         (mp/is-vector? x)
           (dotimes [i (row-count m)]
             (mset! m i (mget x i)))
         (array? x)
-          (doall (map (fn [a b] (mp/assign! a b)) 
-                      (slices m) 
+          (doall (map (fn [a b] (mp/assign! a b))
+                      (slices m)
                       (slices x)))
         (.isArray (class x))
           (mp/assign-array! m x)
-        :else 
+        :else
           (error "Can't assign to a non-matrix object: " (class m))))
-    (assign-array! 
-      ([m arr] 
+    (assign-array!
+      ([m arr]
 	      (let [alen (long (count arr))]
 	        (if (mp/is-vector? m)
 	          (dotimes [i alen]
 	            (mp/set-1d m i (nth arr i)))
 	          (mp/assign-array! m arr 0 alen))))
-      ([m arr start length] 
+      ([m arr start length]
 	      (if (mp/is-vector? m)
 	          (dotimes [i (long length)]
 	            (mp/set-1d m i (nth arr i)))
 	          (let [ss (seq (slices m))
 	                skip (long (if ss (ecount (first (slices m))) 0))]
-	            (doseq-indexed [s ss i] 
+	            (doseq-indexed [s ss i]
 	              (mp/assign-array! s arr (* skip i) skip)))))))
 
 (extend-protocol mp/PMatrixCloning
 	  java.lang.Cloneable
-	    (clone [m] 
+	    (clone [m]
 	      (.invoke ^java.lang.reflect.Method (.getDeclaredMethod (class m) "clone" nil) m nil))
 	  java.lang.Object
 	    (clone [m]
@@ -615,7 +615,7 @@
     (is-scalar? [m] false)
     (get-shape [m] (for [i (range (mp/dimensionality m))] (mp/dimension-count m i)))
     (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
-    
+
 
 ;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps
@@ -646,7 +646,7 @@
     (element-multiply [m a]
       (clojure.core/* m a))
     (matrix-multiply [m a]
-      (cond 
+      (cond
         (number? a) (* m a)
         (matrix? a) (mp/pre-scale a m)
         :else (error "Don't know how to multiply number with: " (class a))))
@@ -663,7 +663,7 @@
       (assign! a (m a)))
   java.lang.Object
     (vector-transform [m a]
-      (cond 
+      (cond
         (matrix? m) (mul m a)
         :else (error "Don't know how to transform using: " (class m))))
     (vector-transform! [m a]
@@ -719,7 +719,7 @@
       (== a b))
   java.lang.Object
     (matrix-equals [a b]
-      (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))) 
+      (not (some false? (map == (mp/element-seq a) (mp/element-seq b))))))
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
@@ -747,7 +747,7 @@
         (f init m)))
   java.lang.Object
     (element-seq [m]
-      (cond 
+      (cond
         (matrix? m) (mapcat mp/element-seq (slices m))
         :else (seq m)))
     (element-map
@@ -771,11 +771,11 @@
         (coerce m (mp/element-reduce (mp/convert-to-nested-vectors m) f init))))
   nil
     (element-seq [m] nil)
-    (element-map 
+    (element-map
       ([m f] nil)
       ([m f a] nil)
       ([m f a more] nil))
-    (element-map! 
+    (element-map!
       ([m f] nil)
       ([m f a] nil)
       ([m f a more] nil))
@@ -791,17 +791,17 @@
       m)
   java.lang.Object
     (convert-to-nested-vectors [m]
-      (cond 
+      (cond
         (scalar? m) m
-        (mp/is-vector? m) 
+        (mp/is-vector? m)
           (mapv #(mget m %) (range (row-count m)))
-        (matrix? m) 
+        (matrix? m)
           (mapv mp/convert-to-nested-vectors (slices m))
-        (sequential? m) 
+        (sequential? m)
           (mapv mp/convert-to-nested-vectors m)
-        (seq? m) 
+        (seq? m)
           (mapv mp/convert-to-nested-vectors m)
-        :default 
+        :default
           (error "Can't work out how to convert to nested vectors: " (class m) " = " m))))
 
 (extend-protocol mp/PCoercion
@@ -836,9 +836,9 @@
 
 (extend-protocol mp/PSpecialisedConstructors
   java.lang.Object
-    (identity-matrix [m dims] 
+    (identity-matrix [m dims]
       (diagonal-matrix (repeat dims 1.0)))
-    (diagonal-matrix [m diagonal-values] 
+    (diagonal-matrix [m diagonal-values]
       (let [dims (count diagonal-values)
             diagonal-values (coerce [] diagonal-values)
             zs (vec (repeat dims 0.0))
@@ -865,7 +865,6 @@
 
 (defn set-current-implementation
   "Sets the currently active matrix implementation"
-  ([m] 
-    (alter-var-root (var core.matrix/*matrix-implementation*) 
+  ([m]
+    (alter-var-root (var core.matrix/*matrix-implementation*)
                     (fn [_] (imp/get-implementation-key m)))))
-
