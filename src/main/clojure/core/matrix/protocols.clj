@@ -4,7 +4,6 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
-
 ;; ================================================================
 ;; core.matrix API protocols
 ;;
@@ -80,13 +79,11 @@
   (clone [m] "Returns a clone of a matrix value. Must be a new independent (non-view)
               instance if the matrix is mutable."))
 
-
 ;; ===================================================================================
 ;; OPTTIONAL PROTOCOLS
 ;;
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
-
 
 (defprotocol PSpecialisedConstructors
   "Protocol for construction of special matrices."
@@ -101,9 +98,9 @@
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
      May return nil if unable to do so, in which case a default implementation can be used."))
 
-(defprotocol PMatrixEquality
-  "Protocol for matrix equality operations"
-  (matrix-equals [a b]))
+(defprotocol PConversion
+  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
+  (convert-to-nested-vectors [m]))
 
 (defprotocol PAssignment
   "Protocol for assigning values to mutable matrices."
@@ -111,6 +108,10 @@
   (assign-array!
     [m arr]
     [m arr start length]))
+
+(defprotocol PMatrixEquality
+  "Protocol for matrix equality operations"
+  (matrix-equals [a b]))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
@@ -158,7 +159,8 @@
   (transpose [m]))
 
 (defprotocol PSummable
-  "Protocol to support the summing of all elements in a matrix or vector."
+  "Protocol to support the summing of all elements in an array. 
+   The array must hold numeric values only, or an exception will be thrown."
   (sum [m]))
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
@@ -183,6 +185,7 @@
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."
   ;; note that protocols don't like variadic args, so we convert to regular args
+  ;; also the matrix type must be first for protocol dispatch, so we move it before f
   (element-seq [m])
   (element-map [m f]
                [m f a]
@@ -191,7 +194,3 @@
                 [m f a]
                 [m f a more])
   (element-reduce [m f] [m f init]))
-
-(defprotocol PConversion
-  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
-  (convert-to-nested-vectors [m]))
