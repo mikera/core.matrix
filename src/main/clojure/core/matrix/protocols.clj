@@ -93,7 +93,8 @@
 (defprotocol PCoercion
   "Protocol to coerce a parameter to a format usable by a specific implementation. It is
    up to the implementation to determine what parameter types they support. If the
-   implementation is unable to perform coercion, it may return nil."
+   implementation is unable to perform coercion, it may return nil.
+   Implementations should also be able to coerce scalar values."
   (coerce-param [m param]
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
      May return nil if unable to do so, in which case a default implementation can be used."))
