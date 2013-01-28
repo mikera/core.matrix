@@ -99,6 +99,16 @@
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
      May return nil if unable to do so, in which case a default implementation can be used."))
 
+(defprotocol PBroadcast
+  "Protocol to support broadcasting over one or more dimensions."
+  (broadcast [m target-shape]
+    "Broadcasts an array over a desired target shape, which should be larger than the current matrix.
+     Dimensions should be matched up according to the last dimension.
+     In order to broadcast sucessfully, the current dimension of the array must be either:
+      - of size 1
+      - equal to the size of the dimension in the target shape
+      - not included in the array (i.e. the target shape has more leading dimensions)"))
+
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))
