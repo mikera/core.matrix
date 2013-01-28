@@ -177,6 +177,11 @@
   ([m]
     (mp/is-scalar? m)))
 
+(defn element-type
+  "Returns the class of elements in the array."
+  ([m]
+    (mp/element-type m))) 
+
 (defn dimensionality
 ;; TODO: alternative names to consider: order, tensor-rank?
   "Returns the dimensionality (number of array dimensions) of a matrix / array"
