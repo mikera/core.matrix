@@ -579,13 +579,15 @@
 	            (mp/set-1d m i (nth arr i)))
 	          (mp/assign-array! m arr 0 alen))))
       ([m arr start length]
-	      (if (mp/is-vector? m)
-	          (dotimes [i (long length)]
-	            (mp/set-1d m i (nth arr i)))
+	      (let [length (long length)
+              start (long start)]
+         (if (mp/is-vector? m)
+	          (dotimes [i length]
+	            (mp/set-1d m i (nth arr (+ start i))))
 	          (let [ss (seq (slices m))
 	                skip (long (if ss (ecount (first (slices m))) 0))]
 	            (doseq-indexed [s ss i]
-	              (mp/assign-array! s arr (* skip i) skip)))))))
+	              (mp/assign-array! s arr (* skip i) skip))))))))
 
 (extend-protocol mp/PMatrixCloning
 	  java.lang.Cloneable
