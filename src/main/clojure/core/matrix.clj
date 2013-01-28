@@ -241,7 +241,7 @@
 (defn- broadcast-shape*
   ([a b]
     (cond 
-      (nil? a) b
+      (nil? a) (or b [])
       (nil? b) a
       (== 1 (first a)) (broadcast-shape* (first b) (next a) (next b))
       (== 1 (first b)) (broadcast-shape* (first a) (next a) (next b))
@@ -257,8 +257,8 @@
   "Returns the smallest compatible shape that shape sequences a and b can both broadcast to.
    Returns nil if this is not possible" 
   ([a b]
-    (let [a (reverse a)
-          b (reverse b)
+    (let [a (seq (reverse a))
+          b (seq (reverse b))
           r (broadcast-shape* a b)]
       (if r (reverse r) nil)))) 
 

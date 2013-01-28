@@ -139,7 +139,8 @@
     (is (= [2 2] (broadcast-shape [1 2] [2 1])))
     (is (= [1 2 3] (broadcast-shape [1 2 3] [2 1])))
     (is (= [1 2 3 4] (broadcast-shape [1 2 3 1] [2 1 4])))
-    (is (nil? (broadcast-shape [1 2 3 4] [2 3]))))) 
+    (is (nil? (broadcast-shape [1 2 3 4] [2 3])))
+    (is (= [] (broadcast-shape [] []))))) 
 
 (deftest check-examples
   (testing "example code"
