@@ -1,6 +1,6 @@
 (ns core.matrix.examples
-  (:use core.matrix)
   (:refer-clojure :exclude [* - +])
+  (:use core.matrix)
   (:use core.matrix.operators))
 
 ;; =============================================================
@@ -38,5 +38,9 @@
   
   ;; operations on scalars alone behave as you would expect
   (* 1 2 3 4 5)
+  
+  ;; you can do various functional programming tricks with matrices too
+  (emap inc [[1 2] [3 4]])
+  
 )
 

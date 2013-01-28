@@ -711,6 +711,16 @@
     (sum [a]
       (mp/element-reduce a +)))
 
+;; matrix element summation
+(extend-protocol mp/PTypeInfo
+  java.lang.Number
+    (element-type [a] (class a))
+  java.lang.Object
+    (element-type [a] 
+      (if (mp/is-scalar? a)
+        (class a)
+        (class (first (eseq a))))))
+
 ;; general transformation of a vector
 (extend-protocol mp/PVectorTransform
   clojure.lang.IFn
