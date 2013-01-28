@@ -364,6 +364,26 @@
   ([m [shifts]]
     (TODO))) 
 
+
+;; ====================================
+;; structural change operations
+
+(defn broadcast 
+  "Broadcasts a matrix to a specified shape"
+  ([m shape]
+    (mp/broadcast m shape)))
+
+(defn transpose
+  "Transposes a 2D matrix"
+  ([m]
+    (mp/transpose m)))
+
+(defn transpose!
+  "Transposes a square 2D matrix in-place"
+  ([m]
+    ;; TODO: implement with a proper protocol
+    (assign! m (transpose m))))
+
 ;; ======================================
 ;; matrix comparisons
 
@@ -456,17 +476,6 @@
   "Calculates the trace of a matrix (sum of elements on main diagonal)"
   ([a]
     (mp/trace a)))
-
-(defn transpose
-  "Transposes a 2D matrix"
-  ([m]
-    (mp/transpose m)))
-
-(defn transpose!
-  "Transposes a square 2D matrix in-place"
-  ([m]
-    ;; TODO: implement with a proper protocol
-    (assign! m (transpose m))))
 
 (defn length
   "Calculates the length (magnitude) of a vector"
