@@ -241,7 +241,7 @@
 (defn- broadcast-shape*
   ([a b]
     (cond 
-      (nil? a) (or b [])
+      (nil? a) (or b '())
       (nil? b) a
       (== 1 (first a)) (broadcast-shape* (first b) (next a) (next b))
       (== 1 (first b)) (broadcast-shape* (first a) (next a) (next b))
@@ -254,8 +254,9 @@
       (cons prefix nil))))
 
 (defn broadcast-shape 
-  "Returns the smallest compatible shape that shape sequences a and b can both broadcast to.
-   Returns nil if this is not possible" 
+  "Returns the smallest compatible shape that shapes a and b can both broadcast to.
+   Returns nil if this is not possible (i.e. the shapes are incompatible). 
+   Returns an empty list if both shape sequences are empty (i.e. represent scalars)" 
   ([a b]
     (let [a (seq (reverse a))
           b (seq (reverse b))
