@@ -3,7 +3,8 @@
   (:refer-clojure :exclude [* - +])
   (:use core.matrix.operators))
 
-;; set core core.matrix examples
+;; =============================================================
+;; Set of core.matrix examples
 
 (defn all-examples []
   ;; a matrix can be defined using a nested vector
