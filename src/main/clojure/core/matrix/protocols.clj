@@ -85,6 +85,11 @@
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
 
+(defprotocol PTypeInfo
+  "Protocol for querying the type of matrix elements. If not provided, the default implementation will
+   examine the first element in the matrix to determone the type."
+  (element-type [m]))
+
 (defprotocol PSpecialisedConstructors
   "Protocol for construction of special matrices."
   (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions")
