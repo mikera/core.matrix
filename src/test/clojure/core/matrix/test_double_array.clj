@@ -21,7 +21,9 @@
     (let [da (matrix :double-array [1 2])]
       (is (= [2.0 3.0] (seq (emap inc da))))
       (emap! inc da) 
-      (is (= [2.0 3.0] (eseq da))))))
+      (is (= [2.0 3.0] (eseq da)))))
+  (testing "nested double arrays"
+    (is (= [1.0 2.0 3.0 4.0] (eseq [(double-array [1 2]) (double-array [3 4])])))))
 
 (deftest test-assign
   (testing "assign from a persistent vector"
