@@ -26,7 +26,7 @@
     "Returns a keyword representing this implementation.
      Each implementation should have one unique key.")
   (construct-matrix [m data]
-    "Returns a new matrix containing the given data. Data should be in the form of either
+    "Returns a new matrix containing the given data. data should be in the form of either
      nested sequences or a valid existing matrix")
   (new-vector [m length]
     "Returns a new vector (1D column matrix) of the given length.")

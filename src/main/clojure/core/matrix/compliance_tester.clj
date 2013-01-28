@@ -115,6 +115,7 @@
             len (ecount m)
             vs (range 1 (inc len))
             arr (into-array vs)]
+        (is (= len (count vs)))
         (is (every? true? (map == vs (eseq m))))
         (when-not (mutable? m) 
           (error "Problem: coerced object not mutable?"))
