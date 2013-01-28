@@ -238,6 +238,30 @@
   ([m dimension-count]
     (mp/supports-dimensionality? m dimension-count)))
 
+(defn- broadcast-shape*
+  ([a b]
+    (cond 
+      (nil? a) b
+      (nil? b) a
+      (== 1 (first a)) (broadcast-shape* (first b) (next a) (next b))
+      (== 1 (first b)) (broadcast-shape* (first a) (next a) (next b))
+      (== (first a) (first b)) (broadcast-shape* (first a) (next a) (next b))
+      :else nil))
+  ([prefix a b]
+    (if (or a b)
+      (let [r (broadcast-shape* a b)]
+        (if r (cons prefix r) nil))
+      (cons prefix nil))))
+
+(defn broadcast-shape 
+  "Returns the smallest compatible shape that shape sequences a and b can both broadcast to.
+   Returns nil if this is not possible" 
+  ([a b]
+    (let [a (reverse a)
+          b (reverse b)
+          r (broadcast-shape* a b)]
+      (if r (reverse r) nil)))) 
+
 ;; =======================================
 ;; matrix access
 

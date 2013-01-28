@@ -133,6 +133,14 @@
     (is (= [3 2] (shape [[1 2] [2 3] [3 4]])))
     (is (= [2 2 2] (shape [[[1 2] [2 3]] [[3 4] [5 6]]])))))
 
+(deftest test-broadcasting
+  (testing "broadcast shapes"
+    (is (nil? (broadcast-shape [1 2] [1 3])))
+    (is (= [2 2] (broadcast-shape [1 2] [2 1])))
+    (is (= [1 2 3] (broadcast-shape [1 2 3] [2 1])))
+    (is (= [1 2 3 4] (broadcast-shape [1 2 3 1] [2 1 4])))
+    (is (nil? (broadcast-shape [1 2 3 4] [2 3]))))) 
+
 (deftest check-examples
   (testing "example code"
     (core.matrix.examples/all-examples)))
