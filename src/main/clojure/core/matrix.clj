@@ -332,13 +332,22 @@
   ([m]
     (mp/main-diagonal m)))
 
+(defn rotate
+  "Rotates an array along specified dimensions"
+  ([m dimension shift-amount]
+    (TODO))
+  ([m [shifts]]
+    (TODO))) 
+
 ;; ======================================
 ;; matrix comparisons
 
 (defn equals
   "Returns true if two matrices are numerically equal."
   ([a b]
-    (mp/matrix-equals a b)))
+    (mp/matrix-equals a b))
+  ([a b epsilon]
+    (TODO)))
 
 ;; ======================================
 ;; matrix maths / operations
