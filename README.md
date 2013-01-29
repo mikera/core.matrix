@@ -47,6 +47,25 @@ You can include the latest released version by adding it as a leiningen or Maven
 
  - https://clojars.org/mikera/matrix-api
 
+### Writing a matrix implementation
+
+We encourage you to extend the core.matrix protocols to different types of matrices / multi-dimensional
+data formats. This is relatively easy and is referred to as a core.matrix "impelmentation". You can write an
+implementation for a wide variety of purposes:
+
+ - Java matrix libaries that you want to wrap for use with core.matrix
+ - Custom Clojure data structures
+ - "array-like" objects that can be viewed as matrices (e.g. bitmap images)
+ - Tabular "result-set" objects 
+ 
+Depending on the requirements, you may choose to implement support for some or all core.matrix APIs
+ 
+If you are interested in creating a core.matrix implementation, please read:
+
+ - https://github.com/mikera/matrix-api/blob/master/implementation-guide.md
+ 
+Also please be aware that prior to version 1.0.0, the API is still in flux and you can expect some breaking 
+changes.
 
 ### Contributing
 
