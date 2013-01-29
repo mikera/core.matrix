@@ -20,6 +20,7 @@ e.g. if you are wrapping the UJMP Java matrix library, you would add UJMP as a d
 
 This is necessary to get access to the key namespaces you need:
 
+ - **core.matrix** : contains the user-facing API
  - **core.matrix.protocols** : contains protocols that must be implemented
  - **core.matrix.implementations** : contains code to register / manage your implementation
  - **core.matrix.compliance-tester**: test code to verify your implementation is correct
@@ -72,6 +73,35 @@ in the future.
 
 It will also help users discover your library! 
 
+
+### Implementation Guidance
+
+#### Handling interop with other implementations
+
+When control enters your implementation via one of the protocol functions, you don't know much
+about the type of the other arguments. This is particularly important when the other argument
+may be a matrix from a different core.matrix implementation.
+
+Such operations in core.matrix are left to the discretion of the matrix implementation. You are required to 
+either:
+
+- Perform the operation and return a valid result.
+- Throw an exception.
+
+Here are your options, in rough order of preference:
+
+ - **Coerce the other matrix to your format** - via calling `(coerce your-matrix other-matrix)`. This
+ may be an expensive operation (likely to require constructing a whole new matrix in your format) but 
+ should work effectively as a general approach
+ - **Defer to a generic mutimethod** - core.matrix provides some generic multimethods that should perform 
+ the necessary operations, e.g. `core.matrix.multimethods/mul`. Generic implementations are likely to be slow but correct. 
+ In some cases the generic method may be able to exploit optimisations, e.g. multiplication of two diagonal matrices from different implementations.
+ - **Explicitly recognise and work with the other implementation** - this requires hard-coding and is a lot of work.
+ Probably not recommended except for special cases where you really need to work well with another specific implementation
+ - **Give a warning** - useful in combination with one of the other methods if your library is focused on performance,
+ to let the user know that they are taking a performance hit while still attempting to produce a correct result.
+ - **Throw an exception** - This is not ideal, but may be acceptable if you are willing
+ to label your implementation clearly as incomplete / not compatible with other implementations.
 
 
 
