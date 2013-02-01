@@ -9,15 +9,16 @@ For code examples see:
 
  - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/core/matrix/examples.clj
 
-The idea is to provide a common abstraction for matrix maths in Clojure, 
-independent of underlying implementations. If it works, there would be an option to 
-propose this library to be part of Clojure contrib as `core.matrix`.
+The idea is to provide a common and idiomatic abstraction for matrix maths in Clojure, 
+independent of underlying implementations. The plan is to develop this 
+into an official Clojure Contrib language extension as `core.matrix`.
 
 Key objectives:
 
  - Provide a clear, standard API / abstraction for matrix and vector maths in Clojure
- - Enable support for different underlying matrix library implementations
- - Provide a base layer for other projects (e.g. Incanter)
+ - Enable pluggable support for different underlying matrix library implementations
+ - Provide a general purpose n-dimensional array implementation (NumPy style)
+ - Provide a foundation layer for other projects (e.g. Incanter)
  - Maintain good performance wherever possible
 
 Example implementations we might want to support:
