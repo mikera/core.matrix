@@ -147,9 +147,13 @@
 ;; ========================================
 ;; 1D vector tests
 
+(defn test-vector-slices [im]
+  (let [m (matrix im [1 2 3])]
+    (is (equals m (matrix im (vec (slices m)))))
+    (is (= (slices m) (eseq m)))))
 
 (defn vector-tests-1d [im]
-  nil)
+  (test-vector-slices im))
 
 ;; ========================================
 ;; 2D matrix tests
