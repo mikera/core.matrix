@@ -1,6 +1,7 @@
 (ns core.matrix
   (:use core.matrix.utils)
   (:require [core.matrix.impl double-array ndarray persistent-vector])
+  (:require [core.matrix.impl sequence]) ;; TODO: figure out if we want this?
   (:require [core.matrix.multimethods :as mm])
   (:require [core.matrix.protocols :as mp])
   (:require [core.matrix.implementations :as imp])
@@ -11,7 +12,8 @@
 ;;
 ;; This is the public API for core.matrix
 ;;
-;; General handling of operations is as follows
+;; General handling of operations is as follows:
+;; 
 ;; 1. user calls public AI function defined in core.matrix
 ;; 2. core.matrix function delegates to a protocol for the appropriate function
 ;;    with protocols as defined in the core.matrix.protocols namespace. In most cases
