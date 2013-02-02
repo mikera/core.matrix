@@ -815,7 +815,7 @@
   java.lang.Object
     (element-seq [m]
       (cond
-        (matrix? m) (mapcat mp/element-seq (slices m))
+        (array? m) (mapcat mp/element-seq (slices m))
         :else (seq m)))
     (element-map
       ([m f]
@@ -850,6 +850,18 @@
       ([m f] (f))
       ([m f init] init)))
 
+;; TODO: return a view object by default for matrix slices
+(extend-protocol mp/PMatrixSlices
+  java.lang.Object
+    (get-row [m i]
+      (mp/get-major-slice m i))
+    (get-column [m i]
+      (mp/get-slice m 1 i))
+    (get-major-slice [m i]
+      (coerce m ((coerce [] m) i)))
+    (get-slice [m dimension i]
+      (coerce m (mp/get-slice (coerce [] m) dimension i)))) 
+
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
   java.lang.Number
@@ -862,7 +874,7 @@
         (scalar? m) m
         (mp/is-vector? m)
           (mapv #(mget m %) (range (row-count m)))
-        (matrix? m)
+        (array? m)
           (mapv mp/convert-to-nested-vectors (slices m))
         (sequential? m)
           (mapv mp/convert-to-nested-vectors m)
