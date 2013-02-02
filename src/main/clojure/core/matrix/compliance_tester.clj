@@ -102,7 +102,8 @@
     (doseq [vm (create-supported-matrices m)]
       (let [m (coerce m vm)]
         (is (= (seq (shape m)) (seq (shape vm))))
-        (is (= (ecount m) (ecount vm)))))))
+        (is (= (ecount m) (ecount vm)))
+        (is (= (eseq m) (eseq (emap identity m))))))))
 
 
 ;; =======================================
@@ -167,24 +168,31 @@
 (defn test-transpose [im]
   (testing "2D transpose"
     (let [im (matrix [[1 2] [3 4]])]
-      (is (equals [[1 3] [2 4]] (transpose im))))))
+      (is (equals [[1 3] [2 4]] (transpose im)))
+      (is (equals im (transpose (transpose im)))))))
 
 (defn test-identity [im]
   (let [I (identity-matrix im 3)]
-    (is (equals [1 2 3] (mul I [1 2 3])))))
+    (is (equals [1 2 3] (mul I [1 2 3])))
+    (is (equals I (transpose I)))))
 
 
 (defn test-diagonal [im]
   (let [I (diagonal-matrix im [1 2 3])]
-    (is (equals [1 4 9] (mul I [1 2 3])))))
+    (is (equals [1 4 9] (mul I [1 2 3])))
+    (is (equals I (transpose I)))))
 
 (defn test-row-column-matrices [im]
   (let [rm (row-matrix im [1 2 3])]
+    (is (= [1 3] (shape rm)))
     (is (equals [[1 2 3]] rm))
-    (is (row-matrix? rm)))
+    (is (row-matrix? rm))
+    (is (column-matrix? (transpose rm))))
   (let [cm (column-matrix im [1 2 3])]
+    (is (= [3 1] (shape cm)))
     (is (equals [[1] [2] [3]] cm))
-    (is (column-matrix? cm))))
+    (is (column-matrix? cm))
+    (is (row-matrix? (transpose cm)))))
 
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)
