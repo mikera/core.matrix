@@ -65,9 +65,9 @@
       ([m f]
         (map #(mp/element-map % f) m))
       ([m f a]
-        (map #(mp/element-map % f) m a))
+        (map #(mp/element-map % f %2) m a))
       ([m f a more]
-        (map #(mp/element-map % f) m a more)))
+        (map #(mp/element-map % f %2 %3) m a more)))
     (element-map!
       ([m f]
         (if (== 1 (mp/dimensionality m))

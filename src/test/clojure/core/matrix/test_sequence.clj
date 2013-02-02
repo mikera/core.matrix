@@ -13,3 +13,6 @@
 
 (deftest compliance-test
   (core.matrix.compliance-tester/compliance-test '(1)))
+
+(deftest sequence-ops
+  (is (equals (emul (range 10) (range 10)) '(0 1 4 9 16 25 36 49 64 81))))
