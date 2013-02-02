@@ -551,6 +551,16 @@
   ([f m a & more]
     (mp/element-map! m f a more)))
 
+(defn index-seq [m]
+  "Returns a sequence of all possible index vectors in a matrix, in row-major order"
+  (let [sh (shape m)
+        gen (fn gen [prefix rem] 
+              (if rem 
+                (let [nrem (next rem)]
+                  (mapcat #(gen (conj prefix %) nrem) (range (first rem))))
+                (list prefix)))]
+    (gen [] (seq sh)))) 
+
 ;; ============================================================
 ;; Fallback implementations
 ;; - default behaviour for java.lang.Number scalars
