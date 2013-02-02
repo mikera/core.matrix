@@ -153,8 +153,13 @@
     (is (equals m (matrix im (vec (slices m)))))
     (is (= (slices m) (eseq m)))))
 
+(defn test-element-add [im]
+  (is (equals [2.0 4.0] (emap + (matrix im [1 3]) (coerce im [1 1]))))
+  (is (equals [2.0 4.0] (emap inc (matrix im [1 3])))))
+
 (defn vector-tests-1d [im]
-  (test-vector-slices im))
+  (test-vector-slices im)
+  (test-element-add im))
 
 ;; ========================================
 ;; 2D matrix tests
