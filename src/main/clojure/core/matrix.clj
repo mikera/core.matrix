@@ -119,11 +119,20 @@
 
 (defn diagonal-matrix
   "Constructs a 2D diagonal matrix with the given values on the main diagonal.
-   Diagonal values may be a vector or any Clojure sequence of values."
+   diagonal-values may be a vector or any Clojure sequence of values."
   ([diagonal-values]
     (mp/diagonal-matrix (current-implementation-object) diagonal-values))
   ([implementation diagonal-values]
     (mp/diagonal-matrix (imp/get-canonical-object implementation) diagonal-values)))
+
+(defn compute-matrix
+  "Creates a matrix with the specified shape, and each element specified by (f i j k...)
+   Where i, j, k... are the index positions of each element in the matrix"
+  ([shape f]
+    (compute-matrix (current-implementation-object) shape f))
+  ([implementation shape f]
+    (let [m (imp/get-canonical-object implementation)]
+      (TODO)))) 
 
 
 ;; ======================================
@@ -551,15 +560,19 @@
   ([f m a & more]
     (mp/element-map! m f a more)))
 
-(defn index-seq [m]
-  "Returns a sequence of all possible index vectors in a matrix, in row-major order"
-  (let [sh (shape m)
-        gen (fn gen [prefix rem] 
+(defn index-seq-for-shape [sh]
+  "Returns a sequence of all possible index vectors for a given shape, in row-major order"
+  (let [gen (fn gen [prefix rem] 
               (if rem 
                 (let [nrem (next rem)]
                   (mapcat #(gen (conj prefix %) nrem) (range (first rem))))
                 (list prefix)))]
     (gen [] (seq sh)))) 
+
+(defn index-seq [m]
+  "Returns a sequence of all possible index vectors in a matrix, in row-major order"
+  (index-seq-for-shape (shape m))) 
+
 
 ;; ============================================================
 ;; Fallback implementations
