@@ -16,6 +16,14 @@
       (is (= [2.0 4.0] (seq (coerce da [2 4]))))
       (is (= (class da) (class (coerce da [2 4])))))))
 
+(deftest test-slices
+  (testing "slices"
+    (let [m [(double-array [1 2]) (double-array [3 4])]]
+      (is (equals [1 2] (get-row m 0)))
+      (is (equals [2 4] (get-column m 1)))
+      (is (= [1.0 2.0] (slices (get-row m 0))))
+      (is (= [2.0 4.0] (slices (get-column m 1)))))))
+
 (deftest test-functional-ops
   (testing "mapping"
     (let [da (matrix :double-array [1 2])]
