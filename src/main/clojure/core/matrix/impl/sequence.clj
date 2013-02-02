@@ -57,6 +57,32 @@
         (count m)
         (mp/dimension-count (first m) (dec x)))))
 
+(extend-protocol mp/PFunctionalOperations
+  clojure.lang.ISeq
+    (element-seq [m]
+      (mapcat mp/element-seq m))
+    (element-map
+      ([m f]
+        (map #(mp/element-map % f) m))
+      ([m f a]
+        (map #(mp/element-map % f) m a))
+      ([m f a more]
+        (map #(mp/element-map % f) m a more)))
+    (element-map!
+      ([m f]
+        (if (== 1 (mp/dimensionality m))
+          (error "Sequence arrays are not mutable!")
+          (doseq [s m] (mp/element-map! s f))))
+      ([m f a]
+        (error "Sequence arrays are not mutable!"))
+      ([m f a more]
+        (error "Sequence arrays are not mutable!")))
+    (element-reduce
+      ([m f]
+        (reduce f (mp/element-seq m)))
+      ([m f init]
+        (reduce f init (mp/element-seq m)))))
+
 ;; =====================================
 ;; Register implementation
 
