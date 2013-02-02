@@ -290,7 +290,7 @@
   ([m v]
     (if (mp/is-scalar? m)
       (error "Can't set a scalar value!")
-      (error "Can't mset! on a non-scalar value without indexes")))
+      (error "Can't mset! without indexes on array of dimensionality: " (dimensionality m))))
   ([m x v]
     (mp/set-1d m x v))
   ([m x y v]
