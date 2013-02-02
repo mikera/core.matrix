@@ -144,9 +144,15 @@
       (is (== 6 (sum m)))
       (test-scale m))))
 
+;; ========================================
+;; 1D vector tests
+
+
+(defn vector-tests-1d [im]
+  nil)
 
 ;; ========================================
-;; 2D tests
+;; 2D matrix tests
 
 (defn test-transpose [im]
   (testing "2D transpose"
@@ -193,6 +199,8 @@
       (test-coerce-via-vectors im)
       (when (supports-dimensionality? im 2)
         (matrix-tests-2d im))
+      (when (supports-dimensionality? im 1)
+        (vector-tests-1d im))
       (test-array-interop im)
       (test-numeric-functions im)
       (test-dimensionality im)
