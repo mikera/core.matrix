@@ -51,8 +51,13 @@
     (is-scalar? [m]
       false)
     (get-shape [m]
-      (cons (count m) (if (seq m) nil (mp/get-shape (first m)))))
+      (cons (count m) (if (seq m) (mp/get-shape (first m)) nil)))
     (dimension-count [m x]
       (if (== x 0)
         (count m)
-        (mp/dimension-count (m 0) (dec x)))))
+        (mp/dimension-count (first m) (dec x)))))
+
+;; =====================================
+;; Register implementation
+
+(imp/register-implementation '())

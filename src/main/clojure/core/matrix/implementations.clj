@@ -13,9 +13,10 @@
   {:vectorz 'mikera.vectorz.matrix-api
    :ndarray 'core.matrix.impl.ndarray
    :persistent-vector 'core.matrix.impl.persistent-vector
+   :sequence 'core.matrix.impl.sequence
    :double-array 'core.matrix.impl.double-array
    :jblas :TODO
-   :clatrix :TODO
+   :clatrix 'clatrix.core
    :parallel-colt :TODO
    :ejml :TODO
    :ujmp :TODO

@@ -723,6 +723,8 @@
         (matrix? a) (mp/pre-scale a m)
         :else (error "Don't know how to multiply number with: " (class a))))
   java.lang.Object
+    (matrix-multiply [m a]
+      (coerce m (mp/matrix-multiply (coerce [] m) (coerce [] a))))
     (element-multiply [m a]
       (emap clojure.core/* m a)))
 
