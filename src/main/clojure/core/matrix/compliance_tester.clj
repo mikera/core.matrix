@@ -82,13 +82,13 @@
     (is (== (ecount m) (reduce * 1 (shape m))))))
 
 (defn test-array-assumptions [m]
-  (test-double-array-ops m))
+  (test-double-array-ops m)
+  (test-dimensionality-assumptions m))
 
 (defn test-assumptions-for-all-sizes [im]
   (doseq [vm (create-supported-matrices im)]
     (let [m (matrix im vm)]
-      (test-array-assumptions m)
-      (test-dimensionality-assumptions m))))
+      (test-array-assumptions m))))
 
 ;; ==============================================
 ;; misc tests
