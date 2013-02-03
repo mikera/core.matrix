@@ -838,9 +838,7 @@
     (as-double-array [m] nil)
   java.lang.Object
     (to-double-array [m]
-      (let [c (ecount m)
-            arr (double-array c)]
-        (mp/assign-array! m arr)))
+      (double-array (eseq m)))
     (as-double-array [m] nil)) 
 
 ;; functional operations

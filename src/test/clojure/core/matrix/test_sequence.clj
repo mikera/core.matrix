@@ -5,7 +5,6 @@
   (:require [core.matrix.compliance-tester])
   (:require core.matrix.impl.sequence))
 
-
 (deftest test-sequence-shape
   (is (= [] (shape 1)))
   (is (= [2] (shape '(1 2))))

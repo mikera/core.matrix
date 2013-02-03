@@ -66,12 +66,14 @@
 ;; should work on any array with Number elements
 
 (defn test-double-array-ops [m]
-  (let [aa (to-double-array m true)  ;; internal array or nil
+  (let [aa (to-double-array m true)  ;; a new copy
         ta (to-double-array m)       ;; an array, may or may not be a new copy
-        ca (to-double-array m false) ;; a new copy
+        ca (to-double-array m false) ;; not a copy, i.e. internal array or nil
         c (ecount m)]
-    (is (= c (count aa) (count ta) (count ca)))
-    (is (= (seq ta) (seq ca)))
+    (is (= c (count aa) (count ta)))
+    (when ca
+      (is (= c (count ca)))
+      (is (= (seq ta) (seq ca))))
     (is (= (seq ta) (map double (eseq m))))))
 
 (defn test-dimensionality-assumptions [m]

@@ -5,6 +5,9 @@
 ;;
 ;; duplicated here to avoid an extra dependency
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
 (defmacro error
   "Throws an error with the provided message(s)"
   ([& vals]
@@ -30,4 +33,4 @@
 (defn copy-double-array 
   "Returns a copy of a double array"
   ([^doubles arr]
-    (.clone arr))) 
+    (java.util.Arrays/copyOf arr (int (alength arr))))) 
