@@ -13,7 +13,7 @@
 ;; Note that tests need to be written in a very generic way
 ;; - they can't assume anything other than documented API behaviour!
 ;; 
-;; e.g. can't assume that scalar values are always Doubles etc.
+;; e.g. we can't assume that scalar values are always Doubles etc.
 
 ;; ===========================================
 ;; Utility functions
@@ -83,9 +83,13 @@
   (testing "element count"
     (is (== (ecount m) (reduce * 1 (shape m))))))
 
+(defn test-vector-round-trip [m]
+  (is (equals m (coerce m (coerce [] m)))))
+
 (defn test-array-assumptions [m]
   (test-double-array-ops m)
-  (test-dimensionality-assumptions m))
+  (test-dimensionality-assumptions m)
+  (test-vector-round-trip m))
 
 (defn test-assumptions-for-all-sizes [im]
   (doseq [vm (create-supported-matrices im)]
