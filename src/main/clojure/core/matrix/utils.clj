@@ -26,3 +26,8 @@
              ~@code
              (recur (next vals#) (inc ~index-sym)))
        nil))))
+
+(defn copy-double-array 
+  "Returns a copy of a double array"
+  ([^doubles arr]
+    (.clone arr))) 

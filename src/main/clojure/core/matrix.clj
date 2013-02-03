@@ -280,6 +280,23 @@
       (if r (reverse r) nil)))) 
 
 ;; =======================================
+;; Conversions
+
+(defn to-double-array 
+   "Returns a double array containing the values of m in row-major order. 
+    If want-copy is true, will guarantee a new double array (defensive copy).
+    If want-copy is false, will return the internal array used by m, or nil if not supported
+    by the implementation.
+    If want copy is not sepcified, will return either a copy or the internal array"
+   ([m]
+     (mp/to-double-array m))
+   ([m want-copy?]
+     (let [arr (mp/as-double-array m)]
+       (if want-copy?
+         (if arr (copy-double-array arr) (mp/to-double-array m))
+         arr))))
+
+;; =======================================
 ;; matrix access
 
 (defn mget
