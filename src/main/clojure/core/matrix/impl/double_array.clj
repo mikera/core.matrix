@@ -43,6 +43,11 @@
     (supports-dimensionality? [m dims]
       (<= dims 1)))
 
+(extend-protocol mp/PDoubleArrayOutput
+  (Class/forName "[D")
+    (to-double-array [m] (copy-double-array m))
+    (as-double-array [m] m)) 
+
 (extend-protocol mp/PIndexedAccess
   (Class/forName "[D")
     (get-1d [m x]
