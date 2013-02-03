@@ -61,6 +61,36 @@
   (test-implementation-key im))
 
 ;; ==============================================
+;; Test general array assumprions
+;;
+;; should work on any array with Number elements
+
+(defn test-double-array-ops [m]
+  (let [aa (to-double-array m true)  ;; internal array or nil
+        ta (to-double-array m)       ;; an array, may or may not be a new copy
+        ca (to-double-array m false) ;; a new copy
+        c (ecount m)]
+    (is (= c (count aa) (count ta) (count ca)))
+    (is (= (seq ta) (seq ca)))
+    (is (= (seq ta) (map double (eseq m))))))
+
+(defn test-dimensionality-assumptions [m]
+  (testing "shape"
+    (is (>= (count (shape m)) 0))
+    (is (= (seq (shape m)) (for [i (range (dimensionality m))] (dimension-count m i)))))
+  (testing "element count"
+    (is (== (ecount m) (reduce * 1 (shape m))))))
+
+(defn test-array-assumptions [m]
+  (test-double-array-ops m))
+
+(defn test-assumptions-for-all-sizes [im]
+  (doseq [vm (create-supported-matrices im)]
+    (let [m (matrix im vm)]
+      (test-array-assumptions m)
+      (test-dimensionality-assumptions m))))
+
+;; ==============================================
 ;; misc tests
 
 ;; TODO: figure out what to do with implementations that only support specific types?
@@ -92,15 +122,10 @@
       (let [m (matrix [[1 2] [3 4]])]
         (is (equals [[1 2] [3 4]] (to-nested-vectors m)))))))
 
-(defn test-dimensionality [m]
-  (testing "shape"
-    (is (>= (count (shape m)) 0))
-    (is (= (seq (shape m)) (for [i (range (dimensionality m))] (dimension-count m i)))))
-  (testing "element count"
-    (is (== (ecount m) (reduce * 1 (shape m)))))
+(defn test-dimensionality [im]
   (testing "supported matrix size tests"
-    (doseq [vm (create-supported-matrices m)]
-      (let [m (coerce m vm)]
+    (doseq [vm (create-supported-matrices im)]
+      (let [m (coerce im vm)]
         (is (= (seq (shape m)) (seq (shape vm))))
         (is (= (ecount m) (ecount vm)))
         (is (= (eseq m) (eseq (emap identity m))))))))
@@ -214,6 +239,7 @@
         ik (imp/get-implementation-key im)]
     (binding [*matrix-implementation* ik]
       (test-implementation im)
+      (test-assumptions-for-all-sizes im)
       (test-coerce-via-vectors im)
       (when (supports-dimensionality? im 2)
         (matrix-tests-2d im))
