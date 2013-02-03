@@ -125,6 +125,15 @@
     [m arr]
     [m arr start length]))
 
+(defprotocol PDoubleArrayOutput
+  "Protocol for getting data as a double array"
+  (to-double-array [m]
+    "Returns a double array containing the values of m in row-major order. May or may not be
+     the internal double array used by m, depending on the implementation.")
+  (as-double-array [m]
+    "Returns the internal double array used by m. If no such array is used, returns nil.
+     Provides an opportunity to avoid copying the internal array.")) 
+
 (defprotocol PMatrixEquality
   "Protocol for matrix equality operations"
   (matrix-equals [a b]))
