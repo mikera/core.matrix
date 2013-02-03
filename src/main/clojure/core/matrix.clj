@@ -832,6 +832,17 @@
     (matrix-equals [a b]
       (not (some false? (map == (mp/element-seq a) (mp/element-seq b))))))
 
+(extend-protocol mp/PDoubleArrayOutput
+  java.lang.Number
+    (to-double-array [m] (aset (double-array 1) 0 (double m)))
+    (as-double-array [m] nil)
+  java.lang.Object
+    (to-double-array [m]
+      (let [c (ecount m)
+            arr (double-array c)]
+        (mp/assign-array! m arr)))
+    (as-double-array [m] nil)) 
+
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
   java.lang.Number
