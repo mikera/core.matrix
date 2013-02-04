@@ -922,6 +922,7 @@
 
 (extend-protocol mp/PSliceView
   java.lang.Object
+    ;; default implementation uses a lightweight wrapper object
     (get-major-slice-view [m i] (core.matrix.impl.wrappers/wrap-slice m i)))
 
 (extend-protocol mp/PSliceSeq
