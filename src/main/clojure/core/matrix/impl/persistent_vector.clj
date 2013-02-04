@@ -43,15 +43,15 @@
       (apply mapv (partial mapmatrix f) m1 m2 more))))
 
 (defn persistent-vector-coerce [x]
-  "Coerces to persistent vectors"
+  "Coerces to nested persistent vectors"
   (cond
-    (clojure.core/vector? x) x
-    (number? x) x
-    (sequential? x) (coerce-nested x)
     (mp/is-scalar? x) x
+    (clojure.core/vector? x) (mapv mp/convert-to-nested-vectors x) 
+    (> (mp/dimensionality x) 0) (mp/convert-to-nested-vectors x) 
     (instance? java.util.List x) (coerce-nested x)
     (instance? java.lang.Iterable x) (coerce-nested x)
-    (.isArray (class x)) (vec (seq x))
+    (sequential? x) (coerce-nested x)
+    (.isArray (class x)) (vec (seq x)) 
     :default (error "Can't coerce to vector: " (class x))))
 
 (defn vector-dimensionality ^long [m]
@@ -137,6 +137,14 @@
           (mp/get-major-slice m i)
           (let [sd (dec dimension)]
             (mapv #(mp/get-slice % sd i) m))))))
+
+(extend-protocol mp/PSliceView
+  clojure.lang.IPersistentVector
+    (get-major-slice-view [m i] (m i)))
+
+(extend-protocol mp/PSliceSeq
+  clojure.lang.IPersistentVector
+    (get-major-slice-seq [m] (seq m)))
 
 (extend-protocol mp/PMatrixAdd
   clojure.lang.IPersistentVector
@@ -237,6 +245,12 @@
       (if (== x 0)
         (.length m)
         (mp/dimension-count (m 0) (dec x)))))
+
+;; we need to implement this for all persistent vectors since we need to check all nested components
+(extend-protocol mp/PConversion
+  clojure.lang.IPersistentVector
+    (convert-to-nested-vectors [m]
+      (mapv mp/convert-to-nested-vectors m)))
 
 (extend-protocol mp/PFunctionalOperations
   clojure.lang.IPersistentVector

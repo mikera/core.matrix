@@ -40,6 +40,15 @@
           (mp/get-nd m next-indexes))
         (nth m (int (first indexes))))))
 
+
+(extend-protocol mp/PSliceView
+  clojure.lang.ISeq
+    (get-major-slice-view [m i] (nth m i)))
+
+(extend-protocol mp/PSliceSeq
+  clojure.lang.ISeq
+    (get-major-slice-seq [m] (seq m)))
+
 (extend-protocol mp/PDimensionInfo
   clojure.lang.ISeq
     (dimensionality [m]

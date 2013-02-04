@@ -72,6 +72,35 @@
         (error "Can't set on double array with dimensionality: " (count indexes))))
     (is-mutable? [m] true))
 
+(extend-protocol mp/PMatrixScaling
+  (Class/forName "[D")
+    (scale [m a]
+      (let [^doubles m m 
+            len (alength m)
+            arr (double-array len) 
+            a (double a)]
+        (dotimes [i len] (aset arr i (* a (aget m i))))
+        arr))
+    (pre-scale [m a]
+      (let [^doubles m m 
+            len (alength m)
+            arr (double-array len) 
+            a (double a)]
+        (dotimes [i len] (aset arr i (* a (aget m i))))
+        arr)))
+
+
+(extend-protocol mp/PMatrixMutableScaling
+  (Class/forName "[D")
+    (scale! [m a]
+      (let [^doubles m m 
+            a (double a)]
+        (dotimes [i (alength m)] (aset m i (* a (aget m i))))))
+    (pre-scale! [m a]
+      (let [^doubles m m 
+            a (double a)]
+        (dotimes [i (alength m)] (aset m i (* a (aget m i)))))))
+
 
 (extend-protocol mp/PConversion
   (Class/forName "[D")

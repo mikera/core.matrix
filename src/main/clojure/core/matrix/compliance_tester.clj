@@ -232,6 +232,13 @@
   (test-identity im))
 
 ;; ======================================
+;; Instance test function
+;;
+;; Implementations can call to test specific instances of interest
+(defn instance-test [m]
+  (test-array-assumptions [m]))
+
+;; ======================================
 ;; Main compliance test method
 ;; 
 ;; implementations should call this with either a valid instance or their registered implementation key

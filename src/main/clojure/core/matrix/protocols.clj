@@ -21,7 +21,8 @@
 ;; Otherwise things will fail.
 
 (defprotocol PImplementation
-  "Protocol for general implementation functionality"
+  "Protocol for general implementation functionality. Required to support implementation metadata and
+   matrix construction."
   (implementation-key [m]
     "Returns a keyword representing this implementation.
      Each implementation should have one unique key.")
@@ -85,6 +86,7 @@
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
 
+
 (defprotocol PTypeInfo
   "Protocol for querying the type of matrix elements. If not provided, the default implementation will
    examine the first element in the matrix to determone the type."
@@ -117,6 +119,30 @@
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))
+
+
+(defprotocol PMatrixSlices
+  "Protocol to support getting slices of an array.
+   Functions should return either the actual components or a mutable view if possible,
+   i.e. making a full copy should be avoided."
+  (get-row [m i])
+  (get-column [m i])
+  (get-major-slice [m i])
+  (get-slice [m dimension i]))
+
+(defprotocol PSliceView
+  "Protocol for quick view access into a row-major slices of an array. If implemented, must return either a view
+   or an immutable sub-matrix. The default implementation creates a wrapper view."
+  (get-major-slice-view [m i] "Gets a view of a major array slice"))
+
+(defprotocol PSliceSeq
+  "Returns the row-major slices of the matrix as a sequence."
+  (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
+
+(defprotocol PMatrixSubComponents
+  "Protocol for picking out subsections of a matrix. Should return a mutable view if possible." 
+  (main-diagonal [m]))
+
 
 (defprotocol PAssignment
   "Protocol for assigning values to mutable matrices."
@@ -200,18 +226,6 @@
   ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)
   ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
 
-(defprotocol PMatrixSlices
-  "Protocol to support getting slices of an array.
-   Functions should return either the actual components or a mutable view if possible,
-   i.e. making a full copy should be avoided."
-  (get-row [m i])
-  (get-column [m i])
-  (get-major-slice [m i])
-  (get-slice [m dimension i]))
-
-(defprotocol PMatrixSubComponents
-  "Protocol for picking out subsections of a matrix" 
-  (main-diagonal [m]))
 
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."

@@ -1,6 +1,6 @@
 (ns core.matrix
   (:use core.matrix.utils)
-  (:require [core.matrix.impl double-array ndarray persistent-vector])
+  (:require [core.matrix.impl double-array ndarray persistent-vector wrappers])
   (:require [core.matrix.impl sequence]) ;; TODO: figure out if we want this?
   (:require [core.matrix.multimethods :as mm])
   (:require [core.matrix.protocols :as mp])
@@ -340,7 +340,7 @@
 
 (defn coerce
   "Coerces param to a format usable by a specific matrix implementation.
-   If param is already in a format deemed useable by the implementation, returns it unchanged."
+   If param is already in a format deemed usable by the implementation, returns it unchanged."
   ([m param]
     (or
       (mp/coerce-param m param)
@@ -378,10 +378,7 @@
   "Gets a lazy sequence of slices of a matrix. If dimension is supplied, slices along a given dimension,
    otherwise slices along the first dimension."
   ([m]
-    (let [sc (try (mp/dimension-count m 0) (catch Throwable t (error "No dimensionality for getting slices: " (class m))))]
-      (if (== 1 (dimensionality m))
-        (for [i (range sc)] (mp/get-1d m i))
-        (map #(mp/get-major-slice m %) (range sc)))))
+    (mp/get-major-slice-seq m))
   ([m dimension]
     (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
 
@@ -448,6 +445,14 @@
     (mp/element-multiply a b))
   ([a b & more]
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
+
+(defn emul!
+  "Performs in-place element-wise matrix multiplication."
+  ([a] a)
+  ([a b]
+    (TODO))
+  ([a b & more]
+    (TODO))) 
 
 (defn transform
   "Transforms a given vector, returning a new vector"
@@ -914,6 +919,18 @@
       (coerce m ((coerce [] m) i)))
     (get-slice [m dimension i]
       (coerce m (mp/get-slice (coerce [] m) dimension i)))) 
+
+(extend-protocol mp/PSliceView
+  java.lang.Object
+    (get-major-slice-view [m i] (core.matrix.impl.wrappers/wrap-slice m i)))
+
+(extend-protocol mp/PSliceSeq
+  java.lang.Object
+    (get-major-slice-seq [m] 
+      (let [sc (try (mp/dimension-count m 0) (catch Throwable t (error "No dimensionality for getting slices: " (class m))))]
+        (if (== 1 (dimensionality m))
+          (for [i (range sc)] (mp/get-1d m i))
+          (map #(mp/get-major-slice m %) (range sc))))))
 
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
