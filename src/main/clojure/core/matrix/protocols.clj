@@ -152,8 +152,11 @@
 
 (defprotocol PMatrixScaling
   "Protocol to support matrix scaling by scalar values"
-  (scale [m a])
-  (pre-scale [m a]))
+  (scale [m a]
+    "Multiplies a matrix by the scalar value a")
+  (pre-scale [m a]
+    "Pre-multiplies the matrix with the scalar. This is the same as scale for matrices 
+     where multiplication is commutative, but may be different for special kinds of scalars."))
 
 (defprotocol PMatrixMutableScaling
   "Protocol to support matrix scaling by scalar values"
