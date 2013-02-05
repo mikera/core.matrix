@@ -414,6 +414,12 @@
     ;; TODO: implement with a proper protocol
     (assign! m (transpose m))))
 
+(defn reshape 
+  "Changes the shape of a matrix to the specified new shape. shape can be any sequence of dimension sizes.
+   Preserves the row-major order of matrix elements."
+  ([m shape]
+    (mp/reshape m shape))) 
+
 ;; ======================================
 ;; matrix comparisons
 

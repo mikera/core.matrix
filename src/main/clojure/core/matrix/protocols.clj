@@ -120,6 +120,11 @@
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))
 
+(defprotocol PReshaping
+  "Protocol to reshape matrices. Must support any new shape allowed by the implementation.
+   Must preserve row-major ordering of matrix elements."
+  (reshape [m shape]))
+
 
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of an array.
