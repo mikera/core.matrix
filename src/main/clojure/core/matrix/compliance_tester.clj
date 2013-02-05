@@ -83,11 +83,20 @@
   (testing "element count"
     (is (== (ecount m) (reduce * 1 (shape m))))))
 
+(defn test-reshape [m]
+  (let [c (ecount m)]
+    (when (supports-dimensionality? m 1) 
+      (= (eseq m) (eseq (reshape m [c]))))
+    (when (supports-dimensionality? m 2)
+      (= (eseq m) (eseq (reshape m [1 c])))
+      (= (eseq m) (eseq (reshape m [c 1]))))))
+
 (defn test-vector-round-trip [m]
   (is (equals m (coerce m (coerce [] m)))))
 
 (defn test-array-assumptions [m]
   (test-double-array-ops m)
+  (test-reshape m)
   (test-dimensionality-assumptions m)
   (test-vector-round-trip m))
 

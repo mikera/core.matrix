@@ -605,7 +605,7 @@
 
 
 ;; ============================================================
-;; Fallback implementations
+;; Default implementations
 ;; - default behaviour for java.lang.Number scalars
 ;; - for stuff we don't recognise (java.lang.Object) we should try to
 ;;   implement in terms of simpler operations, on assumption that
@@ -959,6 +959,20 @@
           (mapv mp/convert-to-nested-vectors m)
         :default
           (error "Can't work out how to convert to nested vectors: " (class m) " = " m))))
+
+(extend-protocol mp/PReshaping
+  java.lang.Number
+    (reshape [m shape]
+      (compute-matrix shape (constantly m)))
+  java.lang.Object
+    (reshape [m shape]
+      (let [partition-shape (fn partition-shape [es shape]
+                              (if-let [s (seq shape)]
+                                (let [ns (next shape)
+                                      plen (reduce * 1 (next s))]
+                                  (map #(partition-shape % ns) (partition plen es))
+                                (first es))))]
+        (array m (partition-shape (mp/element-seq m) shape)))))
 
 (extend-protocol mp/PCoercion
   java.lang.Object
