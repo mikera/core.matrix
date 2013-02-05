@@ -47,7 +47,7 @@
 
 (extend-protocol mp/PSliceSeq
   clojure.lang.ISeq
-    (get-major-slice-seq [m] (seq m)))
+    (get-major-slice-seq [m] m))
 
 (extend-protocol mp/PDimensionInfo
   clojure.lang.ISeq

@@ -61,8 +61,6 @@
     (clone [m] (wrap-slice (mp/clone array) slice)))
   
 
-
-
 (defn wrap-slice [m slice]
   (SliceWrapper. m (long slice)))
 
