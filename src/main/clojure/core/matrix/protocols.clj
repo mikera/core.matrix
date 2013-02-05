@@ -132,15 +132,18 @@
 
 (defprotocol PSliceView
   "Protocol for quick view access into a row-major slices of an array. If implemented, must return either a view
-   or an immutable sub-matrix. The default implementation creates a wrapper view."
+   or an immutable sub-matrix: it must *not* return copied data. 
+   The default implementation creates a wrapper view."
   (get-major-slice-view [m i] "Gets a view of a major array slice"))
 
 (defprotocol PSliceSeq
-  "Returns the row-major slices of the matrix as a sequence."
+  "Returns the row-major slices of the matrix as a sequence. Ideally these should be views or immutable sub-arrays.
+   The default implementation uses get-major-slice-view to obtain the slices."
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
 
 (defprotocol PMatrixSubComponents
-  "Protocol for picking out subsections of a matrix. Should return a mutable view if possible." 
+  "Protocol for picking out subsections of a matrix. Should return a mutable view if possible.
+   The default implementation creates a new vector containing the diagonal values." 
   (main-diagonal [m]))
 
 
@@ -231,11 +234,21 @@
   "Protocol to allow functional-style operations on matrix elements."
   ;; note that protocols don't like variadic args, so we convert to regular args
   ;; also the matrix type must be first for protocol dispatch, so we move it before f
-  (element-seq [m])
-  (element-map [m f]
-               [m f a]
-               [m f a more])
-  (element-map! [m f]
-                [m f a]
-                [m f a more])
-  (element-reduce [m f] [m f init]))
+  (element-seq 
+    [m]
+    "Must return a sequence containing all elements of the matrix, in row-major order.")
+  (element-map 
+    [m f]        
+    [m f a]              
+    [m f a more]
+    "Maps f over all elements of m (and optionally other matrices), returning a new matrix")
+  (element-map! 
+    [m f]           
+    [m f a]
+    [m f a more]
+    "Maps f over all elements of m (and optionally other matrices), mutating the elements of m in place.
+     Must throw an exception if m is not mutable.")
+  (element-reduce 
+    [m f] 
+    [m f init]
+    "Reduces over all elements of m."))
