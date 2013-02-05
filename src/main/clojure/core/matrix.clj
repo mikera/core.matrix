@@ -968,11 +968,13 @@
     (reshape [m shape]
       (let [partition-shape (fn partition-shape [es shape]
                               (if-let [s (seq shape)]
-                                (let [ns (next shape)
-                                      plen (reduce * 1 (next s))]
-                                  (map #(partition-shape % ns) (partition plen es))
-                                (first es))))]
-        (array m (partition-shape (mp/element-seq m) shape)))))
+                                (let [ns (next s)
+                                      plen (reduce * 1 ns)]
+                                  (map #(partition-shape % ns) (partition plen es)))
+                                (first es)))]
+        (if-let [shape (seq shape)]
+          (array m (take (first shape) (partition-shape (mp/element-seq m) shape)))
+          (first (mp/element-seq m))))))
 
 (extend-protocol mp/PCoercion
   java.lang.Object

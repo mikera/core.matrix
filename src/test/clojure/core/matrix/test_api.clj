@@ -37,8 +37,13 @@
   (testing "slices clojure vector"
     (is (= [1 2 3] (slices [1 2 3])))))
 
+(deftest test-element-seq
+  (is (= [1] (eseq 1)))
+  (is (= [1] (eseq [[1]]))))
+
 (deftest test-reshape
-  (is (equals [1 2 3 4] (reshape [[1 2] [3 4]] [4])))
+  (is (equals 1 (reshape [1 2 3] [])))
+  (is (equals [1 2 3 4] (reshape [[1.0 2.0] [3.0 4.0]] [4])))
   (is (equals [[1 2] [3 4]] (reshape [1 2 3 4] [2 2])))) 
 
 (deftest test-index-seq
