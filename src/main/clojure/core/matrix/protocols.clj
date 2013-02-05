@@ -149,10 +149,13 @@
 
 (defprotocol PAssignment
   "Protocol for assigning values to mutable matrices."
-  (assign! [m source] "Sets all the values in a matrix from a matrix source")
+  (assign! 
+    [m source] 
+    "Sets all the values in a matrix from a matrix source")
   (assign-array!
     [m arr]
-    [m arr start length]))
+    [m arr start length]
+    "Sets all the values in a matrix for an array source."))
 
 (defprotocol PDoubleArrayOutput
   "Protocol for getting data as a double array"
@@ -165,7 +168,10 @@
 
 (defprotocol PMatrixEquality
   "Protocol for matrix equality operations"
-  (matrix-equals [a b]))
+  (matrix-equals [a b]
+     "Return true if a equals b, i.e. if all elements are equal.
+      Must use numerical value comparison on numbers (==) to account for matrices that may hold a mix of
+      numercial types (e.g. java.lang.Long and java.lang.Double)"))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
@@ -199,10 +205,14 @@
 
 (defprotocol PVectorOps
   "Protocol to support common vector operations."
-  (vector-dot [a b])
-  (length [a])
-  (length-squared [a])
-  (normalise [a]))
+  (vector-dot [a b]
+     "Dot product of two vectors. Should return a scalar value.")
+  (length [a]
+     "Euclidian length of a vector.")
+  (length-squared [a]
+     "Squared Euclidean length of a vector.")
+  (normalise [a]
+     "Returns a new vector, normalised to length 1.0"))
 
 (defprotocol PMutableVectorOps
   "Protocol for mutable versions of commn vector operations" 
@@ -210,11 +220,21 @@
 
 (defprotocol PMatrixOps
   "Protocol to support common matrix operations"
-  (trace [m])
-  (determinant [m])
-  (inverse [m])
-  (negate [m])
-  (transpose [m]))
+  (trace [m]
+    "Returns the trace of a matrix (sum of elements on main diagonal.
+     Must throw an error if the matrix is not square (i.e. all dimensions sizes are equal)")
+  (determinant [m]
+    "Returns the determinant of a matrix.")
+  (inverse [m]
+    "Returns the invese of a matrix. Should throw an exception if m is not invertible.")
+  (negate [m]
+    "Returns a new matrix with all elements negated.")
+  (transpose [m]
+    "Returns the transpose of a matrix. Equivalent to reversing the \"shape\".
+     Note that:
+     - The transpose of a scalar is the same scalar
+     - The transpose of a 1D vector is the same 1D vector
+     - The transpose of a 2D matrix swaps rows and columns"))
 
 (defprotocol PSummable
   "Protocol to support the summing of all elements in an array. 
