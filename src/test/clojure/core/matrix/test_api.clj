@@ -44,7 +44,13 @@
 (deftest test-reshape
   (is (equals 1 (reshape [1 2 3] [])))
   (is (equals [1 2 3 4] (reshape [[1.0 2.0] [3.0 4.0]] [4])))
-  (is (equals [[1 2] [3 4]] (reshape [1 2 3 4] [2 2])))) 
+  (is (equals [1 2] (reshape [[1.0 2.0] [3.0 4.0]] [2])))
+  (is (equals [] (reshape [[1.0 2.0] [3.0 4.0]] [0])))
+  (is (equals 1.0 (reshape [[1.0 2.0] [3.0 4.0]] [])))
+  (is (equals [[1 2] [3 4]] (reshape [1 2 3 4] [2 2])))
+  (testing "exceptions"
+    (is (thrown? Throwable (reshape 1 [2])))
+    (is (thrown? Throwable (reshape [1] [2 2]))))) 
 
 (deftest test-index-seq
   (is (= [] (index-seq [])))

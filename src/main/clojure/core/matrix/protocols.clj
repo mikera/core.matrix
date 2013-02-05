@@ -122,7 +122,9 @@
 
 (defprotocol PReshaping
   "Protocol to reshape matrices. Must support any new shape allowed by the implementation.
-   Must preserve row-major ordering of matrix elements."
+   Must preserve row-major ordering of matrix elements.
+   If the new shape has less elements than the original shape, it is OK to truncate the remaining elements.
+   If the new shape requires more elements than the original shape, should throw an exception."
   (reshape [m shape]))
 
 

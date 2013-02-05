@@ -973,7 +973,11 @@
                                   (map #(partition-shape % ns) (partition plen es)))
                                 (first es)))]
         (if-let [shape (seq shape)]
-          (array m (take (first shape) (partition-shape (mp/element-seq m) shape)))
+          (let [fs (long (first shape))
+                parts (partition-shape (mp/element-seq m) shape)] 
+            (when-not (<= fs (count parts))
+              (error "Reshape not possible: insufficient elements for shape: " shape " have: " (seq parts)))
+            (array m (take fs parts)))
           (first (mp/element-seq m))))))
 
 (extend-protocol mp/PCoercion
