@@ -120,6 +120,13 @@
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))
 
+(defprotocol PReshaping
+  "Protocol to reshape matrices. Must support any new shape allowed by the implementation.
+   Must preserve row-major ordering of matrix elements.
+   If the new shape has less elements than the original shape, it is OK to truncate the remaining elements.
+   If the new shape requires more elements than the original shape, should throw an exception."
+  (reshape [m shape]))
+
 
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of an array.
@@ -132,24 +139,30 @@
 
 (defprotocol PSliceView
   "Protocol for quick view access into a row-major slices of an array. If implemented, must return either a view
-   or an immutable sub-matrix. The default implementation creates a wrapper view."
+   or an immutable sub-matrix: it must *not* return copied data. 
+   The default implementation creates a wrapper view."
   (get-major-slice-view [m i] "Gets a view of a major array slice"))
 
 (defprotocol PSliceSeq
-  "Returns the row-major slices of the matrix as a sequence."
+  "Returns the row-major slices of the matrix as a sequence. Ideally these should be views or immutable sub-arrays.
+   The default implementation uses get-major-slice-view to obtain the slices."
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
 
 (defprotocol PMatrixSubComponents
-  "Protocol for picking out subsections of a matrix. Should return a mutable view if possible." 
+  "Protocol for picking out subsections of a matrix. Should return a mutable view if possible.
+   The default implementation creates a new vector containing the diagonal values." 
   (main-diagonal [m]))
 
 
 (defprotocol PAssignment
   "Protocol for assigning values to mutable matrices."
-  (assign! [m source] "Sets all the values in a matrix from a matrix source")
+  (assign! 
+    [m source] 
+    "Sets all the values in a matrix from a matrix source")
   (assign-array!
     [m arr]
-    [m arr start length]))
+    [m arr start length]
+    "Sets all the values in a matrix for an array source."))
 
 (defprotocol PDoubleArrayOutput
   "Protocol for getting data as a double array"
@@ -162,7 +175,10 @@
 
 (defprotocol PMatrixEquality
   "Protocol for matrix equality operations"
-  (matrix-equals [a b]))
+  (matrix-equals [a b]
+     "Return true if a equals b, i.e. if all elements are equal.
+      Must use numerical value comparison on numbers (==) to account for matrices that may hold a mix of
+      numercial types (e.g. java.lang.Long and java.lang.Double)"))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
@@ -196,10 +212,14 @@
 
 (defprotocol PVectorOps
   "Protocol to support common vector operations."
-  (vector-dot [a b])
-  (length [a])
-  (length-squared [a])
-  (normalise [a]))
+  (vector-dot [a b]
+     "Dot product of two vectors. Should return a scalar value.")
+  (length [a]
+     "Euclidian length of a vector.")
+  (length-squared [a]
+     "Squared Euclidean length of a vector.")
+  (normalise [a]
+     "Returns a new vector, normalised to length 1.0"))
 
 (defprotocol PMutableVectorOps
   "Protocol for mutable versions of commn vector operations" 
@@ -207,11 +227,21 @@
 
 (defprotocol PMatrixOps
   "Protocol to support common matrix operations"
-  (trace [m])
-  (determinant [m])
-  (inverse [m])
-  (negate [m])
-  (transpose [m]))
+  (trace [m]
+    "Returns the trace of a matrix (sum of elements on main diagonal.
+     Must throw an error if the matrix is not square (i.e. all dimensions sizes are equal)")
+  (determinant [m]
+    "Returns the determinant of a matrix.")
+  (inverse [m]
+    "Returns the invese of a matrix. Should throw an exception if m is not invertible.")
+  (negate [m]
+    "Returns a new matrix with all elements negated.")
+  (transpose [m]
+    "Returns the transpose of a matrix. Equivalent to reversing the \"shape\".
+     Note that:
+     - The transpose of a scalar is the same scalar
+     - The transpose of a 1D vector is the same 1D vector
+     - The transpose of a 2D matrix swaps rows and columns"))
 
 (defprotocol PSummable
   "Protocol to support the summing of all elements in an array. 
@@ -231,11 +261,21 @@
   "Protocol to allow functional-style operations on matrix elements."
   ;; note that protocols don't like variadic args, so we convert to regular args
   ;; also the matrix type must be first for protocol dispatch, so we move it before f
-  (element-seq [m])
-  (element-map [m f]
-               [m f a]
-               [m f a more])
-  (element-map! [m f]
-                [m f a]
-                [m f a more])
-  (element-reduce [m f] [m f init]))
+  (element-seq 
+    [m]
+    "Must return a sequence containing all elements of the matrix, in row-major order.")
+  (element-map 
+    [m f]        
+    [m f a]              
+    [m f a more]
+    "Maps f over all elements of m (and optionally other matrices), returning a new matrix")
+  (element-map! 
+    [m f]           
+    [m f a]
+    [m f a more]
+    "Maps f over all elements of m (and optionally other matrices), mutating the elements of m in place.
+     Must throw an exception if m is not mutable.")
+  (element-reduce 
+    [m f] 
+    [m f init]
+    "Reduces over all elements of m."))

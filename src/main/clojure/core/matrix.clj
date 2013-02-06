@@ -414,6 +414,12 @@
     ;; TODO: implement with a proper protocol
     (assign! m (transpose m))))
 
+(defn reshape 
+  "Changes the shape of a matrix to the specified new shape. shape can be any sequence of dimension sizes.
+   Preserves the row-major order of matrix elements."
+  ([m shape]
+    (mp/reshape m shape))) 
+
 ;; ======================================
 ;; matrix comparisons
 
@@ -599,7 +605,7 @@
 
 
 ;; ============================================================
-;; Fallback implementations
+;; Default implementations
 ;; - default behaviour for java.lang.Number scalars
 ;; - for stuff we don't recognise (java.lang.Object) we should try to
 ;;   implement in terms of simpler operations, on assumption that
@@ -922,6 +928,7 @@
 
 (extend-protocol mp/PSliceView
   java.lang.Object
+    ;; default implementation uses a lightweight wrapper object
     (get-major-slice-view [m i] (core.matrix.impl.wrappers/wrap-slice m i)))
 
 (extend-protocol mp/PSliceSeq
@@ -952,6 +959,26 @@
           (mapv mp/convert-to-nested-vectors m)
         :default
           (error "Can't work out how to convert to nested vectors: " (class m) " = " m))))
+
+(extend-protocol mp/PReshaping
+  java.lang.Number
+    (reshape [m shape]
+      (compute-matrix shape (constantly m)))
+  java.lang.Object
+    (reshape [m shape]
+      (let [partition-shape (fn partition-shape [es shape]
+                              (if-let [s (seq shape)]
+                                (let [ns (next s)
+                                      plen (reduce * 1 ns)]
+                                  (map #(partition-shape % ns) (partition plen es)))
+                                (first es)))]
+        (if-let [shape (seq shape)]
+          (let [fs (long (first shape))
+                parts (partition-shape (mp/element-seq m) shape)] 
+            (when-not (<= fs (count parts))
+              (error "Reshape not possible: insufficient elements for shape: " shape " have: " (seq parts)))
+            (array m (take fs parts)))
+          (first (mp/element-seq m))))))
 
 (extend-protocol mp/PCoercion
   java.lang.Object

@@ -47,20 +47,18 @@
 
 (extend-protocol mp/PSliceSeq
   clojure.lang.ISeq
-    (get-major-slice-seq [m] (seq m)))
+    (get-major-slice-seq [m] m))
 
 (extend-protocol mp/PDimensionInfo
   clojure.lang.ISeq
     (dimensionality [m]
-      (if (seq m)
-        (inc (mp/dimensionality (first m)))
-        1))
+      (inc (mp/dimensionality (first m))))
     (is-vector? [m]
-      (or (not (seq m)) (== 0 (mp/dimensionality (first m)))))
+      (== 0 (mp/dimensionality (first m))))
     (is-scalar? [m]
       false)
     (get-shape [m]
-      (cons (count m) (if (seq m) (mp/get-shape (first m)) nil)))
+      (cons (count m) (mp/get-shape (first m))))
     (dimension-count [m x]
       (if (== x 0)
         (count m)

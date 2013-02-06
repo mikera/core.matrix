@@ -53,7 +53,7 @@
     (get-1d [m x]
       (aget ^doubles m (int x)))
     (get-2d [m x y]
-      (error "Can't do 2D get from double array"))
+      (error "Can't do get-2D from 1D double array"))
     (get-nd [m indexes]
       (if (== 1 (count indexes)) 
         (aget ^doubles m (int (first indexes)))
@@ -71,6 +71,11 @@
         (aset ^doubles m (int (first indexes)) (double v))
         (error "Can't set on double array with dimensionality: " (count indexes))))
     (is-mutable? [m] true))
+
+
+(extend-protocol mp/PSliceSeq
+  (Class/forName "[D")
+    (get-major-slice-seq [m] (seq m)))
 
 (extend-protocol mp/PMatrixScaling
   (Class/forName "[D")
