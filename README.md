@@ -5,6 +5,11 @@ Experimental N-dimensional Array / Matrix / Vector API for Clojure.
 
 Like NumPy, but with more parentheses.
 
+```clojure
+(+ [[1 2] [3 4]] (* (identity-matrix 2) 3.0))
+=> [[4.0 2.0] [3.0 7.0]]
+```
+
 For code examples see:
 
  - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/core/matrix/examples.clj
