@@ -135,7 +135,7 @@
   ([implementation shape f]
     ;; TODO: switch to a protocol implementation
     (let [m (imp/get-canonical-object implementation)]
-      (coerce m )))) 
+      (TODO)))) 
 
 
 ;; ======================================
