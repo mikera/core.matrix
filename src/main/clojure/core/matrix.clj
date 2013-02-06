@@ -133,8 +133,9 @@
   ([shape f]
     (compute-matrix (current-implementation-object) shape f))
   ([implementation shape f]
+    ;; TODO: switch to a protocol implementation
     (let [m (imp/get-canonical-object implementation)]
-      (TODO)))) 
+      (coerce m )))) 
 
 
 ;; ======================================
