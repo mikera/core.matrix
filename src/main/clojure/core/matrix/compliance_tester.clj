@@ -96,7 +96,9 @@
 
 
 (defn test-general-transpose [m]
-  (is (e= m (transpose (transpose m)))))
+  (let [mt (transpose m)]
+    (is (e= m (transpose mt)))
+    (is (= (seq (shape m)) (reverse (shape mt))))))
 
 (defn test-vector-round-trip [m]
   (is (e= m (coerce m (coerce [] m)))))
@@ -132,7 +134,7 @@
   (testing "All supported sizes")
     (doseq [vm (create-supported-matrices im)]
       (let [m (matrix im vm)]
-        (equals vm m))))
+        (e== vm m))))
 
 (defn test-coerce-via-vectors [m]
   (testing "Vector coercion"
