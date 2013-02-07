@@ -14,6 +14,9 @@
 ;; - they can't assume anything other than documented API behaviour!
 ;; 
 ;; e.g. we can't assume that scalar values are always Doubles etc.
+;;
+;; Convention: im refers to the original matrix implementation object
+;;             m refers to a specific matrix instance to be tested
 
 ;; ===========================================
 ;; Utility functions
@@ -105,6 +108,8 @@
     (let [m (matrix im vm)]
       (test-array-assumptions m)
       (test-double-array-ops m))))
+
+
 
 ;; ==============================================
 ;; misc tests
@@ -245,15 +250,31 @@
 ;; Instance test function
 ;;
 ;; Implementations can call to test specific instances of interest
+;;
+;; All matrix implementations must pass this test for any valid matrix
 (defn instance-test [m]
   (test-array-assumptions [m]))
+
+;; ==============================================
+;; General NDArray test
+;;
+;; These are the most general tests for general purpose mutable NDArray objects
+;;
+;; A general purpose NDArray implementation must pass this test
+
+(defn test-ndarray-implementation 
+  "Tests a complete NDArray implementation"
+  [im]
+  (doseq [dim (range 10)] (is (mp/supports-dimensionality? im dim)))
+  (doseq [m (create-supported-matrices im)] (instance-test m)))
 
 ;; ======================================
 ;; Main compliance test method
 ;; 
-;; implementations should call this with either a valid instance or their registered implementation key
+;; Implementations should call this with either a valid instance or their registered implementation key
 ;;
-;; Convention: im refers to the origincal matrix implementatin object
+;; All valid core.matrix implementation must pass this test
+
 (defn compliance-test 
   "Runs the compliance test suite on a given matrix implementation. 
    m can be either a matrix instance or the implementation keyword."
