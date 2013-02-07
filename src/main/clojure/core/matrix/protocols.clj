@@ -88,7 +88,8 @@
 
 (defprotocol PTypeInfo
   "Protocol for querying the type of matrix elements. If not provided, the default implementation will
-   examine the first element in the matrix to determone the type."
+   return java.lang.Object, and the matrix object must accept any type of value.
+   If a matrix is primitive-backed, it should return the appropriate primitive type e.g. Double/TYPE."
   (element-type [m]))
 
 (defprotocol PSpecialisedConstructors

@@ -791,15 +791,12 @@
     (sum [a]
       (mp/element-reduce a +)))
 
-;; matrix element summation
+;; type of matrix element
+;; the default is to assume any tpye is possible
 (extend-protocol mp/PTypeInfo
-  java.lang.Number
-    (element-type [a] (class a))
   java.lang.Object
     (element-type [a] 
-      (if (mp/is-scalar? a)
-        (class a)
-        (class (first (eseq a))))))
+      java.lang.Object))
 
 ;; general transformation of a vector
 (extend-protocol mp/PVectorTransform
