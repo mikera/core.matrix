@@ -30,15 +30,15 @@
 (defn mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices"
   ([f m]
-    (if (vector-1d? m)
+    (if (mp/is-vector? m)
       (mapv f m)
       (mapv (partial mapmatrix f) m)))
   ([f m1 m2]
-    (if (vector-1d? m1)
+    (if (mp/is-vector? m1)
       (mapv f m1 m2)
       (mapv (partial mapmatrix f) m1 m2)))
   ([f m1 m2 & more]
-    (if (vector-1d? m1)
+    (if (mp/is-vector? m1)
       (apply mapv f m1 m2 more)
       (apply mapv (partial mapmatrix f) m1 m2 more))))
 

@@ -581,6 +581,26 @@
   ([f m a & more]
     (mp/element-map m f a more)))
 
+(defn e=
+  "Returns true if all array elements are equal (using Object.equals).
+   WARNING: a java.lang.Long does not equal a lava.lang.Double.
+   Use 'equals' or 'e==' instead if you want numerical equality."
+  ([f m1]
+    true)
+  ([f m1 m2]
+    (every? true? (map = (eseq m1) (eseq m2))))
+  ([f m1 m2 & more]
+    (reduce e= (e= m1 m2) more))) 
+
+(defn e==
+  "Returns true if all array elements are numerically equal (using ==)"
+  ([f m1]
+    true)
+  ([f m1 m2]
+    (equals m1 m2))
+  ([f m1 m2 & more]
+    (reduce equals (equals m1 m2) more))) 
+
 (defn emap!
   "Element-wise map over all elements of one or more arrays.
    Performs in-place modification of the first array argument."
@@ -715,7 +735,7 @@
   java.lang.Object
     (dimensionality [m] 0)
     (is-vector? [m] (== 1 (mp/dimensionality m)))
-    (is-scalar? [m] false)
+    (is-scalar? [m] true)
     (get-shape [m] (for [i (range (mp/dimensionality m))] (mp/dimension-count m i)))
     (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
 
@@ -881,6 +901,7 @@
     (element-seq [m]
       (cond
         (array? m) (mapcat mp/element-seq (slices m))
+        (mp/is-scalar? m) (list m)
         :else (seq m)))
     (element-map
       ([m f]

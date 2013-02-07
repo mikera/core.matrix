@@ -45,12 +45,3 @@
       (m/sub a b)))
   ([a b & more]
     (reduce - (- a b) more)))
-
-
-(defn e=
-  "Matrix equality operator"
-  ([a] true)
-  ([a b]
-    (m/equals a b))
-  ([a b & more]
-    (reduce m/equals (m/equals a b) more)))

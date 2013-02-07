@@ -63,5 +63,9 @@
 
 ;; run complicance tests
 
+(deftest instance-tests
+  (testing "matrices of symbols are supported"
+    (core.matrix.compliance-tester/instance-test ['a 'b]))) 
+
 (deftest compliance-test
   (core.matrix.compliance-tester/compliance-test []))
