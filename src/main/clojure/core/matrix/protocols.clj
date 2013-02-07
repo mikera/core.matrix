@@ -86,7 +86,6 @@
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
 
-
 (defprotocol PTypeInfo
   "Protocol for querying the type of matrix elements. If not provided, the default implementation will
    examine the first element in the matrix to determone the type."
@@ -99,9 +98,9 @@
 
 (defprotocol PCoercion
   "Protocol to coerce a parameter to a format usable by a specific implementation. It is
-   up to the implementation to determine what parameter types they support. If the
-   implementation is unable to perform coercion, it may return nil.
-   Implementations should also be able to coerce scalar values."
+   up to the implementation to determine what parameter types they support. 
+   If the implementation is unable to perform coercion, it must return nil.
+   Implementations must also be able to coerce valid scalar values (presumably to themselves...)"
   (coerce-param [m param]
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
      May return nil if unable to do so, in which case a default implementation can be used."))
@@ -122,16 +121,16 @@
 
 (defprotocol PReshaping
   "Protocol to reshape matrices. Must support any new shape allowed by the implementation.
-   Must preserve row-major ordering of matrix elements.
+   Must preserve row-major ordering of matrix elements. 
+   If the original matrix is mutable, must return a new mutable copy of data.
    If the new shape has less elements than the original shape, it is OK to truncate the remaining elements.
    If the new shape requires more elements than the original shape, should throw an exception."
   (reshape [m shape]))
 
 
 (defprotocol PMatrixSlices
-  "Protocol to support getting slices of an array.
-   Functions should return either the actual components or a mutable view if possible,
-   i.e. making a full copy should be avoided."
+  "Protocol to support getting slices of an array.  If implemented, must return either a view
+   or an immutable sub-matrix: it must *not* return copied data. i.e. making a full copy must be avoided."
   (get-row [m i])
   (get-column [m i])
   (get-major-slice [m i])
@@ -144,10 +143,11 @@
   (get-major-slice-view [m i] "Gets a view of a major array slice"))
 
 (defprotocol PSliceSeq
-  "Returns the row-major slices of the matrix as a sequence. Ideally these should be views or immutable sub-arrays.
+  "Returns the row-major slices of the matrix as a sequence. These must be views or immutable sub-arrays.
    The default implementation uses get-major-slice-view to obtain the slices."
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
 
+;; TODO: should return either an immutable sub-matrix or a mutable view
 (defprotocol PMatrixSubComponents
   "Protocol for picking out subsections of a matrix. Should return a mutable view if possible.
    The default implementation creates a new vector containing the diagonal values." 
