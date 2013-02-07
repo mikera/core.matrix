@@ -25,7 +25,8 @@
 (deftest test-transpose
   (testing "vector transpose"
     (= [[1 3] [2 3]] (transpose [[1 2] [3 4]]))
-    (= [[1 2 3]] (transpose [1 2 3]))))
+    (= [[1 2 3]] (transpose [1 2 3]))
+    (= [[[[1]]]] (transpose [[[[1]]]]))))
 
 (deftest test-functional-op
   (testing "map"
@@ -60,6 +61,10 @@
   (testing "summing"
     (is (= 2.0 (sum [[1.0 0.0] [0.0 1.0]])))
     (is (= 1.5 (sum [1.0 0.5])))))
+
+(deftest test-coerce
+  (testing "self-coerce"
+    (is (= [2] (coerce [] [2]))))) 
 
 ;; run complicance tests
 

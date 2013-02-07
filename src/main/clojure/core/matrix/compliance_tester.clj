@@ -94,6 +94,10 @@
       (= (eseq m) (eseq (reshape m [1 c])))
       (= (eseq m) (eseq (reshape m [c 1]))))))
 
+
+(defn test-general-transpose [m]
+  (is (e= m (transpose (transpose m)))))
+
 (defn test-vector-round-trip [m]
   (is (e= m (coerce m (coerce [] m)))))
 
@@ -101,6 +105,7 @@
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-reshape m)
   (test-dimensionality-assumptions m)
+  (test-general-transpose m)
   (test-vector-round-trip m))
 
 (defn test-assumptions-for-all-sizes [im]
@@ -260,13 +265,16 @@
 ;;
 ;; These are the most general tests for general purpose mutable NDArray objects
 ;;
-;; A general purpose NDArray implementation must pass this test
+;; A general purpose NDArray implementation must pass this test to demonstrate
+;; that is supports all core.matrix functionality correctly
 
 (defn test-ndarray-implementation 
   "Tests a complete NDArray implementation"
   [im]
-  (doseq [dim (range 10)] (is (mp/supports-dimensionality? im dim)))
-  (doseq [m (create-supported-matrices im)] (instance-test m)))
+  (doseq [dim (range 10)] (is (supports-dimensionality? im dim)))
+  (doseq [m (create-supported-matrices im)] (instance-test m))
+  (instance-test (coerce im ['a 'b]))
+  (instance-test (coerce im [[[[[["foo"]]]]]])))
 
 ;; ======================================
 ;; Main compliance test method

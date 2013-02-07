@@ -137,6 +137,15 @@
     (let [m (imp/get-canonical-object implementation)]
       (TODO)))) 
 
+;; ======================================
+;; Implementation details
+
+(defn supports-dimensionality?
+  "Returns true if the implementation for a given matrix supports a specific dimensionality, i.e.
+   can create and manipulate matrices with the given number of dimensions"
+  ([m dimension-count]
+    (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
+      (mp/supports-dimensionality? m dimension-count))))
 
 ;; ======================================
 ;; matrix assignment and copying
@@ -249,11 +258,6 @@
   ([m]
     (and (satisfies? mp/PIndexedSetting m) (mp/is-mutable? m))))
 
-(defn supports-dimensionality?
-  "Returns true if the implementation for a given matrix supports a specific dimensionality, i.e.
-   can create and manipulate matrices with the given number of dimensions"
-  ([m dimension-count]
-    (mp/supports-dimensionality? m dimension-count)))
 
 (defn- broadcast-shape*
   ([a b]
@@ -761,7 +765,7 @@
         0 m
         1 m
         2 (coerce m (vec (apply map vector (map #(coerce [] %) (slices m)))))
-        (error "Don't know how to transpose matrix of dimensionality: " m))))
+        (coerce m (apply emap vector (map mp/transpose (mp/get-major-slice-seq m)))))))
 
 ;; matrix multiply
 (extend-protocol mp/PMatrixMultiply
