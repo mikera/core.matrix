@@ -43,6 +43,12 @@
     (supports-dimensionality? [m dims]
       (<= dims 1)))
 
+;; explicitly specify we use a primitive type
+(extend-protocol mp/PTypeInfo
+  (Class/forName "[D")
+    (element-type [m]
+      Double/TYPE))
+
 (extend-protocol mp/PDoubleArrayOutput
   (Class/forName "[D")
     (to-double-array [m] (copy-double-array m))

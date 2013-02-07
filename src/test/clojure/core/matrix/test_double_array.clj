@@ -16,6 +16,9 @@
       (is (= [2.0 4.0] (seq (coerce da [2 4]))))
       (is (= (class da) (class (coerce da [2 4])))))))
 
+(deftest test-type
+  (is (= Double/TYPE (element-type (double-array [1 2])))))
+
 (deftest test-slices
   (testing "slices"
     (let [m [(double-array [1 2]) (double-array [3 4])]]
