@@ -12,7 +12,7 @@ Like NumPy, but with more parens.
 
 Get the latest version from Clojars:
 
-    https://clojars.org/net.mikera/core.matrix
+ -  https://clojars.org/net.mikera/core.matrix
 
 For code examples see:
 
