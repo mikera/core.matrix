@@ -1,9 +1,7 @@
 matrix-api
 ==========
 
-Experimental N-dimensional Array / Matrix / Vector API for Clojure.
-
-Like NumPy, but with more parens.
+N-dimensional Array / Matrix / Vector API for Clojure.
 
 ```clojure
 (+ [[1 2] 
@@ -24,7 +22,8 @@ For code examples see:
 
 The idea is to provide a common and idiomatic abstraction for matrix maths in Clojure, 
 independent of underlying implementations. The plan is to develop this 
-into an official Clojure Contrib language extension as `core.matrix`.
+into an official Clojure Contrib language extension as `core.matrix`. Something like NumPy, 
+but with more parens.
 
 Key objectives:
 
@@ -43,6 +42,7 @@ Example implementations we might want to support:
  - javax.vecmath (part of Java3D)
  - Simple matrices constructed from Clojure vectors
  - EJML
+ - UJMP
  - and probably many more....
  
  [![Build Status](https://travis-ci.org/mikera/matrix-api.png?branch=master)](https://travis-ci.org/mikera/matrix-api)
@@ -72,7 +72,9 @@ implementation for a wide variety of purposes:
  - "array-like" objects that can be viewed as matrices (e.g. bitmap images)
  - Tabular "result-set" objects 
  
-Depending on the requirements, you may choose to implement support for some or all core.matrix APIs
+Depending on the requirements, you may choose to implement support for some or all core.matrix APIs. Writing a
+implementation that supports just the essential protocols is pretty simple. If you want to add extra features 
+or obtain faster performance, you can implement the other protocols as needed at a later date. 
  
 If you are interested in creating a core.matrix implementation, please read:
 
@@ -88,7 +90,7 @@ All contributions / ideas welcome!
 If you wish to contribute code, please ensure you have a **Clojure Contributors Agreement** signed and on file. For more information see:
 - http://clojure.org/contributing
 
-Also see relevant discussions:
- - https://github.com/tel/clatrix/issues/7
- - https://github.com/tel/clatrix/issues/2
+Discussions related to core.matrix generally take place on the "Numerical Clojure" group:
+
+ - https://groups.google.com/forum/?fromgroups#!forum/numerical-clojure
  
