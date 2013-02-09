@@ -6,8 +6,12 @@ Experimental N-dimensional Array / Matrix / Vector API for Clojure.
 Like NumPy, but with more parens.
 
 ```clojure
-(+ [[1 2] [3 4]] (* (identity-matrix 2) 3.0))
-=> [[4.0 2.0] [3.0 7.0]]
+(+ [[1 2] 
+    [3 4]] 
+   (* (identity-matrix 2) 3.0))
+   
+=> [[4.0 2.0] 
+    [3.0 7.0]]
 ```
 
 Get the latest version from Clojars:
