@@ -852,9 +852,9 @@
   ;; default impelementation - assume we can use emap?
   java.lang.Object
     (matrix-add [m a]
-      (emap + m a))
+      (emap clojure.core/+ m a))
     (matrix-sub [m a]
-      (emap - m a)))
+      (emap clojure.core/- m a)))
 
 ;; equality checking
 (extend-protocol mp/PMatrixEquality
