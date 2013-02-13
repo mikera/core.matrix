@@ -257,7 +257,6 @@
   ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)
   ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
 
-
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."
   ;; note that protocols don't like variadic args, so we convert to regular args
