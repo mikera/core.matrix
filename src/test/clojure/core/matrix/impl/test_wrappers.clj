@@ -27,5 +27,6 @@
   (is (equals [3 4] (wrap-nd [3 4]))))
 
 (deftest instance-tests
+  (core.matrix.compliance-tester/instance-test (wrap-scalar 1))
   (core.matrix.compliance-tester/instance-test (wrap-slice [[1 2] [3 4]] 1))
   (core.matrix.compliance-tester/instance-test (wrap-nd [[1 2] [3 4]]))) 
