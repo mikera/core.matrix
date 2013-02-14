@@ -64,7 +64,11 @@
 
 (deftest test-coerce
   (testing "self-coerce"
-    (is (= [2] (coerce [] [2]))))) 
+    (is (= [2] (coerce [] [2]))))
+  (testing "double arrays"
+    (is (= [1.0 2.0] (coerce [] (double-array [1 2])))))
+  (testing "nested sequences"
+    (is (= [[1 2] [3 4]] (coerce [] '((1 2) (3 4))))))) 
 
 ;; run complicance tests
 
