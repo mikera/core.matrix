@@ -70,7 +70,9 @@
 
 (deftest instance-tests
   (testing "matrices of symbols are supported"
-    (core.matrix.compliance-tester/instance-test ['a 'b]))) 
+    (core.matrix.compliance-tester/instance-test ['a 'b]))
+  (testing "matrices of heterogeneous submatrices"
+    (core.matrix.compliance-tester/instance-test [[1 2.0] (double-array [3 4])]))) 
 
 (deftest compliance-test
   (core.matrix.compliance-tester/compliance-test []))
