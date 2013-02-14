@@ -307,9 +307,7 @@
 (defn mget
   "Gets a scalar value from a matrix at a specified position. Supports any number of matrix dimensions."
   ([m]
-    (if (mp/is-scalar? m)
-      m
-      (error "Can't mget from a non-scalar value without indexes")))
+    (mp/get-0d m))
   ([m x]
     (mp/get-1d m x))
   ([m x y]

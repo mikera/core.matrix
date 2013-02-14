@@ -91,6 +91,8 @@
           data
         (>= (mp/dimensionality data) 1)
           (mapv #(mp/construct-matrix m %) (mp/get-major-slice-seq data))
+        (satisfies? mp/PImplementation data) ;; must be 0-D array....
+          (mp/get-0d data) 
         (sequential? data)
           (mapv #(mp/construct-matrix m %) data)
         :default
@@ -134,13 +136,10 @@
     (get-row [m i]
       (.nth m (long i)))
     (get-column [m i]
-      (let [i (long i)]
-        (mapv #(nth % i) m)))
+      (mp/get-slice m 1 i))
     (get-major-slice [m i]
       (let [sl (m i)]
-        (if (mp/is-scalar? sl) 
-          (wrap/wrap-slice m i)
-          sl)))
+        sl))
     (get-slice [m dimension i]
       (let [i (long i)
             dimension (long dimension)]
@@ -155,7 +154,8 @@
 
 (extend-protocol mp/PSliceSeq
   clojure.lang.IPersistentVector
-    (get-major-slice-seq [m] (seq m)))
+    (get-major-slice-seq [m] 
+      (seq m)))
 
 (extend-protocol mp/PMatrixAdd
   clojure.lang.IPersistentVector

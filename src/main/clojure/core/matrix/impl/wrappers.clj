@@ -13,6 +13,9 @@
 ;; wraps a single scalar as an 0-D array
 
 (deftype ScalarWrapper [value]
+  java.lang.Object
+    (toString [m] (str value))
+       
   mp/PImplementation
     (implementation-key [m] 
       :scalar-wrapper)
