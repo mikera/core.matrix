@@ -59,8 +59,8 @@
 
 (deftest test-sum
   (testing "summing"
-    (is (= 2.0 (sum [[1.0 0.0] [0.0 1.0]])))
-    (is (= 1.5 (sum [1.0 0.5])))))
+    (is (= 2.0 (esum [[1.0 0.0] [0.0 1.0]])))
+    (is (= 1.5 (esum [1.0 0.5])))))
 
 (deftest test-coerce
   (testing "self-coerce"

@@ -192,11 +192,11 @@
 (defn test-numeric-functions [im]
   (when (supports-dimensionality? im 2)
     (let [m (matrix im [[1 2] [3 4]])]
-      (is (== 10 (sum m)))
+      (is (== 10 (esum m)))
       (test-scale m)))
   (when (supports-dimensionality? im 1)
     (let [m (matrix im [1 2 3])]
-      (is (== 6 (sum m)))
+      (is (== 6 (esum m)))
       (test-scale m))))
 
 ;; ========================================
