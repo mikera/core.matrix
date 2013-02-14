@@ -536,7 +536,7 @@
   ([m]
      (mp/length-squared m)))
 
-(defn sum
+(defn esum
   "Calculates the sum of all the elements"
   [m]
   (mp/sum m))
