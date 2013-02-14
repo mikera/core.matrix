@@ -539,7 +539,7 @@
 (defn esum
   "Calculates the sum of all the elements"
   [m]
-  (mp/sum m))
+  (mp/element-sum m))
 
 ;; create all unary maths operators
 (eval
@@ -788,7 +788,7 @@
   java.lang.Number
     (sum [a] a)
   java.lang.Object
-    (sum [a]
+    (element-sum [a]
       (mp/element-reduce a +)))
 
 ;; type of matrix element

@@ -247,7 +247,7 @@
 (defprotocol PSummable
   "Protocol to support the summing of all elements in an array. 
    The array must hold numeric values only, or an exception will be thrown."
-  (sum [m]))
+  (element-sum [m]))
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!

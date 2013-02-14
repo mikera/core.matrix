@@ -164,7 +164,7 @@
 
 (extend-protocol mp/PSummable
   clojure.lang.IPersistentVector
-    (sum [a]
+    (element-sum [a]
       (mp/element-reduce a +)))
 
 (extend-protocol mp/PCoercion
