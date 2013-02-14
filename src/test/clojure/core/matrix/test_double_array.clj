@@ -5,6 +5,12 @@
   (:require [core.matrix.compliance-tester])
   (:require core.matrix.impl.double-array))
 
+(deftest misc-regressions
+  (testing "shape sequnces"
+    (is (= [0] (shape (double-array []))))
+    (is (= [1 0] (shape [(double-array [])])))
+    (is (= [0] (shape (transpose (double-array [])))))))
+
 (deftest test-create
   (testing "making a double array"
     (let [da (matrix :double-array [1 2])]
@@ -24,8 +30,16 @@
     (let [m [(double-array [1 2]) (double-array [3 4])]]
       (is (equals [1 2] (get-row m 0)))
       (is (equals [2 4] (get-column m 1)))
-      (is (= [1.0 2.0] (slices (get-row m 0))))
-      (is (= [2.0 4.0] (slices (get-column m 1)))))))
+      (is (e= [1.0 2.0] (slices (get-row m 0))))
+      (is (e= [2.0 4.0] (slices (get-column m 1)))))))
+
+(deftest test-scalar-slices
+  (testing "slices"
+    (let [da (double-array [1 2 3])
+          fs (first (slices da))]
+      (is (not (scalar? fs)))
+      (is (== 0 (dimensionality fs)))
+      (is (array? fs)))))
 
 (deftest test-functional-ops
   (testing "mapping"
@@ -58,10 +72,12 @@
       (is (equals [1 2] da))
       (is (equals da [1.0 2.0])))))
 
-(deftest test-vector-ops
+(deftest test-vector-scale
   (testing "scale!"
     (let [da (double-array [1.0 2.0])]
-      (is (equals [2.0 4.0] (scale! da 2)))))
+      (is (equals [2.0 4.0] (scale! da 2))))))
+
+(deftest test-vector-normalise
   (testing "normalise!"
     (let [da (double-array [4.0])]
       (is (equals [1.0] (normalise! da))))))
@@ -71,6 +87,9 @@
     (let [da (double-array [1.2 2.3])]
       (is (equals [1.0 2.0] (floor da))))))
 
+(deftest instance-tests
+  (core.matrix.compliance-tester/instance-test (double-array []))
+  (core.matrix.compliance-tester/instance-test (double-array [1 2]))) 
 
 (deftest compliance-test
   (core.matrix.compliance-tester/compliance-test (double-array [0.23]))) 

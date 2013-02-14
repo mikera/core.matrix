@@ -1,6 +1,7 @@
 (ns core.matrix.impl.persistent-vector
   (:require [core.matrix.protocols :as mp])
   (:use core.matrix.utils)
+  (:require [core.matrix.impl.wrappers :as wrap])
   (:require [core.matrix.implementations :as imp])
   (:require [core.matrix.impl.mathsops :as mops])
   (:require [core.matrix.multimethods :as mm]))
@@ -64,6 +65,13 @@
     (mp/is-scalar? m) 0
     :else (long (mp/dimensionality m))))
 
+(defn is-nested-vectors?
+  "Returns true if m is in a correct nested vector implementation."
+  ([m]
+    (or (mp/is-scalar? m)
+        (and (clojure.core/vector? m) 
+             (every? is-nested-vectors? m))))) 
+
 ;; =======================================================================
 ;; Implementation for nested Clojure persistent vectors used as matrices
 
@@ -82,7 +90,7 @@
         (mp/is-scalar? data)
           data
         (>= (mp/dimensionality data) 1)
-          (mapv #(mp/construct-matrix m %) (for [i (range (mp/dimension-count data 0))] (mp/get-major-slice data i)))
+          (mapv #(mp/construct-matrix m %) (mp/get-major-slice-seq data))
         (sequential? data)
           (mapv #(mp/construct-matrix m %) data)
         :default
@@ -129,7 +137,10 @@
       (let [i (long i)]
         (mapv #(nth % i) m)))
     (get-major-slice [m i]
-      (m i))
+      (let [sl (m i)]
+        (if (mp/is-scalar? sl) 
+          (wrap/wrap-slice m i)
+          sl)))
     (get-slice [m dimension i]
       (let [i (long i)
             dimension (long dimension)]
@@ -233,7 +244,7 @@
     (dimensionality [m]
       (vector-dimensionality m))
     (is-vector? [m]
-      (== 1 (vector-dimensionality m)))
+      (vector-1d? m))
     (is-scalar? [m]
       false)
     (get-shape [m]

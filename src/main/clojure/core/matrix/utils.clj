@@ -32,5 +32,19 @@
 
 (defn copy-double-array 
   "Returns a copy of a double array"
-  ([^doubles arr]
+  (^doubles [^doubles arr]
     (java.util.Arrays/copyOf arr (int (alength arr))))) 
+
+(defn copy-long-array 
+  "Returns a copy of a long array"
+  (^longs [^longs arr]
+    (java.util.Arrays/copyOf arr (int (alength arr))))) 
+
+(defn long-range 
+  "Returns a range of longs in a long[] array"
+  ([end]
+    (let [end (int end)
+          ^longs arr (long-array end)]
+      (dotimes [i end]
+        (aset arr i (long i)))
+      arr))) 

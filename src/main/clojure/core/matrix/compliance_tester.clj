@@ -2,6 +2,7 @@
   (:use core.matrix)
   (:use clojure.test)
   (:require [core.matrix.implementations :as imp])
+  (:require [core.matrix.protocols :as mp])
   (:use core.matrix.utils))
 
 ;; ====================================
@@ -88,27 +89,35 @@
 
 (defn test-reshape [m]
   (let [c (ecount m)]
-    (when (supports-dimensionality? m 1) 
-      (= (eseq m) (eseq (reshape m [c]))))
-    (when (supports-dimensionality? m 2)
-      (= (eseq m) (eseq (reshape m [1 c])))
-      (= (eseq m) (eseq (reshape m [c 1]))))))
+    (when (> c 0)
+      (when (supports-dimensionality? m 1) 
+        (= (eseq m) (eseq (reshape m [c]))))
+      (when (supports-dimensionality? m 2)
+        (= (eseq m) (eseq (reshape m [1 c])))
+        (= (eseq m) (eseq (reshape m [c 1])))))))
 
 
 (defn test-general-transpose [m]
-  (let [mt (transpose m)]
-    (is (e= m (transpose mt)))
-    (is (= (seq (shape m)) (reverse (shape mt))))))
+  (when (> (ecount m) 0) 
+    (let [mt (transpose m)]
+      (is (e= m (transpose mt)))
+      (is (= (seq (shape m)) (reverse (shape mt)))))))
+
+(defn test-coerce [m]
+  (let [vm (mp/convert-to-nested-vectors m)]
+      (is (core.matrix.impl.persistent-vector/is-nested-vectors? vm))
+      (is (e= m vm))))
 
 (defn test-vector-round-trip [m]
   (is (e= m (coerce m (coerce [] m)))))
 
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
-  (test-reshape m)
+  (test-coerce m)
   (test-dimensionality-assumptions m)
-  (test-general-transpose m)
-  (test-vector-round-trip m))
+  (test-vector-round-trip m)
+  (test-reshape m)
+  (test-general-transpose m))
 
 (defn test-assumptions-for-all-sizes [im]
   (doseq [vm (create-supported-matrices im)]
@@ -205,7 +214,7 @@
 (defn test-vector-slices [im]
   (let [m (matrix im [1 2 3])]
     (is (equals m (matrix im (vec (slices m)))))
-    (is (= (slices m) (eseq m)))))
+    (is (= (map mp/get-0d (slices m)) (eseq m)))))
 
 (defn test-element-add [im]
   (is (equals [2.0 4.0] (emap + (matrix im [1 3]) (coerce im [1 1]))))

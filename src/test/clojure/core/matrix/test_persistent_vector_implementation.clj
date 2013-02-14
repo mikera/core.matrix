@@ -6,6 +6,10 @@
   (:require core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
+(deftest test-regressions
+  (testing "vector 3D transpose"
+    (is (= [[[1]]] (transpose [[[1]]])))))
+
 (deftest test-properties
   (is (not (mutable? [1 2])))
   (is (not (mutable? [[1 2] [3 4]]))))
@@ -24,9 +28,9 @@
 
 (deftest test-transpose
   (testing "vector transpose"
-    (= [[1 3] [2 3]] (transpose [[1 2] [3 4]]))
-    (= [[1 2 3]] (transpose [1 2 3]))
-    (= [[[[1]]]] (transpose [[[[1]]]]))))
+    (is (= [[1 3] [2 4]] (transpose [[1 2] [3 4]])))
+    (is (= [1 2 3] (transpose [1 2 3])))
+    (is (= [[[[1]]]] (transpose [[[[1]]]])))))
 
 (deftest test-functional-op
   (testing "map"

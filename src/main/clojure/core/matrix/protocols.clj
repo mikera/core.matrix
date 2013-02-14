@@ -92,6 +92,11 @@
    If a matrix is primitive-backed, it should return the appropriate primitive type e.g. Double/TYPE."
   (element-type [m]))
 
+(defprotocol PZeroDimensionAccess
+  "Protocol for accessing the scalar value in zero-dimensional arrays."
+  (get-0d [m])
+  (set-0d! [m value]))
+
 (defprotocol PSpecialisedConstructors
   "Protocol for construction of special matrices."
   (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions")

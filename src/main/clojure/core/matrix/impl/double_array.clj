@@ -78,11 +78,6 @@
         (error "Can't set on double array with dimensionality: " (count indexes))))
     (is-mutable? [m] true))
 
-
-(extend-protocol mp/PSliceSeq
-  (Class/forName "[D")
-    (get-major-slice-seq [m] (seq m)))
-
 (extend-protocol mp/PMatrixScaling
   (Class/forName "[D")
     (scale [m a]
@@ -136,7 +131,7 @@
     (dimensionality [m] 1)
     (is-vector? [m] true)
     (is-scalar? [m] false)
-    (get-shape [m] (cons (count m) nil))
+    (get-shape [m] (list (count m)))
     (dimension-count [m x]
       (if (== (long x) 0)
         (count m)

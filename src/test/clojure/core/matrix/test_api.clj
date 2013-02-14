@@ -14,6 +14,9 @@
     (is (== 1 (mget [[1 2 3] [4 5 6]] 0 0)))
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
 
+(deftest test-shape
+  (is (= 0 (count (shape 1))))) 
+
 (deftest test-implementations
   (testing "vector implementation"
     (is (clojure.core/vector? (imp/get-canonical-object :persistent-vector)))
@@ -168,6 +171,11 @@
     (core.matrix.examples/all-examples)))
 
 (deftest test-predicates
+  (testing "scalar predicates"
+    (is (not (array? 1)))
+    (is (scalar? 1))
+    (is (scalar? (mget [1 2 3] 1)))
+    (is (scalar? (first (slices [1 2 3])))))
   (testing "clojure vector predicates"
     (is (array? [1 2]))
     (is (vec? [1 2]))
