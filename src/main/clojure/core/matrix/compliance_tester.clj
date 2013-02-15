@@ -251,7 +251,7 @@
     (is (row-matrix? rm))
     (is (column-matrix? (transpose rm))))
   (let [cm (column-matrix im [1 2 3])]
-    (is (= [3 1] (shape cm)))
+    (is (= [3 1] (seq (shape cm))))
     (is (equals [[1] [2] [3]] cm))
     (is (column-matrix? cm))
     (is (row-matrix? (transpose cm)))))
