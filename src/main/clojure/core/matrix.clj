@@ -194,7 +194,8 @@
     (mp/is-vector? m)))
 
 (defn scalar?
-  "Returns true if the parameter is a scalar (i.e. zero dimensionality, acceptable as matrix value)."
+  "Returns true if the parameter is a scalar value (i.e. zero dimensionality, acceptable as matrix value).
+   A 0-d array containing a scalar is *not* itself a scalar value."
   ([m]
     (mp/is-scalar? m)))
 
