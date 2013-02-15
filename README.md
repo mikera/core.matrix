@@ -22,7 +22,7 @@ For code examples see:
 
 The idea is to provide a common and idiomatic abstraction for matrix maths in Clojure, 
 independent of underlying implementations. The plan is to develop this 
-into an official Clojure Contrib language extension as `core.matrix`. Something like NumPy, 
+into an official Clojure Contrib language extension as `clojure.core.matrix`. Something like NumPy, 
 but with more parens.
 
 Key objectives:
@@ -63,11 +63,11 @@ You can include the latest released version by adding it as a leiningen or Maven
 
 ### Writing a matrix implementation
 
-We encourage you to extend the core.matrix protocols to different types of matrices / multi-dimensional
-data formats. This is relatively easy and is referred to as a core.matrix "impelmentation". You can write an
+We encourage you to extend the clojure.core.matrix protocols to different types of matrices / multi-dimensional
+data formats. This is relatively easy and is referred to as a clojure.core.matrix "impelmentation". You can write an
 implementation for a wide variety of purposes:
 
- - Java matrix libaries that you want to wrap for use with core.matrix
+ - Java matrix libaries that you want to wrap for use with clojure.core.matrix
  - Custom Clojure data structures
  - "array-like" objects that can be viewed as matrices (e.g. bitmap images)
  - Tabular "result-set" objects 
@@ -75,8 +75,8 @@ implementation for a wide variety of purposes:
 Depending on the requirements, you may choose to implement support for some or all core.matrix APIs. Writing a
 implementation that supports just the essential protocols is pretty simple. If you want to add extra features 
 or obtain faster performance, you can implement the other protocols as needed at a later date. 
- 
-If you are interested in creating a core.matrix implementation, please read:
+
+If you are interested in creating a clojure.core.matrix implementation, please read:
 
  - https://github.com/mikera/matrix-api/blob/master/implementation-guide.md
  
