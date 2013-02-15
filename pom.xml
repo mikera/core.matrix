@@ -13,7 +13,7 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>cljunit</artifactId>
-			<version>0.1.7</version>
+			<version>0.2.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
