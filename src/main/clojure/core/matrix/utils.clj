@@ -1,4 +1,4 @@
-(ns core.matrix.utils)
+(ns clojure.core.matrix.utils)
 
 ;; these are copies of methods from the library
 ;;   https://github.com/mikera/clojure-utils

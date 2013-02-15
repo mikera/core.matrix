@@ -1,5 +1,5 @@
-(ns core.matrix.operators
-  (:require [core.matrix :as m])
+(ns clojure.core.matrix.operators
+  (:require [clojure.core.matrix :as m])
   (:refer-clojure :exclude [* - + / vector?]))
 
 (set! *warn-on-reflection* true)

@@ -1,20 +1,20 @@
-(ns core.matrix.implementations
-  (:use [core.matrix.utils])
-  (:require [core.matrix.protocols :as mp]))
+(ns clojure.core.matrix.implementations
+  (:use [clojure.core.matrix.utils])
+  (:require [clojure.core.matrix.protocols :as mp]))
 
 ;; =====================================================
 ;; Implementation utilities
 ;;
-;; Tools to support the registration / manangement of core.matrix implementations 
+;; Tools to support the registration / manangement of clojure.core.matrix implementations 
 
 ;; map of known implementation tags to namespace imports
 ;; we use this to attempt to load an implementation
 (def KNOWN-IMPLEMENTATIONS
   {:vectorz 'mikera.vectorz.matrix-api
-   :ndarray 'core.matrix.impl.ndarray
-   :persistent-vector 'core.matrix.impl.persistent-vector
-   :sequence 'core.matrix.impl.sequence
-   :double-array 'core.matrix.impl.double-array
+   :ndarray 'clojure.core.matrix.impl.ndarray
+   :persistent-vector 'clojure.core.matrix.impl.persistent-vector
+   :sequence 'clojure.core.matrix.impl.sequence
+   :double-array 'clojure.core.matrix.impl.double-array
    :jblas :TODO
    :clatrix 'clatrix.core
    :parallel-colt :TODO
@@ -23,7 +23,7 @@
    :commons-math :TODO})
 
 ;; default implementation to use
-;; should be included with core.matrix for easy of use
+;; should be included with clojure.core.matrix for easy of use
 (def DEFAULT-IMPLEMENTATION :persistent-vector)
 
 ;; hashmap of implementation keys to canonical objects

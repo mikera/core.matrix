@@ -1,7 +1,7 @@
-### Implementation guide for core.matrix
+### Implementation guide for clojure.core.matrix
 
-This guide is for people who want to create a core.matrix implementation.
-i.e. extend core.matrix to work with a new underlying matrix library
+This guide is for people who want to create a clojure.core.matrix implementation.
+i.e. extend clojure.core.matrix to work with a new underlying matrix library
 
 
 ### Minimum requirements
@@ -10,20 +10,20 @@ i.e. extend core.matrix to work with a new underlying matrix library
 
 This can be any project type (leiningen or Maven).
 
-You want to have a separate project for your core.matrix implementation, which can pull in 
+You want to have a separate project for your clojure.core.matrix implementation, which can pull in 
 any dependencies it needs. Typically you might import any .jar libraries that are needed
 for your underlying matrix implementation.
 
 e.g. if you are wrapping the UJMP Java matrix library, you would add UJMP as a dependency.
 
-#### 2. Add core.matrix as a dependency to your project
+#### 2. Add clojure.core.matrix as a dependency to your project
 
 This is necessary to get access to the key namespaces you need:
 
- - **core.matrix** : contains the user-facing API
- - **core.matrix.protocols** : contains protocols that must be implemented
- - **core.matrix.implementations** : contains code to register / manage your implementation
- - **core.matrix.compliance-tester**: test code to verify your implementation is correct
+ - **clojure.core.matrix** : contains the user-facing API
+ - **clojure.core.matrix.protocols** : contains protocols that must be implemented
+ - **clojure.core.matrix.implementations** : contains code to register / manage your implementation
+ - **clojure.core.matrix.compliance-tester**: test code to verify your implementation is correct
  
 #### 3. Implement the mandatory protocols
 
@@ -31,7 +31,7 @@ These are documented in `src/main/clojure/core/matrix/protocols.clj`
 
 #### 4. Register your implementation
 
-You should call `core.matrix.implementations/register-implementation` with an instance of your matrix library.
+You should call `clojure.core.matrix.implementations/register-implementation` with an instance of your matrix library.
 
 ```clojure
 (imp/register-implementation my-matrix-instance)
@@ -43,27 +43,27 @@ implemented the mandatory protocols for the given instance.
 #### 5. Run compliance tests
 
 In your test suite you should call into the compliance tester tool to verify that you have correctly
-implemented the core.matrix API.
+implemented the clojure.core.matrix API.
 
 Code to call the compliance test should look something like this:
 
 ```clojure
 (deftest compliance-test
-  (core.matrix.compliance-tester/compliance-test my-matrix-instance)) 
+  (clojure.core.matrix.compliance-tester/compliance-test my-matrix-instance)) 
 ```
 
 Any error in the compliance test mean that there is a bug somewhere - either your implementation
-doesn't conform to the core.matrix API, or we have a bug in the compliance test assumptions :-)
+doesn't conform to the clojure.core.matrix API, or we have a bug in the compliance test assumptions :-)
 
 ### Optional
 
 #### 1. Implement the optional protocols
 
-You only need the mandatory protocols to have a working core.matrix implementation.
+You only need the mandatory protocols to have a working clojure.core.matrix implementation.
 
 Typically however, you will want to implement some or all of the optional protocols to 
 take advantage of special features of your matrix library - using these features may offer
-users much better performance than the default core.matrix implementations, which are 
+users much better performance than the default clojure.core.matrix implementations, which are 
 written for flexibility and a generic design rather than for speed.
 
 #### 2. Send a patch for "KNOWN-IMPLEMENTATIONS"
@@ -80,9 +80,9 @@ It will also help users discover your library!
 
 When control enters your implementation via one of the protocol functions, you don't know much
 about the type of the other arguments. This is particularly important when the other argument
-may be a matrix from a different core.matrix implementation.
+may be a matrix from a different clojure.core.matrix implementation.
 
-Such operations in core.matrix are left to the discretion of the matrix implementation. You are required to 
+Such operations in clojure.core.matrix are left to the discretion of the matrix implementation. You are required to 
 either:
 
 - Perform the operation and return a valid result.
@@ -93,8 +93,8 @@ Here are your options, in rough order of preference:
  - **Coerce the other matrix to your format** - via calling `(coerce your-matrix other-matrix)`. This
  may be an expensive operation (likely to require constructing a whole new matrix in your format) but 
  should work effectively as a general approach
- - **Defer to a generic mutimethod** - core.matrix provides some generic multimethods that should perform 
- the necessary operations, e.g. `core.matrix.multimethods/mul`. Generic implementations are likely to be slow but correct. 
+ - **Defer to a generic mutimethod** - clojure.core.matrix provides some generic multimethods that should perform 
+ the necessary operations, e.g. `clojure.core.matrix.multimethods/mul`. Generic implementations are likely to be slow but correct. 
  In some cases the generic method may be able to exploit optimisations, e.g. multiplication of two diagonal matrices from different implementations.
  - **Explicitly recognise and work with the other implementation** - this requires hard-coding and is a lot of work.
  Probably not recommended except for special cases where you really need to work well with another specific implementation

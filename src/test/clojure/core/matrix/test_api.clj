@@ -1,11 +1,11 @@
-(ns core.matrix.test-api
+(ns clojure.core.matrix.test-api
   (:use clojure.test)
-  (:use core.matrix)
-  (:require [core.matrix.protocols :as mp])
-  (:require [core.matrix.operators :as op])
-  (:require [core.matrix.implementations :as imp])
-  (:require core.matrix.examples)
-  (:require core.matrix.impl.persistent-vector)
+  (:use clojure.core.matrix)
+  (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.operators :as op])
+  (:require [clojure.core.matrix.implementations :as imp])
+  (:require clojure.core.matrix.examples)
+  (:require clojure.core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
 (deftest test-indexed-access
@@ -165,7 +165,7 @@
 
 (deftest check-examples
   (testing "example code"
-    (core.matrix.examples/all-examples)))
+    (clojure.core.matrix.examples/all-examples)))
 
 (deftest test-predicates
   (testing "clojure vector predicates"

@@ -1,4 +1,4 @@
-(ns core.matrix.multimethods)
+(ns clojure.core.matrix.multimethods)
 
 ;; multimethods are provided for when an implementation does not have a specific fast path
 ;; for performing a matrix operation. Enables several options:

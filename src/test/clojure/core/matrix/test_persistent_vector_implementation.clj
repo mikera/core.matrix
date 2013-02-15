@@ -1,9 +1,9 @@
-(ns core.matrix.test-persistent-vector-implementation
+(ns clojure.core.matrix.test-persistent-vector-implementation
   (:use clojure.test)
-  (:use core.matrix)
-  (:require [core.matrix.operators :as op])
-  (:require [core.matrix.compliance-tester])
-  (:require core.matrix.impl.persistent-vector)
+  (:use clojure.core.matrix)
+  (:require [clojure.core.matrix.operators :as op])
+  (:require [clojure.core.matrix.compliance-tester])
+  (:require clojure.core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
 (deftest test-properties
@@ -64,4 +64,4 @@
 ;; run complicance tests
 
 (deftest compliance-test
-  (core.matrix.compliance-tester/compliance-test []))
+  (clojure.core.matrix.compliance-tester/compliance-test []))

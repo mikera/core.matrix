@@ -1,9 +1,9 @@
-(ns core.matrix.test-double-array
+(ns clojure.core.matrix.test-double-array
   (:use clojure.test)
-  (:use core.matrix)
-  (:require [core.matrix.operators :as op])
-  (:require [core.matrix.compliance-tester])
-  (:require core.matrix.impl.double-array))
+  (:use clojure.core.matrix)
+  (:require [clojure.core.matrix.operators :as op])
+  (:require [clojure.core.matrix.compliance-tester])
+  (:require clojure.core.matrix.impl.double-array))
 
 (deftest test-create
   (testing "making a double array"
@@ -70,4 +70,4 @@
 
 
 (deftest compliance-test
-  (core.matrix.compliance-tester/compliance-test (double-array [0.23]))) 
+  (clojure.core.matrix.compliance-tester/compliance-test (double-array [0.23]))) 

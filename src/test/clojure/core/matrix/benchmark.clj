@@ -1,7 +1,7 @@
-(ns core.matrix.benchmark
-  (:use core.matrix)
+(ns clojure.core.matrix.benchmark
+  (:use clojure.core.matrix)
   (:require [criterium.core :as c])
-  (:require [core.matrix.impl.persistent-vector]))
+  (:require [clojure.core.matrix.impl.persistent-vector]))
 
 ;; miscellaneous benchmark code
 ;;

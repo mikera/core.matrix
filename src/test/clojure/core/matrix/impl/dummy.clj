@@ -1,10 +1,10 @@
-(ns core.matrix.impl.dummy
-  (:use core.matrix)
-  (:use core.matrix.utils)
+(ns clojure.core.matrix.impl.dummy
+  (:use clojure.core.matrix)
+  (:use clojure.core.matrix.utils)
   (:use clojure.test)
-  (:require [core.matrix.protocols :as mp])
-  (:require [core.matrix.compliance-tester])
-  (:require [core.matrix.implementations :as imp]))
+  (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.compliance-tester])
+  (:require [clojure.core.matrix.implementations :as imp]))
 
 (defrecord Dummy [dims])
 

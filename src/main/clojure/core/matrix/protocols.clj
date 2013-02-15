@@ -1,23 +1,23 @@
-(ns core.matrix.protocols
-  (:require [core.matrix.impl.mathsops :as mops]))
+(ns clojure.core.matrix.protocols
+  (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
 ;; ================================================================
-;; core.matrix API protocols
+;; clojure.core.matrix API protocols
 ;;
 ;; Matrix implementations should extend these for full API support
 ;;
 ;; This namespace is intended for use by API implementers only
-;; core.matrix users should not access these protocols directly
+;; clojure.core.matrix users should not access these protocols directly
 ;;
 ;; ================================================================
 
 ;; ===================================================================================
 ;; MANDATORY PROTOCOLS FOR ALL IMPLEMENTATIONS
 ;;
-;; A compliant core.matrix implementation must implement these.
+;; A compliant clojure.core.matrix implementation must implement these.
 ;; Otherwise things will fail.
 
 (defprotocol PImplementation
@@ -64,7 +64,7 @@
 ;; ===================================================================================
 ;; MANDATORY PROTOCOLS FOR MUTABLE MATRICES
 ;;
-;; A compliant core.matrix mutable implementation must implement these.
+;; A compliant clojure.core.matrix mutable implementation must implement these.
 ;; Otherwise things will fail.
 
 (defprotocol PIndexedSetting

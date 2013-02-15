@@ -1,10 +1,10 @@
-(ns core.matrix.test-ndarray-implementation
+(ns clojure.core.matrix.test-ndarray-implementation
   (:use clojure.test)
-  (:use core.matrix)
-  (:require [core.matrix.operators :as op])
-  (:require [core.matrix.compliance-tester])
-  (:require core.matrix.impl.persistent-vector)
-  (:use core.matrix.impl.ndarray))
+  (:use clojure.core.matrix)
+  (:require [clojure.core.matrix.operators :as op])
+  (:require [clojure.core.matrix.compliance-tester])
+  (:require clojure.core.matrix.impl.persistent-vector)
+  (:use clojure.core.matrix.impl.ndarray))
 
 (deftest test-ndarray-base
   (testing "construction"
@@ -21,4 +21,4 @@
 
 ;; run complicance tests
 ;;(deftest compliance-test
-;;   (core.matrix.compliance-tester/compliance-test (make-ndarray [3 3])))
+;;   (clojure.core.matrix.compliance-tester/compliance-test (make-ndarray [3 3])))

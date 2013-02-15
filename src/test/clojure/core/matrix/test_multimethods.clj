@@ -1,8 +1,8 @@
-(ns core.matrix.test-multimethods
+(ns clojure.core.matrix.test-multimethods
   (:use clojure.test)
-  (:use core.matrix)
-  (:require [core.matrix.multimethods :as mm])
-  (:require core.matrix.impl.persistent-vector))
+  (:use clojure.core.matrix)
+  (:require [clojure.core.matrix.multimethods :as mm])
+  (:require clojure.core.matrix.impl.persistent-vector))
 
 (deftest test-hierarchy
   (testing "multimethod hierarchy"

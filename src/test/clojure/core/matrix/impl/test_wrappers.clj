@@ -1,12 +1,12 @@
-(ns core.matrix.impl.test-wrappers
+(ns clojure.core.matrix.impl.test-wrappers
   (:use clojure.test)
-  (:use core.matrix)
-  (:use core.matrix.impl.wrappers) 
-  (:require [core.matrix.operators :as op]) 
-  (:require [core.matrix.compliance-tester]))
+  (:use clojure.core.matrix)
+  (:use clojure.core.matrix.impl.wrappers) 
+  (:require [clojure.core.matrix.operators :as op]) 
+  (:require [clojure.core.matrix.compliance-tester]))
 
 (deftest test-slice-wrap
   (is (equals [3 4] (wrap-slice [[1 2] [3 4]] 1))))
 
 (deftest compliance-test
-  (core.matrix.compliance-tester/instance-test (wrap-slice [[1 2] [3 4]] 1))) 
+  (clojure.core.matrix.compliance-tester/instance-test (wrap-slice [[1 2] [3 4]] 1))) 

@@ -1,17 +1,17 @@
-(ns core.matrix.impl.double-array
-  (:require [core.matrix.protocols :as mp])
-  (:use core.matrix.utils)
-  (:require core.matrix.impl.persistent-vector)
-  (:require [core.matrix.implementations :as imp])
-  (:require [core.matrix.impl.mathsops :as mops])
-  (:require [core.matrix.multimethods :as mm]))
+(ns clojure.core.matrix.impl.double-array
+  (:require [clojure.core.matrix.protocols :as mp])
+  (:use clojure.core.matrix.utils)
+  (:require clojure.core.matrix.impl.persistent-vector)
+  (:require [clojure.core.matrix.implementations :as imp])
+  (:require [clojure.core.matrix.impl.mathsops :as mops])
+  (:require [clojure.core.matrix.multimethods :as mm]))
 
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
 
-;; core.matrix implementation for Java double arrays
+;; clojure.core.matrix implementation for Java double arrays
 ;;
 ;; Useful as a fast, mutable 1D vector implementation. Not good for much else.
 
