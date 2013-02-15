@@ -46,6 +46,15 @@
       (if-let [s (seq indexes)]
         (mp/get-nd (.get m (int (first s))) (next s))
         m))
+  java.lang.Number
+    (get-1d [m x]
+      (error "Can't do 1D get on a scalar number"))
+    (get-2d [m x y]
+      (error "Can't do 2D get on a scalar number"))
+    (get-nd [m indexes]
+      (if-let [s (seq indexes)]
+        (error "Can't do ND get on a scalar number with indexes: " s)
+        m))
   java.lang.Object
     (get-1d [m x] (mp/get-nd m [x]))
     (get-2d [m x y] (mp/get-nd m [x y]))
@@ -60,7 +69,7 @@
       m)
     (set-0d! [m value]
       (error "Can't set a scalar number!"))
-  java.lang.Number
+  java.lang.Object
     (get-0d [m]
       (mp/get-nd m []))
     (set-0d! [m value]
@@ -94,18 +103,21 @@
 (extend-protocol mp/PAssignment
   java.lang.Object
     (assign! [m x]
-      (cond
-        (mp/is-vector? x)
-          (dotimes [i (mp/dimension-count m 0)]
-            (mp/set-1d m i (mp/get-1d x i)))
-        (array? x)
-          (doall (map (fn [a b] (mp/assign! a b))
-                      (mp/get-major-slice-seq m)
-                      (mp/get-major-slice-seq x)))
-        (.isArray (class x))
-          (mp/assign-array! m x)
-        :else
-          (error "Can't assign to a non-matrix object: " (class m))))
+      (let [dims (mp/dimensionality m)]
+        (cond
+	        (== 1 dims)
+	          (if (.isArray (class x))
+	            (mp/assign-array! m x)
+              (dotimes [i (mp/dimension-count m 0)]
+	              (mp/set-1d m i (mp/get-1d x i))))      
+	        (array? x)
+	          (if (== 0 dims)
+              (mp/set-0d! m (mp/get-0d x))
+	            (doall (map (fn [a b] (mp/assign! a b))
+	                        (mp/get-major-slice-seq m)
+	                        (mp/get-major-slice-seq x))))
+	        :else
+	          (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
       ([m arr]
 	      (let [alen (long (count arr))]
