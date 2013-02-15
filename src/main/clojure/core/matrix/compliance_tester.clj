@@ -96,6 +96,12 @@
         (= (eseq m) (eseq (reshape m [1 c])))
         (= (eseq m) (eseq (reshape m [c 1])))))))
 
+(defn test-slice-assumptions [m]
+  (let [dims (dimensionality m)]
+    (when (> dims 0)
+      (doseq [sl (slices m)]
+        (is (== (dec dims) (dimensionality sl)))
+        (is (= (next (shape m)) (seq (shape sl))))))))
 
 (defn test-general-transpose [m]
   (when (> (ecount m) 0) 
@@ -115,6 +121,7 @@
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-coerce m)
   (test-dimensionality-assumptions m)
+  (test-slice-assumptions m)
   (test-vector-round-trip m)
   (test-reshape m)
   (test-general-transpose m))
