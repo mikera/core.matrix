@@ -105,17 +105,16 @@
     (assign! [m x]
       (let [dims (mp/dimensionality m)]
         (cond
-	        (== 1 dims)
-	          (if (.isArray (class x))
+	        (.isArray (class x))
 	            (mp/assign-array! m x)
-              (dotimes [i (mp/dimension-count m 0)]
-	              (mp/set-1d m i (mp/get-1d x i))))      
-	        (array? x)
-	          (if (== 0 dims)
-              (mp/set-0d! m (mp/get-0d x))
-	            (doall (map (fn [a b] (mp/assign! a b))
-	                        (mp/get-major-slice-seq m)
-	                        (mp/get-major-slice-seq x))))
+          (== 1 dims)
+	          (dotimes [i (mp/dimension-count m 0)]
+	              (mp/set-1d m i (mp/get-1d x i))) 
+          (== 0 dims) (mp/set-0d! m (mp/get-0d x))
+	        (array? m)
+	          (doall (map (fn [a b] (mp/assign! a b))
+	                      (mp/get-major-slice-seq m)
+	                      (mp/get-major-slice-seq x)))
 	        :else
 	          (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
