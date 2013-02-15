@@ -2,13 +2,17 @@
   (:use clojure.test)
   (:use clojure.core.matrix)
   (:require [clojure.core.matrix.operators :as op])
+  (:require [clojure.core.matrix.impl.wrappers :as wrap])
   (:require [clojure.core.matrix.compliance-tester])
   (:require clojure.core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
 (deftest test-regressions
   (testing "vector 3D transpose"
-    (is (= [[[1]]] (transpose [[[1]]])))))
+    (is (= [[[1]]] (transpose [[[1]]]))))
+  (testing "vector wrapper coerce"
+    (is (= 1.0 (coerce [] (wrap/wrap-scalar 1.0))))
+    (is (= [1.0 2.0] (coerce [] (slices (double-array [1 2])))))))
 
 (deftest test-properties
   (is (not (mutable? [1 2])))

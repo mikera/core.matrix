@@ -164,7 +164,7 @@
   "Protocol for assigning values to mutable matrices."
   (assign! 
     [m source] 
-    "Sets all the values in a matrix from a matrix source")
+    "Sets all the values in a matrix from a matrix source.")
   (assign-array!
     [m arr]
     [m arr start length]

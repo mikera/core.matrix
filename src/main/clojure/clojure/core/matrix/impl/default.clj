@@ -71,7 +71,7 @@
       (error "Can't set a scalar number!"))
   java.lang.Object
     (get-0d [m]
-      (mp/get-nd m []))
+      (if (mp/is-scalar? m) m (mp/get-nd m [])))
     (set-0d! [m value]
       (mp/set-nd m [] value)))
 
@@ -105,17 +105,16 @@
     (assign! [m x]
       (let [dims (mp/dimensionality m)]
         (cond
-	        (== 1 dims)
-	          (if (.isArray (class x))
+	        (.isArray (class x))
 	            (mp/assign-array! m x)
-              (dotimes [i (mp/dimension-count m 0)]
-	              (mp/set-1d m i (mp/get-1d x i))))      
-	        (array? x)
-	          (if (== 0 dims)
-              (mp/set-0d! m (mp/get-0d x))
-	            (doall (map (fn [a b] (mp/assign! a b))
-	                        (mp/get-major-slice-seq m)
-	                        (mp/get-major-slice-seq x))))
+          (== 1 dims)
+	          (dotimes [i (mp/dimension-count m 0)]
+	              (mp/set-1d m i (mp/get-1d x i))) 
+          (== 0 dims) (mp/set-0d! m (mp/get-0d x))
+	        (array? m)
+	          (doall (map (fn [a b] (mp/assign! a b))
+	                      (mp/get-major-slice-seq m)
+	                      (mp/get-major-slice-seq x)))
 	        :else
 	          (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
@@ -188,9 +187,9 @@
       (case (long (mp/dimensionality m))
         0 m
         1 m
-        2 (mp/coerce-param m (vec (apply map vector (map 
-                                                      #(mp/coerce-param [] %) 
-                                                      (mp/get-major-slice-seq m)))))
+        2 (mp/coerce-param m (apply mapv vector (map 
+                                                  #(mp/coerce-param [] %) 
+                                                  (mp/get-major-slice-seq m))))
         (mp/coerce-param m 
           (let [ss (map mp/transpose (mp/get-major-slice-seq m))] 
             ;; note than function must come second for mp/element-map   
@@ -409,7 +408,7 @@
       (let [dims (mp/dimensionality m)]
         (cond
           (<= dims 0)
-	          (if (mp/is-scalar? m) m (mp/get-0d m))
+	          (mp/get-0d m)
 	        (== 1 dims)
 	          (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
 	        (array? m)
