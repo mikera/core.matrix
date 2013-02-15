@@ -15,7 +15,8 @@
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
 
 (deftest test-shape
-  (is (= 0 (count (shape 1))))) 
+  (is (= 0 (count (shape 1))))
+  (is (= [2] (seq (int-array [2]))))) 
 
 (deftest test-implementations
   (testing "vector implementation"

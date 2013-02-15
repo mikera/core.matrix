@@ -246,7 +246,7 @@
 
 (defn test-row-column-matrices [im]
   (let [rm (row-matrix im [1 2 3])]
-    (is (= [1 3] (shape rm)))
+    (is (= [1 3] (seq (shape rm))))
     (is (equals [[1 2 3]] rm))
     (is (row-matrix? rm))
     (is (column-matrix? (transpose rm))))
