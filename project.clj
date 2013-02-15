@@ -1,4 +1,4 @@
-(defproject org.clojure-numerics/core.matrix "0.0.8-SNAPSHOT"
+(defproject org.clojure-numerics/core.matrix "0.0.11-SNAPSHOT"
   :url "https://github.com/mikera/matrix-api"
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
