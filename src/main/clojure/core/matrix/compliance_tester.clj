@@ -83,9 +83,17 @@
 (defn test-dimensionality-assumptions [m]
   (testing "shape"
     (is (>= (count (shape m)) 0))
-    (is (= (seq (shape m)) (for [i (range (dimensionality m))] (dimension-count m i)))))
+    (is (= (seq (shape m)) 
+           (seq (for [i (range (dimensionality m))] (dimension-count m i))))))
+  (testing "vectors always have dimensionality == 1"
+    (is (or (= (boolean (vec? m)) (boolean (== 1 (dimensionality m)))) (error "Failed with : " m))))
+  (testing "scalars always have dimensionality == 0"
+    (is (or (not (scalar? m)) (== 0 (dimensionality m)))))
+  (testing "zero-dimensionality"
+    (is (= (zero-dimensional? m) (== 0 (dimensionality m)))))
   (testing "element count"
-    (is (== (ecount m) (reduce * 1 (shape m))))))
+    (is (== (ecount m) (reduce * 1 (shape m))))
+    (is (or (not (scalar? m)) (== 1 (ecount m))))))
 
 (defn test-reshape [m]
   (let [c (ecount m)]
@@ -107,7 +115,8 @@
   (when (> (ecount m) 0) 
     (let [mt (transpose m)]
       (is (e= m (transpose mt)))
-      (is (= (seq (shape m)) (reverse (shape mt)))))))
+      (is (= (seq (shape m)) 
+             (seq (reverse (shape mt))))))))
 
 (defn test-coerce [m]
   (let [vm (mp/convert-to-nested-vectors m)]
@@ -276,7 +285,7 @@
 ;;
 ;; All matrix implementations must pass this test for any valid matrix
 (defn instance-test [m]
-  (test-array-assumptions [m]))
+  (test-array-assumptions m))
 
 ;; ==============================================
 ;; General NDArray test

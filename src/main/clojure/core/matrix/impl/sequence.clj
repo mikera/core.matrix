@@ -6,6 +6,9 @@
   (:require [core.matrix.impl.wrappers :as wrap])
   (:require [core.matrix.multimethods :as mm]))
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
 (extend-protocol mp/PImplementation
   clojure.lang.ISeq
     (implementation-key [m] :sequence)

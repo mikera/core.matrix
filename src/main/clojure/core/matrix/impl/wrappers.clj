@@ -4,6 +4,9 @@
   (:require [core.matrix.implementations :as imp])
   (:require [core.matrix.multimethods :as mm]))
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
 (declare wrap-slice)
 (declare wrap-nd)
 
@@ -135,7 +138,7 @@
   [array ;; source array
    ^longs shape ;; shape of NDWrapper
    ^longs dim-map ;; map of NDWrapper dimensions to source dimensions
-   index-maps ;; maps of each NDWrapper dimension's indexes to source dimension indexes
+   ^objects index-maps ;; maps of each NDWrapper dimension's indexes to source dimension indexes
    ^longs source-position ;; position in source array for non-specified dimensions
    ]
    mp/PImplementation
@@ -183,10 +186,10 @@
         (aset ix (aget dim-map 1) (aget ^longs (aget index-maps 0) column))
         (mp/get-nd array ix)))
     (get-nd [m indexes]
-      (let [ix (copy-long-array source-position)
+      (let [^longs ix (copy-long-array source-position)
             ^longs im (aget index-maps 0)]
         (dotimes [i (alength shape)]
-          (aset ix (aget dim-map i) (aget ^longs (aget index-maps i) (aget indexes i))))
+          (aset ix (aget dim-map i) (aget ^longs (aget index-maps i) (nth indexes i))))
         (mp/get-nd array ix))))
   
 
@@ -203,9 +206,11 @@
               (long-array (repeat dims 0)))))
 
 (defn wrap-scalar [m]
-  (if (mp/is-scalar? m)
-    (ScalarWrapper. m)
-    m))
+  (cond 
+    (mp/is-scalar? m)
+      (ScalarWrapper. m)
+    :else 
+      (ScalarWrapper. (mp/get-0d m))))
 
 (imp/register-implementation (NDWrapper. nil nil nil nil nil))
 

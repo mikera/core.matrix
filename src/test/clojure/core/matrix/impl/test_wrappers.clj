@@ -9,7 +9,15 @@
   (is (== 0 (dimensionality (wrap-nd 7))))
   (is (== 1 (dimensionality (wrap-nd [7]))))
   (is (not (scalar? (wrap-nd 7))))
+  (is (not (vec? (wrap-nd 7))))
+  (is (vec? (wrap-nd [7])))
   (is (equals 7 (wrap-nd 7))))
+
+(deftest scalar-assumptions
+  (is (== 0 (dimensionality (wrap-scalar 7))))
+  (is (not (scalar? (wrap-scalar 7))))
+  (is (not (vec? (wrap-scalar 7))))
+  (is (zero-dimensional? (wrap-scalar 7))))
 
 (deftest test-wrapped-slice
   (let [m (wrap-slice [[1 2] [3 4]] 1)]

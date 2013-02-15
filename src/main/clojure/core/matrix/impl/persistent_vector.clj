@@ -45,15 +45,17 @@
 
 (defn persistent-vector-coerce [x]
   "Coerces to nested persistent vectors"
-  (cond
-    (mp/is-scalar? x) x
-    (clojure.core/vector? x) (mapv mp/convert-to-nested-vectors x) 
-    (> (mp/dimensionality x) 0) (mp/convert-to-nested-vectors x) 
-    (instance? java.util.List x) (coerce-nested x)
-    (instance? java.lang.Iterable x) (coerce-nested x)
-    (sequential? x) (coerce-nested x)
-    (.isArray (class x)) (vec (seq x)) 
-    :default (error "Can't coerce to vector: " (class x))))
+  (let [dims (mp/dimensionality x)] 
+    (cond
+	    (mp/is-scalar? x) x
+      (> dims 0) (mp/convert-to-nested-vectors x) 
+	    (clojure.core/vector? x) (mapv mp/convert-to-nested-vectors x) 
+	    (instance? java.util.List x) (coerce-nested x)
+	    (instance? java.lang.Iterable x) (coerce-nested x)
+	    (sequential? x) (coerce-nested x)
+	    (.isArray (class x)) (vec (seq x)) 
+	    (== dims 0) (mp/get-0d x)
+	    :default (error "Can't coerce to vector: " (class x)))))
 
 (defn vector-dimensionality ^long [m]
   "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
