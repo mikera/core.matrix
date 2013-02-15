@@ -189,7 +189,7 @@
     (== (mp/dimensionality m) 2)))
 
 (defn vec?
-  "Returns true if the parameter is a vector"
+  "Returns true if the parameter is a vector (1-dimensional array)"
   ([m]
     (mp/is-vector? m)))
 
@@ -198,6 +198,11 @@
    A 0-d array containing a scalar is *not* itself a scalar value."
   ([m]
     (mp/is-scalar? m)))
+
+(defn zero-dimensional?
+  "Returns true if the parameter has zero dimensions. i.e. it is a 0-d array or a scalar value."
+  [m]
+  (== 0 (mp/dimensionality m)))
 
 (defn element-type
   "Returns the class of elements in the array."
