@@ -1,4 +1,4 @@
-package core.matrix;
+package clojure.core.matrix;
 
 // A lightweight typed binary tuple for pairs of Class instances.
 // This is designed to speed up binary multimethod dispatch, and does

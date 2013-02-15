@@ -1,4 +1,4 @@
-(ns core.matrix.impl.mathsops)
+(ns clojure.core.matrix.impl.mathsops)
 
 ;; data structure for code generation of maths operations
 

@@ -1,8 +1,8 @@
-(ns core.matrix.test-operators
+(ns clojure.core.matrix.test-operators
   (:use clojure.test)
-  (:use core.matrix)
-  (:use core.matrix.operators)
-  (:require core.matrix.impl.persistent-vector)
+  (:use clojure.core.matrix)
+  (:use clojure.core.matrix.operators)
+  (:require clojure.core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [* - + /]))
 
 (deftest test-multiply

@@ -1,8 +1,8 @@
-(ns core.matrix.impl.wrappers
-  (:require [core.matrix.protocols :as mp])
-  (:use core.matrix.utils)
-  (:require [core.matrix.implementations :as imp])
-  (:require [core.matrix.multimethods :as mm]))
+(ns clojure.core.matrix.impl.wrappers
+  (:require [clojure.core.matrix.protocols :as mp])
+  (:use clojure.core.matrix.utils)
+  (:require [clojure.core.matrix.implementations :as imp])
+  (:require [clojure.core.matrix.multimethods :as mm]))
 
 ;; =============================================
 ;; SliceWrapper

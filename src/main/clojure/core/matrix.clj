@@ -1,28 +1,28 @@
-(ns core.matrix
-  (:use core.matrix.utils)
-  (:require [core.matrix.impl double-array ndarray persistent-vector wrappers])
-  (:require [core.matrix.impl sequence]) ;; TODO: figure out if we want this?
-  (:require [core.matrix.multimethods :as mm])
-  (:require [core.matrix.protocols :as mp])
-  (:require [core.matrix.implementations :as imp])
-  (:require [core.matrix.impl.mathsops :as mops]))
+(ns clojure.core.matrix
+  (:use clojure.core.matrix.utils)
+  (:require [clojure.core.matrix.impl double-array ndarray persistent-vector wrappers])
+  (:require [clojure.core.matrix.impl sequence]) ;; TODO: figure out if we want this?
+  (:require [clojure.core.matrix.multimethods :as mm])
+  (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.implementations :as imp])
+  (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
 ;; ==================================================================================
-;; core.matrix API namespace
+;; clojure.core.matrix API namespace
 ;;
-;; This is the public API for core.matrix
+;; This is the public API for clojure.core.matrix
 ;;
 ;; General handling of operations is as follows:
 ;; 
-;; 1. user calls public AI function defined in core.matrix
-;; 2. core.matrix function delegates to a protocol for the appropriate function
-;;    with protocols as defined in the core.matrix.protocols namespace. In most cases
-;;    core.matrix will try to delagate as quickly as possible to the implementation.
+;; 1. user calls public AI function defined in clojure.core.matrix
+;; 2. clojure.core.matrix function delegates to a protocol for the appropriate function
+;;    with protocols as defined in the clojure.core.matrix.protocols namespace. In most cases
+;;    clojure.core.matrix will try to delagate as quickly as possible to the implementation.
 ;; 3. The underlying matrix implementation implements the protocol to handle the API
 ;;    function call
 ;; 4. It's up to the implementation to decide what to do then
 ;; 5. If the implementation does not understand one or more parameters, then it is
-;;    expected to call the multimethod version in core.matrix.multimethods as this
+;;    expected to call the multimethod version in clojure.core.matrix.multimethods as this
 ;;    will allow an alternative implementation to be found via multiple dispatch
 ;;
 ;; ==================================================================================
@@ -49,7 +49,7 @@
   ([data]
     (if-let [m (current-implementation-object)]
       (mp/construct-matrix m data)
-      (error "No core.matrix implementation available")))
+      (error "No clojure.core.matrix implementation available")))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) data)))
 
@@ -65,7 +65,7 @@
   ([data]
     (if-let [m (current-implementation-object)]
       (mp/construct-matrix m data)
-      (error "No core.matrix implementation available")))
+      (error "No clojure.core.matrix implementation available")))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) data)))
 
@@ -74,7 +74,7 @@
   ([length]
     (if-let [m (current-implementation-object)]
       (mp/new-vector m length)
-      (error "No core.matrix implementation available")))
+      (error "No clojure.core.matrix implementation available")))
   ([length implementation]
     (mp/new-vector (imp/get-canonical-object implementation) length)))
 
@@ -83,7 +83,7 @@
   ([rows columns]
     (if-let [ik (current-implementation)]
       (mp/new-matrix (imp/get-canonical-object ik) rows columns)
-      (error "No core.matrix implementation available"))))
+      (error "No clojure.core.matrix implementation available"))))
 
 (defn new-array
   "Creates a new array with the given dimensions. "
@@ -92,14 +92,14 @@
   ([dim-1 dim-2 & more-dim]
     (if-let [ik (current-implementation)]
       (mp/new-matrix-nd (imp/get-canonical-object ik) (cons dim-1 (cons dim-2 more-dim)))
-      (error "No core.matrix implementation available"))))
+      (error "No clojure.core.matrix implementation available"))))
 
 (defn row-matrix
   "Constucts a row matrix with the given values. The returned matrix is a 2D 1xN row matrix."
   ([data]
    (if-let [ik (current-implementation)]
       (mp/construct-matrix (imp/get-canonical-object ik) (vector data))
-      (error "No core.matrix implementation available")))
+      (error "No clojure.core.matrix implementation available")))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) (vector data))))
 
@@ -108,7 +108,7 @@
   ([data]
    (if-let [ik (current-implementation)]
       (mp/construct-matrix (imp/get-canonical-object ik) (map vector data))
-      (error "No core.matrix implementation available")))
+      (error "No clojure.core.matrix implementation available")))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) (map vector data))))
 
@@ -541,11 +541,11 @@
   `(do ~@(map (fn [[name func]]
            `(defn ~name
               ([~'m]
-                (~(symbol "core.matrix.protocols" (str name)) ~'m)))) mops/maths-ops)
+                (~(symbol "clojure.core.matrix.protocols" (str name)) ~'m)))) mops/maths-ops)
      ~@(map (fn [[name func]]
            `(defn ~(symbol (str name "!"))
               ([~'m]
-                (~(symbol "core.matrix.protocols" (str name "!")) ~'m)))) mops/maths-ops))
+                (~(symbol "clojure.core.matrix.protocols" (str name "!")) ~'m)))) mops/maths-ops))
        )
 
 ;; ====================================
@@ -929,7 +929,7 @@
 (extend-protocol mp/PSliceView
   java.lang.Object
     ;; default implementation uses a lightweight wrapper object
-    (get-major-slice-view [m i] (core.matrix.impl.wrappers/wrap-slice m i)))
+    (get-major-slice-view [m i] (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
 
 (extend-protocol mp/PSliceSeq
   java.lang.Object
@@ -1032,7 +1032,7 @@
 
 (defn current-implementation
   "Gets the currently active matrix implementation"
-  ([] core.matrix/*matrix-implementation*))
+  ([] clojure.core.matrix/*matrix-implementation*))
 
 (defn current-implementation-object
   "Gets the currently active matrix implementation"
@@ -1041,5 +1041,5 @@
 (defn set-current-implementation
   "Sets the currently active matrix implementation"
   ([m]
-    (alter-var-root (var core.matrix/*matrix-implementation*)
+    (alter-var-root (var clojure.core.matrix/*matrix-implementation*)
                     (fn [_] (imp/get-implementation-key m)))))

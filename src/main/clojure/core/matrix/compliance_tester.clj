@@ -1,14 +1,14 @@
-(ns core.matrix.compliance-tester
-  (:use core.matrix)
+(ns clojure.core.matrix.compliance-tester
+  (:use clojure.core.matrix)
   (:use clojure.test)
-  (:require [core.matrix.implementations :as imp])
-  (:use core.matrix.utils))
+  (:require [clojure.core.matrix.implementations :as imp])
+  (:use clojure.core.matrix.utils))
 
 ;; ====================================
 ;; COMPLIANCE TESTING
 ;;
 ;; test suite that implementations can call to test
-;; adherence to core.matrix API contracts
+;; adherence to clojure.core.matrix API contracts
 ;;
 ;; Note that tests need to be written in a very generic way
 ;; - they can't assume anything other than documented API behaviour!

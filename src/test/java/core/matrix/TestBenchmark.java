@@ -1,4 +1,4 @@
-package core.matrix;
+package clojure.core.matrix;
 
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;

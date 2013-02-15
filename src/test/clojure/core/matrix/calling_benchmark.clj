@@ -1,6 +1,6 @@
-(ns core.matrix.calling-benchmark
+(ns clojure.core.matrix.calling-benchmark
   (:require [criterium.core :as c])
-  (:import [core.matrix ClassPair]))
+  (:import [clojure.core.matrix ClassPair]))
 
 ;; benchmark for a few different calling conventions
 

@@ -1,14 +1,14 @@
-(ns core.matrix.impl.ndarray
-  (:require [core.matrix.protocols :as mp])
-  (:use core.matrix.utils)
-  (:require [core.matrix.implementations :as imp])
-  (:require [core.matrix.multimethods :as mm])
+(ns clojure.core.matrix.impl.ndarray
+  (:require [clojure.core.matrix.protocols :as mp])
+  (:use clojure.core.matrix.utils)
+  (:require [clojure.core.matrix.implementations :as imp])
+  (:require [clojure.core.matrix.multimethods :as mm])
   (:refer-clojure :exclude [vector?]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
-;; Lightweight support for n-dimensional arrays of arbitrary objects conforming to core.matrix API 
+;; Lightweight support for n-dimensional arrays of arbitrary objects conforming to clojure.core.matrix API 
 ;; 1D / 2D arrays of java.lang.Number can be safely used as vectors and matrices respectively
 
 ;; utility functions
@@ -88,7 +88,7 @@
 
 
 ;; =======================================================
-;; N-dimensional view over an arbitrary core.matrix object
+;; N-dimensional view over an arbitrary clojure.core.matrix object
 
 ;; can represent slices, transposes etc.
 ;; can also allow in-place modification of original array

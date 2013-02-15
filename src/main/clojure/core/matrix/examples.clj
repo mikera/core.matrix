@@ -1,10 +1,10 @@
-(ns core.matrix.examples
+(ns clojure.core.matrix.examples
   (:refer-clojure :exclude [* - +])
-  (:use core.matrix)
-  (:use core.matrix.operators))
+  (:use clojure.core.matrix)
+  (:use clojure.core.matrix.operators))
 
 ;; =============================================================
-;; Set of core.matrix examples
+;; Set of clojure.core.matrix examples
 
 (defn all-examples []
   ;; a matrix can be defined using a nested vector
@@ -13,7 +13,7 @@
   ;; a matrix can be a pure clojure value 
   a
   
-  ;; core.matrix.operators overloads operators to work on matrices
+  ;; clojure.core.matrix.operators overloads operators to work on matrices
   (* a a)
   
   ;; a range of mathematical functions are defined for matrices
