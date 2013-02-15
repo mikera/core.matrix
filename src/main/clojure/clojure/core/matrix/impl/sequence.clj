@@ -57,6 +57,11 @@
   clojure.lang.ISeq
     (get-major-slice-seq [m] m))
 
+(extend-protocol mp/PConversion
+  clojure.lang.ISeq
+    (convert-to-nested-vectors [m]
+      (mapv mp/convert-to-nested-vectors m)))
+
 (extend-protocol mp/PDimensionInfo
   clojure.lang.ISeq
     (dimensionality [m]

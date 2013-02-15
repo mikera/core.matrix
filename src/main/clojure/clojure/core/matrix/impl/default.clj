@@ -71,7 +71,7 @@
       (error "Can't set a scalar number!"))
   java.lang.Object
     (get-0d [m]
-      (mp/get-nd m []))
+      (if (mp/is-scalar? m) m (mp/get-nd m [])))
     (set-0d! [m value]
       (mp/set-nd m [] value)))
 
@@ -188,9 +188,9 @@
       (case (long (mp/dimensionality m))
         0 m
         1 m
-        2 (mp/coerce-param m (vec (apply map vector (map 
-                                                      #(mp/coerce-param [] %) 
-                                                      (mp/get-major-slice-seq m)))))
+        2 (mp/coerce-param m (apply mapv vector (map 
+                                                  #(mp/coerce-param [] %) 
+                                                  (mp/get-major-slice-seq m))))
         (mp/coerce-param m 
           (let [ss (map mp/transpose (mp/get-major-slice-seq m))] 
             ;; note than function must come second for mp/element-map   
@@ -409,7 +409,7 @@
       (let [dims (mp/dimensionality m)]
         (cond
           (<= dims 0)
-	          (if (mp/is-scalar? m) m (mp/get-0d m))
+	          (mp/get-0d m)
 	        (== 1 dims)
 	          (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
 	        (array? m)

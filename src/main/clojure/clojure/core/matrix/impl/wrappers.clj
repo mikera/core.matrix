@@ -58,6 +58,11 @@
         (error "Can't get-1d on ScalarWrapper.")
         value))
     
+  ;; in nested vector format, we don't want the wrapper....  
+  mp/PConversion
+    (convert-to-nested-vectors [m]
+      value)
+    
   mp/PZeroDimensionAccess
     (get-0d [m]
       value)
@@ -113,6 +118,12 @@
       (mp/get-1d array slice))
     (set-0d! [m value]
       (mp/set-1d array slice value))
+    
+  mp/PConversion
+    (convert-to-nested-vectors [m]
+      (if (mp/is-vector? array) 
+        (mp/get-1d array slice)
+        (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))))
     
   mp/PIndexedSetting
     (set-1d [m row v]
