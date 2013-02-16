@@ -1,25 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>mikera</groupId>
-	<artifactId>matrix-api</artifactId>
-	<version>0.0.4-SNAPSHOT</version>
+	<artifactId>core.matrix</artifactId>
+	<version>0.1.2-SNAPSHOT</version>
 
 	<parent>
 		<groupId>net.mikera</groupId>
 		<artifactId>clojure-pom</artifactId>
-		<version>0.0.3</version>
+		<version>0.0.4</version>
 	</parent>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.clojure</groupId>
-			<artifactId>clojure</artifactId>
-			<version>1.4.0</version>
-		</dependency>
-		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>cljunit</artifactId>
-			<version>0.1.4</version>
+			<version>0.2.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -34,6 +28,11 @@
 			<artifactId>criterium</artifactId>
 			<version>0.3.1</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.clojure</groupId>
+			<artifactId>clojure</artifactId>
+			<version>1.4.0</version>
 		</dependency>
 	</dependencies>
 
@@ -53,9 +52,9 @@
 	</repositories>
 
 	<scm>
-		<connection>scm:git:git@github.com:mikera/${project.artifactId}.git</connection>
-		<url>scm:git:git@github.com:mikera/${project.artifactId}.git</url>
-		<developerConnection>scm:git:git@github.com:mikera/${project.artifactId}.git</developerConnection>
+		<connection>scm:git:git@github.com:clojure-numerics/core.matrix.git</connection>
+		<url>scm:git:git@github.com:clojure-numerics/core.matrix.git</url>
+		<developerConnection>scm:git:git@github.com:clojure-numerics/core.matrix.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
 </project>
