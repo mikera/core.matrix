@@ -61,12 +61,6 @@
   (get-2d [m row column])
   (get-nd [m indexes]))
 
-;; ===================================================================================
-;; MANDATORY PROTOCOLS FOR MUTABLE MATRICES
-;;
-;; A compliant clojure.core.matrix mutable implementation must implement these.
-;; Otherwise things will fail.
-
 (defprotocol PIndexedSetting
   "Protocol for indexed setter access to matrices and vectors.
    Must be supported for any mutable matrix type."
@@ -74,6 +68,19 @@
   (set-2d [m row column v])
   (set-nd [m indexes v])
   (is-mutable? [m]))
+
+;; ===================================================================================
+;; MANDATORY PROTOCOLS FOR MUTABLE MATRICES
+;;
+;; A compliant clojure.core.matrix mutable implementation must implement these.
+;; Otherwise things will fail.
+
+(defprotocol PIndexedSettingMutable
+  "Protocol for indexed setter access to matrices and vectors.
+   Must be supported for any mutable matrix type."
+  (set-1d! [m row v])
+  (set-2d! [m row column v])
+  (set-nd! [m indexes v]))
 
 (defprotocol PMatrixCloning
   "Protocol for cloning a matrix value."
