@@ -96,20 +96,22 @@
     (is (or (not (scalar? m)) (== 1 (ecount m))))))
 
 (defn test-mutable-assumptions [m]
-  (when (and (mutable? m) (> 0 (ecount m)))
-    (let [cm (clone m)
-          ix (first (index-seq m))
-          v1 (first (eseq m))
-          v2 (if (and (number? v1) (== v1 0)) 1 0)]
-      (apply mset! cm (concat ix [v2]))
-      (is (equals v1 (apply mget m ix)))
-      (is (equals v2 (apply mget cm ix)))))
-  (when (not (mutable? m))
-    (let [cm (clone m)
-          ix (first (index-seq m))
-          v1 (first (eseq m))
-          v2 (if (and (number? v1) (== v1 0)) 1 0)]
-      (is (thrown? Throwable (apply mset! cm (concat ix [v2])))))))
+  (testing "modifying a cloned mutable array does not modify the original" 
+    (when (and (mutable? m) (> 0 (ecount m)))
+	    (let [cm (clone m)
+	          ix (first (index-seq m))
+	          v1 (first (eseq m))
+	          v2 (if (and (number? v1) (== v1 0)) 1 0)]
+	      (apply mset! cm (concat ix [v2]))
+	      (is (equals v1 (apply mget m ix)))
+	      (is (equals v2 (apply mget cm ix))))))
+  (testing "attempt to modify an immutable array results in an exception"
+    (when (not (mutable? m))
+	    (let [cm (clone m)
+	          ix (first (index-seq m))
+	          v1 (first (eseq m))
+	          v2 (if (and (number? v1) (== v1 0)) 1 0)]
+	      (is (thrown? Throwable (apply mset! cm (concat ix [v2]))))))))
 
 (defn test-reshape [m]
   (let [c (ecount m)]
@@ -125,7 +127,9 @@
     (when (> dims 0)
       (doseq [sl (slices m)]
         (is (== (dec dims) (dimensionality sl)))
-        (is (= (next (shape m)) (seq (shape sl))))))))
+        (is (= (next (shape m)) (seq (shape sl)))))
+      (if-let [ss (seq (slices m))]
+        (is (= (mutable? (first ss)) (mutable? m)))))))
 
 (defn test-general-transpose [m]
   (when (> (ecount m) 0) 
