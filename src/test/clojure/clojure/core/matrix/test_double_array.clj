@@ -2,6 +2,7 @@
   (:use clojure.test)
   (:use clojure.core.matrix)
   (:require [clojure.core.matrix.operators :as op])
+  (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.compliance-tester])
   (:require clojure.core.matrix.impl.double-array))
 
@@ -61,7 +62,7 @@
       (is (= [2.0 4.0] (seq da)))))
   (testing "assign from a Number array"
     (let [da (double-array [1 2])]
-      (assign! da (into-array java.lang.Number [2 5])) 
+      (mp/assign-array! da (into-array java.lang.Number [2 5])) 
       (is (= [2.0 5.0] (seq da))))))
 
 (deftest test-equals

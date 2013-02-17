@@ -36,8 +36,8 @@
       (mapv (partial mapmatrix f) m)))
   ([f m1 m2]
     (if (mp/is-vector? m1)
-      (mapv f m1 m2)
-      (mapv (partial mapmatrix f) m1 m2)))
+      (mapv f m1 (mp/element-seq m2))
+      (mapv (partial mapmatrix f) m1 (mp/get-major-slice-seq  m2))))
   ([f m1 m2 & more]
     (if (mp/is-vector? m1)
       (apply mapv f m1 m2 more)

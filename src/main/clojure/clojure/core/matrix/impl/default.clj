@@ -66,6 +66,11 @@
 
 
 (extend-protocol mp/PZeroDimensionAccess
+  nil
+    (get-0d [m]
+      nil)
+    (set-0d! [m value]
+      (error "Can't set the value of nil!"))
   java.lang.Number
     (get-0d [m]
       m)
@@ -75,7 +80,7 @@
     (get-0d [m]
       (if (mp/is-scalar? m) m (mp/get-nd m [])))
     (set-0d! [m value]
-      (mp/set-nd m [] value)))
+      (mp/set-nd! m [] value)))
 
 (extend-protocol mp/PIndexedSetting
   java.lang.Object
@@ -124,8 +129,6 @@
     (assign! [m x]
       (let [dims (mp/dimensionality m)]
         (cond
-	        (.isArray (class x))
-	            (mp/assign-array! m x)
           (== 1 dims)
 	          (dotimes [i (mp/dimension-count m 0)]
 	              (mp/set-1d! m i (mp/get-1d x i))) 
@@ -152,7 +155,7 @@
 	          (let [ss (seq (mp/get-major-slice-seq m))
 	                skip (long (if ss (element-count (first (mp/get-major-slice-seq m))) 0))]
 	            (doseq-indexed [s ss i]
-	              (mp/assign-array! s arr (* skip i) skip))))))))
+	              (mp/assign-array! s arr (+ start (* skip i)) skip))))))))
 
 (extend-protocol mp/PMatrixCloning
 	  java.lang.Cloneable
@@ -235,7 +238,7 @@
 ;; matrix element summation
 (extend-protocol mp/PSummable
   java.lang.Number
-    (sum [a] a)
+    (element-sum [a] a)
   java.lang.Object
     (element-sum [a]
       (mp/element-reduce a +)))
@@ -374,9 +377,9 @@
         (mp/assign! m (mp/element-map m f a more))))
     (element-reduce
       ([m f]
-        (mp/coerce-param m (mp/element-reduce (mp/convert-to-nested-vectors m) f)))
+        (reduce f (mp/element-seq m)))
       ([m f init]
-        (mp/coerce-param m (mp/element-reduce (mp/convert-to-nested-vectors m) f init))))
+        (reduce f init (mp/element-seq m))))
   nil
     (element-seq [m] nil)
     (element-map
@@ -418,6 +421,9 @@
 
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
+  nil
+    (convert-to-nested-vectors [m]
+      nil)
   java.lang.Number
     (convert-to-nested-vectors [m]
       ;; we accept a scalar as a "nested vector" for these purposes?

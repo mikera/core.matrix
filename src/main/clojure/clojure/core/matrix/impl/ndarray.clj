@@ -17,9 +17,15 @@
   (^long [^longs dims]
     (let [c (count dims)]
       (loop [i (long 0) result (long 1)]
-        (if (>= 0 c)
+        (if (>= i c)
           result
           (recur (inc i) (* result (aget dims i))))))))
+
+(defn calc-index
+  (^long [indexes ^longs shape]
+    (areduce shape i result 0 
+                           (+ (long (nth indexes i)) 
+                              (* result (aget shape i)))))) 
 
 ;; =======================================================
 ;; N-dimensional array object
@@ -52,16 +58,28 @@
     (get-1d [m x]
       (aget data x))
     (get-2d [m x y]
-      (let [ystride (long (aget shape 1))]
-        (aget data (+ (long x) (* ystride (long y))))))
+      (let [stride (long (aget shape 1))]
+        (aget data (+ (long y) (* stride (long x))))))
     (get-nd [m indexes]
       (let [ndims (count shape)
-            index (areduce shape i result 0 
-                           (+ (long (nth indexes i)) 
-                              (if (> i 0) 
-                                (* result (aget shape (dec i)))
-                                0)))]
+            index (calc-index indexes shape)]
         (aget data index))) 
+    
+  mp/PIndexedSetting
+    (set-1d [m row v]
+      (let [m (mp/clone m)]
+        (mp/set-1d! m row v)
+        m))
+    (set-2d [m row column v]
+      (let [m (mp/clone m)]
+        (mp/set-2d! m row column v)
+        m))
+    (set-nd [m indexes v]
+      (let [m (mp/clone m)]
+        (mp/set-nd! m indexes v)
+        m))
+    (is-mutable? [m]
+      true)
     
   mp/PDimensionInfo
     (get-shape [m]
@@ -75,20 +93,22 @@
     (dimension-count [m x]
       (aget shape x))
     
+  mp/PConversion
+    (convert-to-nested-vectors [m]
+      (if (== 1 (alength shape))
+        (into [] data)
+        (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))))
+    
   mp/PIndexedSettingMutable
     (set-1d! [m x v]
       (aset data x v))
     (set-2d! [m x y v]
-      (let [ystride (long (aget shape 1))]
-        (aset data (+ (long x) (* ystride (long y))) v)))
+      (let [stride (long (aget shape 1))]
+        (aset data (+ (long y) (* stride (long x))) v)))
     (set-nd! [m indexes v]
       (let [ndims (count shape)
-            index (areduce shape i result 0 
-                           (+ (long (nth indexes i)) 
-                              (if (> i 0) 
-                                (* result (aget shape (dec i)))
-                                0)))]
-        (aget data index v)))
+            index (calc-index indexes shape)]
+        (aset data index v)))
     
     ;; TODO: implementations of other protocols for ND arrays
     )

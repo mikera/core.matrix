@@ -156,6 +156,13 @@
     (mp/assign! m a)
     m))
 
+(defn assign-array!
+  "Assigns values to a matrix from an array.
+   Returns the mutated matrix"
+  ([m a]
+    (mp/assign-array! m a)
+    m))
+
 (defn clone
   "Constructs a clone of the matrix, using the same implementation. This function is intended to
    allow safe defensive copying of matrices / vectors.

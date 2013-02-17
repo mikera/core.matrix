@@ -222,7 +222,7 @@
           (error "Problem: coerced object not mutable?"))
         (scale! m 0.0)
         (is (== 0.0 (first (eseq m))))
-        (assign! m arr)
+        (assign-array! m arr)
         (is (every? true? (map == vs (eseq m))))))))
 
 (defn test-array-interop [im]
