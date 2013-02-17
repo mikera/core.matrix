@@ -86,33 +86,6 @@
     (NDArray. (object-array asize)
               dims)))
 
-
-;; =======================================================
-;; N-dimensional view over an arbitrary clojure.core.matrix object
-
-;; can represent slices, transposes etc.
-;; can also allow in-place modification of original array
-
-(deftype NDView
-  [source
-   ^longs dims
-   ^longs strides
-   ^long offset])
-
-;; =======================================================
-;; N-dimensional view over an array
-;; 
-;; like NDArrayView, but specialised for array source
-
-(deftype NDArrayView
-  [^objects data
-   ^longs dims
-   ^longs strides
-   ^long offset]
-  
-   ;; TODO: implementations of other protocols for ND array views
-  )
-
 ;; =====================================
 ;; Register implementation
 
