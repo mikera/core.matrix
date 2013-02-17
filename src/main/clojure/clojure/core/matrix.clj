@@ -652,18 +652,19 @@
 ;; Implementation management functions
 
 (defn current-implementation
-  "Gets the currently active matrix implementation"
+  "Gets the currently active matrix implementation (as a keyword)"
   ([] clojure.core.matrix/*matrix-implementation*))
 
 (defn current-implementation-check
-  "Gets the currently active matrix implementation. Throws an exception if none is available."
+  "Gets the currently active matrix implementation (as a keyword). Throws an exception if none is available."
   ([] 
     (if-let [im clojure.core.matrix/*matrix-implementation*]
       im
       (error "No clojure.core.matrix implementation available"))))
 
 (defn current-implementation-object
-  "Gets the currently active matrix implementation"
+  "Gets the a canonical object for the currently active matrix implementation. This object
+   can be used to pass as an implementation parameter, or to query implementation internals."
   ([] (imp/get-canonical-object (current-implementation))))
 
 (defn set-current-implementation
