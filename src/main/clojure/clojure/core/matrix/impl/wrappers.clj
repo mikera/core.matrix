@@ -124,16 +124,30 @@
       (if (mp/is-vector? array) 
         (mp/get-1d array slice)
         (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))))
-    
+
   mp/PIndexedSetting
     (set-1d [m row v]
-      (mp/set-2d array slice row v))
+      (let [m (mp/clone m)]
+        (mp/set-1d! m row v)
+        m))
     (set-2d [m row column v]
-      (mp/set-nd array [slice row column] v))
+      (let [m (mp/clone m)]
+        (mp/set-2d! m row column v)
+        m))
     (set-nd [m indexes v]
-      (mp/set-nd array (cons slice indexes) v))
+      (let [m (mp/clone m)]
+        (mp/set-nd! m indexes v)
+        m))
     (is-mutable? [m]
       (mp/is-mutable? array))
+    
+  mp/PIndexedSettingMutable
+    (set-1d! [m row v]
+      (mp/set-2d array slice row v))
+    (set-2d! [m row column v]
+      (mp/set-nd array [slice row column] v))
+    (set-nd! [m indexes v]
+      (mp/set-nd array (cons slice indexes) v))
     
   mp/PMatrixCloning
     (clone [m] (wrap-slice (mp/clone array) slice)))

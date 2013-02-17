@@ -63,6 +63,8 @@
         (error "Indexed get failed, not defined for:" (class m))
         (if (mp/is-scalar? m) m (mp/get-0d m)))))
 
+
+
 (extend-protocol mp/PZeroDimensionAccess
   java.lang.Number
     (get-0d [m]
@@ -74,6 +76,23 @@
       (if (mp/is-scalar? m) m (mp/get-nd m [])))
     (set-0d! [m value]
       (mp/set-nd m [] value)))
+
+(extend-protocol mp/PIndexedSetting
+  java.lang.Object
+    (set-1d [m row v]
+      (let [m (mp/clone m)]
+        (mp/set-1d! m row v)
+        m))
+    (set-2d [m row column v]
+      (let [m (mp/clone m)]
+        (mp/set-2d! m row column v)
+        m))
+    (set-nd [m indexes v]
+      (let [m (mp/clone m)]
+        (mp/set-nd! m indexes v)
+        m))
+    (is-mutable? [m]
+      true))
 
 (extend-protocol mp/PVectorOps
   java.lang.Number
