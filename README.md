@@ -1,5 +1,5 @@
-matrix-api
-==========
+core.matrix
+===========
 
 N-dimensional Array / Matrix / Vector API for Clojure.
 
