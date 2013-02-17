@@ -13,9 +13,9 @@
 ;; =============================================
 ;; ScalarWrapper
 ;;
-;; wraps a single scalar as an 0-D array
+;; wraps a single scalar as a mutable 0-D array
 
-(deftype ScalarWrapper [value]
+(deftype ScalarWrapper [^{:volatile-mutable true} value]
   java.lang.Object
     (toString [m] (str value))
        
@@ -58,6 +58,17 @@
         (error "Can't get-1d on ScalarWrapper.")
         value))
     
+  mp/PIndexedSetting
+    (set-1d [m x v]
+      (error "Can't do 1D set on 0D array"))
+    (set-2d [m x y v]
+      (error "Can't do 2D set on 0D array"))
+    (set-nd [m indexes v]
+      (if (not (seq indexes)) 
+        (ScalarWrapper. v)
+        (error "Can't set on 0D array with dimensionality: " (count indexes))))
+    (is-mutable? [m] true)
+    
   ;; in nested vector format, we don't want the wrapper....  
   mp/PConversion
     (convert-to-nested-vectors [m]
@@ -66,8 +77,8 @@
   mp/PZeroDimensionAccess
     (get-0d [m]
       value)
-    (set-0d! [m value]
-      (error "Can't set on immutable ScalarWrapper"))
+    (set-0d! [m v]
+      (set! value v))
     
   mp/PMatrixCloning
     (clone [m] (ScalarWrapper. value)))
