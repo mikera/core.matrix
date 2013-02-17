@@ -95,6 +95,22 @@
     (is (== (ecount m) (reduce * 1 (shape m))))
     (is (or (not (scalar? m)) (== 1 (ecount m))))))
 
+(defn test-mutable-assumptions [m]
+  (when (and (mutable? m) (> 0 (ecount m)))
+    (let [cm (clone m)
+          ix (first (index-seq m))
+          v1 (first (eseq m))
+          v2 (if (and (number? v1) (== v1 0)) 1 0)]
+      (apply mset! cm (concat ix [v2]))
+      (is (equals v1 (apply mget m ix)))
+      (is (equals v2 (apply mget cm ix)))))
+  (when (not (mutable? m))
+    (let [cm (clone m)
+          ix (first (index-seq m))
+          v1 (first (eseq m))
+          v2 (if (and (number? v1) (== v1 0)) 1 0)]
+      (is (thrown? Throwable (apply mset! cm (concat ix [v2])))))))
+
 (defn test-reshape [m]
   (let [c (ecount m)]
     (when (> c 0)
@@ -131,6 +147,7 @@
   (test-coerce m)
   (test-dimensionality-assumptions m)
   (test-slice-assumptions m)
+  (test-mutable-assumptions m)
   (test-vector-round-trip m)
   (test-reshape m)
   (test-general-transpose m))

@@ -143,11 +143,11 @@
     
   mp/PIndexedSettingMutable
     (set-1d! [m row v]
-      (mp/set-2d array slice row v))
+      (mp/set-2d! array slice row v))
     (set-2d! [m row column v]
-      (mp/set-nd array [slice row column] v))
+      (mp/set-nd! array [slice row column] v))
     (set-nd! [m indexes v]
-      (mp/set-nd array (cons slice indexes) v))
+      (mp/set-nd! array (cons slice indexes) v))
     
   mp/PMatrixCloning
     (clone [m] (wrap-slice (mp/clone array) slice)))
