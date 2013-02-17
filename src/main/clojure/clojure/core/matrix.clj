@@ -34,6 +34,7 @@
 ;; matrix construction functions
 
 (declare current-implementation)
+(declare current-implementation-check)
 (declare current-implementation-object)
 (def ^:dynamic *matrix-implementation* :persistent-vector)
 
@@ -41,7 +42,7 @@
   "Constructs a matrix from the given data.
 
    The data may be in one of the following forms:
-   - Nested sequences, e.g. Clojure vectors
+   - Nested sequences of scalar values, e.g. Clojure vectors
    - A valid existing matrix
 
    If implementation is not specified, uses the current matrix library as specified
@@ -57,7 +58,7 @@
   "Constructs a new n-dimensional array from the given data.
 
    The data may be in one of the following forms:
-   - Nested sequences, e.g. Clojure vectors
+   - Nested sequences of scalar values, e.g. Clojure vectors
    - A valid existing array
 
    If implementation is not specified, uses the current matrix library as specified
@@ -79,7 +80,8 @@
     (mp/new-vector (imp/get-canonical-object implementation) length)))
 
 (defn new-matrix
-  "Constructs a new zero-filled matrix with the given dimensions"
+  "Constructs a new zero-filled matrix with the given dimensions. 
+   If the implementation supports mutable matrices, then the new matrix should be fully mutable."
   ([rows columns]
     (if-let [ik (current-implementation)]
       (mp/new-matrix (imp/get-canonical-object ik) rows columns)
@@ -90,25 +92,22 @@
   ([length] (new-vector length))
   ([rows columns] (new-matrix rows columns))
   ([dim-1 dim-2 & more-dim]
-    (if-let [ik (current-implementation)]
-      (mp/new-matrix-nd (imp/get-canonical-object ik) (cons dim-1 (cons dim-2 more-dim)))
-      (error "No clojure.core.matrix implementation available"))))
+    (let [ik (current-implementation-check)]
+      (mp/new-matrix-nd (imp/get-canonical-object ik) (cons dim-1 (cons dim-2 more-dim))))))
 
 (defn row-matrix
   "Constucts a row matrix with the given values. The returned matrix is a 2D 1xN row matrix."
   ([data]
-   (if-let [ik (current-implementation)]
-      (mp/construct-matrix (imp/get-canonical-object ik) (vector data))
-      (error "No clojure.core.matrix implementation available")))
+   (let [ik (current-implementation-check)]
+      (mp/construct-matrix (imp/get-canonical-object ik) (vector data))))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) (vector data))))
 
 (defn column-matrix
   "Constucts a column matrix with the given values. The returned matrix is a 2D Nx1 column matrix."
   ([data]
-   (if-let [ik (current-implementation)]
-      (mp/construct-matrix (imp/get-canonical-object ik) (map vector data))
-      (error "No clojure.core.matrix implementation available")))
+   (let [ik (current-implementation-check)]
+      (mp/construct-matrix (imp/get-canonical-object ik) (map vector data))))
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) (map vector data))))
 
@@ -655,6 +654,13 @@
 (defn current-implementation
   "Gets the currently active matrix implementation"
   ([] clojure.core.matrix/*matrix-implementation*))
+
+(defn current-implementation-check
+  "Gets the currently active matrix implementation. Throws an exception if none is available."
+  ([] 
+    (if-let [im clojure.core.matrix/*matrix-implementation*]
+      im
+      (error "No clojure.core.matrix implementation available"))))
 
 (defn current-implementation-object
   "Gets the currently active matrix implementation"
