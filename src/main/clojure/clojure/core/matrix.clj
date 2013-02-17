@@ -338,15 +338,17 @@
   "Sets a scalar value in a matrix at a specified position. Supports any number of matrix dimensions.
    Will throw an error if the matrix is not mutable."
   ([m v]
-    (if (mp/is-scalar? m)
-      (error "Can't set a scalar value!")
-      (error "Can't mset! without indexes on array of dimensionality: " (dimensionality m))))
+    (mp/set-0d! m v)
+    m)
   ([m x v]
-    (mp/set-1d! m x v))
+    (mp/set-1d! m x v)
+    m)
   ([m x y v]
-    (mp/set-2d! m x y v))
+    (mp/set-2d! m x y v)
+    m)
   ([m x y z & more]
-    (mp/set-nd! m (cons x (cons y (cons z (butlast more)))) (last more))))
+    (mp/set-nd! m (cons x (cons y (cons z (butlast more)))) (last more))
+    m))
 
 (defn get-row
   "Gets a row of a 2D matrix.
