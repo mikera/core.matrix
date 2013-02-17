@@ -13,78 +13,92 @@
 
 ;; utility functions
 
-(defn ^long calc-total-size [^longs dims]
-  (let [c (count dims)]
-    (loop [i (long 0) result (long 1)]
-      (if (>= 0 c)
-        result
-        (recur (inc i) (* result (aget dims i)))))))
+(defn calc-total-size 
+  (^long [^longs dims]
+    (let [c (count dims)]
+      (loop [i (long 0) result (long 1)]
+        (if (>= 0 c)
+          result
+          (recur (inc i) (* result (aget dims i))))))))
 
 ;; =======================================================
 ;; N-dimensional array object
 
 (deftype NDArray 
   [^objects data
-   ^longs dims]
+   ^longs shape]
   mp/PImplementation
     (implementation-key [m] :ndarray)
-    (new-vector [m length] (TODO))
-    (new-matrix [m rows columns] (TODO))
-    (new-matrix-nd [m dims] (TODO))
-    (construct-matrix [m data] (TODO))
-    (supports-dimensionality? [m dims] true)
+    (new-vector [m length] 
+      (NDArray. (object-array length) (long-array-of length)))
+    (new-matrix [m rows columns] 
+      (let [rows (long rows)
+            columns (long columns)]
+        (NDArray. (object-array (* rows columns)) (long-array-of rows columns))))
+    (new-matrix-nd [m dims] 
+      (let [^longs shape (apply long-array-of dims)
+            size (calc-total-size shape)]
+        (NDArray. (object-array size) shape)))
+    (construct-matrix [m data] 
+      (let [^longs shape (long-array (mp/get-shape data))
+            size (calc-total-size shape)
+            result (NDArray. (object-array size) shape)]
+        (mp/assign! result data)
+        result))
+    (supports-dimensionality? [m dims] 
+      true)
   
   mp/PIndexedAccess
     (get-1d [m x]
       (aget data x))
     (get-2d [m x y]
-      (let [ystride (long (aget dims 1))]
+      (let [ystride (long (aget shape 1))]
         (aget data (+ (long x) (* ystride (long y))))))
     (get-nd [m indexes]
-      (let [ndims (count dims)
-            index (areduce dims i result 0 
+      (let [ndims (count shape)
+            index (areduce shape i result 0 
                            (+ (long (nth indexes i)) 
                               (if (> i 0) 
-                                (* result (aget dims (dec i)))
+                                (* result (aget shape (dec i)))
                                 0)))]
         (aget data index))) 
     
   mp/PDimensionInfo
     (get-shape [m]
-      dims)
+      shape)
     (is-vector? [m]
-      (== 1 (count dims))) 
+      (== 1 (count shape))) 
     (is-scalar? [m]
       false) ;; TODO: what about zero dimension case??
     (dimensionality [m]
-      (count dims))
+      (count shape))
     (dimension-count [m x]
-      (aget dims x))
+      (aget shape x))
     
   mp/PIndexedSettingMutable
     (set-1d! [m x v]
       (aset data x v))
     (set-2d! [m x y v]
-      (let [ystride (long (aget dims 1))]
+      (let [ystride (long (aget shape 1))]
         (aset data (+ (long x) (* ystride (long y))) v)))
     (set-nd! [m indexes v]
-      (let [ndims (count dims)
-            index (areduce dims i result 0 
+      (let [ndims (count shape)
+            index (areduce shape i result 0 
                            (+ (long (nth indexes i)) 
                               (if (> i 0) 
-                                (* result (aget dims (dec i)))
+                                (* result (aget shape (dec i)))
                                 0)))]
         (aget data index v)))
     
     ;; TODO: implementations of other protocols for ND arrays
     )
 
-(defn make-ndarray [dims]
+(defn make-ndarray [shape]
   "Construct an NDArray with the specified dimensions. All values are initially null."
-  (let [^longs dims (long-array dims)
-        asize (areduce dims i result 1 (* result (aget dims i)))]
+  (let [^longs shape (long-array shape)
+        asize (areduce shape i result 1 (* result (aget shape i)))]
     (NDArray. (object-array asize)
-              dims)))
+              shape)))
 
 ;; =====================================
 ;; Register implementation
