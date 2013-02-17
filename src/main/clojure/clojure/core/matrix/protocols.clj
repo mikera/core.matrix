@@ -62,7 +62,8 @@
   (get-nd [m indexes]))
 
 (defprotocol PIndexedSetting
-  "Protocol for indexed 'setter' access to matrices and vectors.
+  "Protocol for indexed 'setter' access to matrices and vectors. These are like Clojure's 'assoc'
+   function, i.e. they return an updated copy of the original matrix, which is itself unchanged.
    Must be supported for any immutable matrix type."
   (set-1d [m row v])
   (set-2d [m row column v])
@@ -83,7 +84,8 @@
   (set-nd! [m indexes v]))
 
 (defprotocol PMatrixCloning
-  "Protocol for cloning a matrix value."
+  "Protocol for cloning a matrix value. The new clone must be mutable if the original 
+   matrix is mutable, i.e. mutating the clone must not affect the original."
   (clone [m] "Returns a clone of an array. Must be a new independent (non-view)
               instance if the array is mutable."))
 

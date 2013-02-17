@@ -321,6 +321,19 @@
   ([m x y & more]
     (mp/get-nd m (cons x (cons y more)))))
 
+(defn mset
+  "Sets a scalar value in a matrix at a specified position, returning a new matrix and leaving the
+   original unchanged."
+  ([m v]
+    ;; we can return the scalar directly?
+    v)
+  ([m x v]
+    (mp/set-1d m x v))
+  ([m x y v]
+    (mp/set-2d m x y v))
+  ([m x y z & more]
+    (mp/set-nd m (cons x (cons y (cons z (butlast more)))) (last more))))
+
 (defn mset!
   "Sets a scalar value in a matrix at a specified position. Supports any number of matrix dimensions.
    Will throw an error if the matrix is not mutable."
