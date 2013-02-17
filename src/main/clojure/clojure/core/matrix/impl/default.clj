@@ -109,7 +109,7 @@
 	            (mp/assign-array! m x)
           (== 1 dims)
 	          (dotimes [i (mp/dimension-count m 0)]
-	              (mp/set-1d m i (mp/get-1d x i))) 
+	              (mp/set-1d! m i (mp/get-1d x i))) 
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
 	        (array? m)
 	          (doall (map (fn [a b] (mp/assign! a b))
@@ -122,14 +122,14 @@
 	      (let [alen (long (count arr))]
 	        (if (mp/is-vector? m)
 	          (dotimes [i alen]
-	            (mp/set-1d m i (nth arr i)))
+	            (mp/set-1d! m i (nth arr i)))
 	          (mp/assign-array! m arr 0 alen))))
       ([m arr start length]
 	      (let [length (long length)
               start (long start)]
          (if (mp/is-vector? m)
 	          (dotimes [i length]
-	            (mp/set-1d m i (nth arr (+ start i))))
+	            (mp/set-1d! m i (nth arr (+ start i))))
 	          (let [ss (seq (mp/get-major-slice-seq m))
 	                skip (long (if ss (element-count (first (mp/get-major-slice-seq m))) 0))]
 	            (doseq-indexed [s ss i]

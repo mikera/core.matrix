@@ -61,13 +61,13 @@
     (dimension-count [m x]
       (aget dims x))
     
-  mp/PIndexedSetting
-    (set-1d [m x v]
+  mp/PIndexedSettingMutable
+    (set-1d! [m x v]
       (aset data x v))
-    (set-2d [m x y v]
+    (set-2d! [m x y v]
       (let [ystride (long (aget dims 1))]
         (aset data (+ (long x) (* ystride (long y))) v)))
-    (set-nd [m indexes v]
+    (set-nd! [m indexes v]
       (let [ndims (count dims)
             index (areduce dims i result 0 
                            (+ (long (nth indexes i)) 

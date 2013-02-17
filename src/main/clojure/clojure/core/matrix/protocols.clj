@@ -62,8 +62,8 @@
   (get-nd [m indexes]))
 
 (defprotocol PIndexedSetting
-  "Protocol for indexed setter access to matrices and vectors.
-   Must be supported for any mutable matrix type."
+  "Protocol for indexed 'setter' access to matrices and vectors.
+   Must be supported for any immutable matrix type."
   (set-1d [m row v])
   (set-2d [m row column v])
   (set-nd [m indexes v])
@@ -76,7 +76,7 @@
 ;; Otherwise things will fail.
 
 (defprotocol PIndexedSettingMutable
-  "Protocol for indexed setter access to matrices and vectors.
+  "Protocol for indexed mutable setter access to matrices and vectors.
    Must be supported for any mutable matrix type."
   (set-1d! [m row v])
   (set-2d! [m row column v])

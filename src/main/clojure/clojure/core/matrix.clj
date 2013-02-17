@@ -329,11 +329,11 @@
       (error "Can't set a scalar value!")
       (error "Can't mset! without indexes on array of dimensionality: " (dimensionality m))))
   ([m x v]
-    (mp/set-1d m x v))
+    (mp/set-1d! m x v))
   ([m x y v]
-    (mp/set-2d m x y v))
+    (mp/set-2d! m x y v))
   ([m x y z & more]
-    (mp/set-nd m (cons x (cons y (cons z (butlast more)))) (last more))))
+    (mp/set-nd! m (cons x (cons y (cons z (butlast more)))) (last more))))
 
 (defn get-row
   "Gets a row of a 2D matrix.
