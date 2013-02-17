@@ -192,7 +192,16 @@
     (supports-dimensionality? [m dims] 
       true)
     
-   mp/PDimensionInfo
+  mp/PIndexedSetting
+    (set-1d [m x v]
+      (TODO))
+    (set-2d [m x y v]
+      (TODO))
+    (set-nd [m indexes v]
+      (TODO))
+    (is-mutable? [m] (mp/is-mutable? array)) 
+    
+  mp/PDimensionInfo
     (dimensionality [m]
       (alength shape))
     (get-shape [m]

@@ -18,6 +18,8 @@
   (is (== 0 (dimensionality (wrap-scalar 7))))
   (is (not (scalar? (wrap-scalar 7))))
   (is (not (vec? (wrap-scalar 7))))
+  (is (mutable? (wrap-scalar 7)))
+  (is (mutable? (wrap-nd (wrap-scalar 7))))
   (is (zero-dimensional? (wrap-scalar 7))))
 
 (deftest test-wrapped-slice
