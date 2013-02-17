@@ -236,26 +236,34 @@
         (dotimes [i (alength shape)]
           (aset ix (aget dim-map i) (aget ^longs (aget index-maps i) (nth indexes i))))
         (mp/get-nd array ix))))
-  
 
-(defn wrap-slice [m slice]
-  (SliceWrapper. m (long slice)))
+(defn wrap-slice 
+  "Creates a view of a major slice of an array."
+  ([m slice]
+    (let [slice (long slice)]
+      ;; (assert (> (mp/dimensionality m) 0))
+      ;; (assert (> (mp/dimension-count m 0) slice -1))
+      (SliceWrapper. m slice))))
 
-(defn wrap-nd [m]
-  (let [shp (long-array (mp/get-shape m))
-        dims (alength shp)]
-    (NDWrapper. m 
-              shp
-              (long-range dims)
-              (object-array (map #(long-range (mp/dimension-count m %)) (range dims)))
-              (long-array (repeat dims 0)))))
+(defn wrap-nd 
+  "Wraps an array in a view. Good for taking submatrices, subviews etc."
+  ([m]
+	  (let [shp (long-array (mp/get-shape m))
+	        dims (alength shp)]
+	    (NDWrapper. m 
+	              shp
+	              (long-range dims)
+	              (object-array (map #(long-range (mp/dimension-count m %)) (range dims)))
+	              (long-array (repeat dims 0))))))
 
-(defn wrap-scalar [m]
-  (cond 
-    (mp/is-scalar? m)
-      (ScalarWrapper. m)
-    :else 
-      (ScalarWrapper. (mp/get-0d m))))
+(defn wrap-scalar 
+  "Wraps a scalar value into a mutable 0D array."
+  ([m]
+	  (cond 
+	    (mp/is-scalar? m)
+	      (ScalarWrapper. m)
+	    :else 
+	      (ScalarWrapper. (mp/get-0d m)))))
 
 (imp/register-implementation (NDWrapper. nil nil nil nil nil))
 
