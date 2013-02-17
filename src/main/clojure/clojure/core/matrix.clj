@@ -449,7 +449,8 @@
 ;; matrix comparisons
 
 (defn equals
-  "Returns true if two matrices are numerically equal."
+  "Returns true if two matrices are numerically equal. If epsilon is provided, performs an equality test
+   with the given tolerance (default is 0.0, i.e. exact numerical equivalence)"
   ([a b]
     (mp/matrix-equals a b))
   ([a b epsilon]
