@@ -115,18 +115,19 @@
           (mp/get-nd m next-indexes))
         (.nth m (int (first indexes))))))
 
-;; we extend this so that nested mutable implemenations are possible
+;; we extend this so that nested mutable implementions are possible
 (extend-protocol mp/PIndexedSetting
   clojure.lang.IPersistentVector
     (set-1d [m row v]
-      (error "Persistent vectors are not mutable!"))
+      (assoc m row v))
     (set-2d [m row column v]
-      (mp/set-1d (m 0) column v))
+      (assoc m row (mp/set-1d (m row) column v)))
     (set-nd [m indexes v]
-      (if-let [ixs (seq indexes)]
-        (if-let [nixs (next ixs)]
-          (mp/set-nd (m (first ixs))  nixs v)
-          (error "Persistent vectors are not mutable!"))
+      (if-let [indexes (seq indexes)]
+        (let [fi (first indexes)]
+          (if (== 1 (count indexes)) 
+              (assoc m fi v)
+              (assoc m fi (mp/set-nd (m fi) (next indexes) v))))
         (error "Trying to set on a persistent vector with insufficient indexes?")))
     (is-mutable? [m]
       (if (vector-1d? m)

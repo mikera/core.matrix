@@ -236,7 +236,13 @@
   (is (equals [2.0 4.0] (emap + (matrix im [1 3]) (coerce im [1 1]))))
   (is (equals [2.0 4.0] (emap inc (matrix im [1 3])))))
 
+(defn test-vector-mset [im]
+  (let [m (matrix im [1 2 3])]
+    (is (equals [1 2 4] (mset m 2 4)))
+    (is (equals [1 2 3] m))))
+
 (defn vector-tests-1d [im]
+  (test-vector-mset im)
   (test-vector-slices im)
   (test-element-add im))
 
