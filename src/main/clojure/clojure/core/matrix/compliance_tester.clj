@@ -126,7 +126,9 @@
 (defn test-broadcast [m]
   (let [c (ecount m)]
     (when (> c 0)
-      (e= m (first (slices (broadcast m (cons 2 (shape m)))))))))
+      (e= m (first (slices (broadcast m (cons 2 (shape m))))))
+      (== c (ecount (broadcast m (cons 1 (shape m)))))
+      (== (* 3 c) (ecount (broadcast m (cons 3 (shape m))))))))
 
 (defn test-slice-assumptions [m]
   (let [dims (dimensionality m)]
