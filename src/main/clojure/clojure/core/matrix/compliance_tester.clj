@@ -272,8 +272,14 @@
     (is (equals [1 2 4] (mset m 2 4)))
     (is (equals [1 2 3] m))))
 
+(defn test-vector-length [im]
+  (let [m (matrix im [3 4])]
+    (is (== 5 (length m)))
+    (is (== 25 (dot m m)))))
+
 (defn vector-tests-1d [im]
   (test-vector-mset im)
+  (test-vector-length im)
   (test-vector-slices im)
   (test-element-add im))
 

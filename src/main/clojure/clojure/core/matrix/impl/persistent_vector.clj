@@ -171,6 +171,8 @@
   clojure.lang.IPersistentVector
     (vector-dot [a b]
       (reduce + 0 (map * a (persistent-vector-coerce b))))
+    (length [a]
+      (Math/sqrt (double (reduce + (map #(* % %) a)))))
     (length-squared [a]
       (reduce + (map #(* % %) a)))
     (normalise [a]

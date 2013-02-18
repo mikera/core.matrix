@@ -111,7 +111,8 @@
           (< a 0.0) -1.0
           :else 0.0)))
   java.lang.Object
-    (vector-dot [a b])
+    (vector-dot [a b]
+      (reduce + 0 (mp/element-seq (mp/element-multiply a b))))
     (length [a]
       (Math/sqrt (double (mp/length-squared a))))
     (length-squared [a]
