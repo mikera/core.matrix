@@ -45,6 +45,9 @@
   (is (= [1] (eseq 1)))
   (is (= [1] (eseq [[1]]))))
 
+(deftest test-broadcast
+  (is (= [[1 1] [1 1]] (coerce [] (broadcast 1 [2 2])))))
+
 (deftest test-reshape
   (is (equals 1 (reshape [1 2 3] [])))
   (is (equals [1 2 3 4] (reshape [[1.0 2.0] [3.0 4.0]] [4])))
