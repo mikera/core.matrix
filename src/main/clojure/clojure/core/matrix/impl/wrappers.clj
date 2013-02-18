@@ -170,6 +170,14 @@
 ;; wraps an N-dimensional subset or broadcast of an array
 ;; supports aritrary permutations of dimensions and indexes
 
+(defmacro set-source-index [ix i val]
+  "Sets up an index into the source vector for dimension i at position val"
+  (let [isym (gensym "i")]
+    `(let [~isym ~i
+           tdim# (aget ~'dim-map ~isym)]
+       (when (>= tdim# 0) 
+         (aset ~ix tdim# (aget ~(vary-meta `(aget ~'index-maps ~isym) assoc :tag 'longs) ~val))))))
+
 (deftype NDWrapper
   [array ;; source array
    ^longs shape ;; shape of NDWrapper
@@ -223,18 +231,18 @@
     (get-1d [m row]
       (let [ix (copy-long-array source-position)
             ^longs im (aget index-maps 0)]
-        (aset ix (aget dim-map 0) (aget im row))
+        (set-source-index ix 0 row)
         (mp/get-nd array ix)))
     (get-2d [m row column]
       (let [ix (copy-long-array source-position)]
-        (aset ix (aget dim-map 0) (aget ^longs (aget index-maps 0) row))
-        (aset ix (aget dim-map 1) (aget ^longs (aget index-maps 0) column))
+        (set-source-index ix 0 row)
+        (set-source-index ix 1 column)
         (mp/get-nd array ix)))
     (get-nd [m indexes]
       (let [^longs ix (copy-long-array source-position)
             ^longs im (aget index-maps 0)]
         (dotimes [i (alength shape)]
-          (aset ix (aget dim-map i) (aget ^longs (aget index-maps i) (nth indexes i))))
+          (set-source-index ix i (nth indexes i)))
         (mp/get-nd array ix))))
 
 (defn wrap-slice 
@@ -255,6 +263,32 @@
 	              (long-range dims)
 	              (object-array (map #(long-range (mp/dimension-count m %)) (range dims)))
 	              (long-array (repeat dims 0))))))
+
+(defn wrap-broadcast
+  "Wraps an array with broadcasting to the given taregt shape."
+  [m shape]
+  (let [tshape (long-array shape)
+        tdims (count tshape)
+        mshape (long-array (shape m))
+        mdims (count mshape)
+        dim-map (long-array (concat (repeat (- tdims mdims) -1) (range mdims)))]
+    (NDWrapper.
+      m
+      tshape
+      dim-map
+      (object-array 
+        (for [i (range tdims)]
+          (let [arr (long-array (aget tshape i))
+                mdim (- i (- tdims mdims))]
+            (when (>= mdim 0)
+              (let [mdc (aget mshape mdim)
+                    tdc (aget tshape i)] 
+                (cond 
+                  (== mdc 1) nil
+                  (== mdc tdc) (dotimes [i mdc] (aset arr i i))
+                  :else (error "Can't broadcast dimension of size " mdc "to target size " tdc))))
+            arr)))
+      (long-array mdims))))
 
 (defn wrap-scalar 
   "Wraps a scalar value into a mutable 0D array."
