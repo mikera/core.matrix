@@ -277,9 +277,16 @@
     (is (== 5 (length m)))
     (is (== 25 (dot m m)))))
 
+(defn test-vector-normalise [im]
+  (let [m (matrix im [3 4])
+        n (normalise m)]
+    (is (equals n [0.6 0.8] 0.000001))
+    (is (mutable-equivalent? m normalise! normalise)))) 
+
 (defn vector-tests-1d [im]
   (test-vector-mset im)
   (test-vector-length im)
+  (test-vector-normalise im)
   (test-vector-slices im)
   (test-element-add im))
 
