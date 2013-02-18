@@ -47,7 +47,7 @@
 (defn- try-load-implementation [k]
   (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
     (try 
-      (require ns-sym)
+      (do (require ns-sym) :ok)
       (catch Throwable t nil))))
 
 (defn get-canonical-object 
