@@ -266,12 +266,15 @@
 
 (defn wrap-broadcast
   "Wraps an array with broadcasting to the given taregt shape."
-  [m shape]
-  (let [tshape (long-array shape)
+  [m target-shape]
+  (let [tshape (long-array target-shape)
         tdims (count tshape)
-        mshape (long-array (shape m))
+        mshape (long-array (mp/get-shape m))
         mdims (count mshape)
         dim-map (long-array (concat (repeat (- tdims mdims) -1) (range mdims)))]
+    ;;(println "mshape:" (seq mshape))
+    ;;(println "mdims:" mdims)
+    ;;(println "tdims:" tdims)
     (NDWrapper.
       m
       tshape

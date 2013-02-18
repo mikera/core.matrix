@@ -419,6 +419,12 @@
             (error "Can't get slices on [" dims "]-dimensional object: " m)
           :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
 
+(extend-protocol mp/PBroadcast
+  java.lang.Object
+    (broadcast [m shape] 
+      (clojure.core.matrix.impl.wrappers/wrap-broadcast m shape)))
+
+
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
   nil
@@ -448,7 +454,10 @@
 (extend-protocol mp/PReshaping
   java.lang.Number
     (reshape [m shape]
-      (mp/broadcast m shape))
+      (case (reduce * 1 (seq shape))
+        0 (mp/broadcast m shape)
+        1 (mp/broadcast m shape)
+        (error "Can reshape a scalar value to shape: " (vec shape))))
   java.lang.Object
     (reshape [m shape]
       (let [partition-shape (fn partition-shape [es shape]
