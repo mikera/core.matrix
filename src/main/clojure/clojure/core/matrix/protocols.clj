@@ -102,7 +102,11 @@
   (element-type [m]))
 
 (defprotocol PZeroDimensionAccess
-  "Protocol for accessing the scalar value in zero-dimensional arrays."
+  "Protocol for accessing the scalar value in zero-dimensional arrays. Zero dimensional arrays differ
+   from scalar values in the following two senses:
+    - They may be mutable (in which case set-0d! is expected to work)
+    - They are not considered themselves to be scalars. Hence you must use get-0d to access the
+      contained scalar value"
   (get-0d [m])
   (set-0d! [m value]))
 
