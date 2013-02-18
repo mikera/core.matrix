@@ -123,6 +123,11 @@
         (= (eseq m) (eseq (reshape m [1 c])))
         (= (eseq m) (eseq (reshape m [c 1])))))))
 
+(defn test-broadcast [m]
+  (let [c (ecount m)]
+    (when (> c 0)
+      (e= m (first (slices (broadcast m (cons 2 (shape m)))))))))
+
 (defn test-slice-assumptions [m]
   (let [dims (dimensionality m)]
     (when (> dims 0)
@@ -155,6 +160,7 @@
   (test-mutable-assumptions m)
   (test-vector-round-trip m)
   (test-reshape m)
+  (test-broadcast m)
   (test-general-transpose m))
 
 (defn test-assumptions-for-all-sizes [im]
