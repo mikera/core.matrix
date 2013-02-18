@@ -128,7 +128,9 @@
      In order to broadcast sucessfully, the current dimension of the array must be either:
       - of size 1
       - equal to the size of the dimension in the target shape
-      - not included in the array (i.e. the target shape has more leading dimensions)"))
+      - not included in the array (i.e. the target shape has more leading dimensions)
+
+     Broadcasting may return either a view with replicated element or a new immutable matrix."))
 
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
