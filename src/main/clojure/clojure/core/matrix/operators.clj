@@ -8,8 +8,6 @@
 ;; =====================================================================
 ;; Mathematical operators defined for matrices and vectors as applicable
 
-
-
 (defn *
   "Matrix multiply operator"
   ([a] a)

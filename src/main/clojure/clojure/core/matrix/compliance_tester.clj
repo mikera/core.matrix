@@ -137,7 +137,8 @@
         (is (== (dec dims) (dimensionality sl)))
         (is (= (next (shape m)) (seq (shape sl)))))
       (if-let [ss (seq (slices m))]
-        (is (= (mutable? (first ss)) (mutable? m)))))))
+        (let [fss (first ss)]
+          (is (= (mutable? fss) (mutable? m))))))))
 
 (defn test-general-transpose [m]
   (when (> (ecount m) 0) 
