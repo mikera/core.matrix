@@ -36,6 +36,9 @@
     (is (= [1 2 3] (transpose [1 2 3])))
     (is (= [[[[1]]]] (transpose [[[[1]]]])))))
 
+(deftest test-broadcast 
+  (is (equals [[1 2] [1 2]] (broadcast [1 2] [2 2]))))
+
 (deftest test-functional-op
   (testing "map"
     (is (= [1 2] (emap inc [0 1])))
