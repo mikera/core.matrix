@@ -1,6 +1,6 @@
 (ns clojure.core.matrix.operators
-  (:require [clojure.core.matrix :as m])
-  (:refer-clojure :exclude [* - + / vector?]))
+  (:refer-clojure :exclude [* - + / vector?])
+  (:require [clojure.core.matrix :as m]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
