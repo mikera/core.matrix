@@ -656,6 +656,14 @@
   (index-seq-for-shape (shape m))) 
 
 ;; =========================================================
+;; Print Matrix
+
+(defn pm 
+  "Pretty-prints a matrix"
+  ([m]
+    (TODO))) 
+
+;; =========================================================
 ;; Implementation management functions
 
 (defn current-implementation
