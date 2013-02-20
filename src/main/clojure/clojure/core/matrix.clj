@@ -490,7 +490,7 @@
   ([a b]
     (emul a b))
   ([a b & more]
-    (reduce emul (emul a b) more)))
+    (reduce e* (e* a b) more)))
 
 (defn emul!
   "Performs in-place element-wise matrix multiplication."
