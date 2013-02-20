@@ -484,6 +484,14 @@
   ([a b & more]
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
+(defn e*
+  "Matrix element-wise multiply operator"
+  ([a] a)
+  ([a b]
+    (emul a b))
+  ([a b & more]
+    (reduce emul (emul a b) more)))
+
 (defn emul!
   "Performs in-place element-wise matrix multiplication."
   ([a] a)

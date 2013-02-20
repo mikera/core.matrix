@@ -16,14 +16,6 @@
   ([a b & more]
     (reduce m/mul (m/mul a b) more)))
 
-(defn e*
-  "Matrix element-wise multiply operator"
-  ([a] a)
-  ([a b]
-    (m/emul a b))
-  ([a b & more]
-    (reduce m/emul (m/emul a b) more)))
-
 (defn +
   "Matrix addition operator"
   ([a] a)
