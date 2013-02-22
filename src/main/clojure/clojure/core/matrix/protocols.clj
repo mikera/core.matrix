@@ -157,6 +157,12 @@
   (get-major-slice [m i])
   (get-slice [m dimension i]))
 
+(defprotocol PSubVector
+  "Protocol for getting a sub-vector view of a vectot. Must return a mutable view
+   if the original vector is mutable. Should throw an exception if the specified 
+   subvector is out of bounds for the target vector."
+  (subvector [m start length])) 
+
 (defprotocol PSliceView
   "Protocol for quick view access into a row-major slices of an array. If implemented, must return either a view
    or an immutable sub-matrix: it must *not* return copied data. 
