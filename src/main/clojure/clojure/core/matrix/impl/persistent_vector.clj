@@ -160,6 +160,11 @@
     (get-major-slice-seq [m] 
       (seq m)))
 
+(extend-protocol mp/PSubVector
+  clojure.lang.IPersistentVector
+    (subvector [m start length]
+      (subvec m start (+ start length)))) 
+
 (extend-protocol mp/PMatrixAdd
   clojure.lang.IPersistentVector
     (matrix-add [m a]
