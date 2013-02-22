@@ -420,6 +420,11 @@
             (error "Can't get slices on [" dims "]-dimensional object: " m)
           :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
 
+(extend-protocol mp/PSubVector
+  java.lang.Object
+    (subvector [m start length]
+      (mp/subvector (wrap/wrap-nd m) start length))) 
+
 (extend-protocol mp/PBroadcast
   java.lang.Object
     (broadcast [m shape] 

@@ -221,7 +221,7 @@
         (when (< start 0) (error "Start index out of bounds: " start))
         (when (>= end vlen) (error "End index out of bounds: " end))
         (dotimes [i length]
-          (aset new-index-map (aget old-index-map (+ start i))))
+          (aset new-index-map i (aget old-index-map (+ start i))))
         (NDWrapper.
           array
           (long-array-of length)
