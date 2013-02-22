@@ -219,7 +219,7 @@
             ^longs old-index-map (aget index-maps 0)
             ^longs new-index-map (long-array length)]
         (when (< start 0) (error "Start index out of bounds: " start))
-        (when (>= end vlen) (error "End index out of bounds: " end))
+        (when (> end vlen) (error "End index out of bounds: " end))
         (dotimes [i length]
           (aset new-index-map i (aget old-index-map (+ start i))))
         (NDWrapper.

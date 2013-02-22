@@ -263,6 +263,11 @@
     (is (equals m (matrix im (coerce [] (slices m)))))
     (is (= (map mp/get-0d (slices m)) (eseq m)))))
 
+(defn test-vector-subvector [im]
+  (let [m (matrix im [1 2 3])]
+    (is (equals [2] (subvector m 1 1)))
+    (is (equals m (subvector m 0 3)))))
+
 (defn test-element-add [im]
   (is (equals [2.0 4.0] (emap + (matrix im [1 3]) (coerce im [1 1]))))
   (is (equals [2.0 4.0] (emap inc (matrix im [1 3])))))
@@ -288,6 +293,7 @@
   (test-vector-length im)
   (test-vector-normalise im)
   (test-vector-slices im)
+  (test-vector-subvector im)
   (test-element-add im))
 
 ;; ========================================
