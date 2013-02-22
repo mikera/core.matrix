@@ -373,9 +373,10 @@
   "Coerces param to a format usable by a specific matrix implementation.
    If param is already in a format deemed usable by the implementation, returns it unchanged."
   ([m param]
-    (or
-      (mp/coerce-param m param)
-      (mp/coerce-param m (mp/convert-to-nested-vectors param)))))
+    (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
+      (or
+        (mp/coerce-param m param)
+        (mp/coerce-param m (mp/convert-to-nested-vectors param))))))
 
 ;; =====================================
 ;; matrix slicing and views
@@ -585,7 +586,8 @@
      ~@(map (fn [[name func]]
            `(defn ~(symbol (str name "!"))
               ([~'m]
-                (~(symbol "clojure.core.matrix.protocols" (str name "!")) ~'m)))) mops/maths-ops))
+                (~(symbol "clojure.core.matrix.protocols" (str name "!")) ~'m)
+                ~'m))) mops/maths-ops))
        )
 
 ;; ====================================
