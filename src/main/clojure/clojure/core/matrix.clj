@@ -380,14 +380,14 @@
 ;; =====================================
 ;; matrix slicing and views
 
-(defn sub-matrix
+(defn submatrix
   "Gets a view of a submatrix, for a set of index-ranges.
    Index ranges should be  a sequence of [start, length] pairs.
    Index ranges can be nil (gets the whole range) "
   ([m index-ranges]
     (TODO)))
 
-(defn sub-vector
+(defn subvector
   "Gets a view of part of a vector. The view maintains a reference to the original,
    so can be used to modify the original vector if it is mutable."
   ([m start length]
