@@ -391,7 +391,7 @@
   "Gets a view of part of a vector. The view maintains a reference to the original,
    so can be used to modify the original vector if it is mutable."
   ([m start length]
-    (TODO)))
+    (mp/subvector m start length)))
 
 (defn slice
   "Gets a view of a slice of a matrix along a specific dimension.
