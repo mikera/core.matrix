@@ -285,7 +285,8 @@
 
 (defn test-vector-mutable-add [im]
   (let [m (matrix im [1 2 3])]
-    (is (mutable-equivalent? m #(add! % [3 4 5]) #(add % [3 4 5])))))
+    (is (mutable-equivalent? m #(add! % [3 4 5]) #(add % [3 4 5])))
+    (is (mutable-equivalent? m #(sub! % [3 4 5]) #(sub % [3 4 5])))))
 
 (defn test-vector-length [im]
   (let [m (matrix im [3 4])]
