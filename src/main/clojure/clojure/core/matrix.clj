@@ -551,6 +551,16 @@
   ([a b]
     (mp/vector-dot a b)))
 
+(defn cross 
+  "Computes the cross-product of two vectors"
+  ([a b]
+    (mp/cross-product a b))) 
+
+(defn cross! 
+  "Computes the cross-product of two vectors, storing the result in the first vector"
+  ([a b]
+    (mp/cross-product! a b))) 
+
 (defn det
   "Calculates the determinant of a matrix"
   ([a]

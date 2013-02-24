@@ -248,6 +248,12 @@
   (normalise [a]
      "Returns a new vector, normalised to length 1.0"))
 
+(defprotocol PVectorCross
+  (cross-product [a b]
+    "Cross product of two vectors")
+  (cross-product! [a b]
+    "Calculate cross product of two vectors, storing the result in the first vector")) 
+
 (defprotocol PMutableVectorOps
   "Protocol for mutable versions of commn vector operations" 
   (normalise! [a]))
