@@ -237,6 +237,11 @@
   (matrix-add [m a])
   (matrix-sub [m a]))
 
+(defprotocol PMatrixAddMutable
+  "Protocol to support matrix addition on an arbitrary matrices of same size"
+  (matrix-add! [m a])
+  (matrix-sub! [m a]))
+
 (defprotocol PVectorOps
   "Protocol to support common vector operations."
   (vector-dot [a b]

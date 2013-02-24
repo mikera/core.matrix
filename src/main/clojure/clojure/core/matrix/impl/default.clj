@@ -333,6 +333,20 @@
     (matrix-sub [m a]
       (mp/element-map m clojure.core/- a)))
 
+(extend-protocol mp/PMatrixAddMutable
+  ;; matrix add for scalars
+  java.lang.Number
+    (matrix-add! [m a]
+      (error "Can't do mutable add! on a scalar number"))
+    (matrix-sub! [m a]
+      (error "Can't do mutable sub! on a scalar number"))
+  ;; default impelementation - assume we can use emap?
+  java.lang.Object
+    (matrix-add! [m a]
+      (mp/element-map! m clojure.core/+ a))
+    (matrix-sub! [m a]
+      (mp/element-map! m clojure.core/- a)))
+
 ;; equality checking
 (extend-protocol mp/PMatrixEquality
   java.lang.Number

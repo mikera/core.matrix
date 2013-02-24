@@ -525,6 +525,25 @@
   ([a b & more]
     (reduce mp/matrix-sub (mp/matrix-sub a b) more)))
 
+(defn add!
+  "Performs element-wise matrix addition on one or more matrices."
+  ([a] a)
+  ([a b]
+    (mp/matrix-add! a b))
+  ([a b & more]
+    (reduce #(mp/matrix-add! a %) more)
+    a))
+
+(defn sub!
+  "Performs element-wise matrix subtraction on one or more matrices."
+  ([a] a)
+  ([a b]
+    (mp/matrix-sub! a b))
+  ([a b & more]
+    (mp/matrix-sub! a b) 
+    (reduce #(mp/matrix-sub! a %) more)
+    a))
+
 (defn scale
   "Scales a matrix by a scalar factor"
   ([m factor]
@@ -557,9 +576,11 @@
     (mp/cross-product a b))) 
 
 (defn cross! 
-  "Computes the cross-product of two vectors, storing the result in the first vector"
+  "Computes the cross-product of two vectors, storing the result in the first vector. 
+   Returns the (mutated) first vector."
   ([a b]
-    (mp/cross-product! a b))) 
+    (mp/cross-product! a b)
+    a)) 
 
 (defn det
   "Calculates the determinant of a matrix"
