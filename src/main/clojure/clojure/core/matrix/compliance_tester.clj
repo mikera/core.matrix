@@ -283,6 +283,10 @@
     (is (equals [-1 2 -1] (cross m [1 1 1])))
     (is (mutable-equivalent? m #(cross! % [3 4 5]) #(cross % [3 4 5])))))
 
+(defn test-vector-mutable-add [im]
+  (let [m (matrix im [1 2 3])]
+    (is (mutable-equivalent? m #(add! % [3 4 5]) #(add % [3 4 5])))))
+
 (defn test-vector-length [im]
   (let [m (matrix im [3 4])]
     (is (== 5 (length m)))
@@ -298,6 +302,7 @@
   (test-vector-mset im)
   (test-vector-length im)
   (test-vector-cross im)
+  (test-vector-mutable-add im)
   (test-vector-normalise im)
   (test-vector-slices im)
   (test-vector-subvector im)
