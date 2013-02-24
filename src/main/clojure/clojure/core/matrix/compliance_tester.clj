@@ -277,6 +277,12 @@
     (is (equals [1 2 4] (mset m 2 4)))
     (is (equals [1 2 3] m))))
 
+(defn test-vector-cross [im]
+  (let [m (matrix im [1 2 3])]
+    (is (equals [0 0 0] (cross m m)))
+    (is (equals [-1 2 -1] (cross m [1 1 1])))
+    (is (mutable-equivalent? m #(cross! % [3 4 5]) #(cross % [3 4 5])))))
+
 (defn test-vector-length [im]
   (let [m (matrix im [3 4])]
     (is (== 5 (length m)))
@@ -291,6 +297,7 @@
 (defn vector-tests-1d [im]
   (test-vector-mset im)
   (test-vector-length im)
+  (test-vector-cross im)
   (test-vector-normalise im)
   (test-vector-slices im)
   (test-vector-subvector im)
