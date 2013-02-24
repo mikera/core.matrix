@@ -120,6 +120,30 @@
     (normalise [a]
       (mp/scale a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
 
+(extend-protocol mp/PVectorCross
+  java.lang.Object
+    (cross-product [a b]
+      (let [x1 (double (mp/get-1d a 0))
+            y1 (double (mp/get-1d a 1))
+            z1 (double (mp/get-1d a 2))
+            x2 (double (mp/get-1d b 0))
+            y2 (double (mp/get-1d b 1))
+            z2 (double (mp/get-1d b 2))]
+        (mp/construct-matrix a [(- (* y1 z2) (* z1 y2))
+                                (- (* z1 x2) (* x1 z2))
+                                (- (* x1 y2) (* y1 x2))])))
+    (cross-product! [a b]
+      (let [x1 (double (mp/get-1d a 0))
+            y1 (double (mp/get-1d a 1))
+            z1 (double (mp/get-1d a 2))
+            x2 (double (mp/get-1d b 0))
+            y2 (double (mp/get-1d b 1))
+            z2 (double (mp/get-1d b 2))]
+        (mp/set-1d! a 0 (- (* y1 z2) (* z1 y2)))
+        (mp/set-1d! a 1 (- (* z1 x2) (* x1 z2)))
+        (mp/set-1d! a 2 (- (* x1 y2) (* y1 x2)))
+        a))) 
+
 (extend-protocol mp/PMutableVectorOps
   java.lang.Object
     (normalise! [a]
