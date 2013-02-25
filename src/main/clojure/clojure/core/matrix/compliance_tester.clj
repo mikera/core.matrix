@@ -323,6 +323,11 @@
     (is (equals [1 2 3] (mul I [1 2 3])))
     (is (equals I (transpose I)))))
 
+(defn test-trace [im]
+  (let [I (identity-matrix im 3)]
+    (is (== 3.0 (trace I))))
+  (let [m (matrix im [[1 2] [3 4]])]
+    (is (== 5.0 (trace m)))))
 
 (defn test-diagonal [im]
   (let [I (diagonal-matrix im [1 2 3])]
@@ -345,6 +350,7 @@
   (test-row-column-matrices im)
   (test-transpose im)
   (test-diagonal im)
+  (test-trace im)
   (test-identity im))
 
 ;; ======================================
