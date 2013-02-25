@@ -26,6 +26,10 @@
   (let [m (wrap-slice [[1 2] [3 4]] 1)]
     (equals [4 5] (emap inc m))))
 
+(deftest test-wrapped-subvector
+  (let [m [1 2 3 4]]
+    (equals [2 3] (subvector m 1 2))))
+
 (deftest test-wrapped-nd
   (let [m (wrap-nd [3 4])]
     (equals [4 5] (emap inc m))))

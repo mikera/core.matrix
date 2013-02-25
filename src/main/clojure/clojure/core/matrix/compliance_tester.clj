@@ -137,7 +137,8 @@
         (is (== (dec dims) (dimensionality sl)))
         (is (= (next (shape m)) (seq (shape sl)))))
       (if-let [ss (seq (slices m))]
-        (is (= (mutable? (first ss)) (mutable? m)))))))
+        (let [fss (first ss)]
+          (is (= (mutable? fss) (mutable? m))))))))
 
 (defn test-general-transpose [m]
   (when (> (ecount m) 0) 
@@ -262,6 +263,11 @@
     (is (equals m (matrix im (coerce [] (slices m)))))
     (is (= (map mp/get-0d (slices m)) (eseq m)))))
 
+(defn test-vector-subvector [im]
+  (let [m (matrix im [1 2 3])]
+    (is (equals [2] (subvector m 1 1)))
+    (is (equals m (subvector m 0 3)))))
+
 (defn test-element-add [im]
   (is (equals [2.0 4.0] (emap + (matrix im [1 3]) (coerce im [1 1]))))
   (is (equals [2.0 4.0] (emap inc (matrix im [1 3])))))
@@ -271,9 +277,36 @@
     (is (equals [1 2 4] (mset m 2 4)))
     (is (equals [1 2 3] m))))
 
+(defn test-vector-cross [im]
+  (let [m (matrix im [1 2 3])]
+    (is (equals [0 0 0] (cross m m)))
+    (is (equals [-1 2 -1] (cross m [1 1 1])))
+    (is (mutable-equivalent? m #(cross! % [3 4 5]) #(cross % [3 4 5])))))
+
+(defn test-vector-mutable-add [im]
+  (let [m (matrix im [1 2 3])]
+    (is (mutable-equivalent? m #(add! % [3 4 5]) #(add % [3 4 5])))
+    (is (mutable-equivalent? m #(sub! % [3 4 5]) #(sub % [3 4 5])))))
+
+(defn test-vector-length [im]
+  (let [m (matrix im [3 4])]
+    (is (== 5 (length m)))
+    (is (== 25 (dot m m)))))
+
+(defn test-vector-normalise [im]
+  (let [m (matrix im [3 4])
+        n (normalise m)]
+    (is (equals n [0.6 0.8] 0.000001))
+    (is (mutable-equivalent? m normalise! normalise)))) 
+
 (defn vector-tests-1d [im]
   (test-vector-mset im)
+  (test-vector-length im)
+  (test-vector-cross im)
+  (test-vector-mutable-add im)
+  (test-vector-normalise im)
   (test-vector-slices im)
+  (test-vector-subvector im)
   (test-element-add im))
 
 ;; ========================================
@@ -285,11 +318,21 @@
       (is (equals [[1 3] [2 4]] (transpose im)))
       (is (equals im (transpose (transpose im)))))))
 
+(defn test-negate [im]
+  (testing "negate"
+    (let [m (matrix [[1 2] [3 4]])]
+      (is (equals [[-1 -2] [-3 -4]] (negate m))))))
+
 (defn test-identity [im]
   (let [I (identity-matrix im 3)]
     (is (equals [1 2 3] (mul I [1 2 3])))
     (is (equals I (transpose I)))))
 
+(defn test-trace [im]
+  (let [I (identity-matrix im 3)]
+    (is (== 3.0 (trace I))))
+  (let [m (matrix im [[1 2] [3 4]])]
+    (is (== 5.0 (trace m)))))
 
 (defn test-diagonal [im]
   (let [I (diagonal-matrix im [1 2 3])]
@@ -312,6 +355,7 @@
   (test-row-column-matrices im)
   (test-transpose im)
   (test-diagonal im)
+  (test-trace im)
   (test-identity im))
 
 ;; ======================================

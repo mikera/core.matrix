@@ -111,13 +111,38 @@
           (< a 0.0) -1.0
           :else 0.0)))
   java.lang.Object
-    (vector-dot [a b])
+    (vector-dot [a b]
+      (reduce + 0 (mp/element-seq (mp/element-multiply a b))))
     (length [a]
       (Math/sqrt (double (mp/length-squared a))))
     (length-squared [a]
       (mp/element-reduce a (fn [r x] (+ r (* x x))) 0))
     (normalise [a]
       (mp/scale a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
+
+(extend-protocol mp/PVectorCross
+  java.lang.Object
+    (cross-product [a b]
+      (let [x1 (double (mp/get-1d a 0))
+            y1 (double (mp/get-1d a 1))
+            z1 (double (mp/get-1d a 2))
+            x2 (double (mp/get-1d b 0))
+            y2 (double (mp/get-1d b 1))
+            z2 (double (mp/get-1d b 2))]
+        (mp/construct-matrix a [(- (* y1 z2) (* z1 y2))
+                                (- (* z1 x2) (* x1 z2))
+                                (- (* x1 y2) (* y1 x2))])))
+    (cross-product! [a b]
+      (let [x1 (double (mp/get-1d a 0))
+            y1 (double (mp/get-1d a 1))
+            z1 (double (mp/get-1d a 2))
+            x2 (double (mp/get-1d b 0))
+            y2 (double (mp/get-1d b 1))
+            z2 (double (mp/get-1d b 2))]
+        (mp/set-1d! a 0 (- (* y1 z2) (* z1 y2)))
+        (mp/set-1d! a 1 (- (* z1 x2) (* x1 z2)))
+        (mp/set-1d! a 2 (- (* x1 y2) (* y1 x2)))
+        a))) 
 
 (extend-protocol mp/PMutableVectorOps
   java.lang.Object
@@ -308,6 +333,20 @@
     (matrix-sub [m a]
       (mp/element-map m clojure.core/- a)))
 
+(extend-protocol mp/PMatrixAddMutable
+  ;; matrix add for scalars
+  java.lang.Number
+    (matrix-add! [m a]
+      (error "Can't do mutable add! on a scalar number"))
+    (matrix-sub! [m a]
+      (error "Can't do mutable sub! on a scalar number"))
+  ;; default impelementation - assume we can use emap?
+  java.lang.Object
+    (matrix-add! [m a]
+      (mp/element-map! m clojure.core/+ a))
+    (matrix-sub! [m a]
+      (mp/element-map! m clojure.core/- a)))
+
 ;; equality checking
 (extend-protocol mp/PMatrixEquality
   java.lang.Number
@@ -418,6 +457,11 @@
           (<= dims 0)
             (error "Can't get slices on [" dims "]-dimensional object: " m)
           :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
+
+(extend-protocol mp/PSubVector
+  java.lang.Object
+    (subvector [m start length]
+      (mp/subvector (wrap/wrap-nd m) start length))) 
 
 (extend-protocol mp/PBroadcast
   java.lang.Object

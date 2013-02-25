@@ -157,6 +157,12 @@
   (get-major-slice [m i])
   (get-slice [m dimension i]))
 
+(defprotocol PSubVector
+  "Protocol for getting a sub-vector view of a vectot. Must return a mutable view
+   if the original vector is mutable. Should throw an exception if the specified 
+   subvector is out of bounds for the target vector."
+  (subvector [m start length])) 
+
 (defprotocol PSliceView
   "Protocol for quick view access into a row-major slices of an array. If implemented, must return either a view
    or an immutable sub-matrix: it must *not* return copied data. 
@@ -231,6 +237,11 @@
   (matrix-add [m a])
   (matrix-sub [m a]))
 
+(defprotocol PMatrixAddMutable
+  "Protocol to support matrix addition on an arbitrary matrices of same size"
+  (matrix-add! [m a])
+  (matrix-sub! [m a]))
+
 (defprotocol PVectorOps
   "Protocol to support common vector operations."
   (vector-dot [a b]
@@ -241,6 +252,12 @@
      "Squared Euclidean length of a vector.")
   (normalise [a]
      "Returns a new vector, normalised to length 1.0"))
+
+(defprotocol PVectorCross
+  (cross-product [a b]
+    "Cross product of two vectors")
+  (cross-product! [a b]
+    "Calculate cross product of two vectors, storing the result in the first vector")) 
 
 (defprotocol PMutableVectorOps
   "Protocol for mutable versions of commn vector operations" 

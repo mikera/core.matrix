@@ -83,6 +83,12 @@
     (let [da (double-array [4.0])]
       (is (equals [1.0] (normalise! da))))))
 
+(deftest test-mutable-add
+  (let [v (double-array [1 2 3])]
+    (add! v [10 10 10])
+    (sub! v [1 1 2])
+    (is (equals v [10 11 11])))) 
+
 (deftest test-maths-ops
   (testing "basic ops"
     (let [da (double-array [1.2 2.3])]

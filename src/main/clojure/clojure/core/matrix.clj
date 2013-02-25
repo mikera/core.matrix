@@ -373,25 +373,26 @@
   "Coerces param to a format usable by a specific matrix implementation.
    If param is already in a format deemed usable by the implementation, returns it unchanged."
   ([m param]
-    (or
-      (mp/coerce-param m param)
-      (mp/coerce-param m (mp/convert-to-nested-vectors param)))))
+    (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
+      (or
+        (mp/coerce-param m param)
+        (mp/coerce-param m (mp/convert-to-nested-vectors param))))))
 
 ;; =====================================
 ;; matrix slicing and views
 
-(defn sub-matrix
+(defn submatrix
   "Gets a view of a submatrix, for a set of index-ranges.
    Index ranges should be  a sequence of [start, length] pairs.
    Index ranges can be nil (gets the whole range) "
   ([m index-ranges]
     (TODO)))
 
-(defn sub-vector
+(defn subvector
   "Gets a view of part of a vector. The view maintains a reference to the original,
    so can be used to modify the original vector if it is mutable."
   ([m start length]
-    (TODO)))
+    (mp/subvector m start length)))
 
 (defn slice
   "Gets a view of a slice of a matrix along a specific dimension.
@@ -456,11 +457,11 @@
 
 (defn equals
   "Returns true if two matrices are numerically equal. If epsilon is provided, performs an equality test
-   with the given tolerance (default is 0.0, i.e. exact numerical equivalence)"
+   with the given maximum tolerance (default is 0.0, i.e. exact numerical equivalence)"
   ([a b]
     (mp/matrix-equals a b))
   ([a b epsilon]
-    (TODO)))
+    (every? #(<= (Math/abs (double %)) epsilon) (map - (mp/element-seq a) (mp/element-seq b)))))
 
 ;; ======================================
 ;; matrix maths / operations
@@ -483,6 +484,14 @@
     (mp/element-multiply a b))
   ([a b & more]
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
+
+(defn e*
+  "Matrix element-wise multiply operator"
+  ([a] a)
+  ([a b]
+    (emul a b))
+  ([a b & more]
+    (reduce e* (e* a b) more)))
 
 (defn emul!
   "Performs in-place element-wise matrix multiplication."
@@ -516,6 +525,25 @@
   ([a b & more]
     (reduce mp/matrix-sub (mp/matrix-sub a b) more)))
 
+(defn add!
+  "Performs element-wise matrix addition on one or more matrices."
+  ([a] a)
+  ([a b]
+    (mp/matrix-add! a b))
+  ([a b & more]
+    (reduce #(mp/matrix-add! a %) more)
+    a))
+
+(defn sub!
+  "Performs element-wise matrix subtraction on one or more matrices."
+  ([a] a)
+  ([a b]
+    (mp/matrix-sub! a b))
+  ([a b & more]
+    (mp/matrix-sub! a b) 
+    (reduce #(mp/matrix-sub! a %) more)
+    a))
+
 (defn scale
   "Scales a matrix by a scalar factor"
   ([m factor]
@@ -542,11 +570,32 @@
   ([a b]
     (mp/vector-dot a b)))
 
+(defn cross 
+  "Computes the cross-product of two vectors"
+  ([a b]
+    (mp/cross-product a b))) 
+
+(defn cross! 
+  "Computes the cross-product of two vectors, storing the result in the first vector. 
+   Returns the (mutated) first vector."
+  ([a b]
+    (mp/cross-product! a b)
+    a)) 
+
 (defn det
   "Calculates the determinant of a matrix"
   ([a]
     (mp/determinant a)))
 
+(defn inverse
+  "Calculates the inverse of a matrix."
+  ([m]
+    (mp/inverse m))) 
+
+(defn negate
+  "Calculates the negation of a matrix. Should be equivalent to scaling by -1.0"
+  ([m]
+    (mp/negate m))) 
 
 (defn trace
   "Calculates the trace of a matrix (sum of elements on main diagonal)"
@@ -577,7 +626,8 @@
      ~@(map (fn [[name func]]
            `(defn ~(symbol (str name "!"))
               ([~'m]
-                (~(symbol "clojure.core.matrix.protocols" (str name "!")) ~'m)))) mops/maths-ops))
+                (~(symbol "clojure.core.matrix.protocols" (str name "!")) ~'m)
+                ~'m))) mops/maths-ops))
        )
 
 ;; ====================================
@@ -654,6 +704,14 @@
 (defn index-seq [m]
   "Returns a sequence of all possible index vectors in a matrix, in row-major order"
   (index-seq-for-shape (shape m))) 
+
+;; =========================================================
+;; Print Matrix
+
+(defn pm 
+  "Pretty-prints a matrix"
+  ([m]
+    (TODO))) 
 
 ;; =========================================================
 ;; Implementation management functions

@@ -209,6 +209,26 @@
       (TODO))
     (is-mutable? [m] (mp/is-mutable? array)) 
     
+  mp/PSubVector
+    (subvector [m start length]
+      (when (not= 1 (alength shape)) (error "Can't take subvector: wrong dimensionality = " (alength shape)))
+      (let [vlen (long (aget shape 0))
+            start (long start)
+            length (long length)
+            end (+ start length)
+            ^longs old-index-map (aget index-maps 0)
+            ^longs new-index-map (long-array length)]
+        (when (< start 0) (error "Start index out of bounds: " start))
+        (when (> end vlen) (error "End index out of bounds: " end))
+        (dotimes [i length]
+          (aset new-index-map i (aget old-index-map (+ start i))))
+        (NDWrapper.
+          array
+          (long-array-of length)
+          dim-map
+          (object-array-of new-index-map)
+          source-position))) 
+    
   mp/PDimensionInfo
     (dimensionality [m]
       (alength shape))
