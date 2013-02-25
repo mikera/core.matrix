@@ -587,6 +587,10 @@
   ([a]
     (mp/determinant a)))
 
+(defn inverse
+  "Calculates the inverse of a matrix."
+  ([m]
+    (mp/inverse m))) 
 
 (defn trace
   "Calculates the trace of a matrix (sum of elements on main diagonal)"
