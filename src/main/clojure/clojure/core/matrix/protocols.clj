@@ -37,7 +37,9 @@
     "Returns a new general matrix of the given shape.
      Shape must be a sequence of dimension sizes.")
   (supports-dimensionality? [m dimensions]
-    "Returns true if the implementation supports matrices with the given number of dimensions."))
+    "Returns true if the implementation supports matrices with the given number of dimensions.")
+  (is-matrix? [m]
+    "Return true if m is a matrix"))
 
 (defprotocol PDimensionInfo
   "Protocol to return standard dimension information about a matrix.
