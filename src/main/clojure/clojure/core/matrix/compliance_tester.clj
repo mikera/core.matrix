@@ -318,6 +318,11 @@
       (is (equals [[1 3] [2 4]] (transpose im)))
       (is (equals im (transpose (transpose im)))))))
 
+(defn test-negate [im]
+  (testing "negate"
+    (let [m (matrix [[1 2] [3 4]])]
+      (is (equals [[-1 -2] [-3 -4]] (negate m))))))
+
 (defn test-identity [im]
   (let [I (identity-matrix im 3)]
     (is (equals [1 2 3] (mul I [1 2 3])))
