@@ -134,6 +134,8 @@
       - equal to the size of the dimension in the target shape
       - not included in the array (i.e. the target shape has more leading dimensions)
 
+     If broadcasting is not possible, an exception must be thrown.
+
      Broadcasting may return either a view with replicated element or a new immutable matrix."))
 
 (defprotocol PConversion
