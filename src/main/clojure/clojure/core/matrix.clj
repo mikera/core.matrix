@@ -217,6 +217,7 @@
 
 (defn dimensionality
 ;; TODO: alternative names to consider: order, tensor-rank?
+;; mathematically just 'rank' would be the appropriate term?
   "Returns the dimensionality (number of array dimensions) of a matrix / array"
   ([m]
     (mp/dimensionality m)))
@@ -358,13 +359,13 @@
     m))
 
 (defn get-row
-  "Gets a row of a 2D matrix.
+  "Gets a row of a matrix.
    May return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
 (defn get-column
-  "Gets a column of a 2D matrix.
+  "Gets a column of a matrix.
    May return a mutable view if supported by the implementation."
   ([m y]
     (mp/get-column m y)))
