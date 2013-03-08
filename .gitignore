@@ -4,3 +4,4 @@
 /.settings
 /classes
 /.lein-*
+.DS_Store
