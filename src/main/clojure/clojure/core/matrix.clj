@@ -5,7 +5,8 @@
   (:require [clojure.core.matrix.multimethods :as mm])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.impl.mathsops :as mops]))
+  (:require [clojure.core.matrix.impl.mathsops :as mops])
+  (:require [clojure.core.matrix.printing :as printing]))
 
 ;; ==================================================================================
 ;; clojure.core.matrix API namespace
@@ -711,8 +712,8 @@
 
 (defn pm 
   "Pretty-prints a matrix"
-  ([m]
-    (TODO))) 
+  [m]
+  (printing/pprint m))
 
 ;; =========================================================
 ;; Implementation management functions
