@@ -18,7 +18,7 @@ Get the latest version from Clojars:
 
 For code examples see:
 
- - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/core/matrix/examples.clj
+ - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/clojure/core/matrix/examples.clj
 
 The idea is to provide a common and idiomatic abstraction for matrix maths in Clojure, 
 independent of underlying implementations. The plan is to develop this 
