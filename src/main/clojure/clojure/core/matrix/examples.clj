@@ -51,5 +51,8 @@
   
   ;; various special matrix constructors are provided
   (identity-matrix 3)
+  
+  ;; pretty print a matrix
+  (pm (matrix [[1 -1] [0.123 123]]))
 )
 
