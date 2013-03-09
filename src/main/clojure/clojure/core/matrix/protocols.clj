@@ -215,6 +215,11 @@
   (matrix-multiply [m a])
   (element-multiply [m a]))
 
+(defprotocol PMatrixMultiplyMutable
+  "Protocol to support mutable matrix multiplication on an arbitrary matrix, vector or scalar"
+  (matrix-multiply! [m a])
+  (element-multiply! [m a]))
+
 (defprotocol PVectorTransform
   "Protocol to support transformation of a vector to another vector.
    Is equivalent to matrix multiplication when 2D matrices are used as transformations.

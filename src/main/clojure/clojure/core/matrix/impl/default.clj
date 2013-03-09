@@ -260,6 +260,19 @@
     (element-multiply [m a]
       (mp/element-map m clojure.core/* a)))
 
+;; matrix multiply
+(extend-protocol mp/PMatrixMultiplyMutable
+  java.lang.Number
+    (element-multiply! [m a]
+      (error "Can't do mutable multiply on a scalar number"))
+    (matrix-multiply! [m a]
+      (error "Can't do mutable multiply on a scalar number"))
+  java.lang.Object
+    (element-multiply! [m a]
+      (mp/element-map! m * a))
+    (matrix-multiply! [m a]
+      (mp/assign! m (mp/matrix-multiply m a))))
+
 ;; matrix element summation
 (extend-protocol mp/PSummable
   java.lang.Number

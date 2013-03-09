@@ -508,17 +508,24 @@
   "Performs in-place element-wise matrix multiplication."
   ([a] a)
   ([a b]
-    (TODO))
+    (mp/element-multiply! a b)
+    a)
   ([a b & more]
-    (TODO))) 
+    (mp/element-multiply! a b)
+    (doseq [c more]
+      (mp/element-multiply! a c))
+    a)) 
 
 (defn transform
   "Transforms a given vector, returning a new vector"
-  ([m v] (mp/vector-transform m v)))
+  ([m v] 
+    (mp/vector-transform m v)))
 
 (defn transform!
-  "Transforms a given vector in place"
-  ([m v] (mp/vector-transform! m v)))
+  "Transforms a given vector in place. Returns the transformed vector."
+  ([m v] 
+    (mp/vector-transform! m v)
+    v))
 
 (defn add
   "Performs element-wise matrix addition on one or more matrices."
@@ -549,7 +556,8 @@
   "Performs element-wise matrix subtraction on one or more matrices."
   ([a] a)
   ([a b]
-    (mp/matrix-sub! a b))
+    (mp/matrix-sub! a b)
+    a)
   ([a b & more]
     (mp/matrix-sub! a b) 
     (reduce #(mp/matrix-sub! a %) more)
