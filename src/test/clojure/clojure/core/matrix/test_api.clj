@@ -30,7 +30,8 @@
            (class (with-implementation :double-array (matrix [1 2])))))))
 
 (deftest test-new
-  (is (equals [0 0 0] (new-vector 3)))) 
+  (is (equals [0 0 0] (new-vector 3)))
+  (is (= [0.0 0.0 0.0] (seq (new-vector :double-array 3))))) 
 
 (deftest test-coerce
   (testing "clojure vector coercion"
@@ -45,7 +46,7 @@
   (testing "get-nd on scalar with zero dimensions"
     (is (== 10.0 (mget 10.0)))
     (is (== 10.0 (mp/get-nd 10.0 []))))
-  (testing "slices clojure vector"
+  (testing "slices of clojure vector"
     (is (= [1 2 3] (slices [1 2 3])))))
 
 (deftest test-element-seq
@@ -53,7 +54,8 @@
   (is (= [1] (eseq [[1]]))))
 
 (deftest test-broadcast
-  (is (= [[1 1] [1 1]] (coerce [] (broadcast 1 [2 2])))))
+  (is (= [[1 1] [1 1]] (coerce [] (broadcast 1 [2 2]))))
+  (is (equals [[[[2]]]] (broadcast 2 [1 1 1 1]))))
 
 (deftest test-reshape
   (is (equals 1 (reshape [1 2 3] [])))
