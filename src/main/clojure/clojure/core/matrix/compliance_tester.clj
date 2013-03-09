@@ -13,7 +13,7 @@
 ;;
 ;; Note that tests need to be written in a very generic way
 ;; - they can't assume anything other than documented API behaviour!
-;; 
+;;
 ;; e.g. we can't assume that scalar values are always Doubles etc.
 ;;
 ;; Convention: im refers to the original matrix implementation object
@@ -22,7 +22,7 @@
 ;; ===========================================
 ;; Utility functions
 
-(defn mutable-equivalent? 
+(defn mutable-equivalent?
   "Returns true if mutable-fn? is the in-place equivalent of immutable-fn? when applied to m"
   [m mutable-fn immutable-fn]
   (or
@@ -31,12 +31,12 @@
       (mutable-fn clonem)
       (equals clonem (immutable-fn m)))))
 
-(defn create-dimensioned 
+(defn create-dimensioned
   "Create a test nested vector array with the specified number of dims. will have 2^dims numeric elements"
   ([dims]
     (create-dimensioned dims 1))
   ([dims start]
-    (cond 
+    (cond
       (<= dims 0) start
       :else (vector (create-dimensioned (dec dims) start)
                     (create-dimensioned (dec dims) (+ start (bit-shift-left 1 (dec dims))))))))
@@ -44,7 +44,7 @@
 (defn create-supported-matrices
   "Creates a set of vector matrices of supported dimensionalities from 1 to 4"
   ([m]
-    (map 
+    (map
       #(create-dimensioned %)
       (filter #(supports-dimensionality? m %)
               (range 1 5)))))
@@ -83,7 +83,7 @@
 (defn test-dimensionality-assumptions [m]
   (testing "shape"
     (is (>= (count (shape m)) 0))
-    (is (= (seq (shape m)) 
+    (is (= (seq (shape m))
            (seq (for [i (range (dimensionality m))] (dimension-count m i))))))
   (testing "vectors always have dimensionality == 1"
     (is (or (= (boolean (vec? m)) (boolean (== 1 (dimensionality m)))) (error "Failed with : " m))))
@@ -97,27 +97,27 @@
     (is (or (not (scalar? m)) (== 1 (ecount m))))))
 
 (defn test-mutable-assumptions [m]
-  (testing "modifying a cloned mutable array does not modify the original" 
+  (testing "modifying a cloned mutable array does not modify the original"
     (when (and (mutable? m) (> 0 (ecount m)))
-	    (let [cm (clone m)
-	          ix (first (index-seq m))
-	          v1 (first (eseq m))
-	          v2 (if (and (number? v1) (== v1 0)) 1 0)]
-	      (apply mset! cm (concat ix [v2]))
-	      (is (equals v1 (apply mget m ix)))
-	      (is (equals v2 (apply mget cm ix))))))
+            (let [cm (clone m)
+                  ix (first (index-seq m))
+                  v1 (first (eseq m))
+                  v2 (if (and (number? v1) (== v1 0)) 1 0)]
+              (apply mset! cm (concat ix [v2]))
+              (is (equals v1 (apply mget m ix)))
+              (is (equals v2 (apply mget cm ix))))))
   (testing "attempt to modify an immutable array results in an exception"
     (when (not (mutable? m))
-	    (let [cm (clone m)
-	          ix (first (index-seq m))
-	          v1 (first (eseq m))
-	          v2 (if (and (number? v1) (== v1 0)) 1 0)]
-	      (is (thrown? Throwable (apply mset! cm (concat ix [v2]))))))))
+            (let [cm (clone m)
+                  ix (first (index-seq m))
+                  v1 (first (eseq m))
+                  v2 (if (and (number? v1) (== v1 0)) 1 0)]
+              (is (thrown? Throwable (apply mset! cm (concat ix [v2]))))))))
 
 (defn test-reshape [m]
   (let [c (ecount m)]
     (when (> c 0)
-      (when (supports-dimensionality? m 1) 
+      (when (supports-dimensionality? m 1)
         (= (eseq m) (eseq (reshape m [c]))))
       (when (supports-dimensionality? m 2)
         (= (eseq m) (eseq (reshape m [1 c])))
@@ -141,10 +141,10 @@
           (is (= (mutable? fss) (mutable? m))))))))
 
 (defn test-general-transpose [m]
-  (when (> (ecount m) 0) 
+  (when (> (ecount m) 0)
     (let [mt (transpose m)]
       (is (e= m (transpose mt)))
-      (is (= (seq (shape m)) 
+      (is (= (seq (shape m))
              (seq (reverse (shape mt))))))))
 
 (defn test-coerce [m]
@@ -228,7 +228,7 @@
             arr (into-array vs)]
         (is (= len (count vs)))
         (is (every? true? (map == vs (eseq m))))
-        (when-not (mutable? m) 
+        (when-not (mutable? m)
           (error "Problem: coerced object not mutable?"))
         (scale! m 0.0)
         (is (== 0.0 (first (eseq m))))
@@ -290,14 +290,14 @@
 
 (defn test-vector-length [im]
   (let [m (matrix im [3 4])]
-    (is (== 5 (length m)))
+    (is (== 2 (length m)))
     (is (== 25 (dot m m)))))
 
 (defn test-vector-normalise [im]
   (let [m (matrix im [3 4])
         n (normalise m)]
     (is (equals n [0.6 0.8] 0.000001))
-    (is (mutable-equivalent? m normalise! normalise)))) 
+    (is (mutable-equivalent? m normalise! normalise))))
 
 (defn vector-tests-1d [im]
   (test-vector-mset im)
@@ -375,7 +375,7 @@
 ;; A general purpose NDArray implementation must pass this test to demonstrate
 ;; that is supports all core.matrix functionality correctly
 
-(defn test-ndarray-implementation 
+(defn test-ndarray-implementation
   "Tests a complete NDArray implementation"
   [im]
   (doseq [dim (range 10)] (is (supports-dimensionality? im dim)))
@@ -385,13 +385,13 @@
 
 ;; ======================================
 ;; Main compliance test method
-;; 
+;;
 ;; Implementations should call this with either a valid instance or their registered implementation key
 ;;
 ;; All valid core.matrix implementation must pass this test
 
-(defn compliance-test 
-  "Runs the compliance test suite on a given matrix implementation. 
+(defn compliance-test
+  "Runs the compliance test suite on a given matrix implementation.
    m can be either a matrix instance or the implementation keyword."
   [m]
   (let [im (imp/get-canonical-object m)
