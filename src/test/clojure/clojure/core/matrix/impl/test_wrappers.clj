@@ -61,5 +61,6 @@
 (deftest instance-tests
   (clojure.core.matrix.compliance-tester/instance-test (wrap-scalar 1))
   (clojure.core.matrix.compliance-tester/instance-test (wrap-slice [[1 2] [3 4]] 1))
+  (clojure.core.matrix.compliance-tester/instance-test (wrap-submatrix [[1 2] [3 4]] [[1 1] [0 1]]))
   (clojure.core.matrix.compliance-tester/instance-test (wrap-nd [[1 2] [3 4]]))) 
 

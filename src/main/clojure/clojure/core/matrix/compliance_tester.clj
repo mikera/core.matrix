@@ -143,7 +143,9 @@
 (defn test-submatrix-assumptions [m]
   (let [shp (shape m)
         full-ranges (map (fn [c] [0 c]) shp)]
-    (is (e= m (submatrix m full-ranges)))))
+    (is (e= m (submatrix m full-ranges)))
+    ;; TODO: test a variety of different submatrices
+    ))
 
 (defn test-general-transpose [m]
   (when (> (ecount m) 0) 
