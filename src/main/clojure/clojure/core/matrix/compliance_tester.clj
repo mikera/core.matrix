@@ -140,6 +140,13 @@
         (let [fss (first ss)]
           (is (= (mutable? fss) (mutable? m))))))))
 
+(defn test-submatrix-assumptions [m]
+  (let [shp (shape m)
+        full-ranges (map (fn [c] [0 c]) shp)]
+    (is (e= m (submatrix m full-ranges)))
+    ;; TODO: test a variety of different submatrices
+    ))
+
 (defn test-general-transpose [m]
   (when (> (ecount m) 0) 
     (let [mt (transpose m)]
@@ -160,6 +167,7 @@
   (test-coerce m)
   (test-dimensionality-assumptions m)
   (test-slice-assumptions m)
+  (test-submatrix-assumptions m)
   (test-mutable-assumptions m)
   (test-vector-round-trip m)
   (test-reshape m)
@@ -176,6 +184,10 @@
 
 ;; ==============================================
 ;; misc tests
+
+(defn test-implementation-namespace 
+  [im]
+  :TODO)
 
 ;; TODO: figure out what to do with implementations that only support specific types?
 (defn test-new-matrices [im]
@@ -397,6 +409,7 @@
   (let [im (imp/get-canonical-object m)
         ik (imp/get-implementation-key im)]
     (binding [*matrix-implementation* ik]
+      (instance-test im)
       (test-implementation im)
       (test-assumptions-for-all-sizes im)
       (test-coerce-via-vectors im)

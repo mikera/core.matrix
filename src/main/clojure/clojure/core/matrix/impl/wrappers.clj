@@ -284,6 +284,22 @@
 	              (object-array (map #(long-range (mp/dimension-count m %)) (range dims)))
 	              (long-array (repeat dims 0))))))
 
+(defn wrap-submatrix
+  [m dim-ranges]
+  (let [shp (mp/get-shape m)
+        dims (count shp)
+        _ (if-not (== dims (count dim-ranges)) (error "submatrix ranges do not match matrix dimensionality"))
+        dim-ranges (mapv (fn [a cnt] (or (vec a) [0 cnt])) dim-ranges shp)
+        new-shape (long-array (map (fn [[start len]] len) dim-ranges))]
+    (NDWrapper. 
+      m
+      new-shape
+      (long-array (range (count shp)))
+      (object-array 
+        (map (fn [[start len]] (long-array (range start (+ start len)))) 
+             dim-ranges))
+      (long-array (repeat dims 0)))))
+
 (defn wrap-broadcast
   "Wraps an array with broadcasting to the given taregt shape."
   [m target-shape]

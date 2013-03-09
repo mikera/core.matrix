@@ -50,6 +50,9 @@
   (subvector [1 2 3 4 5 6] 2 3) 
   
   ;; various special matrix constructors are provided
-  (identity-matrix 3) 
+  (identity-matrix 3)
+  
+  ;; pretty print a matrix
+  (pm (matrix [[1 -1] [0.123 123]]))
 )
 

@@ -62,13 +62,14 @@
   (get-nd [m indexes]))
 
 (defprotocol PIndexedSetting
-  "Protocol for indexed 'setter' access to matrices and vectors. These are like Clojure's 'assoc'
+  "Protocol for indexed 'setter' operations on matrices and vectors. These are like Clojure's 'assoc'
    function, i.e. they return an updated copy of the original matrix, which is itself unchanged.
    Must be supported for any immutable matrix type."
   (set-1d [m row v])
   (set-2d [m row column v])
   (set-nd [m indexes v])
-  (is-mutable? [m]))
+  (is-mutable? [m]
+    "Returns true if the matrix is mutable and therefore supports direct mutable operations, e.g. add!"))
 
 ;; ===================================================================================
 ;; MANDATORY PROTOCOLS FOR MUTABLE MATRICES
@@ -133,6 +134,8 @@
       - of size 1
       - equal to the size of the dimension in the target shape
       - not included in the array (i.e. the target shape has more leading dimensions)
+
+     If broadcasting is not possible, an exception must be thrown.
 
      Broadcasting may return either a view with replicated element or a new immutable matrix."))
 
@@ -212,6 +215,11 @@
   (matrix-multiply [m a])
   (element-multiply [m a]))
 
+(defprotocol PMatrixMultiplyMutable
+  "Protocol to support mutable matrix multiplication on an arbitrary matrix, vector or scalar"
+  (matrix-multiply! [m a])
+  (element-multiply! [m a]))
+
 (defprotocol PVectorTransform
   "Protocol to support transformation of a vector to another vector.
    Is equivalent to matrix multiplication when 2D matrices are used as transformations.
@@ -241,6 +249,11 @@
   "Protocol to support matrix addition on an arbitrary matrices of same size"
   (matrix-add! [m a])
   (matrix-sub! [m a]))
+
+(defprotocol PSubMatrix
+  "Protocol to get a submatrix of another matrix. dim-ranges should be a sequence of [start len] 
+   pairs, one for each dimension. If a pair is nil, it should be interpreted to take the whole dimension."
+  (submatrix [d dim-ranges])) 
 
 (defprotocol PVectorOps
   "Protocol to support common vector operations."

@@ -88,7 +88,8 @@ changes.
 All contributions / ideas welcome!
 
 If you wish to contribute code, please ensure you have a **Clojure Contributors Agreement** signed and on file. For more information see:
-- http://clojure.org/contributing
+
+ - http://clojure.org/contributing
 
 Discussions related to core.matrix generally take place on the "Numerical Clojure" group:
 

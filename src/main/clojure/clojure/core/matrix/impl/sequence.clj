@@ -125,9 +125,9 @@
         (error "Sequence arrays are not mutable!")))
     (element-reduce
       ([m f]
-        (reduce f (mp/element-seq m)))
+        (reduce f (mapcat mp/element-seq m)))
       ([m f init]
-        (reduce f init (mp/element-seq m)))))
+        (reduce f init (mapcat mp/element-seq m)))))
 
 ;; =====================================
 ;; Register implementation

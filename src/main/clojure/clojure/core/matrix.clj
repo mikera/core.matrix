@@ -71,12 +71,13 @@
     (mp/construct-matrix (imp/get-canonical-object implementation) data)))
 
 (defn new-vector
-  "Constructs a new zero-filled vector with the given length"
+  "Constructs a new zero-filled vector with the given length.
+   If the implementation supports mutable vectors, then the new vector should be fully mutable."
   ([length]
     (if-let [m (current-implementation-object)]
       (mp/new-vector m length)
       (error "No clojure.core.matrix implementation available")))
-  ([length implementation]
+  ([implementation length]
     (mp/new-vector (imp/get-canonical-object implementation) length)))
 
 (defn new-matrix
@@ -135,6 +136,15 @@
     ;; TODO: switch to a protocol implementation
     (let [m (imp/get-canonical-object implementation)]
       (TODO)))) 
+
+(defmacro with-implementation [impl & body]
+  "Runs a set of expressions using a specified matrix implementation.
+
+   Example:
+     (with-implementation :vectorz
+       (new-matrix 10 10))"
+  `(binding [*matrix-implementation* (imp/get-canonical-object ~impl)]
+     ~@body)) 
 
 ;; ======================================
 ;; Implementation details
@@ -217,6 +227,7 @@
 
 (defn dimensionality
 ;; TODO: alternative names to consider: order, tensor-rank?
+;; mathematically just 'rank' would be the appropriate term?
   "Returns the dimensionality (number of array dimensions) of a matrix / array"
   ([m]
     (mp/dimensionality m)))
@@ -358,13 +369,13 @@
     m))
 
 (defn get-row
-  "Gets a row of a 2D matrix.
+  "Gets a row of a matrix.
    May return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
 (defn get-column
-  "Gets a column of a 2D matrix.
+  "Gets a column of a matrix.
    May return a mutable view if supported by the implementation."
   ([m y]
     (mp/get-column m y)))
@@ -384,9 +395,9 @@
 (defn submatrix
   "Gets a view of a submatrix, for a set of index-ranges.
    Index ranges should be  a sequence of [start, length] pairs.
-   Index ranges can be nil (gets the whole range) "
+   Index range pair can be nil (gets the whole range) "
   ([m index-ranges]
-    (TODO)))
+    (mp/submatrix m index-ranges)))
 
 (defn subvector
   "Gets a view of part of a vector. The view maintains a reference to the original,
@@ -497,17 +508,24 @@
   "Performs in-place element-wise matrix multiplication."
   ([a] a)
   ([a b]
-    (TODO))
+    (mp/element-multiply! a b)
+    a)
   ([a b & more]
-    (TODO))) 
+    (mp/element-multiply! a b)
+    (doseq [c more]
+      (mp/element-multiply! a c))
+    a)) 
 
 (defn transform
   "Transforms a given vector, returning a new vector"
-  ([m v] (mp/vector-transform m v)))
+  ([m v] 
+    (mp/vector-transform m v)))
 
 (defn transform!
-  "Transforms a given vector in place"
-  ([m v] (mp/vector-transform! m v)))
+  "Transforms a given vector in place. Returns the transformed vector."
+  ([m v] 
+    (mp/vector-transform! m v)
+    v))
 
 (defn add
   "Performs element-wise matrix addition on one or more matrices."
@@ -538,7 +556,8 @@
   "Performs element-wise matrix subtraction on one or more matrices."
   ([a] a)
   ([a b]
-    (mp/matrix-sub! a b))
+    (mp/matrix-sub! a b)
+    a)
   ([a b & more]
     (mp/matrix-sub! a b) 
     (reduce #(mp/matrix-sub! a %) more)
@@ -552,7 +571,8 @@
 (defn scale!
   "Scales a matrix by a scalar factor (in place)"
   ([m factor]
-    (mp/scale! m factor)))
+    (mp/scale! m factor)
+    m))
 
 (defn normalise
   "Normalises a matrix (scales to unit length)"
@@ -563,7 +583,8 @@
   "Normalises a matrix in-place (scales to unit length).
    Returns the modified vector."
   ([m]
-    (mp/normalise! m)))
+    (mp/normalise! m)
+    m))
 
 (defn dot
   "Computes the dot product (inner product) of two vectors"
@@ -612,11 +633,6 @@
   ([m]
      (mp/length-squared m)))
 
-(defn esum
-  "Calculates the sum of all the elements"
-  [m]
-  (mp/element-sum m))
-
 ;; create all unary maths operators
 (eval
   `(do ~@(map (fn [[name func]]
@@ -630,8 +646,22 @@
                 ~'m))) mops/maths-ops))
        )
 
+;; ===================================
+;; Linear algebra algorithms
+;;
+
+;; TODO: rank, lu-decomposition etc.
+
+(defn rank 
+  "Computes the rank of a matrix, i.e. the number of linearly independent rows"
+  ([m]
+    (TODO))) 
+
 ;; ====================================
-;; functional operations
+;; Functional operations
+;;
+;; these work like regular clojure seq, map, reduce etc. but operate on all elements of
+;; a matrix in row-major ordering
 
 (defn ecount
   "Returns the total count of elements in an array"
@@ -661,6 +691,11 @@
     (mp/element-map m f a))
   ([f m a & more]
     (mp/element-map m f a more)))
+
+(defn esum
+  "Calculates the sum of all the elements"
+  [m]
+  (mp/element-sum m))
 
 (defn e=
   "Returns true if all array elements are equal (using Object.equals).
@@ -708,10 +743,46 @@
 ;; =========================================================
 ;; Print Matrix
 
+(defn- longest-nums
+  "Finds the longest string representation of 
+   a number in each column within a given matrix."
+  [mat]
+  (let [tmat (transpose mat)
+        format-num #(format "%.3f" (double %))
+        col-long #(reduce max (map count (map format-num %)))]
+    (map col-long tmat)))
+
+(defn- str-elem
+  "Prints and element that takes up a given amount of whitespaces."
+  [elem whitespaces]
+  (let [formatter (str "%" whitespaces "." 3 "f")]
+    (format formatter (double elem))))
+
+(defn- str-row
+  "Creates a string for each row with the desired 
+   amount of spaces between the elements."
+  [[elem-head & elem-tail] [len-head & len-tail]] ;; the first element doesn't have a leading ws.
+  (let [first-elem (str-elem elem-head len-head)
+        body-elems (map str-elem elem-tail len-tail)]
+  (str "[" first-elem " " (apply str body-elems) "]")))
+
+(defn- rprint 
+  "Recursively prints each element with a leading
+   line break and whitespace. If there are no 
+   elements left in the matrix it ends with a 
+   closing bracket."
+  [[head & tail :as mat] acc len]
+  (if (empty? mat)
+    (str acc "]")
+    (recur tail (str acc "\n " (str-row head len)) len)))
+
 (defn pm 
   "Pretty-prints a matrix"
-  ([m]
-    (TODO))) 
+  [[mat-first & mat-rest :as m]]
+  (let [len (longest-nums m)
+        start (str "[" (str-row mat-first len))
+        out (str start (rprint mat-rest "" len))]
+    (println out)))
 
 ;; =========================================================
 ;; Implementation management functions

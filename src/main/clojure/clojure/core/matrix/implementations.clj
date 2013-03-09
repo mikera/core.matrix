@@ -56,5 +56,5 @@
     (let [k (get-implementation-key m)
           obj (@canonical-objects k)]
       (or obj 
-          (try-load-implementation k)
+          (if (try-load-implementation k) (@canonical-objects k))
           (error "Unable to find implementation: [" k "]")))))

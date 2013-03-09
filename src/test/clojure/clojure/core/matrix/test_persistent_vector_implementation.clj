@@ -12,7 +12,9 @@
     (is (= [[[1]]] (transpose [[[1]]]))))
   (testing "vector wrapper coerce"
     (is (= 1.0 (coerce [] (wrap/wrap-scalar 1.0))))
-    (is (= [1.0 2.0] (coerce [] (slices (double-array [1 2])))))))
+    (is (= [1.0 2.0] (coerce [] (slices (double-array [1 2]))))))
+  (testing "vector length"
+    (is (== 5 (length [3 4])))))
 
 (deftest test-properties
   (is (not (mutable? [1 2])))

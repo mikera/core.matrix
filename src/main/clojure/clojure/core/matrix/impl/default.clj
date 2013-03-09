@@ -260,6 +260,19 @@
     (element-multiply [m a]
       (mp/element-map m clojure.core/* a)))
 
+;; matrix multiply
+(extend-protocol mp/PMatrixMultiplyMutable
+  java.lang.Number
+    (element-multiply! [m a]
+      (error "Can't do mutable multiply on a scalar number"))
+    (matrix-multiply! [m a]
+      (error "Can't do mutable multiply on a scalar number"))
+  java.lang.Object
+    (element-multiply! [m a]
+      (mp/element-map! m * a))
+    (matrix-multiply! [m a]
+      (mp/assign! m (mp/matrix-multiply m a))))
+
 ;; matrix element summation
 (extend-protocol mp/PSummable
   java.lang.Number
@@ -420,18 +433,18 @@
       ([m f init]
         (reduce f init (mp/element-seq m))))
   nil
-    (element-seq [m] nil)
+    (element-seq [m] '(nil))
     (element-map
-      ([m f] nil)
-      ([m f a] nil)
-      ([m f a more] nil))
+      ([m f] (f nil))
+      ([m f a] (f nil a))
+      ([m f a more] (apply f nil a more)))
     (element-map!
       ([m f] (error "Can't do element-map! on nil"))
       ([m f a] (error "Can't do element-map! on nil"))
       ([m f a more] (error "Can't do element-map! on nil")))
     (element-reduce
-      ([m f] (f))
-      ([m f init] init)))
+      ([m f] (f nil))
+      ([m f init] (f init nil))))
 
 (extend-protocol mp/PMatrixSlices
   java.lang.Object
@@ -462,6 +475,16 @@
   java.lang.Object
     (subvector [m start length]
       (mp/subvector (wrap/wrap-nd m) start length))) 
+
+(extend-protocol mp/PSubMatrix
+  java.lang.Number
+    (submatrix [m index-ranges]
+      (if (seq index-ranges)
+        (error "Can't take partial submatrix of a scalr number")
+        m))
+  java.lang.Object
+    (submatrix [m index-ranges]
+      (clojure.core.matrix.impl.wrappers/wrap-submatrix m index-ranges))) 
 
 (extend-protocol mp/PBroadcast
   java.lang.Object
