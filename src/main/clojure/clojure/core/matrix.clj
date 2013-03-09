@@ -76,7 +76,7 @@
     (if-let [m (current-implementation-object)]
       (mp/new-vector m length)
       (error "No clojure.core.matrix implementation available")))
-  ([length implementation]
+  ([implementation length]
     (mp/new-vector (imp/get-canonical-object implementation) length)))
 
 (defn new-matrix
@@ -626,8 +626,14 @@
                 ~'m))) mops/maths-ops))
        )
 
+;; ===================================
+;; Linear algebra algorithms
+;;
+
+;; TODO: rank, lu-decomposition etc.
+
 ;; ====================================
-;; functional operations
+;; Functional operations
 ;;
 ;; these work like regular clojure seq, map, reduce etc. but operate on all elements of
 ;; a matrix in row-major ordering
