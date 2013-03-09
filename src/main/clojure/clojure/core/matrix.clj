@@ -642,6 +642,11 @@
 
 ;; TODO: rank, lu-decomposition etc.
 
+(defn rank 
+  "Computes the rank of a matrix, i.e. the number of linearly independent rows"
+  ([m]
+    (TODO))) 
+
 ;; ====================================
 ;; Functional operations
 ;;
