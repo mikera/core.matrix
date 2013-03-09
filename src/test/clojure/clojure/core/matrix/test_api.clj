@@ -171,8 +171,9 @@
     (is (= [] (broadcast-shape [] []))))) 
 
 (deftest check-examples
-  (testing "example code"
-    (clojure.core.matrix.examples/all-examples)))
+  (binding [*out* (java.io.StringWriter.)]
+    (testing "example code"
+      (clojure.core.matrix.examples/all-examples))))
 
 (deftest test-predicates
   (testing "scalar predicates"
