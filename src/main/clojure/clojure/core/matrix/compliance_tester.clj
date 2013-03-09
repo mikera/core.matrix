@@ -177,6 +177,10 @@
 ;; ==============================================
 ;; misc tests
 
+(defn test-implementation-namespace 
+  [im]
+  ())
+
 ;; TODO: figure out what to do with implementations that only support specific types?
 (defn test-new-matrices [im]
   (testing "Vector construction"
