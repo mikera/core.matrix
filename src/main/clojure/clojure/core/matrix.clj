@@ -71,7 +71,8 @@
     (mp/construct-matrix (imp/get-canonical-object implementation) data)))
 
 (defn new-vector
-  "Constructs a new zero-filled vector with the given length"
+  "Constructs a new zero-filled vector with the given length.
+   If the implementation supports mutable vectors, then the new vector should be fully mutable."
   ([length]
     (if-let [m (current-implementation-object)]
       (mp/new-vector m length)
@@ -135,6 +136,15 @@
     ;; TODO: switch to a protocol implementation
     (let [m (imp/get-canonical-object implementation)]
       (TODO)))) 
+
+(defmacro with-implementation [impl & body]
+  "Runs a set of expressions using a specified matrix implementation.
+
+   Example:
+     (with-implementation :vectorz
+       (new-matrix 10 10))"
+  `(binding [*matrix-implementation* (imp/get-canonical-object ~impl)]
+     ~@body)) 
 
 ;; ======================================
 ;; Implementation details
