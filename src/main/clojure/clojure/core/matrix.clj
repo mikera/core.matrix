@@ -563,7 +563,8 @@
 (defn scale!
   "Scales a matrix by a scalar factor (in place)"
   ([m factor]
-    (mp/scale! m factor)))
+    (mp/scale! m factor)
+    m))
 
 (defn normalise
   "Normalises a matrix (scales to unit length)"
@@ -574,7 +575,8 @@
   "Normalises a matrix in-place (scales to unit length).
    Returns the modified vector."
   ([m]
-    (mp/normalise! m)))
+    (mp/normalise! m)
+    m))
 
 (defn dot
   "Computes the dot product (inner product) of two vectors"

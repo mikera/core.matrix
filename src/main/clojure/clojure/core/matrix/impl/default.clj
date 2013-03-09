@@ -420,18 +420,18 @@
       ([m f init]
         (reduce f init (mp/element-seq m))))
   nil
-    (element-seq [m] nil)
+    (element-seq [m] '(nil))
     (element-map
-      ([m f] nil)
-      ([m f a] nil)
-      ([m f a more] nil))
+      ([m f] (f nil))
+      ([m f a] (f nil a))
+      ([m f a more] (apply f nil a more)))
     (element-map!
       ([m f] (error "Can't do element-map! on nil"))
       ([m f a] (error "Can't do element-map! on nil"))
       ([m f a more] (error "Can't do element-map! on nil")))
     (element-reduce
-      ([m f] (f))
-      ([m f init] init)))
+      ([m f] (f nil))
+      ([m f init] (f init nil))))
 
 (extend-protocol mp/PMatrixSlices
   java.lang.Object

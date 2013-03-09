@@ -5,6 +5,9 @@
   (:require [clojure.core.matrix.compliance-tester])
   (:require clojure.core.matrix.impl.sequence))
 
+(deftest regressions
+  (is (== 3 (ereduce (fn [acc _] (inc acc)) 0 '(nil nil nil)))))
+
 (deftest test-sequence-shape
   (is (= [] (shape 1)))
   (is (= [2] (shape '(1 2))))

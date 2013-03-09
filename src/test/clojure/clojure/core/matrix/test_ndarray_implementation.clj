@@ -12,7 +12,19 @@
     (is (thrown? Throwable (esum m)))
     (assign! m vm)
     (is (= vm (coerce [] m)))
-    (is (== 10 (esum m)))))
+    (is (== 10 (esum m))))
+  (testing "esq and ereduce"
+    (let [m (matrix :ndarray [3])
+          es (eseq m)]
+      (is (== 1 (count es)))
+      (is (== 3 (mget m 0)))
+      (is (== 3 (ereduce + 0 m)))
+      (is (== 3 (reduce + 0 es))))
+    (let [m (matrix :ndarray [[1 2] [3 4]])
+          es (eseq m)]
+      (is (== 10 (ereduce + m)))
+      (is (== 4 (ereduce (fn [acc _] (inc acc)) 0 m)))
+      (is (== 4 (ereduce (fn [acc _] (inc acc)) 0 (eseq m)))))))
 
 (deftest test-ndarray-base
   (testing "construction"

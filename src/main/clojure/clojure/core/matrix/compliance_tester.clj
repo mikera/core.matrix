@@ -179,7 +179,7 @@
 
 (defn test-implementation-namespace 
   [im]
-  ())
+  :TODO)
 
 ;; TODO: figure out what to do with implementations that only support specific types?
 (defn test-new-matrices [im]
@@ -401,6 +401,7 @@
   (let [im (imp/get-canonical-object m)
         ik (imp/get-implementation-key im)]
     (binding [*matrix-implementation* ik]
+      (instance-test im)
       (test-implementation im)
       (test-assumptions-for-all-sizes im)
       (test-coerce-via-vectors im)
