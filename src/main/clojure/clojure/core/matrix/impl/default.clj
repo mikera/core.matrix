@@ -476,6 +476,16 @@
     (subvector [m start length]
       (mp/subvector (wrap/wrap-nd m) start length))) 
 
+(extend-protocol mp/PSubMatrix
+  java.lang.Number
+    (submatrix [m index-ranges]
+      (if (seq index-ranges)
+        (error "Can't take partial submatrix of a scalr number")
+        m))
+  java.lang.Object
+    (submatrix [m index-ranges]
+      (clojure.core.matrix.impl.wrappers/wrap-submatrix m index-ranges))) 
+
 (extend-protocol mp/PBroadcast
   java.lang.Object
     (broadcast [m shape] 

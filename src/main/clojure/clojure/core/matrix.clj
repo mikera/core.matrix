@@ -397,7 +397,7 @@
    Index ranges should be  a sequence of [start, length] pairs.
    Index range pair can be nil (gets the whole range) "
   ([m index-ranges]
-    (clojure.core.matrix.impl.wrappers/wrap-submatrix m index-ranges)))
+    (mp/submatrix m index-ranges)))
 
 (defn subvector
   "Gets a view of part of a vector. The view maintains a reference to the original,

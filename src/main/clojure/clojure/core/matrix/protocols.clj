@@ -250,6 +250,11 @@
   (matrix-add! [m a])
   (matrix-sub! [m a]))
 
+(defprotocol PSubMatrix
+  "Protocol to get a submatrix of another matrix. dim-ranges should be a sequence of [start len] 
+   pairs, one for each dimension. If a pair is nil, it should be interpreted to take the whole dimension."
+  (submatrix [d dim-ranges])) 
+
 (defprotocol PVectorOps
   "Protocol to support common vector operations."
   (vector-dot [a b]
