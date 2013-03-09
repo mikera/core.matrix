@@ -50,7 +50,8 @@
     (is (= [1 2 3] (slices [1 2 3])))))
 
 (deftest test-submatrix
-  (is (equals [[3]] (submatrix [[1 2] [3 4]] [[1 1] [0 1]])))) 
+  (is (equals [[3]] (submatrix [[1 2] [3 4]] [[1 1] [0 1]])))
+  (is (equals [2 3] (submatrix [1 2 3 4] [[1 2]])))) 
 
 (deftest test-element-seq
   (is (= [1] (eseq 1)))

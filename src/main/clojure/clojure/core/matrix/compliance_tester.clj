@@ -140,6 +140,11 @@
         (let [fss (first ss)]
           (is (= (mutable? fss) (mutable? m))))))))
 
+(defn test-submatrix-assumptions [m]
+  (let [shp (shape m)
+        full-ranges (map (fn [c] [0 c]) shp)]
+    (is (e= m (submatrix m full-ranges)))))
+
 (defn test-general-transpose [m]
   (when (> (ecount m) 0) 
     (let [mt (transpose m)]
@@ -160,6 +165,7 @@
   (test-coerce m)
   (test-dimensionality-assumptions m)
   (test-slice-assumptions m)
+  (test-submatrix-assumptions m)
   (test-mutable-assumptions m)
   (test-vector-round-trip m)
   (test-reshape m)
