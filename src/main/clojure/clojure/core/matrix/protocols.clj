@@ -62,13 +62,14 @@
   (get-nd [m indexes]))
 
 (defprotocol PIndexedSetting
-  "Protocol for indexed 'setter' access to matrices and vectors. These are like Clojure's 'assoc'
+  "Protocol for indexed 'setter' operations on matrices and vectors. These are like Clojure's 'assoc'
    function, i.e. they return an updated copy of the original matrix, which is itself unchanged.
    Must be supported for any immutable matrix type."
   (set-1d [m row v])
   (set-2d [m row column v])
   (set-nd [m indexes v])
-  (is-mutable? [m]))
+  (is-mutable? [m]
+    "Returns true if the matrix is mutable and therefore supports direct mutable operations, e.g. add!"))
 
 ;; ===================================================================================
 ;; MANDATORY PROTOCOLS FOR MUTABLE MATRICES

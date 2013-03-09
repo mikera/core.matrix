@@ -613,11 +613,6 @@
   ([m]
      (mp/length-squared m)))
 
-(defn esum
-  "Calculates the sum of all the elements"
-  [m]
-  (mp/element-sum m))
-
 ;; create all unary maths operators
 (eval
   `(do ~@(map (fn [[name func]]
@@ -633,6 +628,9 @@
 
 ;; ====================================
 ;; functional operations
+;;
+;; these work like regular clojure seq, map, reduce etc. but operate on all elements of
+;; a matrix in row-major ordering
 
 (defn ecount
   "Returns the total count of elements in an array"
@@ -662,6 +660,11 @@
     (mp/element-map m f a))
   ([f m a & more]
     (mp/element-map m f a more)))
+
+(defn esum
+  "Calculates the sum of all the elements"
+  [m]
+  (mp/element-sum m))
 
 (defn e=
   "Returns true if all array elements are equal (using Object.equals).
