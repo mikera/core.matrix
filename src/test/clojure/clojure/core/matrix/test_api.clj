@@ -23,7 +23,14 @@
     (is (clojure.core/vector? (imp/get-canonical-object :persistent-vector)))
     (is (= :persistent-vector (imp/get-implementation-key []))))
   (testing "non-existent implementation"
-    (is (thrown? Throwable (imp/get-canonical-object :random-fictitious-implementation-key)))))
+    (is (thrown? Throwable (imp/get-canonical-object :random-fictitious-implementation-key))))
+  (testing "with-implementation"
+    (is (= [1 2] (with-implementation [] (matrix [1 2]))))
+    (is (= (class (double-array [1 2])) 
+           (class (with-implementation :double-array (matrix [1 2])))))))
+
+(deftest test-new
+  (is (equals [0 0 0] (new-vector 3)))) 
 
 (deftest test-coerce
   (testing "clojure vector coercion"
