@@ -290,7 +290,7 @@
 
 (defn test-vector-length [im]
   (let [m (matrix im [3 4])]
-    (is (== 2 (length m)))
+    (is (== 5 (length m)))
     (is (== 25 (dot m m)))))
 
 (defn test-vector-normalise [im]
