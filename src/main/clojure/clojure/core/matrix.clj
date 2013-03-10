@@ -601,7 +601,12 @@
    Returns the (mutated) first vector."
   ([a b]
     (mp/cross-product! a b)
-    a)) 
+    a))
+
+(defn distance
+  "Calculates the euclidean distance of two vectors."
+  ([a b]
+    (mp/distance a b)))
 
 (defn det
   "Calculates the determinant of a matrix"
