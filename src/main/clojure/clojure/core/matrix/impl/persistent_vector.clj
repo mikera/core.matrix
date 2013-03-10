@@ -181,7 +181,8 @@
     (length-squared [a]
       (reduce + (map #(* % %) a)))
     (normalise [a]
-      (mp/scale a (/ 1.0 (Math/sqrt (mp/length-squared a))))))
+      (mp/scale a (/ 1.0 (Math/sqrt (mp/length-squared a)))))
+    (distance [a b] (mp/length (vec (map - b a)))))
 
 (extend-protocol mp/PSummable
   clojure.lang.IPersistentVector

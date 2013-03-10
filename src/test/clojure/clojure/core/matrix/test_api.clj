@@ -164,7 +164,10 @@
 (deftest test-vector-ops
   (testing "vector dot product"
     (is (== 1.0 (dot [1.0] [1.0])))
-    (is (== -1.0 (dot [1 2] [1 -1])))))
+    (is (== -1.0 (dot [1 2] [1 -1]))))
+  (testing "vector distance"
+    (is (== 1.0 (distance [0 0][0 1])))
+    (is (== 1.0 (distance [1 0][0 0])))))
 
 (deftest test-dimensions
   (testing "vector dimensions"

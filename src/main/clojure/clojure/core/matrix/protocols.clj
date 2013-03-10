@@ -264,7 +264,9 @@
   (length-squared [a]
      "Squared Euclidean length of a vector.")
   (normalise [a]
-     "Returns a new vector, normalised to length 1.0"))
+     "Returns a new vector, normalised to length 1.0")
+  (distance [a b]
+     "Euclidean distance of two vectors."))
 
 (defprotocol PVectorCross
   (cross-product [a b]
