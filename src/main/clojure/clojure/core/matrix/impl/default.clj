@@ -110,7 +110,6 @@
           (> a 0.0) 1.0
           (< a 0.0) -1.0
           :else 0.0)))
-    (distance [a b] (Math/abs (- a b)))
   java.lang.Object
     (vector-dot [a b]
       (reduce + 0 (mp/element-seq (mp/element-multiply a b))))
@@ -119,7 +118,12 @@
     (length-squared [a]
       (mp/element-reduce a (fn [r x] (+ r (* x x))) 0))
     (normalise [a]
-      (mp/scale a (/ 1.0 (Math/sqrt (double (mp/length-squared a))))))
+      (mp/scale a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
+
+(extend-protocol mp/PVectorDistance
+  java.lang.Number
+    (distance [a b] (Math/abs (- b a)))
+  java.lang.Object
     (distance [a b] (double (mp/length (vec (map - b a))))))
 
 (extend-protocol mp/PVectorCross
