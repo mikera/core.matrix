@@ -270,7 +270,11 @@
   (cross-product [a b]
     "Cross product of two vectors")
   (cross-product! [a b]
-    "Calculate cross product of two vectors, storing the result in the first vector")) 
+    "Calculate cross product of two vectors, storing the result in the first vector"))
+
+(defprotocol PVectorDistance
+  (distance [a b]
+     "Euclidean distance of two vectors."))
 
 (defprotocol PMutableVectorOps
   "Protocol for mutable versions of commn vector operations" 

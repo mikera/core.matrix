@@ -54,5 +54,8 @@
   
   ;; pretty print a matrix
   (pm (matrix [[1 -1] [0.123 123]]))
+  
+  ;; calculate the euclidean distance of two vectors
+  (distance [0 0] [1 1])
 )
 
