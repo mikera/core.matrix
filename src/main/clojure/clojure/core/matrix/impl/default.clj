@@ -124,7 +124,7 @@
   java.lang.Number
     (distance [a b] (Math/abs (- b a)))
   java.lang.Object
-    (distance [a b] (double (mp/length (vec (map - b a))))))
+    (distance [a b] (double (mp/length (mp/matrix-sub a b)))))
 
 (extend-protocol mp/PVectorCross
   java.lang.Object
