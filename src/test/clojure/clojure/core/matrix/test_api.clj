@@ -96,7 +96,11 @@
     (is (equals [6] (mul [3] 2)))
     (is (equals [6.0] (mul 2 [3]))))
   (testing "matrices"
-    (is (equals [[1 0.0] [0 1.0]] [[1.0 0] [0.0 1]]))))
+    (is (equals [[1 0.0] [0 1.0]] [[1.0 0] [0.0 1]])))
+  (testing "element e="
+    (is (e= [1 2] [1 2]))
+    (is (not (e= [1 2] [3 4])))
+    (is (not (e= [1 2] [1.0 2.0])))))
 
 (deftest test-multiply
   (testing "scalars"
