@@ -298,6 +298,11 @@
      - The transpose of a 1D vector is the same 1D vector
      - The transpose of a 2D matrix swaps rows and columns"))
 
+(defprotocol PMatrixRank
+  "Protocol to support computing the rank (number of linearly independent rows) ina matrix"
+  (rank [m]
+        "Returns the rank of a matrix")) 
+
 (defprotocol PSummable
   "Protocol to support the summing of all elements in an array. 
    The array must hold numeric values only, or an exception will be thrown."

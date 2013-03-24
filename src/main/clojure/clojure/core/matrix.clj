@@ -660,7 +660,7 @@
 (defn rank 
   "Computes the rank of a matrix, i.e. the number of linearly independent rows"
   ([m]
-    (TODO))) 
+    (mp/PMatrixRank m))) 
 
 ;; ====================================
 ;; Functional operations
