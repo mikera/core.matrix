@@ -601,7 +601,12 @@
    Returns the (mutated) first vector."
   ([a b]
     (mp/cross-product! a b)
-    a)) 
+    a))
+
+(defn distance
+  "Calculates the euclidean distance of two vectors."
+  ([a b]
+    (mp/distance a b)))
 
 (defn det
   "Calculates the determinant of a matrix"
@@ -655,7 +660,7 @@
 (defn rank 
   "Computes the rank of a matrix, i.e. the number of linearly independent rows"
   ([m]
-    (TODO))) 
+    (mp/PMatrixRank m))) 
 
 ;; ====================================
 ;; Functional operations
@@ -701,20 +706,20 @@
   "Returns true if all array elements are equal (using Object.equals).
    WARNING: a java.lang.Long does not equal a lava.lang.Double.
    Use 'equals' or 'e==' instead if you want numerical equality."
-  ([f m1]
+  ([m1]
     true)
-  ([f m1 m2]
+  ([m1 m2]
     (every? true? (map = (eseq m1) (eseq m2))))
-  ([f m1 m2 & more]
+  ([m1 m2 & more]
     (reduce e= (e= m1 m2) more))) 
 
 (defn e==
   "Returns true if all array elements are numerically equal (using ==)"
-  ([f m1]
+  ([m1]
     true)
-  ([f m1 m2]
+  ([m1 m2]
     (equals m1 m2))
-  ([f m1 m2 & more]
+  ([m1 m2 & more]
     (reduce equals (equals m1 m2) more))) 
 
 (defn emap!

@@ -120,6 +120,12 @@
     (normalise [a]
       (mp/scale a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
 
+(extend-protocol mp/PVectorDistance
+  java.lang.Number
+    (distance [a b] (Math/abs (- b a)))
+  java.lang.Object
+    (distance [a b] (double (mp/length (mp/matrix-sub a b)))))
+
 (extend-protocol mp/PVectorCross
   java.lang.Object
     (cross-product [a b]

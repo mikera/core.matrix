@@ -311,6 +311,11 @@
     (is (equals n [0.6 0.8] 0.000001))
     (is (mutable-equivalent? m normalise! normalise))))
 
+(defn test-vector-distance [im]
+  (let [a (matrix im [1 1])
+        b (matrix im [4 -3])]
+    (is (== 5 (distance a b))))) 
+
 (defn vector-tests-1d [im]
   (test-vector-mset im)
   (test-vector-length im)
@@ -319,6 +324,7 @@
   (test-vector-normalise im)
   (test-vector-slices im)
   (test-vector-subvector im)
+  (test-vector-distance im) 
   (test-element-add im))
 
 ;; ========================================

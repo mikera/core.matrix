@@ -96,7 +96,11 @@
     (is (equals [6] (mul [3] 2)))
     (is (equals [6.0] (mul 2 [3]))))
   (testing "matrices"
-    (is (equals [[1 0.0] [0 1.0]] [[1.0 0] [0.0 1]]))))
+    (is (equals [[1 0.0] [0 1.0]] [[1.0 0] [0.0 1]])))
+  (testing "element e="
+    (is (e= [1 2] [1 2]))
+    (is (not (e= [1 2] [3 4])))
+    (is (not (e= [1 2] [1.0 2.0])))))
 
 (deftest test-multiply
   (testing "scalars"
@@ -164,7 +168,10 @@
 (deftest test-vector-ops
   (testing "vector dot product"
     (is (== 1.0 (dot [1.0] [1.0])))
-    (is (== -1.0 (dot [1 2] [1 -1])))))
+    (is (== -1.0 (dot [1 2] [1 -1]))))
+  (testing "vector distance"
+    (is (== 1.0 (distance [0 0][0 1])))
+    (is (== 1.0 (distance [1 0][0 0])))))
 
 (deftest test-dimensions
   (testing "vector dimensions"

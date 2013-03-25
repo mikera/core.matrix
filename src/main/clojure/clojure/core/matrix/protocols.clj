@@ -270,7 +270,11 @@
   (cross-product [a b]
     "Cross product of two vectors")
   (cross-product! [a b]
-    "Calculate cross product of two vectors, storing the result in the first vector")) 
+    "Calculate cross product of two vectors, storing the result in the first vector"))
+
+(defprotocol PVectorDistance
+  (distance [a b]
+     "Euclidean distance of two vectors."))
 
 (defprotocol PMutableVectorOps
   "Protocol for mutable versions of commn vector operations" 
@@ -293,6 +297,11 @@
      - The transpose of a scalar is the same scalar
      - The transpose of a 1D vector is the same 1D vector
      - The transpose of a 2D matrix swaps rows and columns"))
+
+(defprotocol PMatrixRank
+  "Protocol to support computing the rank (number of linearly independent rows) ina matrix"
+  (rank [m]
+        "Returns the rank of a matrix")) 
 
 (defprotocol PSummable
   "Protocol to support the summing of all elements in an array. 
