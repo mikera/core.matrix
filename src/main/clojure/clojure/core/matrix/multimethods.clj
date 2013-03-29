@@ -6,7 +6,7 @@
 ;; - a default implementation may be used
 
 (defmulti mul
-  (fn [x y] [(.getClass x) (.getClass y)]))
+  (fn [x y] [(class x) (class y)]))
 
 ;; heirarchies for matrix types
 
