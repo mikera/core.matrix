@@ -125,7 +125,7 @@
 
 (extend-protocol mp/PVectorDistance
   java.lang.Number
-    (distance [a b] (Math/abs (- b a)))
+    (distance [a b] (Math/abs (double (- b a))))
   java.lang.Object
     (distance [a b] (double (mp/length (mp/matrix-sub a b)))))
 
