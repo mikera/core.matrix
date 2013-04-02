@@ -49,9 +49,9 @@ Example implementations we might want to support:
 
 ### WARNING: Subject to change
 
-This API is experimental / subject to rapid change.
+This API is still a work in progress and subject to change.
 
-If you build anything on top of it, don't be surprised if it breaks with the next release. You have been warned.
+If you build anything on top of it, don't be too surprised if it breaks with the next release.
 
 ### Getting started
 
@@ -60,11 +60,15 @@ Right now the code base is primarily intended for people working on the API + im
 You can include the latest released version by adding it as a leiningen or Maven dependency from Clojars, but be aware that this is probably out of data compared to the latest master branch.
 
  - https://clojars.org/mikera/matrix-api
+ 
+Some documentation / examples can be found in the Wiki:
+ 
+ - https://github.com/mikera/matrix-api/wiki
 
 ### Writing a matrix implementation
 
 We encourage you to extend the clojure.core.matrix protocols to different types of matrices / multi-dimensional
-data formats. This is relatively easy and is referred to as a clojure.core.matrix "impelmentation". You can write an
+data formats. This is relatively easy and is referred to as a clojure.core.matrix "implementation". You can write an
 implementation for a wide variety of purposes:
 
  - Java matrix libaries that you want to wrap for use with clojure.core.matrix
