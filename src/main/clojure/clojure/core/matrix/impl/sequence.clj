@@ -94,11 +94,11 @@
       (mapcat mp/element-seq m))
     (element-map
       ([m f]
-        (map #(mp/element-map % f) m))
+        (mapv #(mp/element-map % f) m))
       ([m f a]
-        (map #(mp/element-map % f %2) m a))
+        (mapv #(mp/element-map % f %2) m a))
       ([m f a more]
-        (map #(mp/element-map % f %2 %3) m a more)))
+        (mapv #(mp/element-map % f %2 %3) m a more)))
     (element-map!
       ([m f]
         (if (== 1 (mp/dimensionality m))
