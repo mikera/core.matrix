@@ -89,6 +89,10 @@
 ;; wraps a row-major slice of an array
 
 (deftype SliceWrapper [array ^long slice]
+  clojure.lang.Seqable
+    (seq [m]
+      (mp/get-major-slice-seq m))
+  
   mp/PImplementation
     (implementation-key [m] 
       :slice-wrapper)
@@ -185,7 +189,11 @@
    ^objects index-maps ;; maps of each NDWrapper dimension's indexes to source dimension indexes
    ^longs source-position ;; position in source array for non-specified dimensions
    ]
-   mp/PImplementation
+  clojure.lang.Seqable
+    (seq [m]
+      (mp/get-major-slice-seq m)) 
+  
+  mp/PImplementation
     (implementation-key [m] 
       :nd-wrapper)
     ;; we delegate to persistent-vector implementation for new matrices.
