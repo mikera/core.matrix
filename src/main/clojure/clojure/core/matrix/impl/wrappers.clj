@@ -183,7 +183,7 @@
          (aset ~ix tdim# (aget ~(vary-meta `(aget ~'index-maps ~isym) assoc :tag 'longs) ~val))))))
 
 (deftype NDWrapper
-  [array ;; source array
+  [array ;; source array (any valid core.matrix matrix)
    ^longs shape ;; shape of NDWrapper
    ^longs dim-map ;; map of NDWrapper dimensions to source dimensions
    ^objects index-maps ;; maps of each NDWrapper dimension's indexes to source dimension indexes
@@ -309,7 +309,7 @@
       (long-array (repeat dims 0)))))
 
 (defn wrap-broadcast
-  "Wraps an array with broadcasting to the given taregt shape."
+  "Wraps an array with broadcasting to the given target shape."
   [m target-shape]
   (let [tshape (long-array target-shape)
         tdims (count tshape)
