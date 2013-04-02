@@ -44,29 +44,14 @@
           (mp/get-nd m next-indexes))
         (nth m (int (first indexes))))))
 
-(defn- set-nth [coll i v]
-  (concat 
-    (take i coll) 
-    (cons v (drop (inc i) coll))))
-
-(defn- update-nth [coll i f]
-  (let [tail (drop i coll)]
-    (concat (take i coll) 
-            (cons (f (first tail)) (next tail)))))
-
 (extend-protocol mp/PIndexedSetting
   java.lang.Object
     (set-1d [m row v]
-      (set-nth m row v))
+      (mp/set-1d (mp/convert-to-nested-vectors m) row v))
     (set-2d [m row column v]
-      (update-nth m row #(set-nth % column v)))
+      (mp/set-2d (mp/convert-to-nested-vectors m) row column v))
     (set-nd [m indexes v]
-      (let [indexes (seq indexes)
-            ic (count indexes)]
-        (cond 
-          (== ic 1) (mp/set-1d m (first indexes) v)
-          (== ic 2) (mp/set-2d m (first indexes) (second indexes)v)
-          :else (update-nth m (first indexes) #(mp/set-nd % (next indexes) v)))))
+      (mp/set-nd (mp/convert-to-nested-vectors m) indexes v))
     (is-mutable? [m]
       false))
 
