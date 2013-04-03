@@ -118,7 +118,9 @@
     (is-vector? [m]
       (== 2 (mp/dimensionality array)))
     (dimension-count [m dimension-number]
-      (mp/dimension-count array (inc dimension-number)))
+      (if (< dimension-number 0)
+        (error "Can't access negative dimension!")
+        (mp/dimension-count array (inc dimension-number))))
    
   mp/PIndexedAccess
     (get-1d [m row]

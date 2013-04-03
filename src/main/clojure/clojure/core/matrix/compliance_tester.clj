@@ -94,7 +94,12 @@
   (testing "element count"
     (is (== (ecount m) (reduce * 1 (shape m))))
     (is (== (ecount m) (ereduce (fn [acc _] (inc acc)) 0 (eseq m))))
-    (is (or (not (scalar? m)) (== 1 (ecount m))))))
+    (is (or (not (scalar? m)) (== 1 (ecount m)))))
+  (testing "accessing outside existing dimensions is an error"
+    (let [sh (shape m)
+          dims (count sh)]
+      (is (thrown? Throwable (dimension-count m -1)))
+      (is (thrown? Throwable (dimension-count m dims))))))
 
 (defn test-mutable-assumptions [m]
   (testing "modifying a cloned mutable array does not modify the original" 

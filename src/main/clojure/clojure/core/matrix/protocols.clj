@@ -51,7 +51,8 @@
   (is-vector? [m]
     "Tests whether an object is a vector (1D matrix)")
   (dimension-count [m dimension-number]
-    "Returns the size of a specific dimension "))
+    "Returns the size of a specific dimension. Must throw an exception if the array does not
+     have the specified dimension."))
 
 ;; protocol arity overloads behave oddly, so different names used for simplicity
 ;; we provide fast paths for 1D and 2D access (common case)
