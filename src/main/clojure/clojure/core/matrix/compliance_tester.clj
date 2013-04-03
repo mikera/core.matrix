@@ -56,10 +56,7 @@
   [im]
   (testing "Implementation keyword"
     (is (keyword? (imp/get-implementation-key im)))
-    (is (= (imp/get-implementation-key im) (imp/get-implementation-key (imp/get-canonical-object im)))))
-  (testing "Implementation building same type"
-    (is (= (imp/get-implementation-key im) (imp/get-implementation-key (matrix im))))
-    (is (= (imp/get-implementation-key im) (imp/get-implementation-key (matrix im im))))))
+    (is (= (imp/get-implementation-key im) (imp/get-implementation-key (imp/get-canonical-object im))))))
 
 (defn test-implementation [im]
   (test-implementation-key im))

@@ -12,20 +12,20 @@
 (extend-protocol mp/PImplementation
   clojure.lang.ISeq
     (implementation-key [m] :sequence)
-    (new-vector [m length] (seq (repeat length 0.0)))
-    (new-matrix [m rows columns] (seq (repeat rows (mp/new-vector m columns))))
+    (new-vector [m length] (vec (repeat length 0.0)))
+    (new-matrix [m rows columns] (vec (repeat rows (mp/new-vector m columns))))
     (new-matrix-nd [m dims]
       (if-let [dims (seq dims)]
-        (seq (repeat (first dims) (mp/new-matrix-nd m (next dims))))
+        (vec (repeat (first dims) (mp/new-matrix-nd m (next dims))))
         0.0))
     (construct-matrix [m data]
       (let [dims (mp/dimensionality data)]
         (cond
 	        (== dims 0) (if (mp/is-scalar? data) data (mp/get-0d data))
 	        (>= dims 1)
-	          (map #(mp/construct-matrix m %) (for [i (range (mp/dimension-count data 0))] (mp/get-major-slice data i)))
+	          (mapv #(mp/construct-matrix m %) (for [i (range (mp/dimension-count data 0))] (mp/get-major-slice data i)))
 	        (sequential? data)
-	          (map #(mp/construct-matrix m %) data)
+	          (mapv #(mp/construct-matrix m %) data)
 	        :default
 	          (error "Don't know how to construct matrix from: " (class data)))))
     (supports-dimensionality? [m dims]
@@ -55,14 +55,10 @@
     (is-mutable? [m]
       false))
 
-
 (extend-protocol mp/PSliceView
   clojure.lang.ISeq
     (get-major-slice-view [m i] 
-      (let [v (nth m i)]
-        (cond 
-          (mp/is-scalar? v) (wrap/wrap-scalar v))
-          :else v)))
+      (nth m i)))
 
 (extend-protocol mp/PSliceSeq
   clojure.lang.ISeq
