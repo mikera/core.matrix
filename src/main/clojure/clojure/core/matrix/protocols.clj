@@ -91,6 +91,22 @@
               instance if the array is mutable."))
 
 ;; ===================================================================================
+;; RECOMMENDATION: Implement Sequable or Iterable
+;;
+;; It is strongly recommended that core.matrix implementations implement either the
+;; clojure.lang.Seqable or java.lang.Iterable interface.
+;;
+;; The semantics should be to return a seq / iterator of row-major slices
+;;
+;; This enables matrices to be used with regular Clojure sequence operations e.g.
+;;
+;; (first (matrix [[1 2] [3 4])) => (matrix [1 2])
+;; (map #(add % [1 2]) [[1 2] [3 4] [5 6]]) => ([2 4] [4 6] [6 8])
+;;
+;; Unfortunately this recommendation cannot be enforced, since it is impossible to 
+;; retrofit old Java classes with new interface implementations :-(
+
+;; ===================================================================================
 ;; OPTTIONAL PROTOCOLS
 ;;
 ;; implementations don't need to provide these since fallback default implementations
