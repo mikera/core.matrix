@@ -277,6 +277,7 @@
 
 (defn test-vector-slices [im]
   (let [m (matrix im [1 2 3])]
+    (is (= [3] (seq (shape m))))
     (is (equals m (matrix im (coerce [] (slices m)))))
     (is (= (map mp/get-0d (slices m)) (eseq m)))))
 
