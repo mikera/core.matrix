@@ -284,7 +284,7 @@
       (SliceWrapper. m slice))))
 
 (defn wrap-nd 
-  "Wraps an array in a view. Good for taking submatrices, subviews etc."
+  "Wraps an array in a NDWrapper view. Useful for taking submatrices, subviews etc."
   ([m]
 	  (let [shp (long-array (mp/get-shape m))
 	        dims (alength shp)]
