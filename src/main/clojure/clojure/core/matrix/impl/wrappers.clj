@@ -7,8 +7,7 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
-(declare wrap-slice)
-(declare wrap-nd)
+(declare wrap-slice wrap-nd wrap-scalar)
 
 ;; =============================================
 ;; ScalarWrapper
