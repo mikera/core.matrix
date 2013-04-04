@@ -41,7 +41,7 @@
     (get-shape [m]
       [])
     (is-scalar? [m]
-      false)
+      false) ;; note that a ScalarWrapper is not itself a scalar!!
     (is-vector? [m]
       false)
     (dimension-count [m dimension-number]

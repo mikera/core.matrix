@@ -48,7 +48,8 @@
   (get-shape [m]
     "Returns the shape of the matrix, as an array or sequence of dimension sizes")
   (is-scalar? [m]
-    "Tests whether an object is a scalar value")
+    "Tests whether an object is a scalar value, i.e. a value that can exist at a 
+     specific position in an array.")
   (is-vector? [m]
     "Tests whether an object is a vector (1D matrix)")
   (dimension-count [m dimension-number]
@@ -185,8 +186,8 @@
   (subvector [m start length])) 
 
 (defprotocol PSliceView
-  "Protocol for quick view access into a row-major slices of an array. If implemented, must return either a view
-   or an immutable sub-matrix: it must *not* return copied data. 
+  "Protocol for quick view access into a row-major slices of an array. If implemented, must return 
+   either a view or an immutable sub-matrix: it must *not* return copied data. 
    The default implementation creates a wrapper view."
   (get-major-slice-view [m i] "Gets a view of a major array slice"))
 
@@ -355,7 +356,7 @@
   (element-reduce 
     [m f] 
     [m f init]
-    "Reduces over all elements of m."))
+    "Reduces with the function f over all elements of m."))
 
 ;; ============================================================
 ;; Utility functions
