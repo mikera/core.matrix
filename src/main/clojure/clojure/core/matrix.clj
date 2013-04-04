@@ -565,14 +565,19 @@
     (reduce (fn [acc m] (sub! acc m)) (sub! a b) more)))
 
 (defn scale
-  "Scales a matrix by a scalar factor"
+  "Scales a matrix by one or more scalar factors"
   ([m factor]
-    (mp/scale m factor)))
+    (mp/scale m factor))
+  ([m factor & more-factors]
+    (mp/scale m (* factor (reduce * more-factors)))))
 
 (defn scale!
-  "Scales a matrix by a scalar factor (in place)"
+  "Scales a matrix by one or more scalar factors (in place)"
   ([m factor]
     (mp/scale! m factor)
+    m)
+  ([m factor & more-factors]
+    (mp/scale! m (* factor (reduce * more-factors)))
     m))
 
 (defn normalise
