@@ -662,7 +662,7 @@
 ;; Linear algebra algorithms
 ;;
 
-;; TODO: rank, lu-decomposition etc.
+;; TODO: lu-decomposition etc.
 
 (defn rank 
   "Computes the rank of a matrix, i.e. the number of linearly independent rows"
@@ -676,10 +676,11 @@
 ;; a matrix in row-major ordering
 
 (defn ecount
-  "Returns the total count of elements in an array"
+  "Returns the total count of elements in an array."
   ([m]
     (cond
       (array? m) (reduce * 1 (mp/get-shape m))
+      (scalar? m) 1 
       :else (count m))))
 
 (defn eseq
@@ -749,7 +750,7 @@
     (gen [] (seq sh)))) 
 
 (defn index-seq [m]
-  "Returns a sequence of all possible index vectors in a matrix, in row-major order"
+  "Returns a sequence of all possible index vectors into a matrix, in row-major order"
   (index-seq-for-shape (shape m))) 
 
 ;; =========================================================
