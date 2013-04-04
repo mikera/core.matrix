@@ -581,7 +581,8 @@
     m))
 
 (defn normalise
-  "Normalises a matrix (scales to unit length)"
+  "Normalises a matrix (scales to unit length). 
+   Returns a new normalised vector."
   ([m]
     (mp/normalise m)))
 
@@ -625,7 +626,7 @@
     (mp/inverse m))) 
 
 (defn negate
-  "Calculates the negation of a matrix. Should be equivalent to scaling by -1.0"
+  "Calculates the negation of a matrix. Should normally be equivalent to scaling by -1.0"
   ([m]
     (mp/negate m))) 
 
