@@ -194,7 +194,7 @@
   clojure.lang.Seqable
     (seq [m]
       (mp/get-major-slice-seq m)) 
-  
+     
   mp/PImplementation
     (implementation-key [m] 
       :nd-wrapper)
@@ -273,7 +273,12 @@
             ^longs im (aget index-maps 0)]
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
-        (mp/get-nd array ix))))
+        (mp/get-nd array ix)))
+    
+    
+  java.lang.Object
+    (toString [m]
+      (str (mp/persistent-vector-coerce m))))
 
 (defn wrap-slice 
   "Creates a view of a major slice of an array."

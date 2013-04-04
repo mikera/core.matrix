@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.protocols
+  (:require [clojure.core.matrix.utils :refer [error]])
   (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
 (set! *warn-on-reflection* true)
@@ -355,3 +356,20 @@
     [m f] 
     [m f init]
     "Reduces over all elements of m."))
+
+;; ============================================================
+;; Utility functions
+
+(defn persistent-vector-coerce [x]
+  "Coerces to nested persistent vectors"
+  (let [dims (dimensionality x)] 
+    (cond
+	    (is-scalar? x) x
+	    (== dims 0) (get-0d x)
+      (> dims 0) (convert-to-nested-vectors x) 
+	    (clojure.core/vector? x) (mapv convert-to-nested-vectors x) 
+	    (instance? java.util.List x) (mapv convert-to-nested-vectors x)
+	    (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
+	    (sequential? x) (mapv convert-to-nested-vectors x)
+	    (.isArray (class x)) (vec (seq x)) 
+	    :default (error "Can't coerce to vector: " (class x)))))
