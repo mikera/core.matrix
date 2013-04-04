@@ -544,24 +544,25 @@
     (reduce mp/matrix-sub (mp/matrix-sub a b) more)))
 
 (defn add!
-  "Performs element-wise matrix addition on one or more matrices."
+  "Performs element-wise mutable matrix addition on one or more matrices. 
+   Returns the mutated matrix."
   ([a] a)
   ([a b]
-    (mp/matrix-add! a b))
+    (mp/matrix-add! a b)
+    a)
   ([a b & more]
-    (reduce #(mp/matrix-add! a %) more)
-    a))
+    (reduce (fn [acc m] (add! acc m)) (add! a b) more)))
 
 (defn sub!
-  "Performs element-wise matrix subtraction on one or more matrices."
+  "Performs element-wise mutable matrix subtraction on one or more matrices. 
+   Returns the mutated matrix."
   ([a] a)
   ([a b]
     (mp/matrix-sub! a b)
     a)
   ([a b & more]
     (mp/matrix-sub! a b) 
-    (reduce #(mp/matrix-sub! a %) more)
-    a))
+    (reduce (fn [acc m] (sub! acc m)) (sub! a b) more)))
 
 (defn scale
   "Scales a matrix by a scalar factor"

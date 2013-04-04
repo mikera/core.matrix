@@ -110,8 +110,12 @@
             index (calc-index indexes shape)]
         (aset data index v)))
     
-    ;; TODO: implementations of other protocols for ND arrays
-    )
+  ;; TODO: implementations of other protocols for ND arrays
+  
+  ;; Object implementation
+  java.lang.Object
+    (toString [m]
+      (str (mp/persistent-vector-coerce m))))
 
 (defn make-ndarray [shape]
   "Construct an NDArray with the specified dimensions. All values are initially null."
