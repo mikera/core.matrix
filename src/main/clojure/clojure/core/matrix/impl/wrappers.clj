@@ -167,7 +167,10 @@
       (mp/set-nd! array (cons slice indexes) v))
     
   mp/PMatrixCloning
-    (clone [m] (wrap-slice (mp/clone array) slice)))
+    (clone [m] (wrap-slice (mp/clone array) slice))
+    
+  java.lang.Object
+    (toString [m] (str (mp/persistent-vector-coerce m))))
 
 
 ;; =============================================
