@@ -7,8 +7,7 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
-(declare wrap-slice)
-(declare wrap-nd)
+(declare wrap-slice wrap-nd wrap-scalar)
 
 ;; =============================================
 ;; ScalarWrapper
@@ -42,7 +41,7 @@
     (get-shape [m]
       [])
     (is-scalar? [m]
-      false)
+      false) ;; note that a ScalarWrapper is not itself a scalar!!
     (is-vector? [m]
       false)
     (dimension-count [m dimension-number]
@@ -89,6 +88,10 @@
 ;; wraps a row-major slice of an array
 
 (deftype SliceWrapper [array ^long slice]
+  clojure.lang.Seqable
+    (seq [m]
+      (mp/get-major-slice-seq m))
+  
   mp/PImplementation
     (implementation-key [m] 
       :slice-wrapper)
@@ -114,7 +117,9 @@
     (is-vector? [m]
       (== 2 (mp/dimensionality array)))
     (dimension-count [m dimension-number]
-      (mp/dimension-count array (inc dimension-number)))
+      (if (< dimension-number 0)
+        (error "Can't access negative dimension!")
+        (mp/dimension-count array (inc dimension-number))))
    
   mp/PIndexedAccess
     (get-1d [m row]
@@ -161,7 +166,10 @@
       (mp/set-nd! array (cons slice indexes) v))
     
   mp/PMatrixCloning
-    (clone [m] (wrap-slice (mp/clone array) slice)))
+    (clone [m] (wrap-slice (mp/clone array) slice))
+    
+  java.lang.Object
+    (toString [m] (str (mp/persistent-vector-coerce m))))
 
 
 ;; =============================================
@@ -179,13 +187,17 @@
          (aset ~ix tdim# (aget ~(vary-meta `(aget ~'index-maps ~isym) assoc :tag 'longs) ~val))))))
 
 (deftype NDWrapper
-  [array ;; source array
+  [array ;; source array (any valid core.matrix matrix)
    ^longs shape ;; shape of NDWrapper
    ^longs dim-map ;; map of NDWrapper dimensions to source dimensions
    ^objects index-maps ;; maps of each NDWrapper dimension's indexes to source dimension indexes
    ^longs source-position ;; position in source array for non-specified dimensions
    ]
-   mp/PImplementation
+  clojure.lang.Seqable
+    (seq [m]
+      (mp/get-major-slice-seq m)) 
+     
+  mp/PImplementation
     (implementation-key [m] 
       :nd-wrapper)
     ;; we delegate to persistent-vector implementation for new matrices.
@@ -263,7 +275,12 @@
             ^longs im (aget index-maps 0)]
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
-        (mp/get-nd array ix))))
+        (mp/get-nd array ix)))
+    
+    
+  java.lang.Object
+    (toString [m]
+      (str (mp/persistent-vector-coerce m))))
 
 (defn wrap-slice 
   "Creates a view of a major slice of an array."
@@ -274,7 +291,7 @@
       (SliceWrapper. m slice))))
 
 (defn wrap-nd 
-  "Wraps an array in a view. Good for taking submatrices, subviews etc."
+  "Wraps an array in a NDWrapper view. Useful for taking submatrices, subviews etc."
   ([m]
 	  (let [shp (long-array (mp/get-shape m))
 	        dims (alength shp)]
@@ -289,7 +306,7 @@
   (let [shp (mp/get-shape m)
         dims (count shp)
         _ (if-not (== dims (count dim-ranges)) (error "submatrix ranges do not match matrix dimensionality"))
-        dim-ranges (mapv (fn [a cnt] (or (vec a) [0 cnt])) dim-ranges shp)
+        dim-ranges (mapv (fn [a cnt] (if a (vec a) [0 cnt])) dim-ranges shp)
         new-shape (long-array (map (fn [[start len]] len) dim-ranges))]
     (NDWrapper. 
       m
@@ -301,7 +318,7 @@
       (long-array (repeat dims 0)))))
 
 (defn wrap-broadcast
-  "Wraps an array with broadcasting to the given taregt shape."
+  "Wraps an array with broadcasting to the given target shape."
   [m target-shape]
   (let [tshape (long-array target-shape)
         tdims (count tshape)
@@ -337,6 +354,8 @@
 	      (ScalarWrapper. m)
 	    :else 
 	      (ScalarWrapper. (mp/get-0d m)))))
+
+(imp/register-implementation (ScalarWrapper. 13))
 
 (imp/register-implementation (NDWrapper. nil nil nil nil nil))
 

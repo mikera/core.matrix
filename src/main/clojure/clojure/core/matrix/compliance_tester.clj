@@ -56,10 +56,7 @@
   [im]
   (testing "Implementation keyword"
     (is (keyword? (imp/get-implementation-key im)))
-    (is (= (imp/get-implementation-key im) (imp/get-implementation-key (imp/get-canonical-object im)))))
-  (testing "Implementation building same type"
-    (is (= (imp/get-implementation-key im) (imp/get-implementation-key (matrix im))))
-    (is (= (imp/get-implementation-key im) (imp/get-implementation-key (matrix im im))))))
+    (is (= (imp/get-implementation-key im) (imp/get-implementation-key (imp/get-canonical-object im))))))
 
 (defn test-implementation [im]
   (test-implementation-key im))
@@ -94,7 +91,12 @@
   (testing "element count"
     (is (== (ecount m) (reduce * 1 (shape m))))
     (is (== (ecount m) (ereduce (fn [acc _] (inc acc)) 0 (eseq m))))
-    (is (or (not (scalar? m)) (== 1 (ecount m))))))
+    (is (or (not (scalar? m)) (== 1 (ecount m)))))
+  (testing "accessing outside existing dimensions is an error"
+    (let [sh (shape m)
+          dims (count sh)]
+      (is (thrown? Throwable (dimension-count m -1)))
+      (is (thrown? Throwable (dimension-count m dims))))))
 
 (defn test-mutable-assumptions [m]
   (testing "modifying a cloned mutable array does not modify the original"
@@ -162,6 +164,9 @@
 (defn test-vector-round-trip [m]
   (is (e= m (coerce m (coerce [] m)))))
 
+(defn test-ndarray-round-trip [m]
+  (is (e= m (coerce m (coerce :ndarray m)))))
+
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-coerce m)
@@ -170,6 +175,7 @@
   (test-submatrix-assumptions m)
   (test-mutable-assumptions m)
   (test-vector-round-trip m)
+  (test-ndarray-round-trip m)
   (test-reshape m)
   (test-broadcast m)
   (test-general-transpose m))
@@ -272,6 +278,7 @@
 
 (defn test-vector-slices [im]
   (let [m (matrix im [1 2 3])]
+    (is (= [3] (seq (shape m))))
     (is (equals m (matrix im (coerce [] (slices m)))))
     (is (= (map mp/get-0d (slices m)) (eseq m)))))
 

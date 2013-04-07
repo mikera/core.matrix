@@ -12,20 +12,20 @@
 (extend-protocol mp/PImplementation
   clojure.lang.ISeq
     (implementation-key [m] :sequence)
-    (new-vector [m length] (seq (repeat length 0.0)))
-    (new-matrix [m rows columns] (seq (repeat rows (mp/new-vector m columns))))
+    (new-vector [m length] (vec (repeat length 0.0)))
+    (new-matrix [m rows columns] (vec (repeat rows (mp/new-vector m columns))))
     (new-matrix-nd [m dims]
       (if-let [dims (seq dims)]
-        (seq (repeat (first dims) (mp/new-matrix-nd m (next dims))))
+        (vec (repeat (first dims) (mp/new-matrix-nd m (next dims))))
         0.0))
     (construct-matrix [m data]
       (let [dims (mp/dimensionality data)]
         (cond
 	        (== dims 0) (if (mp/is-scalar? data) data (mp/get-0d data))
 	        (>= dims 1)
-	          (map #(mp/construct-matrix m %) (for [i (range (mp/dimension-count data 0))] (mp/get-major-slice data i)))
+	          (mapv #(mp/construct-matrix m %) (for [i (range (mp/dimension-count data 0))] (mp/get-major-slice data i)))
 	        (sequential? data)
-	          (map #(mp/construct-matrix m %) data)
+	          (mapv #(mp/construct-matrix m %) data)
 	        :default
 	          (error "Don't know how to construct matrix from: " (class data)))))
     (supports-dimensionality? [m dims]
@@ -44,40 +44,21 @@
           (mp/get-nd m next-indexes))
         (nth m (int (first indexes))))))
 
-(defn- set-nth [coll i v]
-  (concat 
-    (take i coll) 
-    (cons v (drop (inc i) coll))))
-
-(defn- update-nth [coll i f]
-  (let [tail (drop i coll)]
-    (concat (take i coll) 
-            (cons (f (first tail)) (next tail)))))
-
 (extend-protocol mp/PIndexedSetting
   java.lang.Object
     (set-1d [m row v]
-      (set-nth m row v))
+      (mp/set-1d (mp/convert-to-nested-vectors m) row v))
     (set-2d [m row column v]
-      (update-nth m row #(set-nth % column v)))
+      (mp/set-2d (mp/convert-to-nested-vectors m) row column v))
     (set-nd [m indexes v]
-      (let [indexes (seq indexes)
-            ic (count indexes)]
-        (cond 
-          (== ic 1) (mp/set-1d m (first indexes) v)
-          (== ic 2) (mp/set-2d m (first indexes) (second indexes)v)
-          :else (update-nth m (first indexes) #(mp/set-nd % (next indexes) v)))))
+      (mp/set-nd (mp/convert-to-nested-vectors m) indexes v))
     (is-mutable? [m]
       false))
-
 
 (extend-protocol mp/PSliceView
   clojure.lang.ISeq
     (get-major-slice-view [m i] 
-      (let [v (nth m i)]
-        (cond 
-          (mp/is-scalar? v) (wrap/wrap-scalar v))
-          :else v)))
+      (nth m i)))
 
 (extend-protocol mp/PSliceSeq
   clojure.lang.ISeq
@@ -109,11 +90,11 @@
       (mapcat mp/element-seq m))
     (element-map
       ([m f]
-        (map #(mp/element-map % f) m))
+        (mapv #(mp/element-map % f) m))
       ([m f a]
-        (map #(mp/element-map % f %2) m a))
+        (mapv #(mp/element-map % f %2) m a))
       ([m f a more]
-        (map #(mp/element-map % f %2 %3) m a more)))
+        (mapv #(mp/element-map % f %2 %3) m a more)))
     (element-map!
       ([m f]
         (if (== 1 (mp/dimensionality m))

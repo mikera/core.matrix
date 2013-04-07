@@ -47,6 +47,9 @@
   (is (== 35 (calc-index [1 5] (long-array [100 30]))))
   (is (== 10101 (calc-index [1 1 1] (long-array [200 100 100]))))) 
 
+(deftest ndarray-test
+   (clojure.core.matrix.compliance-tester/test-ndarray-implementation (make-ndarray [3 3])))
+
 ;; run complicance tests
 (deftest compliance-test
    (clojure.core.matrix.compliance-tester/compliance-test (make-ndarray [3 3])))

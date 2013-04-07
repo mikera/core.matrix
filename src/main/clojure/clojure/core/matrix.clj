@@ -1,6 +1,6 @@
 (ns clojure.core.matrix
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.impl default double-array ndarray persistent-vector wrappers])
+  (:use [clojure.core.matrix.utils])
+  (:require [clojure.core.matrix.impl default double-array ndarray persistent-vector wrappers sparse-map])
   (:require [clojure.core.matrix.impl sequence]) ;; TODO: figure out if we want this?
   (:require [clojure.core.matrix.multimethods :as mm])
   (:require [clojure.core.matrix.protocols :as mp])
@@ -74,11 +74,10 @@
   "Constructs a new zero-filled vector with the given length.
    If the implementation supports mutable vectors, then the new vector should be fully mutable."
   ([length]
-    (if-let [m (current-implementation-object)]
-      (mp/new-vector m length)
-      (error "No clojure.core.matrix implementation available")))
+    (mp/new-vector (current-implementation-object) length))
   ([implementation length]
-    (mp/new-vector (imp/get-canonical-object implementation) length)))
+    (mp/new-vector (or (imp/get-canonical-object implementation) (error "No clojure.core.matrix implementation available")) 
+                   length)))
 
 (defn new-matrix
   "Constructs a new zero-filled matrix with the given dimensions. 
@@ -136,6 +135,15 @@
     ;; TODO: switch to a protocol implementation
     (let [m (imp/get-canonical-object implementation)]
       (TODO)))) 
+
+(defn sparse-matrix
+  "Creates a sparse matrix with the given data. Sparse matrices are require to store
+  a M*N matrix with E non-zero elements in at most O(M+N+E) space. If the immplementation
+  cannot create a sparse matrix satisfying this condition, nil may be returned"
+  ([data]
+    (compute-matrix (current-implementation-object) data))
+  ([implementation data]
+    (TODO))) 
 
 (defmacro with-implementation [impl & body]
   "Runs a set of expressions using a specified matrix implementation.
@@ -197,7 +205,7 @@
 (defn array?
   "Returns true if the parameter is an N-dimensional array, for any N>=1"
   ([m]
-    (satisfies? mp/PImplementation m)))
+    (not (mp/is-scalar? m))))
 
 (defn matrix?
   "Returns true if parameter is a valid matrix (dimensionality == 2)"
@@ -369,13 +377,13 @@
     m))
 
 (defn get-row
-  "Gets a row of a matrix.
+  "Gets a row of a matrix as a vector.
    May return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
 (defn get-column
-  "Gets a column of a matrix.
+  "Gets a column of a matrix as a vector.
    May return a mutable view if supported by the implementation."
   ([m y]
     (mp/get-column m y)))
@@ -397,7 +405,9 @@
    Index ranges should be  a sequence of [start, length] pairs.
    Index range pair can be nil (gets the whole range) "
   ([m index-ranges]
-    (mp/submatrix m index-ranges)))
+    (mp/submatrix m index-ranges))
+  ([m dimension index-range]
+    (mp/submatrix m (assoc (vec (repeat (mp/dimensionality m) nil)) dimension index-range))))
 
 (defn subvector
   "Gets a view of part of a vector. The view maintains a reference to the original,
@@ -430,13 +440,23 @@
   ([m]
     (mp/main-diagonal m)))
 
+(defn join 
+  "Joins arrays together, along dimension 0. Other dimensions must be compatible"
+  ([& arrays]
+    (let [a (first arrays)]
+      (coerce a (mapcat slices arrays))))) 
+
+(defn join-along 
+  "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
+  ([dimension & arrays]
+    (TODO))) 
+
 (defn rotate
   "Rotates an array along specified dimensions"
   ([m dimension shift-amount]
     (TODO))
   ([m [shifts]]
     (TODO))) 
-
 
 ;; ====================================
 ;; structural change operations
@@ -544,38 +564,45 @@
     (reduce mp/matrix-sub (mp/matrix-sub a b) more)))
 
 (defn add!
-  "Performs element-wise matrix addition on one or more matrices."
+  "Performs element-wise mutable matrix addition on one or more matrices. 
+   Returns the mutated matrix."
   ([a] a)
   ([a b]
-    (mp/matrix-add! a b))
+    (mp/matrix-add! a b)
+    a)
   ([a b & more]
-    (reduce #(mp/matrix-add! a %) more)
-    a))
+    (reduce (fn [acc m] (add! acc m)) (add! a b) more)))
 
 (defn sub!
-  "Performs element-wise matrix subtraction on one or more matrices."
+  "Performs element-wise mutable matrix subtraction on one or more matrices. 
+   Returns the mutated matrix."
   ([a] a)
   ([a b]
     (mp/matrix-sub! a b)
     a)
   ([a b & more]
     (mp/matrix-sub! a b) 
-    (reduce #(mp/matrix-sub! a %) more)
-    a))
+    (reduce (fn [acc m] (sub! acc m)) (sub! a b) more)))
 
 (defn scale
-  "Scales a matrix by a scalar factor"
+  "Scales a matrix by one or more scalar factors"
   ([m factor]
-    (mp/scale m factor)))
+    (mp/scale m factor))
+  ([m factor & more-factors]
+    (mp/scale m (* factor (reduce * more-factors)))))
 
 (defn scale!
-  "Scales a matrix by a scalar factor (in place)"
+  "Scales a matrix by one or more scalar factors (in place)"
   ([m factor]
     (mp/scale! m factor)
+    m)
+  ([m factor & more-factors]
+    (mp/scale! m (* factor (reduce * more-factors)))
     m))
 
 (defn normalise
-  "Normalises a matrix (scales to unit length)"
+  "Normalises a matrix (scales to unit length). 
+   Returns a new normalised vector."
   ([m]
     (mp/normalise m)))
 
@@ -604,12 +631,12 @@
     a))
 
 (defn distance
-  "Calculates the euclidean distance of two vectors."
+  "Calculates the euclidean distance between two vectors."
   ([a b]
     (mp/distance a b)))
 
 (defn det
-  "Calculates the determinant of a matrix"
+  "Calculates the determinant of a matrix."
   ([a]
     (mp/determinant a)))
 
@@ -619,9 +646,14 @@
     (mp/inverse m))) 
 
 (defn negate
-  "Calculates the negation of a matrix. Should be equivalent to scaling by -1.0"
+  "Calculates the negation of a matrix. Should normally be equivalent to scaling by -1.0"
   ([m]
     (mp/negate m))) 
+
+(defn negate!
+  "Calculates the negation of a matrix in place. Equivalent to scaling by -1.0"
+  ([m]
+    (mp/scale! m -1.0))) 
 
 (defn trace
   "Calculates the trace of a matrix (sum of elements on main diagonal)"
@@ -655,7 +687,7 @@
 ;; Linear algebra algorithms
 ;;
 
-;; TODO: rank, lu-decomposition etc.
+;; TODO: lu-decomposition etc.
 
 (defn rank 
   "Computes the rank of a matrix, i.e. the number of linearly independent rows"
@@ -669,10 +701,11 @@
 ;; a matrix in row-major ordering
 
 (defn ecount
-  "Returns the total count of elements in an array"
+  "Returns the total count of elements in an array."
   ([m]
     (cond
-      (array? m) (reduce * 1 (mp/get-shape m))
+      (array? m) (reduce *' 1 (mp/get-shape m))
+      (scalar? m) 1 
       :else (count m))))
 
 (defn eseq
@@ -734,15 +767,10 @@
 
 (defn index-seq-for-shape [sh]
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"
-  (let [gen (fn gen [prefix rem] 
-              (if rem 
-                (let [nrem (next rem)]
-                  (mapcat #(gen (conj prefix %) nrem) (range (first rem))))
-                (list prefix)))]
-    (gen [] (seq sh)))) 
+  (base-index-seq-for-shape sh)) 
 
 (defn index-seq [m]
-  "Returns a sequence of all possible index vectors in a matrix, in row-major order"
+  "Returns a sequence of all possible index vectors into a matrix, in row-major order"
   (index-seq-for-shape (shape m))) 
 
 ;; =========================================================

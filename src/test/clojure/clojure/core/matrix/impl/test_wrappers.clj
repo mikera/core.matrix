@@ -39,7 +39,8 @@
   (is (equals 3 (wrap-slice [3 4] 0))))
 
 (deftest test-nd-wrap
-  (is (equals [3 4] (wrap-nd [3 4]))))
+  (is (equals [3 4] (wrap-nd [3 4])))
+  (is (equals [3 4] (seq (wrap-nd [3 4])))))
 
 (deftest test-nd-slice
   (let [ss (second (slices (wrap-nd [[3 4] [5 6]])))]

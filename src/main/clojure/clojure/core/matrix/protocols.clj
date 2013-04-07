@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.protocols
+  (:require [clojure.core.matrix.utils :refer [error]])
   (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
 (set! *warn-on-reflection* true)
@@ -47,11 +48,13 @@
   (get-shape [m]
     "Returns the shape of the matrix, as an array or sequence of dimension sizes")
   (is-scalar? [m]
-    "Tests whether an object is a scalar value")
+    "Tests whether an object is a scalar value, i.e. a value that can exist at a 
+     specific position in an array.")
   (is-vector? [m]
     "Tests whether an object is a vector (1D matrix)")
   (dimension-count [m dimension-number]
-    "Returns the size of a specific dimension "))
+    "Returns the size of a specific dimension. Must throw an exception if the array does not
+     have the specified dimension."))
 
 ;; protocol arity overloads behave oddly, so different names used for simplicity
 ;; we provide fast paths for 1D and 2D access (common case)
@@ -89,6 +92,22 @@
    matrix is mutable, i.e. mutating the clone must not affect the original."
   (clone [m] "Returns a clone of an array. Must be a new independent (non-view)
               instance if the array is mutable."))
+
+;; ===================================================================================
+;; RECOMMENDATION: Implement Sequable or Iterable
+;;
+;; It is strongly recommended that core.matrix implementations implement either the
+;; clojure.lang.Seqable or java.lang.Iterable interface.
+;;
+;; The semantics should be to return a seq / iterator of row-major slices
+;;
+;; This enables matrices to be used with regular Clojure sequence operations e.g.
+;;
+;; (first (matrix [[1 2] [3 4])) => (matrix [1 2])
+;; (map #(add % [1 2]) [[1 2] [3 4] [5 6]]) => ([2 4] [4 6] [6 8])
+;;
+;; Unfortunately this recommendation cannot be enforced, since it is impossible to 
+;; retrofit old Java classes with new interface implementations :-(
 
 ;; ===================================================================================
 ;; OPTTIONAL PROTOCOLS
@@ -167,8 +186,8 @@
   (subvector [m start length])) 
 
 (defprotocol PSliceView
-  "Protocol for quick view access into a row-major slices of an array. If implemented, must return either a view
-   or an immutable sub-matrix: it must *not* return copied data. 
+  "Protocol for quick view access into a row-major slices of an array. If implemented, must return 
+   either a view or an immutable sub-matrix: it must *not* return copied data. 
    The default implementation creates a wrapper view."
   (get-major-slice-view [m i] "Gets a view of a major array slice"))
 
@@ -337,4 +356,21 @@
   (element-reduce 
     [m f] 
     [m f init]
-    "Reduces over all elements of m."))
+    "Reduces with the function f over all elements of m."))
+
+;; ============================================================
+;; Utility functions
+
+(defn persistent-vector-coerce [x]
+  "Coerces to nested persistent vectors"
+  (let [dims (dimensionality x)] 
+    (cond
+	    (is-scalar? x) x
+	    (== dims 0) (get-0d x)
+      (> dims 0) (convert-to-nested-vectors x) 
+	    (clojure.core/vector? x) (mapv convert-to-nested-vectors x) 
+	    (instance? java.util.List x) (mapv convert-to-nested-vectors x)
+	    (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
+	    (sequential? x) (mapv convert-to-nested-vectors x)
+	    (.isArray (class x)) (vec (seq x)) 
+	    :default (error "Can't coerce to vector: " (class x)))))

@@ -5,6 +5,9 @@
   (:require [clojure.core.matrix.multimethods :as mm])
   (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
 ;; ============================================================
 ;; Utility functions for default implementations
 
@@ -122,7 +125,7 @@
 
 (extend-protocol mp/PVectorDistance
   java.lang.Number
-    (distance [a b] (Math/abs (- b a)))
+    (distance [a b] (Math/abs (double (- b a))))
   java.lang.Object
     (distance [a b] (double (mp/length (mp/matrix-sub a b)))))
 
@@ -527,7 +530,7 @@
 (extend-protocol mp/PReshaping
   java.lang.Number
     (reshape [m shape]
-      (case (reduce * 1 (seq shape))
+      (case (long (reduce * 1 (seq shape)))
         0 (mp/broadcast m shape)
         1 (mp/broadcast m shape)
         (error "Can reshape a scalar value to shape: " (vec shape))))

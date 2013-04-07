@@ -51,7 +51,9 @@
 
 (deftest test-submatrix
   (is (equals [[3]] (submatrix [[1 2] [3 4]] [[1 1] [0 1]])))
-  (is (equals [2 3] (submatrix [1 2 3 4] [[1 2]])))) 
+  (is (equals [[2] [4]] (submatrix [[1 2] [3 4]] 1 [1 1])))
+  (is (equals [2 3] (submatrix [1 2 3 4] [[1 2]])))
+  (is (equals [2 3] (submatrix [1 2 3 4] 0 [1 2])))) 
 
 (deftest test-element-seq
   (is (= [1] (eseq 1)))
@@ -131,6 +133,9 @@
     (is (= [1.0] (transpose [1.0])))
     (is (= [[1 3] [2 4]] (transpose [[1 2] [3 4]])))
     (is (= [[1] [2] [3]] (transpose [[1 2 3]])))))
+
+(deftest test-join
+  (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]])))) 
 
 (deftest test-normalise
   (testing "vector normalise"
