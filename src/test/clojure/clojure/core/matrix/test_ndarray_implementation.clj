@@ -35,7 +35,9 @@
   (testing "setters"
     (let [m (make-ndarray [2 2])]
       (mset! m 0 0 1)
-      (is (== 1.0 (mget m 0 0))))))
+      (is (== 1.0 (mget m 0 0)))))
+  (testing "slices"
+    (is (= [[nil nil] [nil nil]] (map #(coerce [] %) (slices (make-ndarray [2 2])))))))
 
 (deftest test-assign
   (let [m (make-ndarray [2 2 2])
