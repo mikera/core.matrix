@@ -12,7 +12,8 @@
   (is (not (scalar? (wrap-nd 7))))
   (is (not (vec? (wrap-nd 7))))
   (is (vec? (wrap-nd [7])))
-  (is (equals 7 (wrap-nd 7))))
+  (is (equals 7 (wrap-nd 7)))
+  (is (nil? (seq (shape (wrap-nd 7))))))
 
 (deftest scalar-assumptions
   (is (== 0 (dimensionality (wrap-scalar 7))))
