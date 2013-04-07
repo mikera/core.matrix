@@ -355,6 +355,8 @@
 	    :else 
 	      (ScalarWrapper. (mp/get-0d m)))))
 
+(imp/register-implementation (ScalarWrapper. 13))
+
 (imp/register-implementation (NDWrapper. nil nil nil nil nil))
 
 (imp/register-implementation (wrap-slice [1 2] 0))
