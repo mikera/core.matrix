@@ -74,11 +74,10 @@
   "Constructs a new zero-filled vector with the given length.
    If the implementation supports mutable vectors, then the new vector should be fully mutable."
   ([length]
-    (if-let [m (current-implementation-object)]
-      (mp/new-vector m length)
-      (error "No clojure.core.matrix implementation available")))
+    (mp/new-vector (current-implementation-object) length))
   ([implementation length]
-    (mp/new-vector (imp/get-canonical-object implementation) length)))
+    (mp/new-vector (or (imp/get-canonical-object implementation) (error "No clojure.core.matrix implementation available")) 
+                   length)))
 
 (defn new-matrix
   "Constructs a new zero-filled matrix with the given dimensions. 
@@ -439,19 +438,23 @@
   ([m]
     (mp/main-diagonal m)))
 
+(defn join 
+  "Joins arrays together, along dimension 0. Other dimensions must be compatible"
+  ([& arrays]
+    (let [a (first arrays)]
+      (coerce a (mapcat slices arrays))))) 
+
+(defn join-along 
+  "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
+  ([dimension & arrays]
+    (TODO))) 
+
 (defn rotate
   "Rotates an array along specified dimensions"
   ([m dimension shift-amount]
     (TODO))
   ([m [shifts]]
     (TODO))) 
-
-(defn join 
-  "Joins arrays together, along dimension 0. Other dimensions must be compatible"
-  [& arrays]
-  (let [a (first arrays)]
-    (coerce a (mapcat slices arrays)))) 
-
 
 ;; ====================================
 ;; structural change operations
@@ -626,12 +629,12 @@
     a))
 
 (defn distance
-  "Calculates the euclidean distance of two vectors."
+  "Calculates the euclidean distance between two vectors."
   ([a b]
     (mp/distance a b)))
 
 (defn det
-  "Calculates the determinant of a matrix"
+  "Calculates the determinant of a matrix."
   ([a]
     (mp/determinant a)))
 
@@ -644,6 +647,11 @@
   "Calculates the negation of a matrix. Should normally be equivalent to scaling by -1.0"
   ([m]
     (mp/negate m))) 
+
+(defn negate!
+  "Calculates the negation of a matrix in place. Equivalent to scaling by -1.0"
+  ([m]
+    (mp/scale! m -1.0))) 
 
 (defn trace
   "Calculates the trace of a matrix (sum of elements on main diagonal)"
