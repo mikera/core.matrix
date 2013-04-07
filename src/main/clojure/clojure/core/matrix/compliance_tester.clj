@@ -164,6 +164,9 @@
 (defn test-vector-round-trip [m]
   (is (e= m (coerce m (coerce [] m)))))
 
+(defn test-ndarray-round-trip [m]
+  (is (e= m (coerce m (coerce :ndarray m)))))
+
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-coerce m)
@@ -172,6 +175,7 @@
   (test-submatrix-assumptions m)
   (test-mutable-assumptions m)
   (test-vector-round-trip m)
+  (test-ndarray-round-trip m)
   (test-reshape m)
   (test-broadcast m)
   (test-general-transpose m))

@@ -65,6 +65,12 @@
             index (calc-index indexes shape)]
         (aget data index))) 
     
+  mp/PZeroDimensionAccess
+    (get-0d [m]
+      (aget data 0))
+    (set-0d! [m value]
+      (aset data 0 value) m)
+    
   mp/PIndexedSetting
     (set-1d [m row v]
       (let [m (mp/clone m)]
@@ -87,7 +93,7 @@
     (is-vector? [m]
       (== 1 (count shape))) 
     (is-scalar? [m]
-      false) ;; TODO: what about zero dimension case??
+      false)
     (dimensionality [m]
       (count shape))
     (dimension-count [m x]
@@ -95,9 +101,13 @@
     
   mp/PConversion
     (convert-to-nested-vectors [m]
-      (if (== 1 (alength shape))
-        (into [] data)
-        (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))))
+      (cond 
+        (== 0 (alength shape))
+          (aget data 0)
+        (== 1 (alength shape)) 
+          (into [] data)
+        :else
+          (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))))
     
   mp/PIndexedSettingMutable
     (set-1d! [m x v]
