@@ -31,9 +31,10 @@
     (construct-matrix [m data]
       (let [sh (mp/get-shape data)]
         (with-shape
-          (mp/element-reduce (map vector (mp/element-seq data) (base-index-seq-for-shape sh))
-                             (fn [mp [v i]] (if (nil? v) mp (assoc mp (vec i) v))) 
-                             {})
+          (reduce 
+            (fn [mp [v i]] (if (nil? v) mp (assoc mp (vec i) v))) 
+            {}
+            (map vector (mp/element-seq data) (base-index-seq-for-shape sh)))
           sh)))
     (supports-dimensionality? [m dims]
       true))
@@ -53,7 +54,7 @@
     (get-shape [m]
       (:shape (meta m)))
     (dimension-count [m x]
-      ((:shape (meta m)) x)))
+      (nth (:shape (meta m)) x)))
 
 (extend-protocol mp/PIndexedAccess
   clojure.lang.IPersistentMap
