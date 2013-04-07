@@ -356,7 +356,6 @@
   (element-reduce 
     [m f] 
     [m f init]
-    [m f init a]
     "Reduces with the function f over all elements of m."))
 
 ;; ============================================================
