@@ -405,7 +405,9 @@
    Index ranges should be  a sequence of [start, length] pairs.
    Index range pair can be nil (gets the whole range) "
   ([m index-ranges]
-    (mp/submatrix m index-ranges)))
+    (mp/submatrix m index-ranges))
+  ([m dimension index-range]
+    (mp/submatrix m (assoc (vec (repeat (mp/dimensionality m) nil)) dimension index-range))))
 
 (defn subvector
   "Gets a view of part of a vector. The view maintains a reference to the original,

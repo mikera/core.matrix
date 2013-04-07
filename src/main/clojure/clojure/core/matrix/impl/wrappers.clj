@@ -306,7 +306,7 @@
   (let [shp (mp/get-shape m)
         dims (count shp)
         _ (if-not (== dims (count dim-ranges)) (error "submatrix ranges do not match matrix dimensionality"))
-        dim-ranges (mapv (fn [a cnt] (or (vec a) [0 cnt])) dim-ranges shp)
+        dim-ranges (mapv (fn [a cnt] (if a (vec a) [0 cnt])) dim-ranges shp)
         new-shape (long-array (map (fn [[start len]] len) dim-ranges))]
     (NDWrapper. 
       m
