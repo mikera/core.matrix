@@ -59,6 +59,12 @@
         (aset arr i (long i)))
       arr))) 
 
+(defn to-long-array 
+  ([data]
+    (if (instance? (Class/forName "[D") data)
+      data
+      (long-array data)))) 
+
 (defn long-array-of 
   "Creates a long array with the specified values."
   ([] (long-array 0))
@@ -96,3 +102,12 @@
       (aset arr 1 b)
       (doseq-indexed [x more i] (aset arr (+ 2 i) x)) 
       arr)))
+
+(defn base-index-seq-for-shape [sh]
+  "Returns a sequence of all possible index vectors for a given shape, in row-major order"
+  (let [gen (fn gen [prefix rem] 
+              (if rem 
+                (let [nrem (next rem)]
+                  (mapcat #(gen (conj prefix %) nrem) (range (first rem))))
+                (list prefix)))]
+    (gen [] (seq sh)))) 

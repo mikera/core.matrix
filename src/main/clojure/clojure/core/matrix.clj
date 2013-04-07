@@ -1,6 +1,6 @@
 (ns clojure.core.matrix
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.impl default double-array ndarray persistent-vector wrappers])
+  (:use [clojure.core.matrix.utils])
+  (:require [clojure.core.matrix.impl default double-array ndarray persistent-vector wrappers sparse-map])
   (:require [clojure.core.matrix.impl sequence]) ;; TODO: figure out if we want this?
   (:require [clojure.core.matrix.multimethods :as mm])
   (:require [clojure.core.matrix.protocols :as mp])
@@ -136,6 +136,15 @@
     ;; TODO: switch to a protocol implementation
     (let [m (imp/get-canonical-object implementation)]
       (TODO)))) 
+
+(defn sparse-matrix
+  "Creates a sparse matrix with the given data. Sparse matrices are require to store
+  a M*N matrix with E non-zero elements in at most O(M+N+E) space. If the immplementation
+  cannot create a sparse matrix satisfying this condition, nil may be returned"
+  ([data]
+    (compute-matrix (current-implementation-object) data))
+  ([implementation data]
+    (TODO))) 
 
 (defmacro with-implementation [impl & body]
   "Runs a set of expressions using a specified matrix implementation.
@@ -742,12 +751,7 @@
 
 (defn index-seq-for-shape [sh]
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"
-  (let [gen (fn gen [prefix rem] 
-              (if rem 
-                (let [nrem (next rem)]
-                  (mapcat #(gen (conj prefix %) nrem) (range (first rem))))
-                (list prefix)))]
-    (gen [] (seq sh)))) 
+  (base-index-seq-for-shape sh)) 
 
 (defn index-seq [m]
   "Returns a sequence of all possible index vectors into a matrix, in row-major order"
