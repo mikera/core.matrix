@@ -378,13 +378,13 @@
     m))
 
 (defn get-row
-  "Gets a row of a matrix.
+  "Gets a row of a matrix as a vector.
    May return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
 (defn get-column
-  "Gets a column of a matrix.
+  "Gets a column of a matrix as a vector.
    May return a mutable view if supported by the implementation."
   ([m y]
     (mp/get-column m y)))
@@ -445,6 +445,12 @@
     (TODO))
   ([m [shifts]]
     (TODO))) 
+
+(defn join 
+  "Joins arrays together, along dimension 0. Other dimensions must be compatible"
+  [& arrays]
+  (let [a (first arrays)]
+    (coerce a (mapcat slices arrays)))) 
 
 
 ;; ====================================

@@ -132,6 +132,9 @@
     (is (= [[1 3] [2 4]] (transpose [[1 2] [3 4]])))
     (is (= [[1] [2] [3]] (transpose [[1 2 3]])))))
 
+(deftest test-join
+  (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]])))) 
+
 (deftest test-normalise
   (testing "vector normalise"
     (is (= [1.0] (normalise [1.0])))
