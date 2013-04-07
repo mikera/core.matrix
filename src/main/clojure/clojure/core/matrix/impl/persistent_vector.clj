@@ -185,7 +185,7 @@
 
 (extend-protocol mp/PVectorDistance
   clojure.lang.IPersistentVector
-    (distance [a b] (mp/length (vec (map - b a)))))
+    (distance [a b] (mp/length (mapv - b a))))
 
 (extend-protocol mp/PSummable
   clojure.lang.IPersistentVector
