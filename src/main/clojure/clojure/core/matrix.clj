@@ -206,7 +206,7 @@
 (defn array?
   "Returns true if the parameter is an N-dimensional array, for any N>=1"
   ([m]
-    (satisfies? mp/PImplementation m)))
+    (not (mp/is-scalar? m))))
 
 (defn matrix?
   "Returns true if parameter is a valid matrix (dimensionality == 2)"
