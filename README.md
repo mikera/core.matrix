@@ -14,13 +14,12 @@ N-dimensional Array / Matrix / Vector API for Clojure.
 
 The objective of `core.matrix` is to provide a common and idiomatic abstraction for matrix maths in Clojure, 
 independent of underlying implementations. The plan is to develop this 
-into an official Clojure Contrib language extension as `clojure.core.matrix`. Something like NumPy, 
-but with more parens.
+into an official Clojure Contrib language extension. Like NumPy, but with more parens and functional goodness..
 
 Key objectives:
 
  - Provide a clear, standard API / abstraction for matrix and vector maths in Clojure
- - Enable pluggable support for different underlying matrix library implementations
+ - Enable plugable support for different underlying matrix library implementations
  - Provide a general purpose n-dimensional array implementation (NumPy style)
  - Provide a foundation layer for other projects (e.g. Incanter)
  - Maintain good performance wherever possible
