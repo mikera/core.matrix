@@ -603,15 +603,25 @@
 (defn normalise
   "Normalises a matrix (scales to unit length). 
    Returns a new normalised vector."
-  ([m]
-    (mp/normalise m)))
+  ([v]
+    (mp/normalise v)))
+
+(defn normalise-probabilities
+  "Normalises a probability vector, i.e. to a vector where all elements sum to 1"
+  ([v]
+    (let [v (mp/element-map v #(if (>= % 0.0) % 0.0))
+          len (double (mp/element-sum v))]
+      (cond 
+        (== len 1.0) v
+        (== len 0.0) (coerce v (let [n (mp/dimension-count v 0)] (repeat n (/ 1.0 n))))
+        :else (scale v (/ 1.0 len)))))) 
 
 (defn normalise!
-  "Normalises a matrix in-place (scales to unit length).
+  "Normalises a vector in-place (scales to unit length).
    Returns the modified vector."
-  ([m]
-    (mp/normalise! m)
-    m))
+  ([v]
+    (mp/normalise! v)
+    v))
 
 (defn dot
   "Computes the dot product (inner product) of two vectors"
