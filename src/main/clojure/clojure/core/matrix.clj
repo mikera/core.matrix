@@ -299,6 +299,13 @@
           r (broadcast-shape* a b)]
       (if r (reverse r) nil)))) 
 
+(defn compatible?
+  "Returns true if two matrices have a compatible shape. Two matrices are compatible if there
+   exists a common shape that both can broadcast to." 
+  ([a b]
+    (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b)))))) 
+
+
 ;; =======================================
 ;; Conversions
 
