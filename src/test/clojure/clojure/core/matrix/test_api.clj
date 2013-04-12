@@ -102,7 +102,15 @@
   (testing "element e="
     (is (e= [1 2] [1 2]))
     (is (not (e= [1 2] [3 4])))
-    (is (not (e= [1 2] [1.0 2.0])))))
+    (is (not (e= [1 2] [1.0 2.0]))))
+  (testing "=="
+    (is (op/== 2 2))
+    (is (not (op/== 2 4)))
+    (is (op/== [1 2] [1.0 2.0])))
+  (testing "nil equality"
+    (is (op/== nil nil))
+    (is (not (op/== nil [nil])))
+    (is (not (op/== nil [])))))
 
 (deftest test-multiply
   (testing "scalars"

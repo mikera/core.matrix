@@ -375,6 +375,9 @@
 
 ;; equality checking
 (extend-protocol mp/PMatrixEquality
+  nil
+    (matrix-equals [a b]
+      (nil? b))
   java.lang.Number
     (matrix-equals [a b]
       (== a (if (number? b) b (mp/get-0d b))))
