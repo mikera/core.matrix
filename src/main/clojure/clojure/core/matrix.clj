@@ -628,6 +628,17 @@
   ([a b]
     (mp/vector-dot a b)))
 
+(def inner-product dot)
+
+(defn outer-product 
+  "Computes the outer product of matrices."
+  ([] 1.0)
+  ([a] a)
+  ([a b]
+    (TODO))
+  ([a b & more]
+    (reduce outer-product (outer-product a b) more))) 
+
 (defn cross 
   "Computes the cross-product of two vectors"
   ([a b]
