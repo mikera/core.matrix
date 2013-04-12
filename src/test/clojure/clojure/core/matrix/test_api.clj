@@ -125,7 +125,9 @@
 
 (deftest test-divide
   (is (== 2 (div 4 2)))
-  (is (op/== [2 1] (div [4 2] 2))))
+  (is (op/== [2 1] (div [4 2] 2)))
+  (is (equals [2 1] (div 4 [2 4])))
+  (is (equals [[1 2] [2 1]] (div [[4 8] [4 4]] [[4 4] [2 4]]))))
 
 (deftest test-pow
   (is (== 8 (pow 2 3)))
