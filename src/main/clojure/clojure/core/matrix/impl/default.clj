@@ -501,8 +501,17 @@
 
 (extend-protocol mp/PBroadcast
   java.lang.Object
-    (broadcast [m shape] 
-      (clojure.core.matrix.impl.wrappers/wrap-broadcast m shape)))
+    (broadcast [m new-shape] 
+      (let [nshape new-shape
+            mshape (mp/get-shape m)
+            mdims (count mshape)
+            ndims (count nshape)]
+        (cond
+          (same-shape? nshape mshape) m
+          ;(and (> ndims mdims) (== mshape (drop (- ndims mdims) nshape)))
+          ;  (let [rep (nth nshape (- ndims mdims 1))]
+          ;    (mp/broadcast (vec (repeat rep m)) new-shape))
+          :else (clojure.core.matrix.impl.wrappers/wrap-broadcast m new-shape)))))
 
 
 ;; attempt conversion to nested vectors
