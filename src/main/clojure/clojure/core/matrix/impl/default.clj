@@ -568,6 +568,15 @@
     (coerce-param [m param]
       (mp/construct-matrix m (mp/convert-to-nested-vectors param))))
 
+(extend-protocol mp/PExponent
+  java.lang.Number
+    (element-pow [m exponent]
+      (Math/pow (.doubleValue m) (double exponent)))
+  java.lang.Object
+    (element-pow [m exponent]
+      (let [x (double exponent)]
+        (mp/element-map #(Math/pow (.doubleValue ^Number %) x) m))))  
+
 ;; define standard Java maths functions for numbers
 (eval
   `(extend-protocol mp/PMathsFunctions
