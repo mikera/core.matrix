@@ -600,6 +600,11 @@
     (mp/scale! m (* factor (reduce * more-factors)))
     m))
 
+(defn square
+  "Squares every element of a matrix."
+  ([m]
+    (e* m m))) 
+
 (defn normalise
   "Normalises a matrix (scales to unit length). 
    Returns a new normalised vector."
