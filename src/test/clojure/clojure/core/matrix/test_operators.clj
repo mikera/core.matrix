@@ -3,7 +3,7 @@
   (:use clojure.core.matrix)
   (:use clojure.core.matrix.operators)
   (:require clojure.core.matrix.impl.persistent-vector)
-  (:refer-clojure :exclude [* - + /]))
+  (:refer-clojure :exclude [* - + / ==]))
 
 (deftest test-multiply
   (testing "scalars"

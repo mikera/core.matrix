@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.operators
-  (:refer-clojure :exclude [* - + / vector?])
+  (:refer-clojure :exclude [* - + / vector? ==])
   (:require [clojure.core.matrix :as m]))
 
 (set! *warn-on-reflection* true)
@@ -35,3 +35,10 @@
       (m/sub a b)))
   ([a b & more]
     (reduce - (- a b) more)))
+
+(defn ==
+  "Matrix numerical comparison. Performs == on an element-wise basis"
+  ([] true)
+  ([a] true)
+  ([a b] (m/equals a b))
+  ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more))) 
