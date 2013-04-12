@@ -115,6 +115,10 @@
     (is (= [[6.0]] (mul 2 [[3]])))
     (is (= [[6.0]] (mul [[2]] 3)))))
 
+(deftest test-pow
+  (is (== 8 (pow 2 3)))
+  (is (equals [0.5 2] (pow [2 0.5] -1)))) 
+
 (deftest test-addition
   (testing "matrix addition"
     (is (= [5.0] (add [3.0] [2.0])))

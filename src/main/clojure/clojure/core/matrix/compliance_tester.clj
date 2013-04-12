@@ -158,7 +158,8 @@
 
 (defn test-coerce [m]
   (let [vm (mp/convert-to-nested-vectors m)]
-      (is (clojure.core.matrix.impl.persistent-vector/is-nested-vectors? vm))
+    (is (or (clojure.core/vector? vm) (== 0 (mp/dimensionality vm))))  
+    (is (clojure.core.matrix.impl.persistent-vector/is-nested-vectors? vm))
       (is (e= m vm))))
 
 (defn test-vector-round-trip [m]

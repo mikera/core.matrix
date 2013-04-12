@@ -575,7 +575,7 @@
   java.lang.Object
     (element-pow [m exponent]
       (let [x (double exponent)]
-        (mp/element-map #(Math/pow (.doubleValue ^Number %) x) m))))  
+        (mp/element-map m #(Math/pow (.doubleValue ^Number %) x)))))  
 
 ;; define standard Java maths functions for numbers
 (eval
