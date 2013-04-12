@@ -123,7 +123,9 @@
     (is (= [[6.0]] (mul 2 [[3]])))
     (is (= [[6.0]] (mul [[2]] 3)))))
 
-(deftest test-divide)
+(deftest test-divide
+  (is (== 2 (div 4 2)))
+  (is (op/== [2 1] (div [4 2] 2))))
 
 (deftest test-pow
   (is (== 8 (pow 2 3)))

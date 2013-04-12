@@ -290,11 +290,11 @@
   java.lang.Number
     (element-divide 
       ([m] (/ m))
-      ([m a] (mp/element-map #(/ m %) a)))
+      ([m a] (mp/element-map a #(/ m %))))
   java.lang.Object
     (element-divide 
-      ([m] (mp/element-map #(/ %) m))
-      ([m a] (mp/element-map #(/ %1 %2) m a)))) 
+      ([m] (mp/element-map m #(/ %)))
+      ([m a] (mp/element-map m #(/ %1 %2) a)))) 
 
 ;; matrix element summation
 (extend-protocol mp/PSummable
