@@ -376,11 +376,19 @@
     (is (column-matrix? cm))
     (is (row-matrix? (transpose cm)))))
 
+(defn test-matrix-emul [im]
+  (is (equals [[2 2] [4 4]] (e* [[1 1] [2 2]] 2)))
+  (is (equals [[2 2] [4 4]] (e* 2 [[1 1] [2 2]])))
+  (when (supports-dimensionality? im 1)
+    ;; TODO test vector broadcasting to matrix
+    ))
+
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)
   (test-transpose im)
   (test-diagonal im)
   (test-trace im)
+  (test-matrix-emul im)
   (test-identity im))
 
 ;; ======================================

@@ -509,7 +509,7 @@
     (reduce mul (mul a b) more)))
 
 (defn emul
-  "Performs element-wise matrix multiplication. Matrices must be same size."
+  "Performs element-wise matrix multiplication. Matrices should be the same size."
   ([a] a)
   ([a b]
     (mp/element-multiply a b))
@@ -517,10 +517,10 @@
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
 (defn e*
-  "Matrix element-wise multiply operator"
+  "Matrix element-wise multiply operator."
   ([a] a)
   ([a b]
-    (emul a b))
+    (mp/element-multiply a b))
   ([a b & more]
     (reduce e* (e* a b) more)))
 

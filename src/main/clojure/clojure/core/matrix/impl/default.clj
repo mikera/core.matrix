@@ -255,7 +255,9 @@
 (extend-protocol mp/PMatrixMultiply
   java.lang.Number
     (element-multiply [m a]
-      (clojure.core/* m a))
+      (if (number? a)
+        (clojure.core/* m a)
+        (mp/pre-scale a m)))
     (matrix-multiply [m a]
       (cond
         (number? a) (* m a)
@@ -263,11 +265,13 @@
         :else (error "Don't know how to multiply number with: " (class a))))
   java.lang.Object
     (matrix-multiply [m a]
-      (mp/coerce-param m (mp/matrix-multiply 
-                           (mp/coerce-param [] m) 
-                           (mp/coerce-param [] a))))
+      (if (number? a)
+        (mp/scale m a)
+        (mp/coerce-param m (mp/matrix-multiply (mp/coerce-param [] m) a))))
     (element-multiply [m a]
-      (mp/element-map m clojure.core/* a)))
+      (if (number? a)
+        (mp/scale m a)
+        (mp/element-map m clojure.core/* a))))
 
 ;; matrix multiply
 (extend-protocol mp/PMatrixMultiplyMutable

@@ -200,11 +200,14 @@
 (extend-protocol mp/PMatrixMultiply
   clojure.lang.IPersistentVector
     (element-multiply [m a]
-      (mp/element-map m * a))
+      (if (number? a) 
+        (mp/scale m a)
+        (mp/element-map m * a)))
     (matrix-multiply [m a]
       (let [mdims (long (mp/dimensionality m))
             adims (long (mp/dimensionality a))]
         (cond
+          (== adims 0) (mp/scale m a)
           (and (== mdims 1) (== adims 2))
             (vec (for [i (range (mp/dimension-count a 1))]
 	                 (let [r (mp/get-column a i)]
