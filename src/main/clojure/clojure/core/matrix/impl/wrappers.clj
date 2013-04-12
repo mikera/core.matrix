@@ -342,7 +342,8 @@
                 (cond 
                   (== mdc 1) nil
                   (== mdc tdc) (dotimes [i mdc] (aset arr i i))
-                  :else (error "Can't broadcast dimension of size " mdc "to target size " tdc))))
+                  :else (error "Can't broadcast shape " (seq mshape) 
+                               " to target shape " (seq tshape)))))
             arr)))
       (long-array mdims))))
 

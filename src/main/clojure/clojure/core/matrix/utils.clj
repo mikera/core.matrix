@@ -13,6 +13,20 @@
   ([& vals]
     `(throw (java.lang.RuntimeException. (str ~@vals)))))
 
+(defmacro error?
+  "Returns true if executing body throws an error, false otherwise."
+  ([& body]
+    `(try 
+       ~@body
+       false
+       (catch Throwable t# 
+         true)))) 
+
+(defmacro error
+  "Throws an error with the provided message(s)"
+  ([& vals]
+    `(throw (java.lang.RuntimeException. (str ~@vals)))))
+
 ;; useful TODO macro facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO 
   ([]
@@ -121,3 +135,22 @@
                   (mapcat #(gen (conj prefix %) nrem) (range (first rem))))
                 (list prefix)))]
     (gen [] (seq sh)))) 
+
+(defn broadcast-shape*
+  "Returns the smallest shape that both shapes a and b can broadcast to, or nil the the shapes 
+   are not compatible."
+  ([a b]
+    (cond 
+      (empty? a) (or b '())
+      (empty? b) a
+      (== 1 (first a)) (broadcast-shape* (first b) (next a) (next b))
+      (== 1 (first b)) (broadcast-shape* (first a) (next a) (next b))
+      (== (first a) (first b)) (broadcast-shape* (first a) (next a) (next b))
+      :else nil))
+  ([prefix a b]
+    (if (or a b)
+      (let [r (broadcast-shape* a b)]
+        (if r (cons prefix r) nil))
+      (cons prefix nil))))
+
+

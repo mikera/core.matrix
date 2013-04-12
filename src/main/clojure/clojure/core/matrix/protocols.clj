@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.protocols
-  (:require [clojure.core.matrix.utils :refer [error]])
+  (:require [clojure.core.matrix.utils :refer [error same-shape? broadcast-shape*]])
   (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
 (set! *warn-on-reflection* true)
@@ -388,3 +388,17 @@
 	    (sequential? x) (mapv convert-to-nested-vectors x)
 	    (.isArray (class x)) (vec (seq x)) 
 	    :default (error "Can't coerce to vector: " (class x)))))
+
+(defn broadcast-compatible 
+  "Broadcasts two matrices into indentical shapes. 
+   Returns a vector containing the two broadcasted matrices.
+   Throws an error if not possible."
+  ([a b]
+    (let [sa (get-shape a) sb (get-shape b)]
+      (if (clojure.core.matrix.utils/same-shape? sa sb)
+        [a b]  
+        (if-let [bs (broadcast-shape* sa sb)]
+          (let [b (broadcast b bs)
+                a (broadcast a bs)]
+            [a b])
+          (error "Shapes are not compatible"))))))

@@ -294,7 +294,9 @@
   java.lang.Object
     (element-divide 
       ([m] (mp/element-map m #(/ %)))
-      ([m a] (mp/element-map m #(/ %1 %2) a)))) 
+      ([m a] 
+        (let [[m a] (mp/broadcast-compatible m a)] 
+          (mp/element-map m #(/ %1 %2) a))))) 
 
 ;; matrix element summation
 (extend-protocol mp/PSummable
@@ -393,7 +395,8 @@
       (== a (if (number? b) b (mp/get-0d b))))
   java.lang.Object
     (matrix-equals [a b]
-      (not (some false? (map == (mp/element-seq a) (mp/element-seq b))))))
+      (let [[a b] (mp/broadcast-compatible a b)]
+        (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))))
 
 (extend-protocol mp/PDoubleArrayOutput
   java.lang.Number

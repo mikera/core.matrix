@@ -110,7 +110,9 @@
   (testing "nil equality"
     (is (op/== nil nil))
     (is (not (op/== nil [nil])))
-    (is (not (op/== nil [])))))
+    (is (not (op/== nil []))))
+  (testing "unequal lengths"
+    (is (not (equals [1] [1 2])))))
 
 (deftest test-multiply
   (testing "scalars"
@@ -123,9 +125,13 @@
     (is (= [[6.0]] (mul 2 [[3]])))
     (is (= [[6.0]] (mul [[2]] 3)))))
 
+(deftest test-broadcast-compatibile
+  (is (equals [[2 1] [2 2]] (mp/broadcast-compatible [2 1] 2))))
+
 (deftest test-divide
   (is (== 2 (div 4 2)))
   (is (op/== [2 1] (div [4 2] 2)))
+  (is (op/== [1 1.5] (div [2 3] 2)))
   (is (equals [2 1] (div 4 [2 4])))
   (is (equals [[1 2] [2 1]] (div [[4 8] [4 4]] [[4 4] [2 4]]))))
 
