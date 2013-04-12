@@ -137,7 +137,7 @@
     (gen [] (seq sh)))) 
 
 (defn broadcast-shape*
-  "Returns the smallest shape that both shapes a and b can broadcast to, or nil the the shapes 
+  "Returns the smallest shape that both shapes a and b can broadcast to, or nil if the the shapes 
    are not compatible."
   ([a b]
     (cond 

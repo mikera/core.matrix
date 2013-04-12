@@ -393,6 +393,7 @@
   "Broadcasts two matrices into indentical shapes. 
    Returns a vector containing the two broadcasted matrices.
    Throws an error if not possible."
+  ([a] [a])
   ([a b]
     (let [sa (get-shape a) sb (get-shape b)]
       (if (clojure.core.matrix.utils/same-shape? sa sb)
