@@ -462,17 +462,20 @@
 ;; structural change operations
 
 (defn broadcast 
-  "Broadcasts a matrix to a specified shape"
+  "Broadcasts a matrix to a specified shape. Will throw an excption if broadcast to the target shape
+   is not possible."
   ([m shape]
-    (mp/broadcast m shape)))
+    (or (mp/broadcast m shape) (error "Broadcast to target shape: " (seq shape) " not possble."))))
 
 (defn transpose
-  "Transposes a 2D matrix"
+  "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped. 
+   More generally, the dimension indices are revered for any shape of array. Note that 1D vectors
+   and scalars will be returned unchanged."
   ([m]
     (mp/transpose m)))
 
 (defn transpose!
-  "Transposes a square 2D matrix in-place"
+  "Transposes a square 2D matrix in-place. Will throw an exception if not possible."
   ([m]
     ;; TODO: implement with a proper protocol
     (assign! m (transpose m))))
@@ -603,7 +606,7 @@
 (defn square
   "Squares every element of a matrix."
   ([m]
-    (e* m m))) 
+    (e* m m))) ;; TODO: make this a protocol function
 
 (defn normalise
   "Normalises a matrix (scales to unit length). 
