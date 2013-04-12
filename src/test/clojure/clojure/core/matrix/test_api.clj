@@ -123,6 +123,8 @@
     (is (= [[6.0]] (mul 2 [[3]])))
     (is (= [[6.0]] (mul [[2]] 3)))))
 
+(deftest test-divide)
+
 (deftest test-pow
   (is (== 8 (pow 2 3)))
   (is (equals [0.5 2] (pow [2 0.5] -1)))) 

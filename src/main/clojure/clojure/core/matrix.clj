@@ -521,11 +521,18 @@
 
 (defn e*
   "Matrix element-wise multiply operator."
+  ([] 1.0)
   ([a] a)
   ([a b]
     (mp/element-multiply a b))
   ([a b & more]
     (reduce e* (e* a b) more)))
+
+(defn div
+  "Element-wise matrix division."
+  ([a] (mp/element-divide a))
+  ([a b] (mp/element-divide a b))
+  ([a b & more] (reduce mp/element-divide (mp/element-divide a b) more))) 
 
 (defn emul!
   "Performs in-place element-wise matrix multiplication."

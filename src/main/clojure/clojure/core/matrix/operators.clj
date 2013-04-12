@@ -36,6 +36,12 @@
   ([a b & more]
     (reduce - (- a b) more)))
 
+(defn /
+  "Element-wise matrix division."
+  ([a] a)
+  ([a b] (m/div a b))
+  ([a b & more] (reduce m/div (m/div a b) more)))
+
 (defn ==
   "Matrix numerical comparison. Performs == on an element-wise basis"
   ([] true)

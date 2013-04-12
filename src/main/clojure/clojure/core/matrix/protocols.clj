@@ -234,6 +234,13 @@
   (matrix-multiply [m a])
   (element-multiply [m a]))
 
+(defprotocol PMatrixDivide
+  "Protocol to support element-wise division operator. 
+   One-arg version returns the reciprocal of all elements."
+  (element-divide 
+    [m]
+    [m a])) 
+
 (defprotocol PMatrixMultiplyMutable
   "Protocol to support mutable matrix multiplication on an arbitrary matrix, vector or scalar"
   (matrix-multiply! [m a])

@@ -286,6 +286,16 @@
     (matrix-multiply! [m a]
       (mp/assign! m (mp/matrix-multiply m a))))
 
+(extend-protocol mp/PMatrixDivide
+  java.lang.Number
+    (element-divide 
+      ([m] (/ m))
+      ([m a] (mp/element-map #(/ m %) a)))
+  java.lang.Object
+    (element-divide 
+      ([m] (mp/element-map #(/ %) m))
+      ([m a] (mp/element-map #(/ %1 %2) m a)))) 
+
 ;; matrix element summation
 (extend-protocol mp/PSummable
   java.lang.Number
