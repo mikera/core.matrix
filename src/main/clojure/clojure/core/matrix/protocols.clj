@@ -327,6 +327,13 @@
    The array must hold numeric values only, or an exception will be thrown."
   (element-sum [m]))
 
+(defprotocol PExponent
+  "Protocol to support the 'pow' function. Should raise every element of a matrix to a
+   given exponent. Default implementation uses Java's Math/pow function which is appropriate for
+   double values: arrays supporting arbitrary precision numbers or complex types will need to
+   provide their own implementation."
+  (element-pow [m exponent])) 
+
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
 (eval

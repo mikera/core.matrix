@@ -699,6 +699,11 @@
   ([m]
      (mp/length-squared m)))
 
+(defn pow
+  "Raises every element of a numerical matrix by the given exponent."
+  ([m exponent]
+    (mp/element-pow m exponent))) 
+
 ;; create all unary maths operators
 (eval
   `(do ~@(map (fn [[name func]]
