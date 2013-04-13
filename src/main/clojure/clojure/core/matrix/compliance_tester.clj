@@ -99,6 +99,11 @@
       (is (thrown? Throwable (dimension-count m dims))))))
 
 (defn test-mutable-assumptions [m]
+  (testing "mutable-matrix works ok"
+    (let [mm (mutable-matrix m)] 
+      (is (mutable? mm))
+      (is (not (identical? m mm)))
+      (is (e= mm m))))
   (testing "modifying a cloned mutable array does not modify the original"
     (when (and (mutable? m) (> 0 (ecount m)))
             (let [cm (clone m)
