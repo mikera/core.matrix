@@ -38,7 +38,7 @@
     (let [dims (mp/dimensionality m)
           type (mp/element-type m)]
       (cond  
-        (and (== dims 1) (== Double/TYPE type)) 
+        (and (== dims 1) (= Double/TYPE type)) 
           (clojure.core.matrix.impl.double-array/construct-double-array m)
         :else 
           (clojure.core.matrix.impl.ndarray/ndarray m))))) 

@@ -71,6 +71,10 @@
   (is (= [[1 1] [1 1]] (coerce [] (broadcast 1 [2 2]))))
   (is (equals [[[[2]]]] (broadcast 2 [1 1 1 1]))))
 
+(deftest test-mutable-matrix
+  (is (error? (scale! [1 2] 2)))
+  (is (equals (scale! (mutable-matrix [1 2]) 2) [2 4]))) 
+
 (deftest test-reshape
   (is (equals 1 (reshape [1 2 3] [])))
   (is (equals [1 2 3 4] (reshape [[1.0 2.0] [3.0 4.0]] [4])))
