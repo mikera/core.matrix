@@ -112,7 +112,7 @@
     (mp/construct-matrix (imp/get-canonical-object implementation) (map vector data))))
 
 (defn identity-matrix
-  "Constructs a 2D identity matrix with the given number or rows"
+  "Constructs a 2D identity matrix with the given number of rows"
   ([dims]
     (mp/identity-matrix (current-implementation-object) dims))
   ([implementation dims]
@@ -240,14 +240,12 @@
     (mp/element-type m))) 
 
 (defn dimensionality
-;; TODO: alternative names to consider: order, tensor-rank?
-;; mathematically just 'rank' would be the appropriate term?
   "Returns the dimensionality (number of array dimensions) of a matrix / array"
   ([m]
     (mp/dimensionality m)))
 
 (defn row-count
-  "Returns the number of rows in a matrix (must be 1D or more)"
+  "Returns the number of rows in a matrix or vector (must be 1D or more)"
   ([m]
     (mp/dimension-count m 0)))
 
@@ -257,7 +255,8 @@
     (mp/dimension-count m 1)))
 
 (defn dimension-count
-  "Returns the size of the specified dimension in a matrix."
+  "Returns the size of the specified dimension in a matrix. Will throw an error if the matrix
+   does not have the specified dimension."
   ([m dim]
     (mp/dimension-count m dim)))
 
@@ -295,7 +294,7 @@
   ([m]
     (and (satisfies? mp/PIndexedSetting m) (mp/is-mutable? m))))
 
-(defn compatible?
+(defn conforming?
   "Returns true if two matrices have a compatible shape. Two matrices are compatible if there
    exists a common shape that both can broadcast to." 
   ([a] true)

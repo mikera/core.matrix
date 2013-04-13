@@ -60,12 +60,12 @@
   (is (= [1] (eseq 1)))
   (is (= [1] (eseq [[1]]))))
 
-(deftest test-compatible?
-  (is (compatible? 1 [[2 2] [3 3]]))
-  (is (compatible? 1 [3 3]))
-  (is (compatible? [3 3] [[1 2] [3 4]]))
-  (is (not (compatible? [3 3] [[1 2 3] [3 4 3]])))
-  (is (not (compatible? [1 2] [3 4 5])))) 
+(deftest test-conforming?
+  (is (conforming? 1 [[2 2] [3 3]]))
+  (is (conforming? 1 [3 3]))
+  (is (conforming? [3 3] [[1 2] [3 4]]))
+  (is (not (conforming? [3 3] [[1 2 3] [3 4 3]])))
+  (is (not (conforming? [1 2] [3 4 5])))) 
 
 (deftest test-broadcast
   (is (= [[1 1] [1 1]] (coerce [] (broadcast 1 [2 2]))))
