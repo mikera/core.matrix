@@ -63,6 +63,7 @@
 (deftest test-conforming?
   (is (conforming? 1 [[2 2] [3 3]]))
   (is (conforming? 1 [3 3]))
+  (is (conforming? [3 3] 1))
   (is (conforming? [3 3] [[1 2] [3 4]]))
   (is (not (conforming? [3 3] [[1 2 3] [3 4 3]])))
   (is (not (conforming? [1 2] [3 4 5])))) 

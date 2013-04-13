@@ -295,7 +295,7 @@
     (and (satisfies? mp/PIndexedSetting m) (mp/is-mutable? m))))
 
 (defn conforming?
-  "Returns true if two matrices have a compatible shape. Two matrices are compatible if there
+  "Returns true if two matrices have a conforming shape. Two matrices are conforming if there
    exists a common shape that both can broadcast to." 
   ([a] true)
   ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b)))))) 
@@ -309,7 +309,7 @@
     If want-copy is true, will guarantee a new double array (defensive copy).
     If want-copy is false, will return the internal array used by m, or nil if not supported
     by the implementation.
-    If want copy is not sepcified, will return either a copy or the internal array"
+    If want-copy is not sepcified, will return either a copy or the internal array"
    ([m]
      (mp/to-double-array m))
    ([m want-copy?]
@@ -335,9 +335,7 @@
 (defn mset
   "Sets a scalar value in a matrix at a specified position, returning a new matrix and leaving the
    original unchanged."
-  ([m v]
-    ;; we can return the scalar directly?
-    v)
+  ([m v] v)
   ([m x v]
     (mp/set-1d m x v))
   ([m x y v]
@@ -364,13 +362,13 @@
 
 (defn get-row
   "Gets a row of a matrix as a vector.
-   May return a mutable view if supported by the implementation."
+   Will return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
 (defn get-column
   "Gets a column of a matrix as a vector.
-   May return a mutable view if supported by the implementation."
+   Will return a mutable view if supported by the implementation."
   ([m y]
     (mp/get-column m y)))
 
@@ -414,7 +412,7 @@
     (mp/get-slice m dimension index)))
 
 (defn slices
-  "Gets a lazy sequence of slices of a matrix. If dimension is supplied, slices along a given dimension,
+  "Gets a sequence of slices of a matrix. If dimension is supplied, slices along a given dimension,
    otherwise slices along the first dimension."
   ([m]
     (mp/get-major-slice-seq m))
@@ -448,14 +446,15 @@
 ;; structural change operations
 
 (defn broadcast 
-  "Broadcasts a matrix to a specified shape. Will throw an excption if broadcast to the target shape
-   is not possible."
+  "Broadcasts a matrix to a specified shape. Returns a new matrix with the shape specified.
+   The broadcasted matrix may be a view over the original matrix.
+   Will throw an excption if broadcast to the target shape is not possible."
   ([m shape]
     (or (mp/broadcast m shape) (error "Broadcast to target shape: " (seq shape) " not possble."))))
 
 (defn transpose
   "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped. 
-   More generally, the dimension indices are revered for any shape of array. Note that 1D vectors
+   More generally, the dimension indices are reversed for any shape of array. Note that 1D vectors
    and scalars will be returned unchanged."
   ([m]
     (mp/transpose m)))
