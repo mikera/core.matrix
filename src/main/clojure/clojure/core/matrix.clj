@@ -118,6 +118,12 @@
   ([implementation dims]
     (mp/identity-matrix (imp/get-canonical-object implementation) dims)))
 
+(defn mutable-matrix
+  "Constructs a mutable copy of the given matrix."
+  ([data]
+    (or (mp/mutable-matrix data) 
+        (error "Can't construct mutable array copy of: " (class data))))) 
+
 (defn diagonal-matrix
   "Constructs a 2D diagonal matrix with the given values on the main diagonal.
    diagonal-values may be a vector or any Clojure sequence of values."

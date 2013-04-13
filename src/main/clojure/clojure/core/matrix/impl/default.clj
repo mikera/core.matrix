@@ -32,6 +32,17 @@
       (array? m) (reduce * 1 (mp/get-shape m))
       :else (count m))))
 
+(defn construct-mutable-matrix 
+  "Constructs a mutable matrix with the guven data."
+  ([m]
+    (let [dims (mp/dimensionality m)
+          type (mp/element-type m)]
+      (cond  
+        (and (== dims 1) (== Double/TYPE type)) 
+          (clojure.core.matrix.impl.double-array/construct-double-array m)
+        :else 
+          (clojure.core.matrix.impl.ndarray/ndarray m))))) 
+
 ;; ============================================================
 ;; Default implementations
 ;; - default behaviour for java.lang.Number scalars
@@ -210,13 +221,7 @@
       (wrap/wrap-scalar m))
   java.lang.Object
     (mutable-matrix [m]
-      (let [dims (mp/dimensionality m)
-            type (mp/element-type m)]
-        (cond  
-          (and (== dims 1) (== Double/TYPE type)) 
-            (clojure.core.matrix.impl.double-array/construct-double-array m)
-          :else 
-            (clojure.core.matrix.impl.ndarray/ndarray m))))) 
+      (construct-mutable-matrix m))) 
 
 (extend-protocol mp/PDimensionInfo
   nil
