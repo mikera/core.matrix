@@ -121,6 +121,12 @@
    If a matrix is primitive-backed, it should return the appropriate primitive type e.g. Double/TYPE."
   (element-type [m]))
 
+(defprotocol PMutableMatrixConstruction
+  "Protocol for creating a mutable version of a matrix. If implemented, must return either a fully mutable
+   copy of the given matrix, or nil if not possible. The default implementation will choose a mutable 
+   matrix implementation."
+  (mutable-matrix [m])) 
+
 (defprotocol PZeroDimensionAccess
   "Protocol for accessing the scalar value in zero-dimensional arrays. Zero dimensional arrays differ
    from scalar values in the following two senses:

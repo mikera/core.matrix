@@ -1,5 +1,7 @@
 (ns clojure.core.matrix.impl.default
   (:use clojure.core.matrix.utils)
+  (:require [clojure.core.matrix.impl.double-array])
+  (:require [clojure.core.matrix.impl.ndarray])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.impl.wrappers :as wrap])
   (:require [clojure.core.matrix.multimethods :as mm])
@@ -198,6 +200,23 @@
 	  java.lang.Object
 	    (clone [m]
 	      (mp/coerce-param m (mp/coerce-param [] m))))
+
+(extend-protocol mp/PMutableMatrixConstruction
+  nil 
+    (mutable-matrix [m]
+      (wrap/wrap-scalar m))
+  java.lang.Number
+    (mutable-matrix [m]
+      (wrap/wrap-scalar m))
+  java.lang.Object
+    (mutable-matrix [m]
+      (let [dims (mp/dimensionality m)
+            type (mp/element-type m)]
+        (cond  
+          (and (== dims 1) (== Double/TYPE type)) 
+            (clojure.core.matrix.impl.double-array/construct-double-array m)
+          :else 
+            (clojure.core.matrix.impl.ndarray/ndarray m))))) 
 
 (extend-protocol mp/PDimensionInfo
   nil
