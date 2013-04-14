@@ -183,6 +183,13 @@
     (normalise [a]
       (mp/scale a (/ 1.0 (Math/sqrt (mp/length-squared a))))))
 
+(extend-protocol mp/PMutableMatrixConstruction
+  clojure.lang.IPersistentVector 
+    (mutable-matrix [m]
+      (if (and (== 1 (mp/dimensionality m)) (every? number? m))
+        (double-array m))
+      :else nil)) 
+
 (extend-protocol mp/PVectorDistance
   clojure.lang.IPersistentVector
     (distance [a b] (mp/length (mapv - b a))))
