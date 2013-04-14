@@ -30,6 +30,13 @@
     (is (= (class (double-array [1 2])) 
            (class (with-implementation :double-array (matrix [1 2])))))))
 
+(deftest test-products
+  (is (equals 1 (inner-product [0 1 1] [1 1 0])))
+  (is (equals [[2 4] [6 8]] (inner-product [[2 0] [0 2]] [[1 2] [3 4]])))
+  (is (equals [1 2] (outer-product 1 [1 2])))
+  (is (equals [1 2] (outer-product [1 2] 1)))
+  (is (equals [[1 2] [3 6]] (outer-product [1 3] [1 2]))))
+
 (deftest test-new
   (is (equals [0 0 0] (new-vector 3)))
   (is (= [0.0 0.0 0.0] (seq (new-vector :double-array 3))))) 
