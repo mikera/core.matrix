@@ -197,7 +197,8 @@
 (deftest test-scalar
   (testing "special scalars"
     (is (scalar? nil))
-    (is (not (scalar? [1]))))
+    (is (not (scalar? [1])))
+    (is (not (scalar? (clojure.core.matrix.impl.wrappers/wrap-scalar 1)))))
   (testing "numbers as scalars"
     (is (scalar? 1))
     (is (scalar? 1.0))
@@ -212,7 +213,12 @@
     (is (= 10.0 (emap + 1.0 2.0 3.0 4.0)))
     (is (== 10.0 (ereduce #(+ %1 %2) 10.0)))
     (is (== 3.0 (ereduce + 1.0 2.0)))
-    (is (= [1.0] (eseq 1.0)))))
+    (is (= [1.0] (eseq 1.0))))
+  (testing "scalar operations"
+    (is (== 10 (inner-product 2 5)))
+    (is (== 10 (outer-product 2 5)))
+    (is (== 10 (scale 2 5)))
+    (is (== 10 (mp/pre-scale 2 5)))))
 
 (deftest test-vector-ops
   (testing "vector dot product"
