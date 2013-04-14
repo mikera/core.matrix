@@ -43,12 +43,19 @@
       (apply mapv f m1 m2 more)
       (apply mapv (partial mapmatrix f) m1 m2 more))))
 
+(defn is-nested-persistent-vectors? [x]
+  (cond 
+    (number? x) true
+    (mp/is-scalar? x) true
+    (not (instance? clojure.lang.IPersistentVector x)) false
+    :else (every? is-nested-persistent-vectors? x)))
+
 (defn persistent-vector-coerce [x]
   "Coerces to nested persistent vectors"
   (let [dims (mp/dimensionality x)] 
     (cond
-	    (mp/is-scalar? x) x
 	    (== dims 0) (mp/get-0d x)
+	    (is-nested-persistent-vectors? x) x
       (> dims 0) (mp/convert-to-nested-vectors x) 
 	    (clojure.core/vector? x) (mapv mp/convert-to-nested-vectors x) 
 	    (instance? java.util.List x) (coerce-nested x)
