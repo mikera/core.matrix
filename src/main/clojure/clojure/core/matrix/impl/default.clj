@@ -275,6 +275,38 @@
             ;; note than function must come second for mp/element-map   
             (apply mp/element-map (first ss) vector (next ss)))))))
 
+(extend-protocol mp/PMatrixProducts
+  java.lang.Number
+    (inner-product [m a]
+      (if (number? a)
+        (clojure.core/* m a)
+        (mp/pre-scale a m)))
+    (outer-product [m a]
+      (if (number? a)
+        (clojure.core/* m a)
+        (mp/pre-scale a m)))
+  java.lang.Object
+    (inner-product [m a]
+      (cond 
+        (mp/is-scalar? m) 
+          (mp/pre-scale a m)
+        (mp/is-scalar? m) 
+          (mp/scale m a)
+        (== 1 (mp/dimensionality m))
+          (reduce mp/matrix-add (map (fn [sl x] (mp/scale sl x)) 
+                                     (mp/get-major-slice-seq a) 
+                                     (mp/get-major-slice-seq m)))
+        :else 
+          (mp/coerce-param m
+            (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m)))))
+    (outer-product [m a]
+      (cond
+        (mp/is-scalar? m) 
+          (mp/pre-scale a m)
+        :else 
+          (mp/coerce-param m (mp/convert-to-nested-vectors 
+                               (mp/element-map m (fn [v] (mp/pre-scale a v))))))))
+
 ;; matrix multiply
 (extend-protocol mp/PMatrixMultiply
   java.lang.Number
