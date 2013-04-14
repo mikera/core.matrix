@@ -579,7 +579,6 @@
     (mp/matrix-sub! a b)
     a)
   ([a b & more]
-    (mp/matrix-sub! a b) 
     (reduce (fn [acc m] (sub! acc m)) (sub! a b) more)))
 
 (defn scale

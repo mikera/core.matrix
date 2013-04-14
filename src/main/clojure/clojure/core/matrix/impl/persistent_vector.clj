@@ -305,13 +305,16 @@
         (apply mapmatrix f m a more)))
     (element-map!
       ([m f]
-        (if (vector-1d? m)
-          (error "Persistent vector matrices are not mutable!")
-          (doseq [s m] (mp/element-map! s f))))
+        (doseq [s m] (mp/element-map! s f))
+        m)
       ([m f a]
-        (error "Persistent vector matrices are not mutable!"))
+        (dotimes [i (count m)]
+          (mp/element-map! (m i) f (mp/get-major-slice a i)))
+        m)
       ([m f a more]
-        (error "Persistent vector matrices are not mutable!")))
+        (dotimes [i (count m)]
+          (apply mp/element-map! (m i) f (mp/get-major-slice a i) (map #(mp/get-major-slice % i) more)))
+        m))
     (element-reduce
       ([m f]
         (reduce f (mp/element-seq m)))

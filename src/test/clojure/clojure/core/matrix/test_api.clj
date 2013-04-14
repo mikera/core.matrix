@@ -169,7 +169,11 @@
   (testing "matrix subtraction"
     (is (= [1.0] (sub [3.0] [2.0])))
     (is (= [[8.0]] (sub [[12.0]] [[4.0]])))
-    (is (= [[[8.0]]] (sub [[[12.0]]] [[[4.0]]])))))
+    (is (= [[[8.0]]] (sub [[[12.0]]] [[[4.0]]]))))
+  (testing "mutable sub"
+    (let [v (mutable-matrix [10 10])]
+      (sub! v [1 2] [1 2])
+      (is (equals [8 6] v)))))
 
 (deftest test-transpose
   (testing "transpose different dimensionalities"
