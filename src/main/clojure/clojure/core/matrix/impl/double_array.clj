@@ -99,6 +99,11 @@
         (aset ^doubles m (int (first indexes)) (double v))
         (error "Can't set on double array with dimensionality: " (count indexes)))))
 
+(extend-protocol mp/PMutableMatrixConstruction
+  (Class/forName "[D") 
+    (mutable-matrix [m]
+      (copy-double-array m))) 
+
 (extend-protocol mp/PMatrixScaling
   (Class/forName "[D")
     (scale [m a]

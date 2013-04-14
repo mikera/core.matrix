@@ -40,6 +40,8 @@
       (cond  
         (and (== dims 1) (= Double/TYPE type)) 
           (clojure.core.matrix.impl.double-array/construct-double-array m)
+        (and (== dims 1) (every? #(instance? Double %) (mp/element-seq m)))
+          (double-array (mp/element-seq m)) 
         :else 
           (clojure.core.matrix.impl.ndarray/ndarray m))))) 
 

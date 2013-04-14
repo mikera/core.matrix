@@ -123,8 +123,9 @@
 
 (defprotocol PMutableMatrixConstruction
   "Protocol for creating a mutable version of a matrix. If implemented, must return either a fully mutable
-   copy of the given matrix, or nil if not possible. The default implementation will choose a mutable 
-   matrix implementation."
+   copy of the given matrix, or nil if not possible. 
+
+   The default implementation will attempt to choose a suitable mutable matrix implementation."
   (mutable-matrix [m])) 
 
 (defprotocol PZeroDimensionAccess
