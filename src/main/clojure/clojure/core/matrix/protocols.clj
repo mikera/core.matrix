@@ -122,7 +122,7 @@
   (element-type [m]))
 
 (defprotocol PMutableMatrixConstruction
-  "Protocol for creating a mutable version of a matrix. If implemented, must return either a fully mutable
+  "Protocol for creating a mutable copy of a matrix. If implemented, must return either a fully mutable
    copy of the given matrix, or nil if not possible. 
 
    The default implementation will attempt to choose a suitable mutable matrix implementation."

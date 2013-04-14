@@ -54,8 +54,8 @@
   "Coerces to nested persistent vectors"
   (let [dims (mp/dimensionality x)] 
     (cond
-	    (== dims 0) (mp/get-0d x)
-	    (is-nested-persistent-vectors? x) x
+	    (is-nested-persistent-vectors? x) x ;; already done!
+	    (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; arrays with zero dimensionality
       (> dims 0) (mp/convert-to-nested-vectors x) 
 	    (clojure.core/vector? x) (mapv mp/convert-to-nested-vectors x) 
 	    (instance? java.util.List x) (coerce-nested x)

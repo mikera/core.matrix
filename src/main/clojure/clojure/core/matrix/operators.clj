@@ -9,7 +9,7 @@
 ;; Mathematical operators defined for matrices and vectors as applicable
 
 (defn *
-  "Matrix multiply operator"
+  "Matrix multiply operator. Uses the inner product for multiplication."
   ([a] a)
   ([a b]
     (m/mul a b))

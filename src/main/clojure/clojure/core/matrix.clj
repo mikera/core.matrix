@@ -450,7 +450,8 @@
    The broadcasted matrix may be a view over the original matrix.
    Will throw an excption if broadcast to the target shape is not possible."
   ([m shape]
-    (or (mp/broadcast m shape) (error "Broadcast to target shape: " (seq shape) " not possble."))))
+    (or (mp/broadcast m shape) 
+        (error "Broadcast to target shape: " (seq shape) " not possble."))))
 
 (defn transpose
   "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped. 
