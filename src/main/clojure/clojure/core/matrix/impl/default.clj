@@ -292,7 +292,7 @@
       (cond 
         (mp/is-scalar? m) 
           (mp/pre-scale a m)
-        (mp/is-scalar? m) 
+        (mp/is-scalar? a) 
           (mp/scale m a)
         (== 1 (mp/dimensionality m))
           (reduce mp/matrix-add (map (fn [sl x] (mp/scale sl x)) 
