@@ -487,13 +487,15 @@
 ;; matrix maths / operations
 
 (defn mul
-  "Performs matrix multiplication with matrices, vectors or scalars"
+  "Performs matrix multiplication with matrices, vectors or scalars.
+
+   Uses the inner product."
   ([a] a)
   ([a b]
     (cond
       (scalar? b) (if (scalar? a) (* a b) (mp/scale a b))
       (scalar? a) (mp/pre-scale b a)
-      :else (mp/matrix-multiply a b)))
+      :else (or (mp/matrix-multiply a b) (mp/inner-product a b))))
   ([a b & more]
     (reduce mul (mul a b) more)))
 

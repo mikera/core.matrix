@@ -297,7 +297,7 @@
         (== 1 (mp/dimensionality m))
           (reduce mp/matrix-add (map (fn [sl x] (mp/scale sl x)) 
                                      (mp/get-major-slice-seq a) 
-                                     (mp/get-major-slice-seq m)))
+                                     (mp/get-major-slice-seq m))) ;; TODO: implement with mutable accumulation
         :else 
           (mp/coerce-param m
             (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m)))))
@@ -693,4 +693,4 @@
 ;; default multimethod implementations
 
 (defmethod mm/mul :default [x y]
-  (error "Don't know how to multiply " (class x) " with " (class y)))
+  (mp/inner-product x y))

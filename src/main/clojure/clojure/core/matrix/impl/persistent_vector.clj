@@ -230,16 +230,13 @@
 	                 (let [r (mp/get-column a i)]
 	                   (mp/vector-dot m r))))
           (and (== mdims 2) (== adims 1))
-            (vec (for [i (range (mp/dimension-count m 0))]
-	                 (let [r (m i)]
-	                   (mp/vector-dot r a))))
+            (mapv #(mp/vector-dot % a) m)
           (and (== mdims 2) (== adims 2))
-            (vec (for [i (range (mp/dimension-count m 0))]
-                   (let [r (m i)]
+            (mapv (fn [r]
                      (vec (for [j (range (mp/dimension-count a 1))]
-                            (mp/vector-dot r (mp/get-column a j)))))))
-        :default
-          (mm/mul m a)))))
+                            (mp/vector-dot r (mp/get-column a j))))) m)
+          :else
+            (mm/mul m a)))))
 
 (extend-protocol mp/PVectorTransform
   clojure.lang.PersistentVector
