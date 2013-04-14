@@ -240,6 +240,11 @@
   (matrix-multiply [m a])
   (element-multiply [m a]))
 
+(defprotocol PMatrixProducts
+  "Protocol for inner and outer products of matrices"
+  (inner-product [m a])
+  (outer-product [m a]))
+
 (defprotocol PMatrixDivide
   "Protocol to support element-wise division operator. 
    One-arg version returns the reciprocal of all elements."

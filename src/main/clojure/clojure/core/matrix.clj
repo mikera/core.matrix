@@ -628,14 +628,24 @@
   ([a b]
     (mp/vector-dot a b)))
 
-(def inner-product dot)
+(defn inner-product 
+  "Computes the inner product of two arrays. 
+
+   The inner product of matrixes with indexed dimensions {.. i j} and {j k ...} has dimensions {.. i k ...}"
+  ([] 1.0)
+  ([a]
+    a)
+  ([a b]
+    (mp/inner-product a b))
+  ([a b & more]
+    (reduce inner-product (inner-product a b) more)))
 
 (defn outer-product 
   "Computes the outer product of matrices."
   ([] 1.0)
   ([a] a)
   ([a b]
-    (TODO))
+    (mp/outer-product a b))
   ([a b & more]
     (reduce outer-product (outer-product a b) more))) 
 
