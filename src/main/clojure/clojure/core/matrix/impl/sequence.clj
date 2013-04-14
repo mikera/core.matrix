@@ -97,9 +97,9 @@
         (mapv #(mp/element-map % f %2 %3) m a more)))
     (element-map!
       ([m f]
-        (if (== 1 (mp/dimensionality m))
-          (error "Sequence arrays are not mutable!")
-          (doseq [s m] (mp/element-map! s f))))
+        (do 
+          (doseq [s m] (mp/element-map! s f)) 
+          m))
       ([m f a]
         (error "Sequence arrays are not mutable!"))
       ([m f a more]

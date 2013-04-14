@@ -796,11 +796,11 @@
   "Element-wise map over all elements of one or more arrays.
    Performs in-place modification of the first array argument."
   ([f m]
-    (mp/element-map! m f))
+    (mp/element-map! m f) m)
   ([f m a]
-    (mp/element-map! m f a))
+    (mp/element-map! m f a) m)
   ([f m a & more]
-    (mp/element-map! m f a more)))
+    (mp/element-map! m f a more) m))
 
 (defn index-seq-for-shape [sh]
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"

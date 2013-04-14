@@ -411,9 +411,11 @@
       (error "Can't pre-scale! a numeric value: " m))
   java.lang.Object
     (scale! [m a]
-      (mp/element-map! m #(* % a)))
+      (mp/element-map! m #(* % a))
+      m)
     (pre-scale! [m a]
-      (mp/element-map! m (partial * a))))
+      (mp/element-map! m (partial * a))
+      m))
 
 (extend-protocol mp/PMatrixAdd
   ;; matrix add for scalars

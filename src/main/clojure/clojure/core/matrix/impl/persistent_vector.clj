@@ -193,9 +193,12 @@
 (extend-protocol mp/PMutableMatrixConstruction
   clojure.lang.IPersistentVector 
     (mutable-matrix [m]
-      (if (and (== 1 (mp/dimensionality m)) (every? number? m))
-        (double-array m))
-      :else nil)) 
+      (cond
+        (and (== 1 (mp/dimensionality m)) (every? #(or (instance? Double %) 
+                                                       ;; (and (number? %) (== % (double %)))
+                                                       ) m))
+          (double-array m) 
+        :else (mapv mp/mutable-matrix m)))) 
 
 (extend-protocol mp/PVectorDistance
   clojure.lang.IPersistentVector
@@ -248,11 +251,9 @@
 (extend-protocol mp/PMatrixScaling
   clojure.lang.IPersistentVector
     (scale [m a]
-      (let [a (double a)]
-        (mapmatrix #(* % a) m)))
+      (mapmatrix #(* % a) m))
     (pre-scale [m a]
-      (let [a (double a)]
-        (mapmatrix (partial * a) m))))
+      (mapmatrix (partial * a) m)))
 
 ;; helper functin to build generic maths operations
 (defn build-maths-function
