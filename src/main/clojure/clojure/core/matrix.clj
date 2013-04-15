@@ -743,6 +743,27 @@
   ([m]
     (mp/PMatrixRank m))) 
 
+(defn lu-decomposition
+  "Computes the LU decompotion of a matrix. Returns a vector containing two matrices [L U]
+
+   Intended usage: (let [[L U] (lu-decomosition M)] ....) "
+  [m]
+    (TODO)) 
+
+(defn sv-decomposition
+  "Computes the Singular Value decomposition of a matrix. Returns a vector containing three matrices [U S V*]
+
+   Intended usage: (let [[U S V*] (sv-decomosition M)] ....)"
+  [m]
+    (TODO)) 
+
+(defn cholesky-decomposition
+  "Computes the Cholesky decomposition of a matrix. Returns a vector containing three matrices [L L*]
+
+   Intended usage: (let [[L L*] (cholesky-decomosition M)] ....)"
+  [m]
+    (TODO)) 
+
 ;; ====================================
 ;; Functional operations
 ;;
