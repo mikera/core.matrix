@@ -771,6 +771,16 @@
   [m]
     (TODO)) 
 
+(defn eigen-decomposition
+  "Computes the Eigendecomposition of a diagonalisable matrix. 
+   Returns a vector containing three matrices [Q A Qinv]
+
+   A is a diagonal matrix whose diagonal elements are the eigenvalues.
+
+   Intended usage: (let [[Q A Qinv] (eigen-decomosition M)] ....)"
+  [m]
+    (TODO)) 
+
 ;; ====================================
 ;; Functional operations
 ;;
