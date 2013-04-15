@@ -265,10 +265,12 @@
      clojure.lang.IPersistentVector
        ~@(map build-maths-function mops/maths-ops)
        ~@(map (fn [[name func]]
-                (let [mname (symbol (str name "!"))]
-                  `(fn ~mname [m#]
+                (let [name (str name "!")
+                      mname (symbol name)
+                      mpmname (symbol "clojure.core.matrix.protocols" name)]
+                  `(~mname [m#]
                      (doseq [s# (mp/get-major-slice-seq m#)]
-                       (~mname s#))))) 
+                       (~mpmname s#))))) 
               mops/maths-ops)))
 
 (extend-protocol mp/PDimensionInfo
