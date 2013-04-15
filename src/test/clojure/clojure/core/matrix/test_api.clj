@@ -33,13 +33,14 @@
 (deftest test-products
   (is (equals 1 (inner-product [0 1 1] [1 1 0])))
   (is (equals [[2 4] [6 8]] (inner-product [[2 0] [0 2]] [[1 2] [3 4]])))
-  (is (equals [1 2] (outer-product 1 [1 2])))
-  (is (equals [1 2] (outer-product [1 2] 1)))
+  (is (equals [3 6] (outer-product 3 [1 2])))
+  (is (equals [3 6] (outer-product [1 2] 3)))
   (is (equals [[1 2] [3 6]] (outer-product [1 3] [1 2]))))
 
 (deftest test-new
   (is (equals [0 0 0] (new-vector 3)))
-  (is (= [0.0 0.0 0.0] (seq (new-vector :double-array 3))))) 
+  (is (= [0.0 0.0 0.0] (seq (new-vector :double-array 3))))
+  (is (e= [0.0 0.0 0.0] (new-vector :double-array 3)))) 
 
 (deftest test-coerce
   (testing "clojure vector coercion"
@@ -54,7 +55,7 @@
   (testing "get-nd on scalar with zero dimensions"
     (is (== 10.0 (mget 10.0)))
     (is (== 10.0 (mp/get-nd 10.0 []))))
-  (testing "slices of clojure vector"
+  (testing "slices of clojure vector are scalar numbers"
     (is (= [1 2 3] (slices [1 2 3])))))
 
 (deftest test-submatrix
@@ -64,8 +65,9 @@
   (is (equals [2 3] (submatrix [1 2 3 4] 0 [1 2])))) 
 
 (deftest test-element-seq
-  (is (= [1] (eseq 1)))
-  (is (= [1] (eseq [[1]]))))
+  (is (= [0] (eseq 0)))
+  (is (= [2] (eseq [[2]])))
+  (is (= [4] (eseq [[[[4]]]]))))
 
 (deftest test-conforming?
   (is (conforming? 1 [[2 2] [3 3]]))
