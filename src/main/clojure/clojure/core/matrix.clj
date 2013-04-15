@@ -758,9 +758,16 @@
     (TODO)) 
 
 (defn cholesky-decomposition
-  "Computes the Cholesky decomposition of a matrix. Returns a vector containing three matrices [L L*]
+  "Computes the Cholesky decomposition of a matrix. Returns a vector containing two matrices [L L*]
 
    Intended usage: (let [[L L*] (cholesky-decomosition M)] ....)"
+  [m]
+    (TODO)) 
+
+(defn qr-decomposition
+  "Computes the QR decomposition of a matrix. Returns a vector containing two matrices [Q R]
+
+   Intended usage: (let [[Q R] (qr-decomosition M)] ....)"
   [m]
     (TODO)) 
 
