@@ -265,8 +265,11 @@
      clojure.lang.IPersistentVector
        ~@(map build-maths-function mops/maths-ops)
        ~@(map (fn [[name func]]
-                `(~(symbol (str name "!")) [~'m]
-                   (error "Persistent vector matrices are not mutable!"))) mops/maths-ops)))
+                (let [mname (symbol (str name "!"))]
+                  `(fn ~mname [m#]
+                     (doseq [s# (mp/get-major-slice-seq m#)]
+                       (~mname s#))))) 
+              mops/maths-ops)))
 
 (extend-protocol mp/PDimensionInfo
   clojure.lang.IPersistentVector
