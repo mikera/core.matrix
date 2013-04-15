@@ -14,7 +14,10 @@
     (is (= 1.0 (coerce [] (wrap/wrap-scalar 1.0))))
     (is (= [1.0 2.0] (coerce [] (slices (double-array [1 2]))))))
   (testing "vector length"
-    (is (== 5 (length [3 4])))))
+    (is (== 5 (length [3 4]))))
+  (testing "scalar broadcast"
+    (is (e= [11 12 13] (add [1 2 3] 10)))
+    (is (e= [11 12 13] (add 10 [1 2 3])))))
 
 (deftest test-properties
   (is (not (mutable? [1 2])))

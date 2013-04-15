@@ -421,9 +421,11 @@
   ;; matrix add for scalars
   java.lang.Number
     (matrix-add [m a]
-      (if (number? a) (+ m a) (error "Can't add scalar number to a matrix")))
+      (if (number? a) (+ m a) 
+        (mp/matrix-add a m)))
     (matrix-sub [m a]
-      (if (number? a) (- m a) (error "Can't a matrix from a scalar number")))
+      (if (number? a) (- m a) 
+        (mp/matrix-add a m)))
   ;; default impelementation - assume we can use emap?
   java.lang.Object
     (matrix-add [m a]
