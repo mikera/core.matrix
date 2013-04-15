@@ -196,7 +196,10 @@
     (is (== 1.0 (floor 1.2)))
     (is (thrown? Throwable (floor! 1.2))))
   (testing "ops"
-    (is (= [1.0 2.0] (floor [1.2 2.7]))))) 
+    (is (= [1.0 2.0] (floor [1.2 2.7]))))
+  (testing "mutable maths ops"
+    (is (error? (signum! [1 2])))
+    (is (equals [1 0 1 -1] (signum! (double-array [1 0 2 -10])))))) 
 
 (deftest test-scalar
   (testing "special scalars"
