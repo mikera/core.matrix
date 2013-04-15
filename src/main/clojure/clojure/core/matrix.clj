@@ -151,6 +151,17 @@
   ([implementation data]
     (TODO))) 
 
+(defmacro for-matrix 
+  "Constructs a matrix by iterating the bindings over the given shape.
+
+   Example: (for-matrix [[i j] [3 3]] (+ i j))"
+  ([[bindings shape] & body]
+    (if (seq bindings)
+      `(mapv 
+         (fn [~(first bindings)] (for-matrix [~(next bindings) ~(next shape)] ~@body))
+         (range ~(first shape)))
+      `(do ~@body)))) 
+
 (defmacro with-implementation [impl & body]
   "Runs a set of expressions using a specified matrix implementation.
 
