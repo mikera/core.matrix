@@ -490,6 +490,7 @@
   "Performs standard matrix multiplication with matrices, vectors or scalars.
 
    Uses the inner product."
+  ([] 1.0)
   ([a] a)
   ([a b]
     (cond
@@ -501,6 +502,7 @@
 
 (defn emul
   "Performs element-wise matrix multiplication. Matrices should be the same size."
+  ([] 1.0)
   ([a] a)
   ([a b]
     (mp/element-multiply a b))
