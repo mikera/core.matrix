@@ -237,7 +237,10 @@
       numercial types (e.g. java.lang.Long and java.lang.Double)"))
 
 (defprotocol PMatrixMultiply
-  "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
+  "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar. 
+
+   Implementation may return nil if the implementation does not support one of the parameters, in 
+   which case a more general inner-product operation will be attempted."
   (matrix-multiply [m a])
   (element-multiply [m a]))
 
