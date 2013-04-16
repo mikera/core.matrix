@@ -300,7 +300,6 @@
   ([a] true)
   ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b)))))) 
 
-
 ;; =======================================
 ;; Conversions
 
@@ -447,7 +446,8 @@
 
 (defn broadcast 
   "Broadcasts a matrix to a specified shape. Returns a new matrix with the shape specified.
-   The broadcasted matrix may be a view over the original matrix.
+   The broadcasted matrix may be a view over the original matrix: attempting to modify the 
+   broadcasted matrix therefore has undefined results.
    Will throw an excption if broadcast to the target shape is not possible."
   ([m shape]
     (or (mp/broadcast m shape) 
