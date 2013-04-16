@@ -487,14 +487,14 @@
 ;; matrix maths / operations
 
 (defn mul
-  "Performs matrix multiplication with matrices, vectors or scalars.
+  "Performs standard matrix multiplication with matrices, vectors or scalars.
 
    Uses the inner product."
   ([a] a)
   ([a b]
     (cond
-      (scalar? b) (if (scalar? a) (* a b) (mp/scale a b))
-      (scalar? a) (mp/pre-scale b a)
+      (number? b) (if (number? a) (* a b) (mp/scale a b))
+      (number? a) (mp/pre-scale b a)
       :else (or (mp/matrix-multiply a b) (mp/inner-product a b))))
   ([a b & more]
     (reduce mul (mul a b) more)))
@@ -508,7 +508,7 @@
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
 (defn e*
-  "Matrix element-wise multiply operator."
+  "Matrix element-wise multiply operator. Equivalent to emul."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -823,7 +823,8 @@
     (reduce e= (e= m1 m2) more))) 
 
 (defn e==
-  "Returns true if all array elements are numerically equal (using ==)"
+  "Returns true if all array elements are numerically equal (using ==). Throws an error if any elements
+   of the arrays being compared are not numerical values."
   ([m1]
     true)
   ([m1 m2]
