@@ -64,6 +64,15 @@
       (if-let [s (seq indexes)]
         (mp/get-nd (.get m (int (first s))) (next s))
         m))
+  nil
+    (get-1d [m x]
+      (error "Can't do 1D get on nil"))
+    (get-2d [m x y]
+      (error "Can't do 2D get on nil"))
+    (get-nd [m indexes]
+      (if-let [s (seq indexes)]
+        (error "Can't do ND get on nil with indexes: " s)
+        m))
   java.lang.Number
     (get-1d [m x]
       (error "Can't do 1D get on a scalar number"))
@@ -578,6 +587,9 @@
       (clojure.core.matrix.impl.wrappers/wrap-submatrix m index-ranges))) 
 
 (extend-protocol mp/PBroadcast
+  nil 
+    (broadcast [m new-shape]
+      (clojure.core.matrix.impl.wrappers/wrap-broadcast m new-shape))
   java.lang.Object
     (broadcast [m new-shape] 
       (let [nshape new-shape

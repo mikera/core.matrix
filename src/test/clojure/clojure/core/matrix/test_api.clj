@@ -252,7 +252,8 @@
     (is (= [1 2 3] (broadcast-shape [1 2 3] [2 1])))
     (is (= [1 2 3 4] (broadcast-shape [1 2 3 1] [2 1 4])))
     (is (nil? (broadcast-shape [1 2 3 4] [2 3])))
-    (is (= [] (broadcast-shape [] []))))) 
+    (is (= [] (broadcast-shape [] [])))
+    (is (e= [[[nil]]] (broadcast nil [1 1 1]))))) 
 
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]
