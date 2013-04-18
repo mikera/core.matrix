@@ -14,7 +14,10 @@
     (is (= 1.0 (coerce [] (wrap/wrap-scalar 1.0))))
     (is (= [1.0 2.0] (coerce [] (slices (double-array [1 2]))))))
   (testing "vector length"
-    (is (== 5 (length [3 4])))))
+    (is (== 5 (length [3 4]))))
+  (testing "scalar broadcast"
+    (is (e= [11 12 13] (add [1 2 3] 10)))
+    (is (e= [11 12 13] (add 10 [1 2 3])))))
 
 (deftest test-properties
   (is (not (mutable? [1 2])))
@@ -43,6 +46,7 @@
 
 (deftest test-functional-op
   (testing "map"
+    (is (= 2 (emap inc 1))) 
     (is (= [1 2] (emap inc [0 1])))
     (is (= [1 2] (emap + [0 1] [1 1])))
     (is (= [3 5] (emap + [0 1] [1 1] [0 0] [2 3])))
@@ -50,7 +54,7 @@
 
 (deftest test-matrix-multiply
   (testing "matrix multiplication"
-    (is (= [[5.0 10.0] [15.0 20.0]] (mul [[1 2] [3 4]] 5)))
+    (is (= [[5 10] [15 20]] (mul [[1 2] [3 4]] 5)))
     (is (= [[1 0] [2 2] [5 0]] (mul [[1 0] [0 2] [5 0]] [[1 0] [1 1]])))
     (is (= [[1 2] [3 4]] (mul [[1 2] [3 4]] [[1 0] [0 1]])))
     (is (= [[5]] (mul [[1 2]] [[1] [2]])))

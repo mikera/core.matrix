@@ -99,6 +99,11 @@
       (is (thrown? Throwable (dimension-count m dims))))))
 
 (defn test-mutable-assumptions [m]
+  (testing "mutable-matrix works ok"
+    (let [mm (mutable-matrix m)] 
+      (is (mutable? mm))
+      (is (not (identical? m mm)))
+      (is (e= mm m))))
   (testing "modifying a cloned mutable array does not modify the original"
     (when (and (mutable? m) (> 0 (ecount m)))
             (let [cm (clone m)
@@ -158,7 +163,8 @@
 
 (defn test-coerce [m]
   (let [vm (mp/convert-to-nested-vectors m)]
-      (is (clojure.core.matrix.impl.persistent-vector/is-nested-vectors? vm))
+    (is (or (clojure.core/vector? vm) (== 0 (mp/dimensionality vm))))  
+    (is (clojure.core.matrix.impl.persistent-vector/is-nested-vectors? vm))
       (is (e= m vm))))
 
 (defn test-vector-round-trip [m]
@@ -376,11 +382,19 @@
     (is (column-matrix? cm))
     (is (row-matrix? (transpose cm)))))
 
+(defn test-matrix-emul [im]
+  (is (equals [[2 2] [4 4]] (e* [[1 1] [2 2]] 2)))
+  (is (equals [[2 2] [4 4]] (e* 2 [[1 1] [2 2]])))
+  (when (supports-dimensionality? im 1)
+    ;; TODO test vector broadcasting to matrix
+    ))
+
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)
   (test-transpose im)
   (test-diagonal im)
   (test-trace im)
+  (test-matrix-emul im)
   (test-identity im))
 
 ;; ======================================

@@ -3,17 +3,17 @@
   (:use clojure.core.matrix)
   (:use clojure.core.matrix.operators)
   (:require clojure.core.matrix.impl.persistent-vector)
-  (:refer-clojure :exclude [* - + /]))
+  (:refer-clojure :exclude [* - + / ==]))
 
 (deftest test-multiply
   (testing "scalars"
     (is (== 6 (* 3 2)))
     (is (== 6 (e* 3 2))))
   (testing "matrix scaling"
-    (is (= [6.0] (* [3] 2)))
-    (is (= [6.0] (* 2 [3])))
-    (is (= [[6.0]] (* 2 [[3]])))
-    (is (= [[6.0]] (* [[2]] 3))))
+    (is (= [6] (* [3] 2)))
+    (is (= [6] (* 2 [3])))
+    (is (= [[6]] (* 2 [[3]])))
+    (is (= [[6]] (* [[2]] 3))))
   (testing "element-wise multiplication"
     (is (= [2 4] (e* [1 2] [2 2])))
     (is (= [[[2 4]]] (e* [[[1 2]]] [[[2 2]]])))))

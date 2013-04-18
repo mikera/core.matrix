@@ -29,9 +29,9 @@
     (new-matrix-nd [m dims] 
       (mp/new-matrix-nd [] dims))
     (construct-matrix [m data]
-      (if (mp/is-scalar? m)
-        (ScalarWrapper. m)
-        (ScalarWrapper. (mp/get-0d m))))
+      (if (mp/is-scalar? data)
+        (ScalarWrapper. data)
+        (ScalarWrapper. (mp/get-0d data))))
     (supports-dimensionality? [m dims] 
       (== dims 0))
     
@@ -342,7 +342,8 @@
                 (cond 
                   (== mdc 1) nil
                   (== mdc tdc) (dotimes [i mdc] (aset arr i i))
-                  :else (error "Can't broadcast dimension of size " mdc "to target size " tdc))))
+                  :else (error "Can't broadcast shape " (seq mshape) 
+                               " to target shape " (seq tshape)))))
             arr)))
       (long-array mdims))))
 

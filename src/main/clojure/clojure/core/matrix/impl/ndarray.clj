@@ -8,6 +8,8 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
+(declare ndarray) 
+
 ;; Lightweight support for n-dimensional arrays of arbitrary objects conforming to clojure.core.matrix API 
 ;; 1D / 2D arrays of java.lang.Number can be safely used as vectors and matrices respectively
 
@@ -46,11 +48,7 @@
             size (calc-total-size shape)]
         (NDArray. (object-array size) shape)))
     (construct-matrix [m data] 
-      (let [^longs shape (long-array (mp/get-shape data))
-            size (calc-total-size shape)
-            result (NDArray. (object-array size) shape)]
-        (mp/assign! result data)
-        result))
+      (ndarray data))
     (supports-dimensionality? [m dims] 
       true)
   
@@ -133,6 +131,15 @@
         asize (areduce shape i result 1 (* result (aget shape i)))]
     (NDArray. (object-array asize)
               shape)))
+
+(defn ndarray 
+  "Constructs an NDArray with the given data"
+  ([data]
+    (let [^longs shape (long-array (mp/get-shape data))
+          size (calc-total-size shape)
+          result (NDArray. (object-array size) shape)]
+      (mp/assign! result data)
+      result))) 
 
 ;; =====================================
 ;; Register implementation

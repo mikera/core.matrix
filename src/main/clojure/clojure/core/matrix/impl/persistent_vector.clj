@@ -43,12 +43,19 @@
       (apply mapv f m1 m2 more)
       (apply mapv (partial mapmatrix f) m1 m2 more))))
 
+(defn is-nested-persistent-vectors? [x]
+  (cond 
+    (number? x) true
+    (mp/is-scalar? x) true
+    (not (instance? clojure.lang.IPersistentVector x)) false
+    :else (every? is-nested-persistent-vectors? x)))
+
 (defn persistent-vector-coerce [x]
   "Coerces to nested persistent vectors"
   (let [dims (mp/dimensionality x)] 
     (cond
-	    (mp/is-scalar? x) x
-	    (== dims 0) (mp/get-0d x)
+	    (is-nested-persistent-vectors? x) x ;; already done!
+	    (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; arrays with zero dimensionality
       (> dims 0) (mp/convert-to-nested-vectors x) 
 	    (clojure.core/vector? x) (mapv mp/convert-to-nested-vectors x) 
 	    (instance? java.util.List x) (coerce-nested x)
@@ -183,6 +190,16 @@
     (normalise [a]
       (mp/scale a (/ 1.0 (Math/sqrt (mp/length-squared a))))))
 
+(extend-protocol mp/PMutableMatrixConstruction
+  clojure.lang.IPersistentVector 
+    (mutable-matrix [m]
+      (cond
+        (and (== 1 (mp/dimensionality m)) (every? #(or (instance? Double %) 
+                                                       ;; (and (number? %) (== % (double %)))
+                                                       ) m))
+          (double-array m) 
+        :else (mapv mp/mutable-matrix m)))) 
+
 (extend-protocol mp/PVectorDistance
   clojure.lang.IPersistentVector
     (distance [a b] (mp/length (mapv - b a))))
@@ -200,26 +217,26 @@
 (extend-protocol mp/PMatrixMultiply
   clojure.lang.IPersistentVector
     (element-multiply [m a]
-      (mp/element-map m * a))
+      (if (number? a) 
+        (mp/scale m a)
+        (mp/element-map m * a)))
     (matrix-multiply [m a]
       (let [mdims (long (mp/dimensionality m))
             adims (long (mp/dimensionality a))]
         (cond
+          (== adims 0) (mp/scale m a)
           (and (== mdims 1) (== adims 2))
             (vec (for [i (range (mp/dimension-count a 1))]
 	                 (let [r (mp/get-column a i)]
 	                   (mp/vector-dot m r))))
           (and (== mdims 2) (== adims 1))
-            (vec (for [i (range (mp/dimension-count m 0))]
-	                 (let [r (m i)]
-	                   (mp/vector-dot r a))))
+            (mapv #(mp/vector-dot % a) m)
           (and (== mdims 2) (== adims 2))
-            (vec (for [i (range (mp/dimension-count m 0))]
-                   (let [r (m i)]
+            (mapv (fn [r]
                      (vec (for [j (range (mp/dimension-count a 1))]
-                            (mp/vector-dot r (mp/get-column a j)))))))
-        :default
-          (mm/mul m a)))))
+                            (mp/vector-dot r (mp/get-column a j))))) m)
+          :else
+            (mm/mul m a)))))
 
 (extend-protocol mp/PVectorTransform
   clojure.lang.PersistentVector
@@ -231,11 +248,9 @@
 (extend-protocol mp/PMatrixScaling
   clojure.lang.IPersistentVector
     (scale [m a]
-      (let [a (double a)]
-        (mapmatrix #(* % a) m)))
+      (mapmatrix #(* % a) m))
     (pre-scale [m a]
-      (let [a (double a)]
-        (mapmatrix (partial * a) m))))
+      (mapmatrix (partial * a) m)))
 
 ;; helper functin to build generic maths operations
 (defn build-maths-function
@@ -250,8 +265,13 @@
      clojure.lang.IPersistentVector
        ~@(map build-maths-function mops/maths-ops)
        ~@(map (fn [[name func]]
-                `(~(symbol (str name "!")) [~'m]
-                   (error "Persistent vector matrices are not mutable!"))) mops/maths-ops)))
+                (let [name (str name "!")
+                      mname (symbol name)
+                      mpmname (symbol "clojure.core.matrix.protocols" name)]
+                  `(~mname [m#]
+                     (doseq [s# (mp/get-major-slice-seq m#)]
+                       (~mpmname s#))))) 
+              mops/maths-ops)))
 
 (extend-protocol mp/PDimensionInfo
   clojure.lang.IPersistentVector
@@ -290,13 +310,16 @@
         (apply mapmatrix f m a more)))
     (element-map!
       ([m f]
-        (if (vector-1d? m)
-          (error "Persistent vector matrices are not mutable!")
-          (doseq [s m] (mp/element-map! s f))))
+        (doseq [s m] (mp/element-map! s f))
+        m)
       ([m f a]
-        (error "Persistent vector matrices are not mutable!"))
+        (dotimes [i (count m)]
+          (mp/element-map! (m i) f (mp/get-major-slice a i)))
+        m)
       ([m f a more]
-        (error "Persistent vector matrices are not mutable!")))
+        (dotimes [i (count m)]
+          (apply mp/element-map! (m i) f (mp/get-major-slice a i) (map #(mp/get-major-slice % i) more)))
+        m))
     (element-reduce
       ([m f]
         (reduce f (mp/element-seq m)))

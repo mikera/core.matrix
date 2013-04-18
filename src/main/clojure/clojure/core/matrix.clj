@@ -112,11 +112,17 @@
     (mp/construct-matrix (imp/get-canonical-object implementation) (map vector data))))
 
 (defn identity-matrix
-  "Constructs a 2D identity matrix with the given number or rows"
+  "Constructs a 2D identity matrix with the given number of rows"
   ([dims]
     (mp/identity-matrix (current-implementation-object) dims))
   ([implementation dims]
     (mp/identity-matrix (imp/get-canonical-object implementation) dims)))
+
+(defn mutable-matrix
+  "Constructs a mutable copy of the given matrix."
+  ([data]
+    (or (mp/mutable-matrix data) 
+        (clojure.core.matrix.impl.ndarray/ndarray data)))) 
 
 (defn diagonal-matrix
   "Constructs a 2D diagonal matrix with the given values on the main diagonal.
@@ -234,14 +240,12 @@
     (mp/element-type m))) 
 
 (defn dimensionality
-;; TODO: alternative names to consider: order, tensor-rank?
-;; mathematically just 'rank' would be the appropriate term?
   "Returns the dimensionality (number of array dimensions) of a matrix / array"
   ([m]
     (mp/dimensionality m)))
 
 (defn row-count
-  "Returns the number of rows in a matrix (must be 1D or more)"
+  "Returns the number of rows in a matrix or vector (must be 1D or more)"
   ([m]
     (mp/dimension-count m 0)))
 
@@ -251,7 +255,8 @@
     (mp/dimension-count m 1)))
 
 (defn dimension-count
-  "Returns the size of the specified dimension in a matrix."
+  "Returns the size of the specified dimension in a matrix. Will throw an error if the matrix
+   does not have the specified dimension."
   ([m dim]
     (mp/dimension-count m dim)))
 
@@ -289,31 +294,11 @@
   ([m]
     (and (satisfies? mp/PIndexedSetting m) (mp/is-mutable? m))))
 
-
-(defn- broadcast-shape*
-  ([a b]
-    (cond 
-      (nil? a) (or b '())
-      (nil? b) a
-      (== 1 (first a)) (broadcast-shape* (first b) (next a) (next b))
-      (== 1 (first b)) (broadcast-shape* (first a) (next a) (next b))
-      (== (first a) (first b)) (broadcast-shape* (first a) (next a) (next b))
-      :else nil))
-  ([prefix a b]
-    (if (or a b)
-      (let [r (broadcast-shape* a b)]
-        (if r (cons prefix r) nil))
-      (cons prefix nil))))
-
-(defn broadcast-shape 
-  "Returns the smallest compatible shape that shapes a and b can both broadcast to.
-   Returns nil if this is not possible (i.e. the shapes are incompatible). 
-   Returns an empty list if both shape sequences are empty (i.e. represent scalars)" 
-  ([a b]
-    (let [a (seq (reverse a))
-          b (seq (reverse b))
-          r (broadcast-shape* a b)]
-      (if r (reverse r) nil)))) 
+(defn conforming?
+  "Returns true if two matrices have a conforming shape. Two matrices are conforming if there
+   exists a common shape that both can broadcast to." 
+  ([a] true)
+  ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b)))))) 
 
 ;; =======================================
 ;; Conversions
@@ -323,7 +308,7 @@
     If want-copy is true, will guarantee a new double array (defensive copy).
     If want-copy is false, will return the internal array used by m, or nil if not supported
     by the implementation.
-    If want copy is not sepcified, will return either a copy or the internal array"
+    If want-copy is not sepcified, will return either a copy or the internal array"
    ([m]
      (mp/to-double-array m))
    ([m want-copy?]
@@ -349,9 +334,7 @@
 (defn mset
   "Sets a scalar value in a matrix at a specified position, returning a new matrix and leaving the
    original unchanged."
-  ([m v]
-    ;; we can return the scalar directly?
-    v)
+  ([m v] v)
   ([m x v]
     (mp/set-1d m x v))
   ([m x y v]
@@ -378,13 +361,13 @@
 
 (defn get-row
   "Gets a row of a matrix as a vector.
-   May return a mutable view if supported by the implementation."
+   Will return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
 (defn get-column
   "Gets a column of a matrix as a vector.
-   May return a mutable view if supported by the implementation."
+   Will return a mutable view if supported by the implementation."
   ([m y]
     (mp/get-column m y)))
 
@@ -428,7 +411,7 @@
     (mp/get-slice m dimension index)))
 
 (defn slices
-  "Gets a lazy sequence of slices of a matrix. If dimension is supplied, slices along a given dimension,
+  "Gets a sequence of slices of a matrix. If dimension is supplied, slices along a given dimension,
    otherwise slices along the first dimension."
   ([m]
     (mp/get-major-slice-seq m))
@@ -462,17 +445,23 @@
 ;; structural change operations
 
 (defn broadcast 
-  "Broadcasts a matrix to a specified shape"
+  "Broadcasts a matrix to a specified shape. Returns a new matrix with the shape specified.
+   The broadcasted matrix may be a view over the original matrix: attempting to modify the 
+   broadcasted matrix therefore has undefined results.
+   Will throw an excption if broadcast to the target shape is not possible."
   ([m shape]
-    (mp/broadcast m shape)))
+    (or (mp/broadcast m shape) 
+        (error "Broadcast to target shape: " (seq shape) " not possble."))))
 
 (defn transpose
-  "Transposes a 2D matrix"
+  "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped. 
+   More generally, the dimension indices are reversed for any shape of array. Note that 1D vectors
+   and scalars will be returned unchanged."
   ([m]
     (mp/transpose m)))
 
 (defn transpose!
-  "Transposes a square 2D matrix in-place"
+  "Transposes a square 2D matrix in-place. Will throw an exception if not possible."
   ([m]
     ;; TODO: implement with a proper protocol
     (assign! m (transpose m))))
@@ -498,18 +487,22 @@
 ;; matrix maths / operations
 
 (defn mul
-  "Performs matrix multiplication with matrices, vectors or scalars"
+  "Performs standard matrix multiplication with matrices, vectors or scalars.
+
+   Uses the inner product."
+  ([] 1.0)
   ([a] a)
   ([a b]
     (cond
-      (scalar? b) (if (scalar? a) (* a b) (mp/scale a b))
-      (scalar? a) (mp/pre-scale b a)
-      :else (mp/matrix-multiply a b)))
+      (number? b) (if (number? a) (* a b) (mp/scale a b))
+      (number? a) (mp/pre-scale b a)
+      :else (or (mp/matrix-multiply a b) (mp/inner-product a b))))
   ([a b & more]
     (reduce mul (mul a b) more)))
 
 (defn emul
-  "Performs element-wise matrix multiplication. Matrices must be same size."
+  "Performs element-wise matrix multiplication. Matrices should be the same size."
+  ([] 1.0)
   ([a] a)
   ([a b]
     (mp/element-multiply a b))
@@ -517,12 +510,19 @@
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
 (defn e*
-  "Matrix element-wise multiply operator"
+  "Matrix element-wise multiply operator. Equivalent to emul."
+  ([] 1.0)
   ([a] a)
   ([a b]
-    (emul a b))
+    (mp/element-multiply a b))
   ([a b & more]
     (reduce e* (e* a b) more)))
+
+(defn div
+  "Element-wise matrix division."
+  ([a] (mp/element-divide a))
+  ([a b] (mp/element-divide a b))
+  ([a b & more] (reduce mp/element-divide (mp/element-divide a b) more))) 
 
 (defn emul!
   "Performs in-place element-wise matrix multiplication."
@@ -581,7 +581,6 @@
     (mp/matrix-sub! a b)
     a)
   ([a b & more]
-    (mp/matrix-sub! a b) 
     (reduce (fn [acc m] (sub! acc m)) (sub! a b) more)))
 
 (defn scale
@@ -600,23 +599,59 @@
     (mp/scale! m (* factor (reduce * more-factors)))
     m))
 
+(defn square
+  "Squares every element of a matrix."
+  ([m]
+    (e* m m))) ;; TODO: make this a protocol function
+
 (defn normalise
   "Normalises a matrix (scales to unit length). 
    Returns a new normalised vector."
-  ([m]
-    (mp/normalise m)))
+  ([v]
+    (mp/normalise v)))
+
+(defn normalise-probabilities
+  "Normalises a probability vector, i.e. to a vector where all elements sum to 1"
+  ([v]
+    (let [v (mp/element-map v #(if (>= % 0.0) % 0.0))
+          len (double (mp/element-sum v))]
+      (cond 
+        (== len 1.0) v
+        (== len 0.0) (coerce v (let [n (mp/dimension-count v 0)] (repeat n (/ 1.0 n))))
+        :else (scale v (/ 1.0 len)))))) 
 
 (defn normalise!
-  "Normalises a matrix in-place (scales to unit length).
+  "Normalises a vector in-place (scales to unit length).
    Returns the modified vector."
-  ([m]
-    (mp/normalise! m)
-    m))
+  ([v]
+    (mp/normalise! v)
+    v))
 
 (defn dot
   "Computes the dot product (inner product) of two vectors"
   ([a b]
     (mp/vector-dot a b)))
+
+(defn inner-product 
+  "Computes the inner product of two arrays. 
+
+   The inner product of matrixes with indexed dimensions {.. i j} and {j k ...} has dimensions {.. i k ...}"
+  ([] 1.0)
+  ([a]
+    a)
+  ([a b]
+    (mp/inner-product a b))
+  ([a b & more]
+    (reduce inner-product (inner-product a b) more)))
+
+(defn outer-product 
+  "Computes the outer product of matrices."
+  ([] 1.0)
+  ([a] a)
+  ([a b]
+    (mp/outer-product a b))
+  ([a b & more]
+    (reduce outer-product (outer-product a b) more))) 
 
 (defn cross 
   "Computes the cross-product of two vectors"
@@ -670,6 +705,11 @@
   ([m]
      (mp/length-squared m)))
 
+(defn pow
+  "Raises every element of a numerical matrix by the given exponent."
+  ([m exponent]
+    (mp/element-pow m exponent))) 
+
 ;; create all unary maths operators
 (eval
   `(do ~@(map (fn [[name func]]
@@ -693,6 +733,44 @@
   "Computes the rank of a matrix, i.e. the number of linearly independent rows"
   ([m]
     (mp/PMatrixRank m))) 
+
+(defn lu-decomposition
+  "Computes the LU decompotion of a matrix. Returns a vector containing two matrices [L U]
+
+   Intended usage: (let [[L U] (lu-decomosition M)] ....) "
+  [m]
+    (TODO)) 
+
+(defn sv-decomposition
+  "Computes the Singular Value decomposition of a matrix. Returns a vector containing three matrices [U S V*]
+
+   Intended usage: (let [[U S V*] (sv-decomosition M)] ....)"
+  [m]
+    (TODO)) 
+
+(defn cholesky-decomposition
+  "Computes the Cholesky decomposition of a matrix. Returns a vector containing two matrices [L L*]
+
+   Intended usage: (let [[L L*] (cholesky-decomosition M)] ....)"
+  [m]
+    (TODO)) 
+
+(defn qr-decomposition
+  "Computes the QR decomposition of a matrix. Returns a vector containing two matrices [Q R]
+
+   Intended usage: (let [[Q R] (qr-decomosition M)] ....)"
+  [m]
+    (TODO)) 
+
+(defn eigen-decomposition
+  "Computes the Eigendecomposition of a diagonalisable matrix. 
+   Returns a vector containing three matrices [Q A Qinv]
+
+   A is a diagonal matrix whose diagonal elements are the eigenvalues.
+
+   Intended usage: (let [[Q A Qinv] (eigen-decomosition M)] ....)"
+  [m]
+    (TODO)) 
 
 ;; ====================================
 ;; Functional operations
@@ -747,7 +825,8 @@
     (reduce e= (e= m1 m2) more))) 
 
 (defn e==
-  "Returns true if all array elements are numerically equal (using ==)"
+  "Returns true if all array elements are numerically equal (using ==). Throws an error if any elements
+   of the arrays being compared are not numerical values."
   ([m1]
     true)
   ([m1 m2]
@@ -759,11 +838,11 @@
   "Element-wise map over all elements of one or more arrays.
    Performs in-place modification of the first array argument."
   ([f m]
-    (mp/element-map! m f))
+    (mp/element-map! m f) m)
   ([f m a]
-    (mp/element-map! m f a))
+    (mp/element-map! m f a) m)
   ([f m a & more]
-    (mp/element-map! m f a more)))
+    (mp/element-map! m f a more) m))
 
 (defn index-seq-for-shape [sh]
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"

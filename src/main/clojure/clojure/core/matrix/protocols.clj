@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.protocols
-  (:require [clojure.core.matrix.utils :refer [error]])
+  (:require [clojure.core.matrix.utils :refer [error same-shape? broadcast-shape]])
   (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
 (set! *warn-on-reflection* true)
@@ -110,7 +110,7 @@
 ;; retrofit old Java classes with new interface implementations :-(
 
 ;; ===================================================================================
-;; OPTTIONAL PROTOCOLS
+;; OPTIONAL PROTOCOLS
 ;;
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
@@ -120,6 +120,13 @@
    return java.lang.Object, and the matrix object must accept any type of value.
    If a matrix is primitive-backed, it should return the appropriate primitive type e.g. Double/TYPE."
   (element-type [m]))
+
+(defprotocol PMutableMatrixConstruction
+  "Protocol for creating a mutable copy of a matrix. If implemented, must return either a fully mutable
+   copy of the given matrix, or nil if not possible. 
+
+   The default implementation will attempt to choose a suitable mutable matrix implementation."
+  (mutable-matrix [m])) 
 
 (defprotocol PZeroDimensionAccess
   "Protocol for accessing the scalar value in zero-dimensional arrays. Zero dimensional arrays differ
@@ -227,12 +234,29 @@
   (matrix-equals [a b]
      "Return true if a equals b, i.e. if all elements are equal.
       Must use numerical value comparison on numbers (==) to account for matrices that may hold a mix of
-      numercial types (e.g. java.lang.Long and java.lang.Double)"))
+      numercial types (e.g. java.lang.Long and java.lang.Double). Implementations that only support doubles 
+      should use Number.doubleValue() to get a numeric value to compare."))
 
 (defprotocol PMatrixMultiply
-  "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar"
+  "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar. 
+
+   Implementation may return nil if the implementation does not support one of the parameters, in 
+   which case a more general inner-product operation will be attempted."
   (matrix-multiply [m a])
   (element-multiply [m a]))
+
+(defprotocol PMatrixProducts
+  "Protocol for general inner and outer products of matrices. 
+   Products should use + and * as normally defined for numerical types"
+  (inner-product [m a])
+  (outer-product [m a]))
+
+(defprotocol PMatrixDivide
+  "Protocol to support element-wise division operator. 
+   One-arg version returns the reciprocal of all elements."
+  (element-divide 
+    [m]
+    [m a])) 
 
 (defprotocol PMatrixMultiplyMutable
   "Protocol to support mutable matrix multiplication on an arbitrary matrix, vector or scalar"
@@ -242,12 +266,15 @@
 (defprotocol PVectorTransform
   "Protocol to support transformation of a vector to another vector.
    Is equivalent to matrix multiplication when 2D matrices are used as transformations.
-   But other transformations are possible, e.g. affine transformations."
-  (vector-transform [m v] "Transforms a vector")
-  (vector-transform! [m v] "Transforms a vector in place - mutates the vector argument"))
+   But other transformations are possible, e.g. affine transformations.
+
+   A transformation need not be a core.matrix matrix: other types are permissible"
+  (vector-transform [t v] "Transforms a vector")
+  (vector-transform! [t v] "Transforms a vector in place - mutates the vector argument"))
 
 (defprotocol PMatrixScaling
-  "Protocol to support matrix scaling by scalar values"
+  "Protocol to support matrix scaling by scalar values. Provided because matrix classes may have
+   efficient specialised scaling operaions."
   (scale [m a]
     "Multiplies a matrix by the scalar value a")
   (pre-scale [m a]
@@ -255,7 +282,7 @@
      where multiplication is commutative, but may be different for special kinds of scalars."))
 
 (defprotocol PMatrixMutableScaling
-  "Protocol to support matrix scaling by scalar values"
+  "Protocol to support mutable matrix scaling by scalar values."
   (scale! [m a])
   (pre-scale! [m a]))
 
@@ -273,6 +300,15 @@
   "Protocol to get a submatrix of another matrix. dim-ranges should be a sequence of [start len] 
    pairs, one for each dimension. If a pair is nil, it should be interpreted to take the whole dimension."
   (submatrix [d dim-ranges])) 
+
+(defprotocol PTranspose
+  "Protocol for matrix transpose operation"
+  (transpose [m]
+    "Returns the transpose of a matrix. Equivalent to reversing the \"shape\".
+     Note that:
+     - The transpose of a scalar is the same scalar
+     - The transpose of a 1D vector is the same 1D vector
+     - The transpose of a 2D matrix swaps rows and columns"))
 
 (defprotocol PVectorOps
   "Protocol to support common vector operations."
@@ -307,15 +343,11 @@
   (determinant [m]
     "Returns the determinant of a matrix.")
   (inverse [m]
-    "Returns the invese of a matrix. Should throw an exception if m is not invertible.")
+    "Returns the invese of a matrix. Should throw an exception if m is not invertible."))
+
+(defprotocol PNegation
   (negate [m]
-    "Returns a new matrix with all elements negated.")
-  (transpose [m]
-    "Returns the transpose of a matrix. Equivalent to reversing the \"shape\".
-     Note that:
-     - The transpose of a scalar is the same scalar
-     - The transpose of a 1D vector is the same 1D vector
-     - The transpose of a 2D matrix swaps rows and columns"))
+    "Returns a new matrix with all elements negated."))
 
 (defprotocol PMatrixRank
   "Protocol to support computing the rank (number of linearly independent rows) ina matrix"
@@ -327,6 +359,13 @@
    The array must hold numeric values only, or an exception will be thrown."
   (element-sum [m]))
 
+(defprotocol PExponent
+  "Protocol to support the 'pow' function. Should raise every element of a matrix to a
+   given exponent. Default implementation uses Java's Math/pow function which is appropriate for
+   double values: arrays supporting arbitrary precision numbers or complex types will need to
+   provide their own implementation."
+  (element-pow [m exponent])) 
+
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
 (eval
@@ -334,6 +373,10 @@
   "Protocol to support mathematic functions applied element-wise to a matrix"
   ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)
   ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
+
+(defprotocol PElementCount
+  "Protocol to return the total count of elements in matrix. Result may be any integer type."
+  (element-count [m]))
 
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."
@@ -374,3 +417,18 @@
 	    (sequential? x) (mapv convert-to-nested-vectors x)
 	    (.isArray (class x)) (vec (seq x)) 
 	    :default (error "Can't coerce to vector: " (class x)))))
+
+(defn broadcast-compatible 
+  "Broadcasts two matrices into indentical shapes. 
+   Returns a vector containing the two broadcasted matrices.
+   Throws an error if not possible."
+  ([a] [a])
+  ([a b]
+    (let [sa (get-shape a) sb (get-shape b)]
+      (if (clojure.core.matrix.utils/same-shape? sa sb)
+        [a b]  
+        (if-let [bs (broadcast-shape sa sb)]
+          (let [b (broadcast b bs)
+                a (broadcast a bs)]
+            [a b])
+          (error "Shapes are not compatible"))))))

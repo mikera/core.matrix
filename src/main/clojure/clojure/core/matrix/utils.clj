@@ -13,10 +13,34 @@
   ([& vals]
     `(throw (java.lang.RuntimeException. (str ~@vals)))))
 
+(defmacro error?
+  "Returns true if executing body throws an error, false otherwise."
+  ([& body]
+    `(try 
+       ~@body
+       false
+       (catch Throwable t# 
+         true)))) 
+
+(defmacro error
+  "Throws an error with the provided message(s)"
+  ([& vals]
+    `(throw (java.lang.RuntimeException. (str ~@vals)))))
+
 ;; useful TODO macro facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO 
   ([]
     `(error "TODO: not yet implemented"))) 
+
+(defn same-shape? [sa sb]
+  (cond 
+    (= sa sb) true
+    (not= (count sa) (count sb)) false
+    (let [sa (seq sa)
+          sb (seq sb)]
+      (every? true? (map == sa sb))) true
+    
+    :else false))
 
 (defn xor 
   "Returns the logical xor of a set of values, considered as booleans"
@@ -111,3 +135,33 @@
                   (mapcat #(gen (conj prefix %) nrem) (range (first rem))))
                 (list prefix)))]
     (gen [] (seq sh)))) 
+
+(defn- broadcast-shape*
+  "Returns the smallest shape that both shapes a and b can broadcast to, or nil if the the shapes 
+   are not compatible."
+  ([a b]
+    (cond 
+      (empty? a) (or b '())
+      (empty? b) a
+      (== 1 (first a)) (broadcast-shape* (first b) (next a) (next b))
+      (== 1 (first b)) (broadcast-shape* (first a) (next a) (next b))
+      (== (first a) (first b)) (broadcast-shape* (first a) (next a) (next b))
+      :else nil))
+  ([prefix a b]
+    (if (or a b)
+      (let [r (broadcast-shape* a b)]
+        (if r (cons prefix r) nil))
+      (cons prefix nil))))
+
+(defn broadcast-shape 
+  "Returns the smallest compatible shape that a set of shapes can all broadcast to.
+   Returns nil if this is not possible (i.e. the shapes are incompatible). 
+   Returns an empty list if both shape sequences are empty (i.e. represent scalars)" 
+  ([a] a)
+  ([a b]
+    (let [a (seq (reverse a))
+          b (seq (reverse b))
+          r (broadcast-shape* a b)]
+      (if r (reverse r) nil)))) 
+
+

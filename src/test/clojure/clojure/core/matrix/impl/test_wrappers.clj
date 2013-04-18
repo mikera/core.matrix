@@ -12,7 +12,21 @@
   (is (not (scalar? (wrap-nd 7))))
   (is (not (vec? (wrap-nd 7))))
   (is (vec? (wrap-nd [7])))
-  (is (equals 7 (wrap-nd 7))))
+  (is (equals 7 (wrap-nd 7)))
+  (is (nil? (seq (shape (wrap-nd 7)))))
+  (is (= [2] (eseq (wrap-scalar 2))))
+  (is (= [2] (eseq (emap inc (wrap-scalar 1))))))
+
+(deftest test-mutability
+  (let [s (wrap-scalar 7)]
+    (is (== 10 (mget (mset! s 10))))
+    (is (== 10 (mget s))))
+  (let [s (wrap-scalar 7)]
+    (is (== 8 (mget (emap! inc s))))
+    (is (== 8 (mget s))))
+  (let [s (wrap-scalar 7)]
+    (scale! s 2)
+    (is (== 14 (mget s)))))
 
 (deftest scalar-assumptions
   (is (== 0 (dimensionality (wrap-scalar 7))))

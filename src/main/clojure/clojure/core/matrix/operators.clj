@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.operators
-  (:refer-clojure :exclude [* - + / vector?])
+  (:refer-clojure :exclude [* - + / vector? ==])
   (:require [clojure.core.matrix :as m]))
 
 (set! *warn-on-reflection* true)
@@ -9,7 +9,7 @@
 ;; Mathematical operators defined for matrices and vectors as applicable
 
 (defn *
-  "Matrix multiply operator"
+  "Matrix multiply operator. Uses the inner product for multiplication."
   ([a] a)
   ([a b]
     (m/mul a b))
@@ -35,3 +35,16 @@
       (m/sub a b)))
   ([a b & more]
     (reduce - (- a b) more)))
+
+(defn /
+  "Element-wise matrix division."
+  ([a] a)
+  ([a b] (m/div a b))
+  ([a b & more] (reduce m/div (m/div a b) more)))
+
+(defn ==
+  "Matrix numerical comparison. Performs == on an element-wise basis"
+  ([] true)
+  ([a] true)
+  ([a b] (m/equals a b))
+  ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more))) 
