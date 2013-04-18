@@ -25,7 +25,7 @@
       (== 2 (mp/dimensionality m))
       (== (mp/dimension-count m 0) (mp/dimension-count m 1)))))
 
-(defn element-count
+(defn- calc-element-count
   "Returns the total count of elements in an array"
   ([m]
     (cond
@@ -211,7 +211,7 @@
 	          (dotimes [i length]
 	            (mp/set-1d! m i (nth arr (+ start i))))
 	          (let [ss (seq (mp/get-major-slice-seq m))
-	                skip (long (if ss (element-count (first (mp/get-major-slice-seq m))) 0))]
+	                skip (long (if ss (calc-element-count (first (mp/get-major-slice-seq m))) 0))]
 	            (doseq-indexed [s ss i]
 	              (mp/assign-array! s arr (+ start (* skip i)) skip))))))))
 
@@ -550,6 +550,11 @@
     (element-reduce
       ([m f] (f nil))
       ([m f init] (f init nil))))
+
+(extend-protocol mp/PElementCount
+  nil (element-count [m] 1)
+  Number (element-count [m] 1)
+  Object (element-count [m] (calc-element-count m))) 
 
 (extend-protocol mp/PMatrixSlices
   java.lang.Object

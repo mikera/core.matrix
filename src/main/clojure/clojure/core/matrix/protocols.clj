@@ -110,7 +110,7 @@
 ;; retrofit old Java classes with new interface implementations :-(
 
 ;; ===================================================================================
-;; OPTTIONAL PROTOCOLS
+;; OPTIONAL PROTOCOLS
 ;;
 ;; implementations don't need to provide these since fallback default implementations
 ;; are provided. However, they should consider doing so for performance reasons
@@ -368,6 +368,10 @@
   "Protocol to support mathematic functions applied element-wise to a matrix"
   ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)
   ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
+
+(defprotocol PElementCount
+  "Protocol to return the total count of elements in matrix. Result may be any integer type."
+  (element-count [m]))
 
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."
