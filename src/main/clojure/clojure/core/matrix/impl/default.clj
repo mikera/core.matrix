@@ -257,6 +257,9 @@
 
 ;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps
+  java.lang.Number
+    (trace [m] m)
+    (negate [m] (- m))
   java.lang.Object
     (trace [m]
       (when-not (== 2 (mp/dimensionality m)) (error "Trace requires a 2D matrix"))
@@ -270,10 +273,12 @@
             (recur (inc i) (+ res (double (mp/get-2d m i i))))))))
     (negate [m]
       (mp/scale m -1.0))
-    (length-squared [m]
-      (mp/element-reduce #(+ %1 (* %2 *2)) 0.0 m))
-    (length [m]
-      (Math/sqrt (mp/length-squared m)))
+    )
+
+(extend-protocol mp/PTranspose
+  java.lang.Number
+    (transpose [m] m)
+  java.lang.Object
     (transpose [m]
       (case (long (mp/dimensionality m))
         0 m

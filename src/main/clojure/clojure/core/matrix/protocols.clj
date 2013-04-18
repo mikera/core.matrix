@@ -296,6 +296,15 @@
    pairs, one for each dimension. If a pair is nil, it should be interpreted to take the whole dimension."
   (submatrix [d dim-ranges])) 
 
+(defprotocol PTranspose
+  "Protocol for matrix transpose operation"
+  (transpose [m]
+    "Returns the transpose of a matrix. Equivalent to reversing the \"shape\".
+     Note that:
+     - The transpose of a scalar is the same scalar
+     - The transpose of a 1D vector is the same 1D vector
+     - The transpose of a 2D matrix swaps rows and columns"))
+
 (defprotocol PVectorOps
   "Protocol to support common vector operations."
   (vector-dot [a b]
@@ -329,15 +338,11 @@
   (determinant [m]
     "Returns the determinant of a matrix.")
   (inverse [m]
-    "Returns the invese of a matrix. Should throw an exception if m is not invertible.")
+    "Returns the invese of a matrix. Should throw an exception if m is not invertible."))
+
+(defprotocol PNegation
   (negate [m]
-    "Returns a new matrix with all elements negated.")
-  (transpose [m]
-    "Returns the transpose of a matrix. Equivalent to reversing the \"shape\".
-     Note that:
-     - The transpose of a scalar is the same scalar
-     - The transpose of a 1D vector is the same 1D vector
-     - The transpose of a 2D matrix swaps rows and columns"))
+    "Returns a new matrix with all elements negated."))
 
 (defprotocol PMatrixRank
   "Protocol to support computing the rank (number of linearly independent rows) ina matrix"
