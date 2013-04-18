@@ -234,7 +234,8 @@
   (matrix-equals [a b]
      "Return true if a equals b, i.e. if all elements are equal.
       Must use numerical value comparison on numbers (==) to account for matrices that may hold a mix of
-      numercial types (e.g. java.lang.Long and java.lang.Double)"))
+      numercial types (e.g. java.lang.Long and java.lang.Double). Implementations that only support doubles 
+      should use Number.doubleValue() to get a numeric value to compare."))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar. 
@@ -245,7 +246,8 @@
   (element-multiply [m a]))
 
 (defprotocol PMatrixProducts
-  "Protocol for inner and outer products of matrices"
+  "Protocol for general inner and outer products of matrices. 
+   Products should use + and * as normally defined for numerical types"
   (inner-product [m a])
   (outer-product [m a]))
 
@@ -264,12 +266,15 @@
 (defprotocol PVectorTransform
   "Protocol to support transformation of a vector to another vector.
    Is equivalent to matrix multiplication when 2D matrices are used as transformations.
-   But other transformations are possible, e.g. affine transformations."
-  (vector-transform [m v] "Transforms a vector")
-  (vector-transform! [m v] "Transforms a vector in place - mutates the vector argument"))
+   But other transformations are possible, e.g. affine transformations.
+
+   A transformation need not be a core.matrix matrix: other types are permissible"
+  (vector-transform [t v] "Transforms a vector")
+  (vector-transform! [t v] "Transforms a vector in place - mutates the vector argument"))
 
 (defprotocol PMatrixScaling
-  "Protocol to support matrix scaling by scalar values"
+  "Protocol to support matrix scaling by scalar values. Provided because matrix classes may have
+   efficient specialised scaling operaions."
   (scale [m a]
     "Multiplies a matrix by the scalar value a")
   (pre-scale [m a]
@@ -277,7 +282,7 @@
      where multiplication is commutative, but may be different for special kinds of scalars."))
 
 (defprotocol PMatrixMutableScaling
-  "Protocol to support matrix scaling by scalar values"
+  "Protocol to support mutable matrix scaling by scalar values."
   (scale! [m a])
   (pre-scale! [m a]))
 
