@@ -34,7 +34,7 @@ Get the latest version from Clojars:
 
 For code examples see:
 
- - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/core/matrix/examples.clj
+ - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/clojure/core/matrix/examples.clj
  
  For documentation and further examples see the Wiki:
  
