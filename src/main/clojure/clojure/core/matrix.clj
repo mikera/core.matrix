@@ -170,6 +170,12 @@
     (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
       (mp/supports-dimensionality? m dimension-count))))
 
+(defn supports-shape?
+  "Returns true if the implementation supports creation of matrices with a specific shape."
+  [m shape]
+  (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
+    (mp/supports-dimensionality? m (count shape)))) 
+
 ;; ======================================
 ;; matrix assignment and copying
 
