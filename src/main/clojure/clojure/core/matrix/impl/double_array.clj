@@ -40,7 +40,7 @@
     (construct-matrix [m data]
       (construct-double-array data))
     (supports-dimensionality? [m dims]
-      (<= dims 1)))
+      (== dims 1)))
 
 ;; explicitly specify we use a primitive type
 (extend-protocol mp/PTypeInfo

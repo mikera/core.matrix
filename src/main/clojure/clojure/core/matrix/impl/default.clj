@@ -33,7 +33,7 @@
       :else (count m))))
 
 (defn construct-mutable-matrix 
-  "Constructs a mutable matrix with the guven data."
+  "Constructs a mutable matrix with the given data."
   ([m]
     (let [dims (mp/dimensionality m)
           type (mp/element-type m)]
