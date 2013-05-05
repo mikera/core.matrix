@@ -378,6 +378,23 @@
     (element-sum [a]
       (mp/element-reduce a +)))
 
+;; add-product operations
+(extend-protocol mp/PAddProduct
+  java.lang.Number
+    (add-product [m a b]
+      (+ m (* a b)))
+  java.lang.Object
+    (add-product [m a b]
+      (mp/matrix-add m (mp/element-multiply a b)))) 
+
+(extend-protocol mp/PAddProductMutable
+  java.lang.Number
+    (add-product! [m a b]
+      (error "Numbers are not mutable"))
+  java.lang.Object
+    (add-product! [m a b]
+      (mp/matrix-add! m (mp/element-multiply a b)))) 
+
 ;; type of matrix element
 ;; the default is to assume any type is possible
 (extend-protocol mp/PTypeInfo
