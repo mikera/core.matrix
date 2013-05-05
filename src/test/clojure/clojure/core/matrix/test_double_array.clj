@@ -79,6 +79,12 @@
     (is (equals [101 202] (add-scaled! da [1 2] 100)))
     (is (equals [101 202] da)))) 
 
+(deftest test-add-scaled-product
+  (let [da (double-array [1 2])] 
+    (is (equals [2 6] (add-scaled-product da [1 2] [1 2] 1)))
+    (is (equals [101 202] (add-scaled-product! da [1 2] [10 10] 10)))
+    (is (equals [101 202] da)))) 
+
 (deftest test-vector-scale
   (testing "scale!"
     (let [da (double-array [1.0 2.0])]
