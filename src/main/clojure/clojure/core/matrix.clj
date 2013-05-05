@@ -578,6 +578,17 @@
     (mp/add-scaled! m a factor)
     m)) 
 
+(defn add-scaled-product
+  "Adds the product of two matrices scaled by a given factor to the first matrix"
+  ([m a b factor]
+    (mp/add-scaled-product m a b factor))) 
+
+(defn add-scaled-product!
+  "Adds the product of two matrices scaled by a given factor to the first matrix. Returns the mutated matrix."
+  ([m a b factor]
+    (mp/add-scaled-product! m a b factor)
+    m)) 
+
 (defn sub
   "Performs element-wise matrix subtraction on one or more matrices."
   ([a] a)
