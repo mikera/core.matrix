@@ -98,9 +98,12 @@
     (mp/new-matrix (implementation-check implementation) rows columns)))
 
 (defn new-array
-  "Creates a new array with the given shape. "
+  "Creates a new array with the given shape. 
+   New matrix will contain default values as defined by the implementation (usually null or zero)"
   ([shape]
-    (mp/new-matrix-nd (implementation-check) shape)))
+    (mp/new-matrix-nd (implementation-check) shape))
+  ([implementation shape]
+    (mp/new-matrix-nd (implementation-check implementation) shape)))
 
 (defn row-matrix
   "Constucts a row matrix with the given values. The returned matrix is a 2D 1xN row matrix."
@@ -124,7 +127,9 @@
     (mp/identity-matrix (implementation-check implementation) dims)))
 
 (defn mutable-matrix
-  "Constructs a mutable copy of the given matrix."
+  "Constructs a mutable copy of the given matrix. 
+
+   If the implementation does not support mutable matrices, will return a mutable NDArray"
   ([data]
     (or (mp/mutable-matrix data) 
         (clojure.core.matrix.impl.ndarray/ndarray data)))) 
