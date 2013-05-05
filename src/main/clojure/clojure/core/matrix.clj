@@ -48,11 +48,9 @@
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
   ([data]
-    (if-let [m (current-implementation-object)]
-      (mp/construct-matrix m data)
-      (error "No clojure.core.matrix implementation available")))
+    (mp/construct-matrix (implementation-check) data))
   ([implementation data]
-    (mp/construct-matrix (imp/get-canonical-object implementation) data)))
+    (mp/construct-matrix (implementation-check implementation) data)))
 
 (defn array
   "Constructs a new n-dimensional array from the given data.
@@ -64,20 +62,17 @@
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
   ([data]
-    (if-let [m (current-implementation-object)]
-      (mp/construct-matrix m data)
-      (error "No clojure.core.matrix implementation available")))
+    (mp/construct-matrix (implementation-check) data))
   ([implementation data]
-    (mp/construct-matrix (imp/get-canonical-object implementation) data)))
+    (mp/construct-matrix (implementation-check implementation) data)))
 
 (defn new-vector
   "Constructs a new zero-filled vector with the given length.
    If the implementation supports mutable vectors, then the new vector should be fully mutable."
   ([length]
-    (mp/new-vector (current-implementation-object) length))
+    (mp/new-vector (implementation-check) length))
   ([implementation length]
-    (mp/new-vector (or (imp/get-canonical-object implementation) (error "No clojure.core.matrix implementation available")) 
-                   length)))
+    (mp/new-vector (implementation-check implementation) length)))
 
 (defn new-matrix
   "Constructs a new zero-filled matrix with the given dimensions. 
@@ -136,11 +131,11 @@
   "Creates a matrix with the specified shape, and each element specified by (f i j k...)
    Where i, j, k... are the index positions of each element in the matrix"
   ([shape f]
-    (compute-matrix (current-implementation-object) shape f))
+    (compute-matrix (implementation-check) shape f))
   ([implementation shape f]
     ;; TODO: switch to a protocol implementation
-    (let [m (imp/get-canonical-object implementation)]
-      (TODO)))) 
+    (let [m (implementation-check implementation)]
+      (mp/compute-matrix m shape f)))) 
 
 (defn sparse-matrix
   "Creates a sparse matrix with the given data. Sparse matrices are required to store

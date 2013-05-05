@@ -309,6 +309,11 @@
    pairs, one for each dimension. If a pair is nil, it should be interpreted to take the whole dimension."
   (submatrix [d dim-ranges])) 
 
+(defprotocol PComputeMatrix
+  "Protocol to compute a matrix by calling a function on each indexed location. The function f will be called
+   as (f x y z ...) for all index values."
+  (compute-matrix [m shape f])) 
+
 (defprotocol PTranspose
   "Protocol for matrix transpose operation"
   (transpose [m]
