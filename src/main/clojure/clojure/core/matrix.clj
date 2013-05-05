@@ -70,16 +70,6 @@
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) data)))
 
-(defn array-of-shape
-  "Creates a new array of the specified shape. Array will contain default values depending on the type of
-   array (usually zero or null)."
-  ([shape]
-    (array-of-shape (current-implementation-object) shape))
-  ([implementation shape]
-    (mp/new-matrix-nd 
-      (or (imp/get-canonical-object implementation) (error "No clojure.core.matrix implementation available"))
-      shape)))
-
 (defn new-vector
   "Constructs a new zero-filled vector with the given length.
    If the implementation supports mutable vectors, then the new vector should be fully mutable."
