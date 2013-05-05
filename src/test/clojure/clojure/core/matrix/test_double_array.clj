@@ -75,7 +75,9 @@
 
 (deftest test-add-scaled
   (let [da (double-array [1 2])] 
-    (is (equals [11 22] (add-scaled da [1 2] 10))))) 
+    (is (equals [11 22] (add-scaled da [1 2] 10)))
+    (is (equals [101 202] (add-scaled! da [1 2] 100)))
+    (is (equals [101 202] da)))) 
 
 (deftest test-vector-scale
   (testing "scale!"

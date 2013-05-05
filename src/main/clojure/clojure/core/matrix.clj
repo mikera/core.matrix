@@ -562,9 +562,10 @@
     (mp/add-product m a b))) 
 
 (defn add-product!
-  "Adds the product of two matrices to the first matrix"
+  "Adds the product of two matrices to the first matrix. Returns the mutated matrix."
   ([m a b]
-    (mp/add-product! m a b))) 
+    (mp/add-product! m a b)
+    m)) 
 
 (defn add-scaled
   "Adds a matrix scaled by a given factor to the first matrix"
@@ -572,9 +573,10 @@
     (mp/add-scaled m a factor))) 
 
 (defn add-scaled!
-  "Adds a matrix scaled by a given factor to the first matrix"
+  "Adds a matrix scaled by a given factor to the first matrix. Returns the mutated matrix."
   ([m a factor]
-    (mp/add-scaled! m a factor))) 
+    (mp/add-scaled! m a factor)
+    m)) 
 
 (defn sub
   "Performs element-wise matrix subtraction on one or more matrices."
