@@ -259,6 +259,22 @@
   "Protocol for mutable add-product! operation."
   (add-product! [m a b])) 
 
+(defprotocol PAddScaledProduct
+  "Protocol for add-product operation."
+  (add-scaled-product [m a b factor])) 
+
+(defprotocol PAddScaledProductMutable
+  "Protocol for mutable add-product! operation."
+  (add-scaled-product! [m a b factor])) 
+
+(defprotocol PAddScaled
+  "Protocol for add-product operation."
+  (add-scaled [m a factor])) 
+
+(defprotocol PAddScaledMutable
+  "Protocol for mutable add-product! operation."
+  (add-scaled! [m a factor])) 
+
 (defprotocol PMatrixDivide
   "Protocol to support element-wise division operator. 
    One-arg version returns the reciprocal of all elements."
