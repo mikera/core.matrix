@@ -154,7 +154,9 @@
 
 (defn sparse-matrix
   "Creates a sparse matrix with the given data. Sparse matrices are required to store
-  a M*N matrix with E non-zero elements in at most O(M+N+E) space."
+  a M*N matrix with E non-zero elements in at most O(M+N+E) space.
+
+  Throws an exception if creation of a sparse matrix is not possible"
   ([data]
     (compute-matrix (current-implementation-object) data))
   ([implementation data]
