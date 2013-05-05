@@ -49,6 +49,11 @@
   (is (== 35 (calc-index [1 5] (long-array [100 30]))))
   (is (== 10101 (calc-index [1 1 1] (long-array [200 100 100]))))) 
 
+(deftest test-transpose
+  (let [m (new-array :ndarray [5 6 7])]
+    (is (= [5 6 7] (seq (shape m))))
+    (is (= [7 6 5] (seq (shape (transpose m))))))) 
+
 (deftest ndarray-test
    (clojure.core.matrix.compliance-tester/test-ndarray-implementation (make-ndarray [3 3])))
 
