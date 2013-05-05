@@ -11,7 +11,6 @@
 (declare ndarray) 
 
 ;; Lightweight support for n-dimensional arrays of arbitrary objects conforming to clojure.core.matrix API 
-;; 1D / 2D arrays of java.lang.Number can be safely used as vectors and matrices respectively
 
 ;; utility functions
 
