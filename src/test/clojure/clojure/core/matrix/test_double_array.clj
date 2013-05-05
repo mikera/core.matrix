@@ -73,6 +73,10 @@
       (is (equals [1 2] da))
       (is (equals da [1.0 2.0])))))
 
+(deftest test-add-scaled
+  (let [da (double-array [1 2])] 
+    (is (equals [11 22] (add-scaled da [1 2] 10))))) 
+
 (deftest test-vector-scale
   (testing "scale!"
     (let [da (double-array [1.0 2.0])]
