@@ -33,7 +33,7 @@
       :else (count m))))
 
 (defn construct-mutable-matrix 
-  "Constructs a mutable matrix with the guven data."
+  "Constructs a mutable matrix with the given data."
   ([m]
     (let [dims (mp/dimensionality m)
           type (mp/element-type m)]
@@ -234,6 +234,12 @@
     (mutable-matrix [m]
       (construct-mutable-matrix m))) 
 
+(extend-protocol mp/PComputeMatrix
+  java.lang.Object
+    (compute-matrix [m shape f]
+      (let [m (mp/new-matrix-nd m shape)]
+        (reduce (fn [m ix] (mp/set-nd m ix (apply f ix))) m (base-index-seq-for-shape shape))))) 
+
 (extend-protocol mp/PDimensionInfo
   nil
     (dimensionality [m] 0)
@@ -288,8 +294,11 @@
                                                   (mp/get-major-slice-seq m))))
         (mp/coerce-param m 
           (let [ss (map mp/transpose (mp/get-major-slice-seq m))] 
-            ;; note than function must come second for mp/element-map   
-            (apply mp/element-map (first ss) vector (next ss)))))))
+            ;; note that function must come second for mp/element-map   
+            (case (count ss)
+              1 (mp/element-map (first ss) vector)
+              2 (mp/element-map (first ss) vector (second ss))
+              (mp/element-map (first ss) vector (second ss) (nnext ss))))))))
 
 (extend-protocol mp/PMatrixProducts
   java.lang.Number
@@ -377,6 +386,55 @@
   java.lang.Object
     (element-sum [a]
       (mp/element-reduce a +)))
+
+;; add-product operations
+(extend-protocol mp/PAddProduct
+  java.lang.Number
+    (add-product [m a b]
+      (+ m (* a b)))
+  java.lang.Object
+    (add-product [m a b]
+      (mp/matrix-add m (mp/element-multiply a b)))) 
+
+(extend-protocol mp/PAddProductMutable
+  java.lang.Number
+    (add-product! [m a b]
+      (error "Numbers are not mutable"))
+  java.lang.Object
+    (add-product! [m a b]
+      (mp/matrix-add! m (mp/element-multiply a b)))) 
+
+(extend-protocol mp/PAddScaled
+  java.lang.Number
+    (add-scaled [m a factor]
+      (+ m (* a factor)))
+  java.lang.Object
+    (add-scaled [m a factor]
+      (mp/matrix-add m (mp/scale a factor)))) 
+
+(extend-protocol mp/PAddScaledMutable
+  java.lang.Number
+    (add-scaled! [m a factor]
+      (error "Numbers are not mutable"))
+  java.lang.Object
+    (add-scaled! [m a factor]
+      (mp/matrix-add! m (mp/scale a factor)))) 
+
+(extend-protocol mp/PAddScaledProduct
+  java.lang.Number
+    (add-scaled-product [m a b factor]
+      (+ m (* a b factor)))
+  java.lang.Object
+    (add-scaled-product [m a b factor]
+      (mp/matrix-add m (mp/scale (mp/element-multiply a b) factor)))) 
+
+(extend-protocol mp/PAddScaledProductMutable
+  java.lang.Number
+    (add-scaled-product! [m a b factor]
+      (error "Numbers are not mutable"))
+  java.lang.Object
+    (add-scaled-product! [m a b factor]
+      (mp/matrix-add! m (mp/scale (mp/element-multiply a b) factor)))) 
 
 ;; type of matrix element
 ;; the default is to assume any type is possible

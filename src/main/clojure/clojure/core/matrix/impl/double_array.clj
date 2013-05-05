@@ -10,10 +10,9 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
-
 ;; clojure.core.matrix implementation for Java double arrays
 ;;
-;; Useful as a fast, mutable 1D vector implementation. Not good for much else.
+;; Useful as a fast, mutable 1D vector implementation. 
 
 (def DOUBLE-ARRAY-CLASS (Class/forName "[D"))
 
@@ -41,7 +40,7 @@
     (construct-matrix [m data]
       (construct-double-array data))
     (supports-dimensionality? [m dims]
-      (<= dims 1)))
+      (== dims 1)))
 
 ;; explicitly specify we use a primitive type
 (extend-protocol mp/PTypeInfo

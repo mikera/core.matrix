@@ -251,6 +251,30 @@
   (inner-product [m a])
   (outer-product [m a]))
 
+(defprotocol PAddProduct
+  "Protocol for add-product operation."
+  (add-product [m a b])) 
+
+(defprotocol PAddProductMutable
+  "Protocol for mutable add-product! operation."
+  (add-product! [m a b])) 
+
+(defprotocol PAddScaledProduct
+  "Protocol for add-product operation."
+  (add-scaled-product [m a b factor])) 
+
+(defprotocol PAddScaledProductMutable
+  "Protocol for mutable add-product! operation."
+  (add-scaled-product! [m a b factor])) 
+
+(defprotocol PAddScaled
+  "Protocol for add-product operation."
+  (add-scaled [m a factor])) 
+
+(defprotocol PAddScaledMutable
+  "Protocol for mutable add-product! operation."
+  (add-scaled! [m a factor])) 
+
 (defprotocol PMatrixDivide
   "Protocol to support element-wise division operator. 
    One-arg version returns the reciprocal of all elements."
@@ -300,6 +324,11 @@
   "Protocol to get a submatrix of another matrix. dim-ranges should be a sequence of [start len] 
    pairs, one for each dimension. If a pair is nil, it should be interpreted to take the whole dimension."
   (submatrix [d dim-ranges])) 
+
+(defprotocol PComputeMatrix
+  "Protocol to compute a matrix by calling a function on each indexed location. The function f will be called
+   as (f x y z ...) for all index values."
+  (compute-matrix [m shape f])) 
 
 (defprotocol PTranspose
   "Protocol for matrix transpose operation"

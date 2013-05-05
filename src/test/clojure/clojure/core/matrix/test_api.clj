@@ -37,10 +37,19 @@
   (is (equals [3 6] (outer-product [1 2] 3)))
   (is (equals [[1 2] [3 6]] (outer-product [1 3] [1 2]))))
 
+(deftest test-add-products
+  (is (equals 7 (add-product 1 2 3)))
+  (is (equals [7] (add-product [1] 2 3)))
+  (is (equals [3 8] (add-product [0 0] [1 2] [3 4])))) 
+
 (deftest test-new
   (is (equals [0 0 0] (new-vector 3)))
   (is (= [0.0 0.0 0.0] (seq (new-vector :double-array 3))))
   (is (e= [0.0 0.0 0.0] (new-vector :double-array 3)))) 
+
+(deftest test-compute-matrix
+  (is (= [["00" "01"] ["10" "11"]]
+         (compute-matrix :persistent-vector [2 2] str))))
 
 (deftest test-coerce
   (testing "clojure vector coercion"
