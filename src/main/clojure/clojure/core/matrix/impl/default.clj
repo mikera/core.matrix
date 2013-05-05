@@ -420,6 +420,22 @@
     (add-scaled! [m a factor]
       (mp/matrix-add! m (mp/scale a factor)))) 
 
+(extend-protocol mp/PAddScaledProduct
+  java.lang.Number
+    (add-scaled-product [m a b factor]
+      (+ m (* a b factor)))
+  java.lang.Object
+    (add-scaled-product [m a b factor]
+      (mp/matrix-add m (mp/scale (mp/element-multiply a b) factor)))) 
+
+(extend-protocol mp/PAddScaledProductMutable
+  java.lang.Number
+    (add-scaled-product! [m a b factor]
+      (error "Numbers are not mutable"))
+  java.lang.Object
+    (add-scaled-product! [m a b factor]
+      (mp/matrix-add! m (mp/scale (mp/element-multiply a b) factor)))) 
+
 ;; type of matrix element
 ;; the default is to assume any type is possible
 (extend-protocol mp/PTypeInfo
