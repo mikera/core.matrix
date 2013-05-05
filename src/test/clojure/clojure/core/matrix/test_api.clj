@@ -42,6 +42,10 @@
   (is (= [0.0 0.0 0.0] (seq (new-vector :double-array 3))))
   (is (e= [0.0 0.0 0.0] (new-vector :double-array 3)))) 
 
+(deftest test-compute-matrix
+  (is (= [["00" "01"] ["10" "11"]]
+         (compute-matrix :persistent-vector [2 2] str))))
+
 (deftest test-coerce
   (testing "clojure vector coercion"
     (is (== 1.0 (coerce [] 1)))

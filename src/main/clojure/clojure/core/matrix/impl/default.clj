@@ -234,6 +234,12 @@
     (mutable-matrix [m]
       (construct-mutable-matrix m))) 
 
+(extend-protocol mp/PComputeMatrix
+  java.lang.Object
+    (compute-matrix [m shape f]
+      (let [m (mp/new-matrix-nd m shape)]
+        (reduce (fn [m ix] (mp/set-nd m ix (apply f ix))) m (base-index-seq-for-shape shape))))) 
+
 (extend-protocol mp/PDimensionInfo
   nil
     (dimensionality [m] 0)

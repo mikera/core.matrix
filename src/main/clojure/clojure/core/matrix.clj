@@ -133,7 +133,6 @@
   ([shape f]
     (compute-matrix (implementation-check) shape f))
   ([implementation shape f]
-    ;; TODO: switch to a protocol implementation
     (let [m (implementation-check implementation)]
       (mp/compute-matrix m shape f)))) 
 
