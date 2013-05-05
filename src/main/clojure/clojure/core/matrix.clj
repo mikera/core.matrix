@@ -373,7 +373,7 @@
     (mp/get-column m y)))
 
 (defn coerce
-  "Coerces param to a format usable by a specific matrix implementation.
+  "Coerces param into a format preferred by a specific matrix implementation.
    If param is already in a format deemed usable by the implementation, returns it unchanged."
   ([m param]
     (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
