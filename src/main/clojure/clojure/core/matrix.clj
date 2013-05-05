@@ -34,7 +34,7 @@
 ;; matrix construction functions
 
 (declare current-implementation)
-(declare current-implementation-check)
+(declare implementation-check)
 (declare current-implementation-object)
 (def ^:dynamic *matrix-implementation* :persistent-vector)
 
@@ -70,6 +70,16 @@
   ([implementation data]
     (mp/construct-matrix (imp/get-canonical-object implementation) data)))
 
+(defn array-of-shape
+  "Creates a new array of the specified shape. Array will contain default values depending on the type of
+   array (usually zero or null)."
+  ([shape]
+    (array-of-shape (current-implementation-object) shape))
+  ([implementation shape]
+    (mp/new-matrix-nd 
+      (or (imp/get-canonical-object implementation) (error "No clojure.core.matrix implementation available"))
+      shape)))
+
 (defn new-vector
   "Constructs a new zero-filled vector with the given length.
    If the implementation supports mutable vectors, then the new vector should be fully mutable."
@@ -83,40 +93,35 @@
   "Constructs a new zero-filled matrix with the given dimensions. 
    If the implementation supports mutable matrices, then the new matrix should be fully mutable."
   ([rows columns]
-    (if-let [ik (current-implementation)]
-      (mp/new-matrix (imp/get-canonical-object ik) rows columns)
-      (error "No clojure.core.matrix implementation available"))))
+    (mp/new-matrix (implementation-check) rows columns))
+  ([implementation rows columns]
+    (mp/new-matrix (implementation-check implementation) rows columns)))
 
 (defn new-array
-  "Creates a new array with the given dimensions. "
-  ([length] (new-vector length))
-  ([rows columns] (new-matrix rows columns))
-  ([dim-1 dim-2 & more-dim]
-    (let [ik (current-implementation-check)]
-      (mp/new-matrix-nd (imp/get-canonical-object ik) (cons dim-1 (cons dim-2 more-dim))))))
+  "Creates a new array with the given shape. "
+  ([shape]
+    (mp/new-matrix-nd (implementation-check) shape)))
 
 (defn row-matrix
   "Constucts a row matrix with the given values. The returned matrix is a 2D 1xN row matrix."
   ([data]
-   (let [ik (current-implementation-check)]
-      (mp/construct-matrix (imp/get-canonical-object ik) (vector data))))
+    (mp/construct-matrix (implementation-check) (vector data)))
   ([implementation data]
-    (mp/construct-matrix (imp/get-canonical-object implementation) (vector data))))
+    (mp/construct-matrix (implementation-check implementation) (vector data))))
 
 (defn column-matrix
   "Constucts a column matrix with the given values. The returned matrix is a 2D Nx1 column matrix."
   ([data]
-   (let [ik (current-implementation-check)]
-      (mp/construct-matrix (imp/get-canonical-object ik) (map vector data))))
+    (mp/construct-matrix (implementation-check) (map vector data)))
   ([implementation data]
-    (mp/construct-matrix (imp/get-canonical-object implementation) (map vector data))))
+    (mp/construct-matrix (implementation-check implementation) (map vector data))))
 
 (defn identity-matrix
   "Constructs a 2D identity matrix with the given number of rows"
   ([dims]
-    (mp/identity-matrix (current-implementation-object) dims))
+    (mp/identity-matrix (implementation-check) dims))
   ([implementation dims]
-    (mp/identity-matrix (imp/get-canonical-object implementation) dims)))
+    (mp/identity-matrix (implementation-check implementation) dims)))
 
 (defn mutable-matrix
   "Constructs a mutable copy of the given matrix."
@@ -143,9 +148,8 @@
       (TODO)))) 
 
 (defn sparse-matrix
-  "Creates a sparse matrix with the given data. Sparse matrices are require to store
-  a M*N matrix with E non-zero elements in at most O(M+N+E) space. If the immplementation
-  cannot create a sparse matrix satisfying this condition, nil may be returned"
+  "Creates a sparse matrix with the given data. Sparse matrices are required to store
+  a M*N matrix with E non-zero elements in at most O(M+N+E) space."
   ([data]
     (compute-matrix (current-implementation-object) data))
   ([implementation data]
@@ -919,12 +923,16 @@
   "Gets the currently active matrix implementation (as a keyword)"
   ([] clojure.core.matrix/*matrix-implementation*))
 
-(defn current-implementation-check
-  "Gets the currently active matrix implementation (as a keyword). Throws an exception if none is available."
+(defn- implementation-check
+  "Gets the currently active matrix implementation (as a matrix object). Throws an exception if none is available."
   ([] 
-    (if-let [im clojure.core.matrix/*matrix-implementation*]
+    (if-let [ik clojure.core.matrix/*matrix-implementation*]
+      (imp/get-canonical-object ik)
+      (error "No current clojure.core.matrix implementation available")))
+  ([impl]
+    (if-let [im (imp/get-canonical-object impl)]
       im
-      (error "No clojure.core.matrix implementation available"))))
+      (error "No clojure.core.matrix implementation available - " (str impl)))))
 
 (defn current-implementation-object
   "Gets the a canonical object for the currently active matrix implementation. This object
