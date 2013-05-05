@@ -251,6 +251,14 @@
   (inner-product [m a])
   (outer-product [m a]))
 
+(defprotocol PAddProduct
+  "Protocol for add-product operation."
+  (add-product [m a b])) 
+
+(defprotocol PAddProductMutable
+  "Protocol for mutable add-product! operation."
+  (add-product! [m a b])) 
+
 (defprotocol PMatrixDivide
   "Protocol to support element-wise division operator. 
    One-arg version returns the reciprocal of all elements."

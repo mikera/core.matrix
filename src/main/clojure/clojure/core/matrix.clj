@@ -555,6 +555,16 @@
   ([a b & more]
     (reduce mp/matrix-add (mp/matrix-add a b) more)))
 
+(defn add-product
+  "Adds the product of two matrices to the first matrix"
+  ([m a b]
+    (mp/add-product m a b))) 
+
+(defn add-product!
+  "Adds the product of two matrices to the first matrix"
+  ([m a b]
+    (mp/add-product! m a b))) 
+
 (defn sub
   "Performs element-wise matrix subtraction on one or more matrices."
   ([a] a)
