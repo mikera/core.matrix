@@ -36,9 +36,12 @@
       (mapv (partial mapmatrix f) m)))
   ([f m1 m2]
     (if (mp/is-vector? m1)
-      (let []
-        (when (and (== 1 (mp/dimensionality m2)) (not= (count m1) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
-        (mapv f m1 (cycle (mp/element-seq m2))))
+      (let [dim2 (mp/dimensionality m2)]
+        (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
+        (when (and (== 1 dim2) (not= (count m1) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
+        (if (== 0 dim2)
+          (let [v (mp/get-0d m2)] (mapv #(f % v) m1 ))
+          (mapv f m1 (mp/element-seq m2))))
       (mapv (partial mapmatrix f) m1 (mp/get-major-slice-seq  m2))))
   ([f m1 m2 & more]
     (if (mp/is-vector? m1)

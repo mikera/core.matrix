@@ -51,9 +51,9 @@
   (is (= [["00" "01"] ["10" "11"]]
          (compute-matrix :persistent-vector [2 2] str))))
 
-; TODO: need to fix and have proper errors!
-;(deftest test-shape-errors
-;  (is (error? (add [1] [2 3])))) 
+;; TODO: need to fix and have proper errors!
+(deftest test-shape-errors
+  (is (error? (add [1] [2 3])))) 
 
 (deftest test-coerce
   (testing "clojure vector coercion"
