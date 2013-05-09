@@ -182,7 +182,9 @@
 (extend-protocol mp/PVectorOps
   clojure.lang.IPersistentVector
     (vector-dot [a b]
-      (reduce + 0 (map * a (persistent-vector-coerce b))))
+      (let [b (persistent-vector-coerce b)]
+        (when-not (== (count a) (count b)) (error "Mismatched vector sizes"))
+        (reduce + 0 (map * a b))))
     (length [a]
       (Math/sqrt (double (reduce + (map #(* % %) a)))))
     (length-squared [a]
