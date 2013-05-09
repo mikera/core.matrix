@@ -92,7 +92,8 @@
 
 (deftest test-broadcast
   (is (= [[1 1] [1 1]] (coerce [] (broadcast 1 [2 2]))))
-  (is (equals [[[[2]]]] (broadcast 2 [1 1 1 1]))))
+  (is (equals [[[[2]]]] (broadcast 2 [1 1 1 1])))
+  (is (= [2 2] (add [1 1] 1))))
 
 (deftest test-mutable-matrix
   (is (error? (scale! [1 2] 2)))
