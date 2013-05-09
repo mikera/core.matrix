@@ -28,7 +28,7 @@
 (defn vector-1d? [^clojure.lang.IPersistentVector pv]
   (or (== 0 (.length pv)) (mp/is-scalar? (.nth pv 0))))
 
-(defn mapmatrix
+(defn- mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices"
   ([f m]
     (if (mp/is-vector? m)
@@ -36,7 +36,9 @@
       (mapv (partial mapmatrix f) m)))
   ([f m1 m2]
     (if (mp/is-vector? m1)
-      (mapv f m1 (mp/element-seq m2))
+      (let []
+        (when (and (== 1 (mp/dimensionality m2)) (not= (count m1) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
+        (mapv f m1 (cycle (mp/element-seq m2))))
       (mapv (partial mapmatrix f) m1 (mp/get-major-slice-seq  m2))))
   ([f m1 m2 & more]
     (if (mp/is-vector? m1)
@@ -80,6 +82,12 @@
     (or (mp/is-scalar? m)
         (and (clojure.core/vector? m) 
              (every? is-nested-vectors? m))))) 
+
+;(defmacro with-broadcasting [syms form]
+;  (let [shape-syms (map (fn [_] (gensym "shape")) syms)]
+;    `(let [~(interleave shape-syms (map (fn [s] `(mp/get-shape ~s)) syms))
+;           bs# (broadcast-shape ~shape-syms)]))) 
+;; TODO comp[lete broadcasting macro
 
 ;; =======================================================================
 ;; Implementation for nested Clojure persistent vectors used as matrices
