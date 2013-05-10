@@ -69,7 +69,7 @@
 	    (.isArray (class x)) (vec (seq x)) 
 	    :default (error "Can't coerce to vector: " (class x)))))
 
-(defn vector-dimensionality ^long [m]
+(defn vector-dimensionality [m]
   "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
   (cond
     (clojure.core/vector? m)
@@ -289,7 +289,9 @@
 (extend-protocol mp/PDimensionInfo
   clojure.lang.IPersistentVector
     (dimensionality [m]
-      (vector-dimensionality m))
+      (if (== 0 (.length m))
+        1
+        (inc (mp/dimensionality (.nth m 0)))))
     (is-vector? [m]
       (vector-1d? m))
     (is-scalar? [m]
@@ -342,4 +344,4 @@
 ;; =====================================
 ;; Register implementation
 
-(imp/register-implementation [])
+(imp/register-implementation [1])

@@ -113,7 +113,7 @@
       (is (equals [1.0 2.0] (floor da))))))
 
 (deftest instance-tests
-  (clojure.core.matrix.compliance-tester/instance-test (double-array []))
+  (clojure.core.matrix.compliance-tester/instance-test (double-array [1]))
   (clojure.core.matrix.compliance-tester/instance-test (double-array [1 2]))) 
 
 (deftest compliance-test

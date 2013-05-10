@@ -96,4 +96,4 @@
     (clojure.core.matrix.compliance-tester/instance-test [[1 2.0] (double-array [3 4])]))) 
 
 (deftest compliance-test
-  (clojure.core.matrix.compliance-tester/compliance-test []))
+  (clojure.core.matrix.compliance-tester/compliance-test [1]))

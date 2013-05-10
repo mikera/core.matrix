@@ -15,11 +15,11 @@
 
 (c/quick-bench (dotimes [i 1000] 
                  (dimensionality pv)))
-;; 74 ns
+;; 30 ns
 
 (c/quick-bench (dotimes [i 1000] 
                  (mp/dimensionality pv)))
-;; 83 ns
+;; 32 ns
 
 (c/quick-bench (dotimes [i 1000] 
                  (array? pv)))
