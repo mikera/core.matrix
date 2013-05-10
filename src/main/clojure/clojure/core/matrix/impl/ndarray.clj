@@ -88,7 +88,7 @@
     (get-shape [m]
       shape)
     (dimensionality [m]
-      (count shape))
+      (alength shape))
     (dimension-count [m x]
       (aget shape x))
     
