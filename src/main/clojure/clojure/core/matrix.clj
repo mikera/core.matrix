@@ -212,7 +212,7 @@
 (defn array?
   "Returns true if the parameter is an N-dimensional array, for any N>=1"
   ([m]
-    (satisfies? mp/PImplementation m)))
+    (not (mp/is-scalar? m))))
 
 (defn matrix?
   "Returns true if parameter is a valid matrix (dimensionality == 2)"
@@ -222,7 +222,7 @@
 (defn vec?
   "Returns true if the parameter is a vector (1-dimensional array)"
   ([m]
-    (== (mp/dimensionality m) 1)))
+    (mp/is-vector? m)))
 
 (defn scalar?
   "Returns true if the parameter is a scalar value (i.e. zero dimensionality, acceptable as matrix value).

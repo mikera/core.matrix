@@ -87,6 +87,10 @@
   mp/PDimensionInfo
     (get-shape [m]
       shape)
+    (is-vector? [m]
+      (== 1 (count shape))) 
+    (is-scalar? [m]
+      false)
     (dimensionality [m]
       (count shape))
     (dimension-count [m x]

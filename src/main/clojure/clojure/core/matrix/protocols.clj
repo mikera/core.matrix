@@ -47,6 +47,11 @@
     "Returns the number of dimensions of a matrix")
   (get-shape [m]
     "Returns the shape of the matrix, as an array or sequence of dimension sizes")
+  (is-scalar? [m]
+    "Tests whether an object is a scalar value, i.e. a value that can exist at a 
+     specific position in an array.")
+  (is-vector? [m]
+    "Tests whether an object is a vector (1D matrix)")
   (dimension-count [m dimension-number]
     "Returns the size of a specific dimension. Must throw an exception if the array does not
      have the specified dimension."))
@@ -428,18 +433,11 @@
 ;; ============================================================
 ;; Utility functions
 
-(defn is-scalar?
-  [m]
-  (not (satisfies? PImplementation m))) 
-
-(defn is-vector?
-  [m]
-  (== 1 (dimensionality m))) 
-
 (defn persistent-vector-coerce [x]
   "Coerces to nested persistent vectors"
   (let [dims (dimensionality x)] 
     (cond
+	    (is-scalar? x) x
 	    (== dims 0) (get-0d x)
       (> dims 0) (convert-to-nested-vectors x) 
 	    (clojure.core/vector? x) (mapv convert-to-nested-vectors x) 
