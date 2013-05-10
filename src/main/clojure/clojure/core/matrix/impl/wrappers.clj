@@ -40,10 +40,6 @@
       0)
     (get-shape [m]
       [])
-    (is-scalar? [m]
-      false) ;; note that a ScalarWrapper is not itself a scalar!!
-    (is-vector? [m]
-      false)
     (dimension-count [m dimension-number]
       (error "Can't get dimension-count of ScalarWrapper: no dimensions exist"))
    
@@ -112,10 +108,6 @@
       (dec (mp/dimensionality array)))
     (get-shape [m]
       (next (mp/get-shape array)))
-    (is-scalar? [m]
-      false)
-    (is-vector? [m]
-      (== 2 (mp/dimensionality array)))
     (dimension-count [m dimension-number]
       (if (< dimension-number 0)
         (error "Can't access negative dimension!")
@@ -246,10 +238,6 @@
       (alength shape))
     (get-shape [m]
       shape)
-    (is-scalar? [m]
-      false)
-    (is-vector? [m]
-      (== 1 (alength shape)))
     (dimension-count [m dimension-number]
       (aget shape (int dimension-number)))
     
