@@ -109,17 +109,7 @@
         (vec (repeat (first dims) (mp/new-matrix-nd m (next dims))))
         0.0))
     (construct-matrix [m data]
-      (cond
-        (mp/is-scalar? data)
-          data
-        (>= (mp/dimensionality data) 1)
-          (mapv #(mp/construct-matrix m %) (mp/get-major-slice-seq data))
-        (satisfies? mp/PImplementation data) ;; must be 0-D array....
-          (mp/get-0d data) 
-        (sequential? data)
-          (mapv #(mp/construct-matrix m %) data)
-        :default
-          (error "Don't know how to construct matrix from: " (class data))))
+      (persistent-vector-coerce data))
     (supports-dimensionality? [m dims]
       true))
 
