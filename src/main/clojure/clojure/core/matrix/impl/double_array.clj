@@ -42,6 +42,18 @@
     (supports-dimensionality? [m dims]
       (== dims 1)))
 
+
+(extend-protocol mp/PDimensionInfo
+  (Class/forName "[D")
+    (dimensionality [m] 1)
+    (is-vector? [m] true)
+    (is-scalar? [m] false)
+    (get-shape [m] (list (count m)))
+    (dimension-count [m x]
+      (if (== (long x) 0)
+        (count m)
+        (error "Double array does not have dimension: " x))))
+
 ;; explicitly specify we use a primitive type
 (extend-protocol mp/PTypeInfo
   (Class/forName "[D")
@@ -151,16 +163,6 @@
       (java.util.Arrays/copyOf ^doubles m (int (count m)))))
 
 
-(extend-protocol mp/PDimensionInfo
-  (Class/forName "[D")
-    (dimensionality [m] 1)
-    (is-vector? [m] true)
-    (is-scalar? [m] false)
-    (get-shape [m] (list (count m)))
-    (dimension-count [m x]
-      (if (== (long x) 0)
-        (count m)
-        (error "Double array does not have dimension: " x))))
 
 ;; registration
 
