@@ -665,7 +665,7 @@
             mdims (count mshape)
             ndims (count nshape)]
         (cond
-          (same-shape? nshape mshape) m
+          (and (== mdims ndims) (same-shape-object? nshape mshape)) m
           ;(and (> ndims mdims) (== mshape (drop (- ndims mdims) nshape)))
           ;  (let [rep (nth nshape (- ndims mdims 1))]
           ;    (mp/broadcast (vec (repeat rep m)) new-shape))
@@ -697,6 +697,42 @@
 	          (mapv mp/convert-to-nested-vectors m)
 	        :default
 	          (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
+
+(extend-protocol mp/PVectorView
+  nil
+    (as-vector [m]
+      [nil])
+  java.lang.Number
+    (as-vector [m]
+      [m])
+  java.lang.Object
+    (as-vector [m]
+      (let [dims (mp/dimensionality m)]
+        (cond
+          (== 0 dims) 
+            (mp/coerce-param m [(mp/get-0d m)])
+          (mp/is-vector? m) 
+            m
+          :else 
+            (mp/coerce-param m (mp/element-seq m))))))
+
+(extend-protocol mp/PVectorisable
+  nil
+    (to-vector [m]
+      [nil])
+  java.lang.Number
+    (to-vector [m]
+      [m])
+  java.lang.Object
+    (to-vector [m]
+      (let [dims (mp/dimensionality m)]
+        (cond
+          (== 0 dims) 
+            (mp/coerce-param m [(mp/get-0d m)])
+          (mp/is-vector? m) 
+            (mp/clone m)
+          :else 
+            (mp/coerce-param m (mp/element-seq m))))))
 
 (extend-protocol mp/PReshaping
   java.lang.Number

@@ -28,7 +28,7 @@
 (defn vector-1d? [^clojure.lang.IPersistentVector pv]
   (or (== 0 (.length pv)) (mp/is-scalar? (.nth pv 0))))
 
-(defn mapmatrix
+(defn- mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices"
   ([f m]
     (if (mp/is-vector? m)
@@ -36,7 +36,12 @@
       (mapv (partial mapmatrix f) m)))
   ([f m1 m2]
     (if (mp/is-vector? m1)
-      (mapv f m1 (mp/element-seq m2))
+      (let [dim2 (mp/dimensionality m2)]
+        (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
+        (when (and (== 1 dim2) (not= (count m1) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
+        (if (== 0 dim2)
+          (let [v (mp/get-0d m2)] (mapv #(f % v) m1 ))
+          (mapv f m1 (mp/element-seq m2))))
       (mapv (partial mapmatrix f) m1 (mp/get-major-slice-seq  m2))))
   ([f m1 m2 & more]
     (if (mp/is-vector? m1)
@@ -64,7 +69,7 @@
 	    (.isArray (class x)) (vec (seq x)) 
 	    :default (error "Can't coerce to vector: " (class x)))))
 
-(defn vector-dimensionality ^long [m]
+(defn vector-dimensionality [m]
   "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
   (cond
     (clojure.core/vector? m)
@@ -80,6 +85,12 @@
     (or (mp/is-scalar? m)
         (and (clojure.core/vector? m) 
              (every? is-nested-vectors? m))))) 
+
+;(defmacro with-broadcasting [syms form]
+;  (let [shape-syms (map (fn [_] (gensym "shape")) syms)]
+;    `(let [~(interleave shape-syms (map (fn [s] `(mp/get-shape ~s)) syms))
+;           bs# (broadcast-shape ~shape-syms)]))) 
+;; TODO comp[lete broadcasting macro
 
 ;; =======================================================================
 ;; Implementation for nested Clojure persistent vectors used as matrices
@@ -182,7 +193,9 @@
 (extend-protocol mp/PVectorOps
   clojure.lang.IPersistentVector
     (vector-dot [a b]
-      (reduce + 0 (map * a (persistent-vector-coerce b))))
+      (let [b (persistent-vector-coerce b)]
+        (when-not (== (count a) (count b)) (error "Mismatched vector sizes"))
+        (reduce + 0 (map * a b))))
     (length [a]
       (Math/sqrt (double (reduce + (map #(* % %) a)))))
     (length-squared [a]
@@ -276,7 +289,9 @@
 (extend-protocol mp/PDimensionInfo
   clojure.lang.IPersistentVector
     (dimensionality [m]
-      (vector-dimensionality m))
+      (if (== 0 (.length m))
+        1
+        (inc (mp/dimensionality (.nth m 0)))))
     (is-vector? [m]
       (vector-1d? m))
     (is-scalar? [m]
@@ -329,4 +344,4 @@
 ;; =====================================
 ;; Register implementation
 
-(imp/register-implementation [])
+(imp/register-implementation [1])

@@ -90,10 +90,12 @@
 ;; run complicance tests
 
 (deftest instance-tests
+  (testing "empty persistent vectors are supported"
+    (clojure.core.matrix.compliance-tester/instance-test []))
   (testing "matrices of symbols are supported"
     (clojure.core.matrix.compliance-tester/instance-test ['a 'b]))
   (testing "matrices of heterogeneous submatrices"
     (clojure.core.matrix.compliance-tester/instance-test [[1 2.0] (double-array [3 4])]))) 
 
 (deftest compliance-test
-  (clojure.core.matrix.compliance-tester/compliance-test []))
+  (clojure.core.matrix.compliance-tester/compliance-test [1]))

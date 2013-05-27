@@ -17,7 +17,14 @@
 
 (deftest test-shape
   (is (= 0 (count (shape 1))))
-  (is (= [2] (seq (int-array [2]))))) 
+  (is (= [2] (seq (int-array [2]))))
+  (is (same-shape? [1 2] [3 4]))
+  (is (same-shape? 0 1))
+  (is (not (same-shape? [1 2] [2 3 4])))
+  (is (not (same-shape? [1 2] [[0 1] [2 3]])))) 
+
+(deftest test-as-vector
+  (is (e== [1] (as-vector 1)))) 
 
 (deftest test-implementations
   (testing "vector implementation"
@@ -50,6 +57,10 @@
 (deftest test-compute-matrix
   (is (= [["00" "01"] ["10" "11"]]
          (compute-matrix :persistent-vector [2 2] str))))
+
+;; TODO: need to fix and have proper errors!
+(deftest test-shape-errors
+  (is (error? (add [1] [2 3])))) 
 
 (deftest test-coerce
   (testing "clojure vector coercion"
@@ -88,7 +99,8 @@
 
 (deftest test-broadcast
   (is (= [[1 1] [1 1]] (coerce [] (broadcast 1 [2 2]))))
-  (is (equals [[[[2]]]] (broadcast 2 [1 1 1 1]))))
+  (is (equals [[[[2]]]] (broadcast 2 [1 1 1 1])))
+  (is (= [2 2] (add [1 1] 1))))
 
 (deftest test-mutable-matrix
   (is (error? (scale! [1 2] 2)))

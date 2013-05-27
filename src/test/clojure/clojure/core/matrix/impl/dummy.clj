@@ -1,6 +1,5 @@
 (ns clojure.core.matrix.impl.dummy
   (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
   (:use clojure.test)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.compliance-tester])

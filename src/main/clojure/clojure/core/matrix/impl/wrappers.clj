@@ -29,9 +29,11 @@
     (new-matrix-nd [m dims] 
       (mp/new-matrix-nd [] dims))
     (construct-matrix [m data]
-      (if (mp/is-scalar? data)
-        (ScalarWrapper. data)
-        (ScalarWrapper. (mp/get-0d data))))
+      (if (== 0 (mp/dimensionality data))
+        (if (mp/is-scalar? data)
+          (ScalarWrapper. data)
+          (ScalarWrapper. (mp/get-0d data)))
+        (mp/clone data)))
     (supports-dimensionality? [m dims] 
       (== dims 0))
     

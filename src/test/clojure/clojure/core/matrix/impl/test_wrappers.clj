@@ -56,6 +56,12 @@
   (is (equals [3 4] (wrap-nd [3 4])))
   (is (equals [3 4] (seq (wrap-nd [3 4])))))
 
+(deftest test-as-vector
+  (is (e== [1] (as-vector (wrap-scalar 1))))) 
+
+(deftest test-scalar-construct-vector
+  (is (e== [1] (coerce (wrap-scalar 2) [1])))) 
+
 (deftest test-nd-slice
   (let [ss (second (slices (wrap-nd [[3 4] [5 6]])))]
     (is (equals [5 6] ss))

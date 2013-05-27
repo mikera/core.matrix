@@ -188,6 +188,12 @@
     (mp/assign-array! m a)
     m))
 
+(defn assign
+  "Assigns a value to a matrix, broadcasting to fill the whole matrix as necessary.
+   Retyurns a new, changed matrix."
+  ([m a]
+    (mp/broadcast (mp/coerce-param m a) (mp/get-shape m)))) 
+
 (defn clone
   "Constructs a clone of the matrix, using the same implementation. This function is intended to
    allow safe defensive copying of matrices / vectors.
@@ -300,6 +306,19 @@
    exists a common shape that both can broadcast to." 
   ([a] true)
   ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b)))))) 
+
+(defn same-shape?
+  "Returns true if the arrays have the identical shape, false otherwise"
+  ([] true)
+  ([m] true)
+  ([m n]
+    (or
+      (identical? m n)
+      (clojure.core.matrix.utils/same-shape-object? (mp/get-shape m) (mp/get-shape n))))
+  ([m n & more]
+    (and 
+      (same-shape? m n)
+      (every? #(same-shape? m %) more)))) 
 
 ;; =======================================
 ;; Conversions
@@ -441,6 +460,19 @@
     (TODO))
   ([m [shifts]]
     (TODO))) 
+
+(defn as-vector
+  "Creates a view of an array as a single flattened vector."
+  ([m]
+    (mp/as-vector m)))
+
+(defn to-vector
+  "Creates a new array representing the elements of array m as a single flattened vector"
+  ([m]
+    (or 
+      (mp/to-vector m)
+      (new-vector m (mp/element-seq m)))))
+
 
 ;; ====================================
 ;; structural change operations
@@ -741,8 +773,12 @@
 
 (defn pow
   "Raises every element of a numerical matrix by the given exponent."
+  ([m]
+    m)
   ([m exponent]
-    (mp/element-pow m exponent))) 
+    (mp/element-pow m exponent))
+  ([m exponent & more]
+    (reduce (fn [m x] (mp/element-pow m x)) (mp/element-pow m exponent) more))) 
 
 ;; create all unary maths operators
 (eval
