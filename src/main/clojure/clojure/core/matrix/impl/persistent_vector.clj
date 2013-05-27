@@ -248,7 +248,8 @@
     (element-multiply [m a]
       (if (number? a) 
         (mp/scale m a)
-        (mp/element-map m * a)))
+        (let [[m a] (mp/broadcast-compatible m a)] 
+          (mp/element-map m * a))))
     (matrix-multiply [m a]
       (let [mdims (long (mp/dimensionality m))
             adims (long (mp/dimensionality a))]

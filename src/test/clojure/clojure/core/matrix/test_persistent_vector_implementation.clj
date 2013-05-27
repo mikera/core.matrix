@@ -47,7 +47,8 @@
 
 (deftest test-incompatible
   (is (error? (add [1 2] [3 4 5])))
-  (is (error? (sub [[1] [2]] [[3] [4] [5]])))) 
+  (is (error? (sub [[1] [2]] [[3] [4] [5]])))
+  (is (error? (emul [[1] [2]] [[3] [4] [5]])))) 
 
 (deftest test-functional-op
   (testing "map"

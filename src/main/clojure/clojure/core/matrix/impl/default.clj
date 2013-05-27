@@ -139,7 +139,7 @@
           :else 0.0)))
   java.lang.Object
     (vector-dot [a b]
-      (reduce + 0 (mp/element-seq (mp/element-multiply a b))))
+      (mp/element-sum (mp/element-multiply a b)))
     (length [a]
       (Math/sqrt (double (mp/length-squared a))))
     (length-squared [a]
@@ -352,7 +352,8 @@
     (element-multiply [m a]
       (if (number? a)
         (mp/scale m a)
-        (mp/element-map m clojure.core/* a))))
+        (let [[m a] (mp/broadcast-compatible m a)]
+          (mp/element-map m clojure.core/* a)))))
 
 ;; matrix multiply
 (extend-protocol mp/PMatrixMultiplyMutable
