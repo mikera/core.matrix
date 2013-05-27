@@ -39,7 +39,7 @@
     (if (mp/is-vector? m1)
       (let [dim2 (mp/dimensionality m2)]
         (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
-        (when (and (== 1 dim2) (not= (count m1) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
+        (when (and (== 1 dim2) (not= (mp/dimension-count m1 0) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
         (if (== 0 dim2)
           (let [v (mp/get-0d m2)] (mapv #(f % v) m1 ))
           (mapv f m1 (mp/element-seq m2))))
