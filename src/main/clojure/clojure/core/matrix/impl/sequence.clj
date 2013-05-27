@@ -93,7 +93,7 @@
         (mapv #(mp/element-map % f) m))
       ([m f a]
         (let [[m a] (mp/broadcast-compatible m a)]
-          (mapv #(mp/element-map % f %2) m a)))
+          (mapv #(mp/element-map % f %2) m (mp/get-major-slice-seq a))))
       ([m f a more]
         (let [[m a & more] (apply mp/broadcast-compatible m a more)]
           (mapv #(mp/element-map % f %2 %3) m a more))))
