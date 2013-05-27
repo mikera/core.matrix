@@ -178,6 +178,19 @@
     (get-major-slice-seq [m] 
       (seq m)))
 
+(extend-protocol mp/PSliceJoin
+  clojure.lang.IPersistentVector
+    (join [m a]
+      (let [dims (mp/dimensionality m)
+            adims (mp/dimensionality m)]
+        (cond 
+          (== dims adims)
+            (vec (concat (mp/get-major-slice-seq m) (mp/get-major-slice-seq a)))
+          (== dims (inc adims))
+            (conj m a)
+          :else 
+            (error "Joining with array of incompatible size"))))) 
+
 (extend-protocol mp/PSubVector
   clojure.lang.IPersistentVector
     (subvector [m start length]
