@@ -183,11 +183,21 @@
     (is (e= (broadcast e (shape m)) n))
     (is (same-shape? m n))))
 
+(defn test-join [m]
+  (when (> 0 (dimensionality m))
+    (let [j (join m m)
+          js (slices j)]
+      (is (== (first (shape j)) (* 2 (first (shape m))))))
+    (let [j (join m (first (slices m)))
+          js (slices j)]
+      (is (== (first (shape j)) (inc (first (shape m))))))))
+
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-as-vector m)
   (test-coerce m)
   (test-assign m)
+  (test-join m)
   (test-dimensionality-assumptions m)
   (test-slice-assumptions m)
   (test-submatrix-assumptions m)

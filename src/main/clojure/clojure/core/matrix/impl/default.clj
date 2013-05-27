@@ -639,6 +639,26 @@
             (error "Can't get slices on [" dims "]-dimensional object: " m)
           :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
 
+(extend-protocol mp/PSliceJoin
+  nil
+    (join [m a] a)
+  java.lang.Number
+    (join [m a] 
+      (error "Can't join an array to a scalar number!"))
+  java.lang.Object
+    (join [m a]
+      (let [dims (mp/dimensionality m)
+            adims (mp/dimensionality m)]
+        (cond 
+          (== dims 0)
+            (error "Can't join to a 0-dimensional array!")
+          (== dims adims)
+            (mp/coerce-param m (concat (mp/get-major-slice-seq m) (mp/get-major-slice-seq a)))
+          (== dims (inc adims))
+            (mp/coerce-param m (concat (mp/get-major-slice-seq m) [a]))
+          :else 
+            (error "Joining with array of incompatible size"))))) 
+
 (extend-protocol mp/PSubVector
   java.lang.Object
     (subvector [m start length]

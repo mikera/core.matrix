@@ -203,6 +203,10 @@
    The default implementation uses get-major-slice-view to obtain the slices."
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
 
+(defprotocol PSliceJoin
+  "Protocol for concatenating / joining arrays."
+  (join [m a] "Concatenates a to m, along the major slice dimension")) 
+
 ;; TODO: should return either an immutable sub-matrix or a mutable view
 (defprotocol PMatrixSubComponents
   "Protocol for picking out subsections of a matrix. Should return a mutable view if possible.

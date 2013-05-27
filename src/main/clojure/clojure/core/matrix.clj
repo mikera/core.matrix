@@ -446,8 +446,7 @@
 (defn join 
   "Joins arrays together, along dimension 0. Other dimensions must be compatible"
   ([& arrays]
-    (let [a (first arrays)]
-      (coerce a (mapcat slices arrays))))) 
+    (reduce mp/join arrays))) 
 
 (defn join-along 
   "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
