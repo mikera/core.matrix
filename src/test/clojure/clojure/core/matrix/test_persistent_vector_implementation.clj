@@ -50,8 +50,11 @@
 (deftest test-broadcast 
   (is (equals [[1 2] [1 2]] (broadcast [1 2] [2 2]))))
 
+(deftest test-rows-columns
+  (is (equals [[1 2] [3 4]] (rows [[1 2] [3 4]])))
+  (is (equals [[1 3] [2 4]] (columns [[1 2] [3 4]]))))
 
-(deftest test-rotate
+(deftest test-submatrix
   (is (equals [2 3] (submatrix [1 2 3] 0 [1 2]))))
 
 (deftest test-rotate
