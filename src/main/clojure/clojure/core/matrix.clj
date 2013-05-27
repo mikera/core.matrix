@@ -190,7 +190,7 @@
 
 (defn assign
   "Assigns a value to a matrix, broadcasting to fill the whole matrix as necessary.
-   Retyurns a new, changed matrix."
+   Returns a new matrix."
   ([m a]
     (mp/broadcast (mp/coerce-param m a) (mp/get-shape m)))) 
 
@@ -458,7 +458,9 @@
 (defn rotate
   "Rotates an array along specified dimensions"
   ([m dimension shift-amount]
-    (TODO))
+    (let [c (mp/dimension-count m dimension)
+          sh (mod shift-amount c)]
+      (join-along dimension (submatrix m dimension [sh (- c sh)]) (submatrix m dimension [0 sh]))))
   ([m [shifts]]
     (TODO))) 
 

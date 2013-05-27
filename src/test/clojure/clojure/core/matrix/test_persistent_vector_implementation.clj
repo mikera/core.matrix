@@ -50,6 +50,13 @@
 (deftest test-broadcast 
   (is (equals [[1 2] [1 2]] (broadcast [1 2] [2 2]))))
 
+
+(deftest test-rotate
+  (is (equals [2 3] (submatrix [1 2 3] 0 [1 2]))))
+
+(deftest test-rotate
+  (is (equals [2 3 1] (rotate [1 2 3] 0 1))))
+
 (deftest test-incompatible
   (is (error? (add [1 2] [3 4 5])))
   (is (error? (sub [[1] [2]] [[3] [4] [5]])))
