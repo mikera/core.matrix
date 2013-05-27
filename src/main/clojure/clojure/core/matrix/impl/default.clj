@@ -498,7 +498,7 @@
         (mp/matrix-add a m)))
     (matrix-sub [m a]
       (if (number? a) (- m a) 
-        (mp/matrix-add a m)))
+        (mp/negate (mp/matrix-sub a m))))
   ;; default impelementation - assume we can use emap?
   java.lang.Object
     (matrix-add [m a]
@@ -521,6 +521,14 @@
       (mp/element-map! m clojure.core/+ a))
     (matrix-sub! [m a]
       (mp/element-map! m clojure.core/- a)))
+
+(extend-protocol mp/PNegation
+  java.lang.Number
+    (negate [m]
+      (- m))
+  java.lang.Object
+    (negate [m]
+      (mp/scale m -1)))
 
 ;; equality checking
 (extend-protocol mp/PMatrixEquality

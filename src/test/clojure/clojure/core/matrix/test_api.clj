@@ -288,7 +288,8 @@
   (testing "broadcasted ops"
     (is (e== [2 3] (add [1 2] 1.0)))
     (is (e== [2 3] (add 1.0 [1 2])))
-    (is (e== [0 1] (sub [1 2] 1.0))))) 
+    (is (e== [0 1] (sub [1 2] 1.0)))
+    (is (e== [0 -1] (sub 1.0 [1 2]))))) 
 
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]
