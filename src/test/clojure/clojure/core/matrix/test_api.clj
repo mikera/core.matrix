@@ -215,6 +215,9 @@
   (is (= [1 2 3] (join [1 2] 3)))
   (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]])))) 
 
+(deftest test-main-diagonal
+  (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]]))))
+
 (deftest test-normalise
   (testing "vector normalise"
     (is (= [1.0] (normalise [1.0])))

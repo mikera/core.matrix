@@ -811,8 +811,7 @@
     (main-diagonal [m]
       (let [sh (mp/get-shape m)
             rank (count sh)
-            dims (first sh)]
-        (if-not (reduce = sh) (error "Not a square array!"))
+            dims (apply min sh)]
         (mp/construct-matrix m (for [i (range dims)] (mp/get-nd m (repeat rank i)))))))
 
 (extend-protocol mp/PSpecialisedConstructors
