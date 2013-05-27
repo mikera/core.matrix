@@ -212,7 +212,11 @@
     )) 
 
 (deftest test-join
+  (is (= [1 2 3] (join [1 2] 3)))
   (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]])))) 
+
+(deftest test-main-diagonal
+  (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]]))))
 
 (deftest test-normalise
   (testing "vector normalise"
@@ -280,7 +284,15 @@
     (is (= [1 2 3 4] (broadcast-shape [1 2 3 1] [2 1 4])))
     (is (nil? (broadcast-shape [1 2 3 4] [2 3])))
     (is (= [] (broadcast-shape [] [])))
-    (is (e= [[[nil]]] (broadcast nil [1 1 1]))))) 
+    (is (e= [[[nil]]] (broadcast nil [1 1 1]))))
+  (testing "broadcasted ops"
+    (is (e== [2 3] (add [1 2] 1.0)))
+    (is (e== [2 3] (add 1.0 [1 2])))
+    (is (e== [0 1] (sub [1 2] 1.0)))
+    (is (e== [0 -1] (sub 1.0 [1 2]))))) 
+
+(deftest test-object-array
+  (is (e= [:a :b] (coerce [] (object-array [:a :b]))))) 
 
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]

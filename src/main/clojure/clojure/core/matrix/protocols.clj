@@ -203,6 +203,10 @@
    The default implementation uses get-major-slice-view to obtain the slices."
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
 
+(defprotocol PSliceJoin
+  "Protocol for concatenating / joining arrays."
+  (join [m a] "Concatenates a to m, along the major slice dimension")) 
+
 ;; TODO: should return either an immutable sub-matrix or a mutable view
 (defprotocol PMatrixSubComponents
   "Protocol for picking out subsections of a matrix. Should return a mutable view if possible.
@@ -461,7 +465,6 @@
   "Broadcasts two matrices into indentical shapes. 
    Returns a vector containing the two broadcasted matrices.
    Throws an error if not possible."
-  ([a] [a])
   ([a b]
     (let [sa (get-shape a) sb (get-shape b)]
       (if (clojure.core.matrix.utils/same-shape-object? sa sb)

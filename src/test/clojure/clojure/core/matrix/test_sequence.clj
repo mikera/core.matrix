@@ -6,7 +6,8 @@
   (:require clojure.core.matrix.impl.sequence))
 
 (deftest regressions
-  (is (== 3 (ereduce (fn [acc _] (inc acc)) 0 '(nil nil nil)))))
+  (is (== 3 (ereduce (fn [acc _] (inc acc)) 0 '(nil nil nil))))
+  (is (e== [-1 -2] (negate '(1 2)))))
 
 (deftest test-sequence-shape
   (is (= [] (shape 1)))

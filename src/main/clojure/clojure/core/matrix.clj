@@ -190,7 +190,7 @@
 
 (defn assign
   "Assigns a value to a matrix, broadcasting to fill the whole matrix as necessary.
-   Retyurns a new, changed matrix."
+   Returns a new matrix."
   ([m a]
     (mp/broadcast (mp/coerce-param m a) (mp/get-shape m)))) 
 
@@ -438,6 +438,16 @@
   ([m dimension]
     (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
 
+(defn rows 
+  "Gets the rows of a matrix, as a sequence"
+  ([m]
+    (slices m))) 
+
+(defn columns 
+  "Gets the columns of a matrix, as a sequence"
+  ([m]
+    (slices m 1))) 
+
 (defn main-diagonal
   "Returns the main diagonal of a matrix or general array, as a vector"
   ([m]
@@ -446,18 +456,21 @@
 (defn join 
   "Joins arrays together, along dimension 0. Other dimensions must be compatible"
   ([& arrays]
-    (let [a (first arrays)]
-      (coerce a (mapcat slices arrays))))) 
+    (reduce mp/join arrays))) 
 
 (defn join-along 
   "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
   ([dimension & arrays]
-    (TODO))) 
+    (if (== 0 dimension)
+      (apply join arrays)
+      (TODO)))) 
 
 (defn rotate
   "Rotates an array along specified dimensions"
   ([m dimension shift-amount]
-    (TODO))
+    (let [c (mp/dimension-count m dimension)
+          sh (mod shift-amount c)]
+      (join-along dimension (submatrix m dimension [sh (- c sh)]) (submatrix m dimension [0 sh]))))
   ([m [shifts]]
     (TODO))) 
 

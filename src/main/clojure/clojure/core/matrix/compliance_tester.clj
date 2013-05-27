@@ -179,15 +179,26 @@
 
 (defn test-assign [m]
   (let [e (first (eseq m))
+        m (or m (error "trying to assign to nil object!?!")) 
         n (assign m e)]
     (is (e= (broadcast e (shape m)) n))
     (is (same-shape? m n))))
+
+(defn test-join [m]
+  (when (> 0 (dimensionality m))
+    (let [j (join m m)
+          js (slices j)]
+      (is (== (first (shape j)) (* 2 (first (shape m))))))
+    (let [j (join m (first (slices m)))
+          js (slices j)]
+      (is (== (first (shape j)) (inc (first (shape m))))))))
 
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-as-vector m)
   (test-coerce m)
   (test-assign m)
+  (test-join m)
   (test-dimensionality-assumptions m)
   (test-slice-assumptions m)
   (test-submatrix-assumptions m)
@@ -445,7 +456,7 @@
   "Runs the compliance test suite on a given matrix implementation.
    m can be either a matrix instance or the implementation keyword."
   [m]
-  (let [im (imp/get-canonical-object m)
+  (let [im (or (imp/get-canonical-object m) (error "Implementation not registered: " (class m)))
         ik (imp/get-implementation-key im)]
     (binding [*matrix-implementation* ik]
       (instance-test im)

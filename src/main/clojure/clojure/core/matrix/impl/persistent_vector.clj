@@ -29,7 +29,8 @@
   (or (== 0 (.length pv)) (mp/is-scalar? (.nth pv 0))))
 
 (defn- mapmatrix
-  "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices"
+  "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
+   Assumes correct dimensionality / shape."
   ([f m]
     (if (mp/is-vector? m)
       (mapv f m)
@@ -38,7 +39,7 @@
     (if (mp/is-vector? m1)
       (let [dim2 (mp/dimensionality m2)]
         (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
-        (when (and (== 1 dim2) (not= (count m1) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
+        (when (and (== 1 dim2) (not= (mp/dimension-count m1 0) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
         (if (== 0 dim2)
           (let [v (mp/get-0d m2)] (mapv #(f % v) m1 ))
           (mapv f m1 (mp/element-seq m2))))
@@ -59,14 +60,16 @@
   "Coerces to nested persistent vectors"
   (let [dims (mp/dimensionality x)] 
     (cond
-	    (is-nested-persistent-vectors? x) x ;; already done!
 	    (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; arrays with zero dimensionality
       (> dims 0) (mp/convert-to-nested-vectors x) 
-	    (clojure.core/vector? x) (mapv mp/convert-to-nested-vectors x) 
+	    (clojure.core/vector? x) 
+        (if (is-nested-persistent-vectors? x) x (mapv mp/convert-to-nested-vectors x)) 
+	    (nil? x) x
+      (.isArray (class x)) (map persistent-vector-coerce (seq x)) 
 	    (instance? java.util.List x) (coerce-nested x)
 	    (instance? java.lang.Iterable x) (coerce-nested x)
 	    (sequential? x) (coerce-nested x)
-	    (.isArray (class x)) (vec (seq x)) 
+      (mp/is-scalar? x) x 
 	    :default (error "Can't coerce to vector: " (class x)))))
 
 (defn vector-dimensionality [m]
@@ -106,17 +109,7 @@
         (vec (repeat (first dims) (mp/new-matrix-nd m (next dims))))
         0.0))
     (construct-matrix [m data]
-      (cond
-        (mp/is-scalar? data)
-          data
-        (>= (mp/dimensionality data) 1)
-          (mapv #(mp/construct-matrix m %) (mp/get-major-slice-seq data))
-        (satisfies? mp/PImplementation data) ;; must be 0-D array....
-          (mp/get-0d data) 
-        (sequential? data)
-          (mapv #(mp/construct-matrix m %) data)
-        :default
-          (error "Don't know how to construct matrix from: " (class data))))
+      (persistent-vector-coerce data))
     (supports-dimensionality? [m dims]
       true))
 
@@ -178,6 +171,19 @@
     (get-major-slice-seq [m] 
       (seq m)))
 
+(extend-protocol mp/PSliceJoin
+  clojure.lang.IPersistentVector
+    (join [m a]
+      (let [dims (mp/dimensionality m)
+            adims (mp/dimensionality a)]
+        (cond 
+          (== dims adims)
+            (vec (concat (mp/get-major-slice-seq m) (mp/get-major-slice-seq a)))
+          (== dims (inc adims))
+            (conj m a)
+          :else 
+            (error "Joining with array of incompatible size"))))) 
+
 (extend-protocol mp/PSubVector
   clojure.lang.IPersistentVector
     (subvector [m start length]
@@ -186,9 +192,11 @@
 (extend-protocol mp/PMatrixAdd
   clojure.lang.IPersistentVector
     (matrix-add [m a]
-      (mapmatrix + m (persistent-vector-coerce a)))
+      (let [[m a] (mp/broadcast-compatible m a)]
+        (mapmatrix + m (persistent-vector-coerce a))))
     (matrix-sub [m a]
-      (mapmatrix - m (persistent-vector-coerce a))))
+      (let [[m a] (mp/broadcast-compatible m a)]
+        (mapmatrix - m (persistent-vector-coerce a)))))
 
 (extend-protocol mp/PVectorOps
   clojure.lang.IPersistentVector
@@ -232,7 +240,8 @@
     (element-multiply [m a]
       (if (number? a) 
         (mp/scale m a)
-        (mp/element-map m * a)))
+        (let [[m a] (mp/broadcast-compatible m a)] 
+          (mp/element-map m * a))))
     (matrix-multiply [m a]
       (let [mdims (long (mp/dimensionality m))
             adims (long (mp/dimensionality a))]
