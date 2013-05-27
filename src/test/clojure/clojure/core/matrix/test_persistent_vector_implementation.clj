@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.test-persistent-vector-implementation
   (:use clojure.test)
   (:use clojure.core.matrix)
+  (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.impl.wrappers :as wrap])
   (:require [clojure.core.matrix.compliance-tester])
@@ -43,6 +44,10 @@
 
 (deftest test-broadcast 
   (is (equals [[1 2] [1 2]] (broadcast [1 2] [2 2]))))
+
+(deftest test-incompatible
+  (is (error? (add [1 2] [3 4 5])))
+  (is (error? (sub [[1] [2]] [[3] [4] [5]])))) 
 
 (deftest test-functional-op
   (testing "map"

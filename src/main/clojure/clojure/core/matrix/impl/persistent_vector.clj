@@ -29,7 +29,8 @@
   (or (== 0 (.length pv)) (mp/is-scalar? (.nth pv 0))))
 
 (defn- mapmatrix
-  "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices"
+  "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
+   Assumes correct dimensionality / shape."
   ([f m]
     (if (mp/is-vector? m)
       (mapv f m)
@@ -199,9 +200,11 @@
 (extend-protocol mp/PMatrixAdd
   clojure.lang.IPersistentVector
     (matrix-add [m a]
-      (mapmatrix + m (persistent-vector-coerce a)))
+      (let [[m a] (mp/broadcast-compatible m a)]
+        (mapmatrix + m (persistent-vector-coerce a))))
     (matrix-sub [m a]
-      (mapmatrix - m (persistent-vector-coerce a))))
+      (let [[m a] (mp/broadcast-compatible m a)]
+        (mapmatrix - m (persistent-vector-coerce a)))))
 
 (extend-protocol mp/PVectorOps
   clojure.lang.IPersistentVector
