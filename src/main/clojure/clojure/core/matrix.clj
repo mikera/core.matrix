@@ -452,7 +452,9 @@
 (defn join-along 
   "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
   ([dimension & arrays]
-    (TODO))) 
+    (if (== 0 dimension)
+      (apply join arrays)
+      (TODO)))) 
 
 (defn rotate
   "Rotates an array along specified dimensions"
