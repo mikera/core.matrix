@@ -523,6 +523,9 @@
       (mp/element-map! m clojure.core/- a)))
 
 (extend-protocol mp/PNegation
+  nil
+    (negate [m]
+      (error "Can't negate nil!"))
   java.lang.Number
     (negate [m]
       (- m))
