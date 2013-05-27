@@ -315,12 +315,12 @@
   (pre-scale! [m a]))
 
 (defprotocol PMatrixAdd
-  "Protocol to support matrix addition on an arbitrary matrices of same size"
+  "Protocol to support matrix addition and subtraction on arbitrary matrices"
   (matrix-add [m a])
   (matrix-sub [m a]))
 
 (defprotocol PMatrixAddMutable
-  "Protocol to support matrix addition on an arbitrary matrices of same size"
+  "Protocol to support matrix addition on any matrices of same size"
   (matrix-add! [m a])
   (matrix-sub! [m a]))
 
