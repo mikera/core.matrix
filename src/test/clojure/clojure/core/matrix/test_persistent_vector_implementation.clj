@@ -18,7 +18,12 @@
     (is (== 5 (length [3 4]))))
   (testing "scalar broadcast"
     (is (e= [11 12 13] (add [1 2 3] 10)))
-    (is (e= [11 12 13] (add 10 [1 2 3])))))
+    (is (e= [11 12 13] (add 10 [1 2 3]))))
+  (testing "empty vector"
+    (is (e= [] (coerce [] [])))
+    (is (e= [] (assign [] 1.0)))
+    (is (empty? (eseq [])))
+    (is (nil? (coerce [] nil)))))
 
 (deftest test-properties
   (is (not (mutable? [1 2])))

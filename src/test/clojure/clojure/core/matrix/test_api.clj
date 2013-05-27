@@ -291,6 +291,9 @@
     (is (e== [0 1] (sub [1 2] 1.0)))
     (is (e== [0 -1] (sub 1.0 [1 2]))))) 
 
+(deftest test-object-array
+  (is (e= [:a :b] (coerce [] (object-array [:a :b]))))) 
+
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]
     (testing "example code"
