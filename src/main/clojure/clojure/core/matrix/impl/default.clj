@@ -501,9 +501,11 @@
   ;; default impelementation - assume we can use emap?
   java.lang.Object
     (matrix-add [m a]
-      (mp/element-map m clojure.core/+ a))
+      (let [[m a] (mp/broadcast-compatible m a)]
+        (mp/element-map m clojure.core/+ a)))
     (matrix-sub [m a]
-      (mp/element-map m clojure.core/- a)))
+      (let [[m a] (mp/broadcast-compatible m a)]
+        (mp/element-map m clojure.core/- a))))
 
 (extend-protocol mp/PMatrixAddMutable
   ;; matrix add for scalars

@@ -92,11 +92,11 @@
       ([m f]
         (mapv #(mp/element-map % f) m))
       ([m f a]
-        (when-not (== (count m) (count a)) (error "Incompatible sizes"))
-        (mapv #(mp/element-map % f %2) m a))
+        (let [[m a] (mp/broadcast-compatible m a)]
+          (mapv #(mp/element-map % f %2) m a)))
       ([m f a more]
-        (when-not (apply == (count m) (count a) (map count more)) (error "Incompatible sizes"))
-        (mapv #(mp/element-map % f %2 %3) m a more)))
+        (let [[m a & more] (apply mp/broadcast-compatible m a more)]
+          (mapv #(mp/element-map % f %2 %3) m a more))))
     (element-map!
       ([m f]
         (do 
