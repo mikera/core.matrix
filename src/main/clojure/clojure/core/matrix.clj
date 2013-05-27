@@ -444,7 +444,7 @@
     (slices m))) 
 
 (defn columns 
-  "Gets the rows of a matrix, as a sequence"
+  "Gets the columns of a matrix, as a sequence"
   ([m]
     (slices m 1))) 
 
