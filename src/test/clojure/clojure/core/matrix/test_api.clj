@@ -19,6 +19,9 @@
   (is (= 0 (count (shape 1))))
   (is (= [2] (seq (int-array [2]))))) 
 
+(deftest test-as-vector
+  (is (e== [1] (as-vector 1)))) 
+
 (deftest test-implementations
   (testing "vector implementation"
     (is (clojure.core/vector? (imp/get-canonical-object :persistent-vector)))

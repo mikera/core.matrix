@@ -173,8 +173,14 @@
 (defn test-ndarray-round-trip [m]
   (is (e= m (coerce m (coerce :ndarray m)))))
 
+(defn test-as-vector [m]
+  (is (e= (as-vector m) (eseq m)))
+  (is (e= (reshape (as-vector m) (shape m)) m)))
+
+
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
+  (test-as-vector m)
   (test-coerce m)
   (test-dimensionality-assumptions m)
   (test-slice-assumptions m)
