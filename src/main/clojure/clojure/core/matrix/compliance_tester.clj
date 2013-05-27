@@ -179,6 +179,7 @@
 
 (defn test-assign [m]
   (let [e (first (eseq m))
+        m (or m (error "trying to assign to nil object!?!")) 
         n (assign m e)]
     (is (e= (broadcast e (shape m)) n))
     (is (same-shape? m n))))
@@ -455,7 +456,7 @@
   "Runs the compliance test suite on a given matrix implementation.
    m can be either a matrix instance or the implementation keyword."
   [m]
-  (let [im (imp/get-canonical-object m)
+  (let [im (or (imp/get-canonical-object m) (error "Implementation not registered: " (class m)))
         ik (imp/get-implementation-key im)]
     (binding [*matrix-implementation* ik]
       (instance-test im)
