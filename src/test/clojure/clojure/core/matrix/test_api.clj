@@ -212,6 +212,7 @@
     )) 
 
 (deftest test-join
+  (is (= [1 2 3] (join [1 2] 3)))
   (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]])))) 
 
 (deftest test-normalise

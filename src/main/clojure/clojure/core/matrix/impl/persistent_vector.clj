@@ -182,7 +182,7 @@
   clojure.lang.IPersistentVector
     (join [m a]
       (let [dims (mp/dimensionality m)
-            adims (mp/dimensionality m)]
+            adims (mp/dimensionality a)]
         (cond 
           (== dims adims)
             (vec (concat (mp/get-major-slice-seq m) (mp/get-major-slice-seq a)))
