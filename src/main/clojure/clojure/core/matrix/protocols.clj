@@ -360,6 +360,10 @@
   (distance [a b]
      "Euclidean distance of two vectors."))
 
+(defprotocol PVectorView
+  (as-vector [m]
+    "Returns a view of an array as a single flatenned vector")) 
+
 (defprotocol PMutableVectorOps
   "Protocol for mutable versions of commn vector operations" 
   (normalise! [a]))

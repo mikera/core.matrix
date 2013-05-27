@@ -442,6 +442,13 @@
   ([m [shifts]]
     (TODO))) 
 
+(defn to-vector
+  "Creates a view of an array as a single flattened vector"
+  ([m]
+  (or 
+    (mp/as-vector m)
+    (new-vector m (mp/element-seq m)))))
+
 ;; ====================================
 ;; structural change operations
 
