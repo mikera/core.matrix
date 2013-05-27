@@ -6,6 +6,9 @@
   (:require [clojure.core.matrix.impl.wrappers :as wrap])
   (:require [clojure.core.matrix.multimethods :as mm]))
 
+;; core.matrix implementation for Clojure ISeq objects
+;; generally returns a persistent vector where possible
+
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
@@ -96,7 +99,7 @@
           (mapv #(mp/element-map % f %2) m (mp/get-major-slice-seq a))))
       ([m f a more]
         (let [[m a & more] (apply mp/broadcast-compatible m a more)]
-          (mapv #(mp/element-map % f %2 %3) m a more))))
+          (mapv #(mp/element-map % f %2 %3) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
     (element-map!
       ([m f]
         (do 
