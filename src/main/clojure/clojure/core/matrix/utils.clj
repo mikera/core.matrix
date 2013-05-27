@@ -32,7 +32,7 @@
   ([]
     `(error "TODO: not yet implemented"))) 
 
-(defn same-shape? [sa sb]
+(defn same-shape-object? [sa sb]
   (cond 
     (= sa sb) true
     (not= (count sa) (count sb)) false

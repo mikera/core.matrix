@@ -665,7 +665,7 @@
             mdims (count mshape)
             ndims (count nshape)]
         (cond
-          (same-shape? nshape mshape) m
+          (and (== mdims ndims) (same-shape-object? nshape mshape)) m
           ;(and (> ndims mdims) (== mshape (drop (- ndims mdims) nshape)))
           ;  (let [rep (nth nshape (- ndims mdims 1))]
           ;    (mp/broadcast (vec (repeat rep m)) new-shape))

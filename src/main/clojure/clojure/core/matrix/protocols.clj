@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.protocols
-  (:require [clojure.core.matrix.utils :refer [error same-shape? broadcast-shape]])
+  (:require [clojure.core.matrix.utils :refer [error same-shape-object? broadcast-shape]])
   (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
 (set! *warn-on-reflection* true)
@@ -464,7 +464,7 @@
   ([a] [a])
   ([a b]
     (let [sa (get-shape a) sb (get-shape b)]
-      (if (clojure.core.matrix.utils/same-shape? sa sb)
+      (if (clojure.core.matrix.utils/same-shape-object? sa sb)
         [a b]  
         (if-let [bs (broadcast-shape sa sb)]
           (let [b (broadcast b bs)

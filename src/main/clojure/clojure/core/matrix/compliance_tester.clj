@@ -3,7 +3,7 @@
   (:use clojure.test)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
-  (:use clojure.core.matrix.utils))
+  (:require [clojure.core.matrix.utils :as utils :refer [error]]))
 
 ;; ====================================
 ;; COMPLIANCE TESTING
@@ -177,11 +177,17 @@
   (is (e= (as-vector m) (eseq m)))
   (is (e= (reshape (as-vector m) (shape m)) m)))
 
+(defn test-assign [m]
+  (let [e (first (eseq m))
+        n (assign m e)]
+    (is (e= (broadcast e (shape m)) n))
+    (is (same-shape? m n))))
 
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-as-vector m)
   (test-coerce m)
+  (test-assign m)
   (test-dimensionality-assumptions m)
   (test-slice-assumptions m)
   (test-submatrix-assumptions m)

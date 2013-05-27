@@ -188,6 +188,12 @@
     (mp/assign-array! m a)
     m))
 
+(defn assign
+  "Assigns a value to a matrix, broadcasting to fill the whole matrix as necessary.
+   Retyurns a new, changed matrix."
+  ([m a]
+    (mp/broadcast (mp/coerce-param m a) (mp/get-shape m)))) 
+
 (defn clone
   "Constructs a clone of the matrix, using the same implementation. This function is intended to
    allow safe defensive copying of matrices / vectors.
@@ -300,6 +306,19 @@
    exists a common shape that both can broadcast to." 
   ([a] true)
   ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b)))))) 
+
+(defn same-shape?
+  "Returns true if the arrays have the identical shape, false otherwise"
+  ([] true)
+  ([m] true)
+  ([m n]
+    (or
+      (identical? m n)
+      (clojure.core.matrix.utils/same-shape-object? (mp/get-shape m) (mp/get-shape n))))
+  ([m n & more]
+    (and 
+      (same-shape? m n)
+      (every? #(same-shape? m %) more)))) 
 
 ;; =======================================
 ;; Conversions

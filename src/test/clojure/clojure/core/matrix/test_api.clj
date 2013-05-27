@@ -17,7 +17,11 @@
 
 (deftest test-shape
   (is (= 0 (count (shape 1))))
-  (is (= [2] (seq (int-array [2]))))) 
+  (is (= [2] (seq (int-array [2]))))
+  (is (same-shape? [1 2] [3 4]))
+  (is (same-shape? 0 1))
+  (is (not (same-shape? [1 2] [2 3 4])))
+  (is (not (same-shape? [1 2] [[0 1] [2 3]])))) 
 
 (deftest test-as-vector
   (is (e== [1] (as-vector 1)))) 
