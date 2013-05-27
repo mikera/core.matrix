@@ -741,8 +741,12 @@
 
 (defn pow
   "Raises every element of a numerical matrix by the given exponent."
+  ([m]
+    m)
   ([m exponent]
-    (mp/element-pow m exponent))) 
+    (mp/element-pow m exponent))
+  ([m exponent & more]
+    (reduce (fn [m x] (mp/element-pow m x)) (mp/element-pow m exponent) more))) 
 
 ;; create all unary maths operators
 (eval
