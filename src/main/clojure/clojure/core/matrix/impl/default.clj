@@ -716,6 +716,24 @@
           :else 
             (mp/coerce-param m (mp/element-seq m))))))
 
+(extend-protocol mp/PVectorisable
+  nil
+    (to-vector [m]
+      [nil])
+  java.lang.Number
+    (to-vector [m]
+      [m])
+  java.lang.Object
+    (to-vector [m]
+      (let [dims (mp/dimensionality m)]
+        (cond
+          (== 0 dims) 
+            (mp/coerce-param m [(mp/get-0d m)])
+          (mp/is-vector? m) 
+            (mp/clone m)
+          :else 
+            (mp/coerce-param m (mp/element-seq m))))))
+
 (extend-protocol mp/PReshaping
   java.lang.Number
     (reshape [m shape]

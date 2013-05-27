@@ -362,7 +362,13 @@
 
 (defprotocol PVectorView
   (as-vector [m]
-    "Returns a view of an array as a single flattened vector")) 
+    "Returns a view of an array as a single flattened vector. May return the vector itself
+     if it is already a 1D vector.")) 
+
+(defprotocol PVectorisable
+  (to-vector [m]
+    "Returns an array as a single flattened vector")) 
+
 
 (defprotocol PMutableVectorOps
   "Protocol for mutable versions of commn vector operations" 
