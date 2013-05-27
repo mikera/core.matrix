@@ -898,14 +898,14 @@
 
 (defn e=
   "Returns true if all array elements are equal (using Object.equals).
-   WARNING: a java.lang.Long does not equal a lava.lang.Double.
+   WARNING: a java.lang.Long does not equal a java.lang.Double.
    Use 'equals' or 'e==' instead if you want numerical equality."
   ([m1]
     true)
   ([m1 m2]
     (every? true? (map = (eseq m1) (eseq m2))))
   ([m1 m2 & more]
-    (reduce e= (e= m1 m2) more))) 
+    (reduce (fn [r mi] (and r (e= m1 mi))) (e= m1 m2) more))) 
 
 (defn e==
   "Returns true if all array elements are numerically equal (using ==). Throws an error if any elements
