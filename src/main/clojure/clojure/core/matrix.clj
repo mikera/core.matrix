@@ -438,6 +438,16 @@
   ([m dimension]
     (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
 
+(defn rows 
+  "Gets the rows of a matrix, as a sequence"
+  ([m]
+    (slices m))) 
+
+(defn columns 
+  "Gets the rows of a matrix, as a sequence"
+  ([m]
+    (slices m 1))) 
+
 (defn main-diagonal
   "Returns the main diagonal of a matrix or general array, as a vector"
   ([m]
