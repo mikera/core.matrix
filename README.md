@@ -13,8 +13,7 @@ N-dimensional Array / Matrix / Vector API for Clojure.
 ```
 
 The objective of `core.matrix` is to provide a common and idiomatic abstraction for matrix maths in Clojure, 
-independent of underlying implementations. The plan is to develop this 
-into an official Clojure Contrib language extension. Like NumPy, but with more parens and functional goodness..
+independent of underlying implementations. The plan is to become an official Clojure Contrib language extension once the API has matured. Like NumPy, but with more parens and functional goodness..
 
 Key objectives:
 
@@ -23,6 +22,10 @@ Key objectives:
  - Provide a general purpose n-dimensional array implementation (NumPy style)
  - Provide a foundation layer for other projects (e.g. Incanter)
  - Maintain good performance wherever possible
+
+### Status
+
+core.matrix is fully functional and usable in production applications. However the API is still subject to change at present, so users should be prepared to deal with potential breaking changes in future releases.
  
 [![Build Status](https://travis-ci.org/mikera/matrix-api.png?branch=master)](https://travis-ci.org/mikera/matrix-api)
  
@@ -71,7 +74,7 @@ Discussions related to core.matrix generally take place on the "Numerical Clojur
 
  - https://groups.google.com/forum/?fromgroups#!forum/numerical-clojure
  
- If you are interested in writing a `core.matrix` implementation, see:
+If you are interested in writing a `core.matrix` implementation, see:
  
  - https://github.com/mikera/matrix-api/wiki/Implementation-Guide
  
