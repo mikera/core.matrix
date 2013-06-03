@@ -42,8 +42,9 @@
   "Constructs a matrix from the given data.
 
    The data may be in one of the following forms:
-   - Nested sequences of scalar values, e.g. Clojure vectors
    - A valid existing matrix
+   - Nested sequences of scalar values, e.g. Clojure vectors
+   - A sequence of slices, each of which must be valid matrix data
 
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
@@ -56,8 +57,9 @@
   "Constructs a new n-dimensional array from the given data.
 
    The data may be in one of the following forms:
+   - A valid existing matrix
    - Nested sequences of scalar values, e.g. Clojure vectors
-   - A valid existing array
+   - A sequence of slices, each of which must be valid matrix data
 
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
@@ -68,7 +70,8 @@
 
 (defn new-vector
   "Constructs a new zero-filled vector with the given length.
-   If the implementation supports mutable vectors, then the new vector should be fully mutable."
+   New matrix will contain default values as defined by the implementation (usually null or zero).
+   If the implementation supports mutable vectors, then the new vector will be fully mutable."
   ([length]
     (mp/new-vector (implementation-check) length))
   ([implementation length]
@@ -76,7 +79,8 @@
 
 (defn new-matrix
   "Constructs a new zero-filled matrix with the given dimensions. 
-   If the implementation supports mutable matrices, then the new matrix should be fully mutable."
+   New matrix will contain default values as defined by the implementation (usually null or zero).
+   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([rows columns]
     (mp/new-matrix (implementation-check) rows columns))
   ([implementation rows columns]
@@ -84,21 +88,26 @@
 
 (defn new-array
   "Creates a new array with the given shape. 
-   New matrix will contain default values as defined by the implementation (usually null or zero)"
+   New matrix will contain default values as defined by the implementation (usually null or zero).
+   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([shape]
     (mp/new-matrix-nd (implementation-check) shape))
   ([implementation shape]
     (mp/new-matrix-nd (implementation-check implementation) shape)))
 
 (defn row-matrix
-  "Constucts a row matrix with the given values. The returned matrix is a 2D 1xN row matrix."
+  "Constucts a row matrix with the given data. The returned matrix is a 2D 1xN row matrix.
+
+   The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
     (mp/construct-matrix (implementation-check) (vector data)))
   ([implementation data]
     (mp/construct-matrix (implementation-check implementation) (vector data))))
 
 (defn column-matrix
-  "Constucts a column matrix with the given values. The returned matrix is a 2D Nx1 column matrix."
+  "Constucts a column matrix with the given data. The returned matrix is a 2D Nx1 column matrix.
+
+   The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
     (mp/construct-matrix (implementation-check) (map vector data)))
   ([implementation data]
