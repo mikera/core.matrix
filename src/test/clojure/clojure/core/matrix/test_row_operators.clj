@@ -13,7 +13,7 @@
 
 (deftest test-multiply
   (testing "multiply row i by constant k"
-    (is (= [0 2 4] (multiply [[0 1 2]] 0 2)))))
+    (is (= [[0 2 4]] (multiply [[0 1 2]] 0 2)))))
 
 (deftest test-add
   (testing "add row j to i and replace i with the result"
