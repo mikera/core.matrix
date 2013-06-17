@@ -123,7 +123,8 @@
 (defn mutable-matrix
   "Constructs a mutable copy of the given matrix. 
 
-   If the implementation does not support mutable matrices, will return a mutable NDArray"
+   If the implementation does not support mutable matrices, will return a mutable array
+   from another core.matrix implementation."
   ([data]
     (or (mp/mutable-matrix data) 
         (clojure.core.matrix.impl.ndarray/ndarray data)))) 
