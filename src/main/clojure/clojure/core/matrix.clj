@@ -152,7 +152,7 @@
 
   Throws an exception if creation of a sparse matrix is not possible"
   ([data]
-    (compute-matrix (current-implementation-object) data))
+    (sparse-matrix (current-implementation-object) data))
   ([implementation data]
     (TODO))) 
 
