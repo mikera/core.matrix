@@ -148,7 +148,7 @@
 
 (defn sparse-matrix
   "Creates a sparse matrix with the given data. Sparse matrices are required to store
-  a M*N matrix with E non-zero elements in at most O(M+N+E) space.
+  a M*N matrix with E non-zero elements in approx O(M+N+E) space or less.
 
   Throws an exception if creation of a sparse matrix is not possible"
   ([data]
@@ -226,7 +226,7 @@
 ;; Matrix predicates and querying
 
 (defn array?
-  "Returns true if the parameter is an N-dimensional array, for any N>=1"
+  "Returns true if the parameter is an N-dimensional array, for any N>=0"
   ([m]
     (not (mp/is-scalar? m))))
 
