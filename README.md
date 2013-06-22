@@ -19,13 +19,21 @@ Key objectives:
 
  - Provide a clear, standard API / abstraction for matrix and vector maths in Clojure
  - Enable plugable support for different underlying matrix library implementations
- - Provide a general purpose n-dimensional array implementation (NumPy style)
+ - Provide a general purpose n-dimensional array implementation (NumPy style NDArray)
  - Provide a foundation layer for other projects (e.g. Incanter)
  - Maintain good performance wherever possible
 
 ### Status
 
-core.matrix is fully functional and usable in production applications. However the API is still subject to change at present, so users should be prepared to deal with potential breaking changes in future releases.
+core.matrix is fully functional and usable in production applications. As well as supporting 
+the standard Clojure data structures, multiple back end implementations exist that provide optimised
+matrix implementations. The most mature implementations are currently:
+
+ - **vectorz-clj** : a fast pure-JVM matrix library for Clojure
+ - **Clatrix** : native code matrix library using BLAS
+
+However the API is still *subject to some changes* at present (at least up until release 1.0.0), 
+so users should be prepared to deal with potential breaking changes in future releases.
  
 [![Build Status](https://travis-ci.org/mikera/matrix-api.png?branch=master)](https://travis-ci.org/mikera/matrix-api)
  
@@ -42,12 +50,6 @@ For code examples see:
  For documentation and further examples see the Wiki:
  
  - https://github.com/mikera/matrix-api/wiki
-
-### WARNING: Subject to change
-
-This API is still a work in progress and subject to change.
-
-If you build anything on top of it, don't be too surprised if it breaks with the next release.
 
 ### Getting started
 
