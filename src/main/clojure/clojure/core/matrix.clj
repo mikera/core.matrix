@@ -42,8 +42,9 @@
   "Constructs a matrix from the given data.
 
    The data may be in one of the following forms:
-   - Nested sequences of scalar values, e.g. Clojure vectors
    - A valid existing matrix
+   - Nested sequences of scalar values, e.g. Clojure vectors
+   - A sequence of slices, each of which must be valid matrix data
 
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
@@ -56,8 +57,9 @@
   "Constructs a new n-dimensional array from the given data.
 
    The data may be in one of the following forms:
+   - A valid existing matrix
    - Nested sequences of scalar values, e.g. Clojure vectors
-   - A valid existing array
+   - A sequence of slices, each of which must be valid matrix data
 
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
@@ -68,7 +70,8 @@
 
 (defn new-vector
   "Constructs a new zero-filled vector with the given length.
-   If the implementation supports mutable vectors, then the new vector should be fully mutable."
+   New matrix will contain default values as defined by the implementation (usually null or zero).
+   If the implementation supports mutable vectors, then the new vector will be fully mutable."
   ([length]
     (mp/new-vector (implementation-check) length))
   ([implementation length]
@@ -76,7 +79,8 @@
 
 (defn new-matrix
   "Constructs a new zero-filled matrix with the given dimensions. 
-   If the implementation supports mutable matrices, then the new matrix should be fully mutable."
+   New matrix will contain default values as defined by the implementation (usually null or zero).
+   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([rows columns]
     (mp/new-matrix (implementation-check) rows columns))
   ([implementation rows columns]
@@ -84,21 +88,26 @@
 
 (defn new-array
   "Creates a new array with the given shape. 
-   New matrix will contain default values as defined by the implementation (usually null or zero)"
+   New matrix will contain default values as defined by the implementation (usually null or zero).
+   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([shape]
     (mp/new-matrix-nd (implementation-check) shape))
   ([implementation shape]
     (mp/new-matrix-nd (implementation-check implementation) shape)))
 
 (defn row-matrix
-  "Constucts a row matrix with the given values. The returned matrix is a 2D 1xN row matrix."
+  "Constucts a row matrix with the given data. The returned matrix is a 2D 1xN row matrix.
+
+   The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
     (mp/construct-matrix (implementation-check) (vector data)))
   ([implementation data]
     (mp/construct-matrix (implementation-check implementation) (vector data))))
 
 (defn column-matrix
-  "Constucts a column matrix with the given values. The returned matrix is a 2D Nx1 column matrix."
+  "Constucts a column matrix with the given data. The returned matrix is a 2D Nx1 column matrix.
+
+   The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
     (mp/construct-matrix (implementation-check) (map vector data)))
   ([implementation data]
@@ -114,7 +123,8 @@
 (defn mutable-matrix
   "Constructs a mutable copy of the given matrix. 
 
-   If the implementation does not support mutable matrices, will return a mutable NDArray"
+   If the implementation does not support mutable matrices, will return a mutable array
+   from another core.matrix implementation that supports the same element type."
   ([data]
     (or (mp/mutable-matrix data) 
         (clojure.core.matrix.impl.ndarray/ndarray data)))) 
@@ -138,11 +148,11 @@
 
 (defn sparse-matrix
   "Creates a sparse matrix with the given data. Sparse matrices are required to store
-  a M*N matrix with E non-zero elements in at most O(M+N+E) space.
+  a M*N matrix with E non-zero elements in approx O(M+N+E) space or less.
 
   Throws an exception if creation of a sparse matrix is not possible"
   ([data]
-    (compute-matrix (current-implementation-object) data))
+    (sparse-matrix (current-implementation-object) data))
   ([implementation data]
     (TODO))) 
 
@@ -160,7 +170,7 @@
 
 (defn supports-dimensionality?
   "Returns true if the implementation for a given matrix supports a specific dimensionality, i.e.
-   can create and manipulate matrices with the given number of dimensions"
+   can natively create and manipulate matrices with the given number of dimensions"
   ([m dimension-count]
     (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
       (mp/supports-dimensionality? m dimension-count))))
@@ -216,7 +226,7 @@
 ;; Matrix predicates and querying
 
 (defn array?
-  "Returns true if the parameter is an N-dimensional array, for any N>=1"
+  "Returns true if the parameter is an N-dimensional array, for any N>=0"
   ([m]
     (not (mp/is-scalar? m))))
 
@@ -898,14 +908,14 @@
 
 (defn e=
   "Returns true if all array elements are equal (using Object.equals).
-   WARNING: a java.lang.Long does not equal a lava.lang.Double.
+   WARNING: a java.lang.Long does not equal a java.lang.Double.
    Use 'equals' or 'e==' instead if you want numerical equality."
   ([m1]
     true)
   ([m1 m2]
     (every? true? (map = (eseq m1) (eseq m2))))
   ([m1 m2 & more]
-    (reduce e= (e= m1 m2) more))) 
+    (reduce (fn [r mi] (and r (e= m1 mi))) (e= m1 m2) more))) 
 
 (defn e==
   "Returns true if all array elements are numerically equal (using ==). Throws an error if any elements

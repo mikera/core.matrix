@@ -177,9 +177,8 @@
    If the new shape requires more elements than the original shape, should throw an exception."
   (reshape [m shape]))
 
-
 (defprotocol PMatrixSlices
-  "Protocol to support getting slices of an array.  If implemented, must return either a view
+  "Protocol to support getting slices of an array.  If implemented, must return either a view, a scalar
    or an immutable sub-matrix: it must *not* return copied data. i.e. making a full copy must be avoided."
   (get-row [m i])
   (get-column [m i])
@@ -187,14 +186,17 @@
   (get-slice [m dimension i]))
 
 (defprotocol PSubVector
-  "Protocol for getting a sub-vector view of a vectot. Must return a mutable view
+  "Protocol for getting a sub-vector view of a vector. Must return a mutable view
    if the original vector is mutable. Should throw an exception if the specified 
    subvector is out of bounds for the target vector."
   (subvector [m start length])) 
 
 (defprotocol PSliceView
   "Protocol for quick view access into a row-major slices of an array. If implemented, must return 
-   either a view or an immutable sub-matrix: it must *not* return copied data. 
+   either a view or an immutable sub-matrix: it must *not* return copied data.
+
+   If the matrix is mutable, it must return a mutable view. 
+   
    The default implementation creates a wrapper view."
   (get-major-slice-view [m i] "Gets a view of a major array slice"))
 
@@ -315,12 +317,12 @@
   (pre-scale! [m a]))
 
 (defprotocol PMatrixAdd
-  "Protocol to support matrix addition on an arbitrary matrices of same size"
+  "Protocol to support matrix addition and subtraction on arbitrary matrices"
   (matrix-add [m a])
   (matrix-sub [m a]))
 
 (defprotocol PMatrixAddMutable
-  "Protocol to support matrix addition on an arbitrary matrices of same size"
+  "Protocol to support matrix addition on any matrices of same size"
   (matrix-add! [m a])
   (matrix-sub! [m a]))
 
@@ -414,7 +416,11 @@
 (eval
   `(defprotocol PMathsFunctions
   "Protocol to support mathematic functions applied element-wise to a matrix"
-  ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)
+  ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)))
+
+(eval
+  `(defprotocol PMathsFunctionsMutable
+  "Protocol to support mutable mathematic functions applied element-wise to a matrix"
   ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
 
 (defprotocol PElementCount
