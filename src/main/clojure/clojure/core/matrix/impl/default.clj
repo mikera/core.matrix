@@ -811,7 +811,15 @@
      java.lang.Object
        ~@(map (fn [[name func]]
                 `(~name [~'m] (mp/element-map ~'m #(double (~func (double %))))))
+              mops/maths-ops)))
+
+(eval
+  `(extend-protocol mp/PMathsFunctionsMutable
+     java.lang.Number
+       ~@(map (fn [[name func]]
+                `(~(symbol (str name "!")) [~'m] (error "Number is not mutable!")))
               mops/maths-ops)
+     java.lang.Object
        ~@(map (fn [[name func]]
                 `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(double (~func (double %))))))
               mops/maths-ops)))
