@@ -30,16 +30,18 @@
 
 (defn- mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
-   Assumes correct dimensionality / shape."
+   Assumes correct dimensionality / shape.
+
+   Returns a nested persistent vector matrix or a scalar value."
   ([f m]
     (let [dims (long (mp/dimensionality m))]
       (cond 
         (== 0 dims) (f (mp/get-0d m))
-        (== 1 dims) (mapv f m)
+        (== 1 dims) (mapv f (mp/element-seq m))
         :else (mapv (partial mapmatrix f) m))))
   ([f m1 m2]
     (if (mp/is-vector? m1)
-      (let [dim2 (mp/dimensionality m2)]
+      (let [dim2 (long (mp/dimensionality m2))]
         (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
         (when (and (== 1 dim2) (not= (mp/dimension-count m1 0) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
         (if (== 0 dim2)
@@ -271,11 +273,11 @@
 
 (extend-protocol mp/PMatrixScaling
   clojure.lang.IPersistentVector
-    (scale [m  a]
-      (let [a a]
+    (scale [m a]
+      (let [a (mp/get-0d a)]
         (mapmatrix #(* % a) m)))
     (pre-scale [m a]
-      (let [a a]
+      (let [a (mp/get-0d a)]
         (mapmatrix (partial * a) m))))
 
 ;; helper functin to build generic maths operations
