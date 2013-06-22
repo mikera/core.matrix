@@ -162,8 +162,6 @@
     (clone [m]
       (java.util.Arrays/copyOf ^doubles m (int (count m)))))
 
-
-
 ;; registration
 
 (imp/register-implementation (double-array [1]))
