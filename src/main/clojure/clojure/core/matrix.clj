@@ -124,7 +124,7 @@
   "Constructs a mutable copy of the given matrix. 
 
    If the implementation does not support mutable matrices, will return a mutable array
-   from another core.matrix implementation."
+   from another core.matrix implementation that supports the same element type."
   ([data]
     (or (mp/mutable-matrix data) 
         (clojure.core.matrix.impl.ndarray/ndarray data)))) 
@@ -170,7 +170,7 @@
 
 (defn supports-dimensionality?
   "Returns true if the implementation for a given matrix supports a specific dimensionality, i.e.
-   can create and manipulate matrices with the given number of dimensions"
+   can natively create and manipulate matrices with the given number of dimensions"
   ([m dimension-count]
     (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
       (mp/supports-dimensionality? m dimension-count))))
