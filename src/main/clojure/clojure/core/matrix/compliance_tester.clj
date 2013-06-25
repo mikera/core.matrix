@@ -314,9 +314,11 @@
 (defn misc-numeric-tests [m]
   (is (equals (add m m) (scale m 2.0)))
   (is (equals (sub m 0.0) (scale m 1.0)))
+  (is (equals (negate m) (outer-product -1.0 m)))
   (is (equals (add 0.0 m) (mul 1 m)))
   (is (equals (emul m m) (square m)))
-  (is (equals (esum m) (ereduce + m))))
+  (is (equals (esum m) (ereduce + m)))
+  (is (= (eseq m) (eseq (emap identity m)))))
 
 (defn test-numeric-instance [m]
   (misc-numeric-tests m))

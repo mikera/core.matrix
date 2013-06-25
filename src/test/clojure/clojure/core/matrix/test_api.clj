@@ -103,8 +103,15 @@
 
 (deftest test-element-seq
   (is (= [0] (eseq 0)))
+  (is (= [1] (eseq [1])))
   (is (= [2] (eseq [[2]])))
   (is (= [4] (eseq [[[[4]]]]))))
+
+(deftest test-element-map
+  (is (= 1 (emap inc 0)))
+  (is (= [2] (emap inc [1])))
+  (is (= [[3]] (emap inc [[2]])))
+  (is (= [[[[5]]]] (emap inc [[[[4]]]])))) 
 
 (deftest test-conforming?
   (is (conforming? 1 [[2 2] [3 3]]))

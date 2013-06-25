@@ -593,7 +593,7 @@
       (let [dims (mp/dimensionality m)]
         (cond
           (== 0 dims) 
-            (if (mp/is-scalar? m) (list m) (list (mp/get-0d m))) 
+            (list (mp/get-0d m)) 
           (== 1 dims) 
             (map #(mp/get-1d m %) (range (mp/dimension-count m 0))) 
           (array? m) 
