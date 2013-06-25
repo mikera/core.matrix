@@ -202,7 +202,7 @@
     m))
 
 (defn assign
-  "Assigns a value to a matrix, broadcasting to fill the whole matrix as necessary.
+  "Assigns a value to a matrix shape, broadcasting to fill the whole matrix as necessary.
    Returns a new matrix."
   ([m a]
     (mp/broadcast (mp/coerce-param m a) (mp/get-shape m)))) 
@@ -220,8 +220,9 @@
     (mp/clone m)))
 
 (defn to-nested-vectors
-  "Converts an array to nested vectors.
-   The depth of nesting is equal to the dimensionality of the array."
+  "Converts an array to an idiomatic, immutable nested Clojure vector format.
+
+   The depth of nesting will be equal to the dimensionality of the array."
   ([m]
     (mp/convert-to-nested-vectors m)))
 
@@ -244,7 +245,7 @@
     (mp/is-vector? m)))
 
 (defn scalar?
-  "Returns true if the parameter is a scalar value (i.e. zero dimensionality, acceptable as matrix value).
+  "Returns true if the parameter is a scalar value (i.e. acceptable as matrix element value).
    A 0-d array containing a scalar is *not* itself a scalar value."
   ([m]
     (mp/is-scalar? m)))
