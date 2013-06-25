@@ -127,7 +127,10 @@
    from another core.matrix implementation that supports the same element type."
   ([data]
     (or (mp/mutable-matrix data) 
-        (clojure.core.matrix.impl.ndarray/ndarray data)))) 
+        (clojure.core.matrix.impl.ndarray/ndarray data)))
+  ([data type]
+    (mutable-matrix data) ;; TODO: support creation with specific element types
+    )) 
 
 (defn diagonal-matrix
   "Constructs a 2D diagonal matrix with the given values on the main diagonal.
