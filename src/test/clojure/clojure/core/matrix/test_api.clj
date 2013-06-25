@@ -160,6 +160,8 @@
   (testing "matrices"
     (is (equals [[1 0.0] [0 1.0]] [[1.0 0] [0.0 1]])))
   (testing "element e="
+    (is (e= 'a 'a))
+    (is (e= :foo :foo))
     (is (e= [1 2] [1 2]))
     (is (e= [1 2] [1 2] [1 2] [1 2]))
     (is (not (e= [1 2] [3 4])))
@@ -264,6 +266,8 @@
     (is (scalar? 1/7)))
   (testing "scalar dimensionality"
     (is (== 0 (dimensionality 1.0)))
+    (is (== 0 (dimensionality :foo)))
+    (is (== 0 (dimensionality 'bar)))
     (is (== 1.0 (mget 1.0)))
     (is (= [] (shape 1.0))))
   (testing "functional operations"
