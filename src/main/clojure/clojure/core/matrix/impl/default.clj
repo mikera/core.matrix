@@ -573,9 +573,9 @@
       ([m f]
         (f m))
       ([m f a]
-        (f m a))
+        (f m (mp/get-0d a)))
       ([m f a more]
-        (apply f m a more)))
+        (apply f m (mp/get-0d a) (map mp/get-0d more))))
     (element-map!
       ([m f]
         (error "java.lang.Number instance is not mutable!"))

@@ -31,6 +31,9 @@
       (mutable-fn clonem)
       (equals clonem (immutable-fn m)))))
 
+(defn is-numeric-instance? [m]
+  (every? number? (eseq m))) 
+
 (defn create-dimensioned
   "Create a test nested vector array with the specified number of dims. will have 2^dims numeric elements"
   ([dims]
@@ -306,6 +309,15 @@
       (test-scale m))))
 
 ;; ========================================
+;; arbitrary numeric instance tests
+
+(defn misc-numeric-tests [m]
+  (is (equals (add m m) (scale m 2.0))))
+
+(defn test-numeric-instance [m]
+  (misc-numeric-tests m))
+
+;; ========================================
 ;; 1D vector tests
 
 (defn test-vector-slices [im]
@@ -430,6 +442,8 @@
 ;;
 ;; All matrix implementations must pass this test for any valid matrix
 (defn instance-test [m]
+  (when (is-numeric-instance? m)
+    (test-numeric-instance m))
   (test-array-assumptions m))
 
 ;; ==============================================
