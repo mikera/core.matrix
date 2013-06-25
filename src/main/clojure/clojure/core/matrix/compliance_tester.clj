@@ -318,7 +318,7 @@
   (is (equals (add 0.0 m) (mul 1 m)))
   (is (equals (emul m m) (square m)))
   (is (equals (esum m) (ereduce + m)))
-  (is (= (eseq m) (eseq (emap identity m)))))
+  (is (= (map inc (eseq m)) (eseq (emap inc m)))))
 
 (defn test-numeric-instance [m]
   (misc-numeric-tests m))
