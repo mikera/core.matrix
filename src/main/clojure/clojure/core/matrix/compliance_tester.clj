@@ -180,9 +180,12 @@
 (defn test-assign [m]
   (let [e (first (eseq m))
         m (or m (error "trying to assign to nil object!?!")) 
-        n (assign m e)]
+        n (assign m e)
+        mm (mutable-matrix m)]
     (is (e= (broadcast e (shape m)) n))
-    (is (same-shape? m n))))
+    (is (same-shape? m n))
+    (fill! mm e)
+    (is (e= mm n))))
 
 (defn test-join [m]
   (when (> 0 (dimensionality m))

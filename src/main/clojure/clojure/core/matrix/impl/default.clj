@@ -196,9 +196,11 @@
                 (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i))))) 
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
 	        (array? m)
-	          (doall (map (fn [a b] (mp/assign! a b))
-	                      (mp/get-major-slice-seq m)
-	                      (mp/get-major-slice-seq x)))
+            (let [xdims (long (mp/dimensionality x))]
+              (if (> xdims 0)
+                (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) (mp/get-major-slice-seq x)))
+                (let [value (mp/get-0d x)]
+                  (doseq [ms (mp/get-major-slice-seq m)] (mp/assign! ms value)))))
 	        :else
 	          (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
@@ -549,7 +551,9 @@
   java.lang.Object
     (matrix-equals [a b]
       (let [[a b] (mp/broadcast-compatible a b)]
-        (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))))
+        (if (== 0 (mp/dimensionality a))
+          (== (mp/get-0d a) (mp/get-0d b))
+          (not (some false? (map == (mp/element-seq a) (mp/element-seq b))))))))
 
 (extend-protocol mp/PDoubleArrayOutput
   java.lang.Number
