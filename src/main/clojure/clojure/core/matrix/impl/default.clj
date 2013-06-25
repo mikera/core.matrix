@@ -810,6 +810,12 @@
       (let [x (double exponent)]
         (mp/element-map m #(Math/pow (.doubleValue ^Number %) x)))))  
 
+(extend-protocol mp/PSquare
+  Number
+   (square [m] (* m m)) 
+  Object 
+   (square [m] (mp/element-multiply m m))) 
+
 ;; define standard Java maths functions for numbers
 (eval
   `(extend-protocol mp/PMathsFunctions

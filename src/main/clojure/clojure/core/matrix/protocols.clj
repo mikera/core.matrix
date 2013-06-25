@@ -416,6 +416,10 @@
    provide their own implementation."
   (element-pow [m exponent])) 
 
+(defprotocol PSquare
+  "Protocol to support element-wise squaring of an array."
+  (square [m])) 
+
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
 (eval

@@ -706,7 +706,7 @@
 (defn square
   "Squares every element of a matrix."
   ([m]
-    (e* m m))) ;; TODO: make this a protocol function
+    (mp/square m))) 
 
 (defn normalise
   "Normalises a matrix (scales to unit length). 
