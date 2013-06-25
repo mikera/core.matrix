@@ -371,6 +371,12 @@
         b (matrix im [4 -3])]
     (is (== 5 (distance a b))))) 
 
+(defn test-1d-instances [im]
+  (test-numeric-instance (matrix im [-1 2 -3]))
+  (test-numeric-instance (matrix im [1]))
+  (test-numeric-instance (matrix im [1 2 -3 4.5 7 -10.8]))
+  (test-numeric-instance (matrix im [0 0]))) 
+
 (defn vector-tests-1d [im]
   (test-vector-mset im)
   (test-vector-length im)
@@ -380,7 +386,8 @@
   (test-vector-slices im)
   (test-vector-subvector im)
   (test-vector-distance im) 
-  (test-element-add im))
+  (test-element-add im)
+  (test-1d-instances im))
 
 ;; ========================================
 ;; 2D matrix tests
