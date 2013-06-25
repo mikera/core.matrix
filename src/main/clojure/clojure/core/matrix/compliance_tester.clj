@@ -312,7 +312,11 @@
 ;; arbitrary numeric instance tests
 
 (defn misc-numeric-tests [m]
-  (is (equals (add m m) (scale m 2.0))))
+  (is (equals (add m m) (scale m 2.0)))
+  (is (equals (sub m 0.0) (scale m 1.0)))
+  (is (equals (add 0.0 m) (mul 1 m)))
+  (is (equals (emul m m) (square m)))
+  (is (equals (esum m) (ereduce + m))))
 
 (defn test-numeric-instance [m]
   (misc-numeric-tests m))
@@ -427,13 +431,20 @@
     (is (equals [[1 2] [1 2]] (broadcast (matrix im [1 2]) [2 2]))) 
     ))
 
+(defn test-2d-instances [im]
+  (test-numeric-instance (matrix im [[1 2] [3 4]]))
+  (test-numeric-instance (matrix im [[1 2]]))
+  (test-numeric-instance (matrix im [[10]]))
+  (test-numeric-instance (matrix im [[10] [11]]))) 
+
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)
   (test-transpose im)
   (test-diagonal im)
   (test-trace im)
   (test-matrix-emul im)
-  (test-identity im))
+  (test-identity im)
+  (test-2d-instances im))
 
 ;; ======================================
 ;; Instance test function
