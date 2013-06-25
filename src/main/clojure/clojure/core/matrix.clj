@@ -686,14 +686,16 @@
     (reduce (fn [acc m] (sub! acc m)) (sub! a b) more)))
 
 (defn scale
-  "Scales a matrix by one or more scalar factors"
+  "Scales a matrix by one or more scalar factors.
+   Returns a new scaled matrix."
   ([m factor]
     (mp/scale m factor))
   ([m factor & more-factors]
     (mp/scale m (* factor (reduce * more-factors)))))
 
 (defn scale!
-  "Scales a matrix by one or more scalar factors (in place)"
+  "Scales a matrix by one or more scalar factors (in place).
+   Returns the matrix after it has been mutated."
   ([m factor]
     (mp/scale! m factor)
     m)
@@ -730,7 +732,7 @@
     v))
 
 (defn dot
-  "Computes the dot product (inner product) of two vectors"
+  "Computes the dot product (1Dx1D inner product) of two vectors"
   ([a b]
     (mp/vector-dot a b)))
 
