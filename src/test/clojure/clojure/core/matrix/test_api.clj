@@ -50,8 +50,9 @@
   (is (equals [3 8] (add-product [0 0] [1 2] [3 4])))) 
 
 (deftest test-square
+  (is (equals 81 (square 9)))
   (is (equals [1 4] (square [1 2])))
-  (is (equals [1 4] (square (double-array [1 2]))))) 
+  (is (equals [[1 4]] (square [(double-array [1 2])])))) 
 
 (deftest test-new
   (is (equals [0 0 0] (new-vector 3)))
