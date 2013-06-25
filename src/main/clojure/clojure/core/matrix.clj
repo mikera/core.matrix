@@ -266,12 +266,12 @@
     (mp/dimensionality m)))
 
 (defn row-count
-  "Returns the number of rows in a matrix or vector (must be 1D or more)"
+  "Returns the number of rows in a matrix or vector (array must be 1D or more)"
   ([m]
     (mp/dimension-count m 0)))
 
 (defn column-count
-  "Returns the number of columns in a matrix (must be 2D or more)"
+  "Returns the number of columns in a matrix (array must be 2D or more)"
   ([m]
     (mp/dimension-count m 1)))
 
@@ -282,7 +282,7 @@
     (mp/dimension-count m dim)))
 
 (defn square?
-  "Returns true if matrix is square (2D with same number of rows and columns)"
+  "Returns true if matrix is square (i.e. 2D matrix with same number of rows and columns)"
   ([m]
     (and
       (== 2 (mp/dimensionality m))
@@ -317,7 +317,8 @@
 
 (defn conforming?
   "Returns true if two matrices have a conforming shape. Two matrices are conforming if there
-   exists a common shape that both can broadcast to." 
+   exists a common shape that both can broadcast to. This is a requirement for elementwise
+   operations to work correctly on two different-shaped arrays." 
   ([a] true)
   ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b)))))) 
 
@@ -480,7 +481,7 @@
       (TODO)))) 
 
 (defn rotate
-  "Rotates an array along specified dimensions"
+  "Rotates an array along specified dimensions."
   ([m dimension shift-amount]
     (let [c (mp/dimension-count m dimension)
           sh (mod shift-amount c)]
@@ -533,7 +534,9 @@
     (mp/reshape m shape))) 
 
 (defn fill! 
-  "Fills a matrix with a single scalar value."
+  "Fills a matrix with a single scalar value. 
+
+   Equivalent to assign!, but is likely to be more efficient for scalar values."
   ([m value]
     (mp/fill! m value)
     m)) 
@@ -664,7 +667,7 @@
 
 (defn add!
   "Performs element-wise mutable matrix addition on one or more matrices. 
-   Returns the mutated matrix."
+   Returns the first matrix after it has been mutated."
   ([a] a)
   ([a b]
     (mp/matrix-add! a b)
@@ -674,7 +677,7 @@
 
 (defn sub!
   "Performs element-wise mutable matrix subtraction on one or more matrices. 
-   Returns the mutated matrix."
+   Returns the first matrix, after it has been mutated."
   ([a] a)
   ([a b]
     (mp/matrix-sub! a b)
