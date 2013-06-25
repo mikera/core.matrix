@@ -371,13 +371,13 @@
 
 (defn test-transpose [im]
   (testing "2D transpose"
-    (let [im (matrix [[1 2] [3 4]])]
-      (is (equals [[1 3] [2 4]] (transpose im)))
-      (is (equals im (transpose (transpose im)))))))
+    (let [m (matrix im [[1 2] [3 4]])]
+      (is (equals [[1 3] [2 4]] (transpose m)))
+      (is (equals m (transpose (transpose m)))))))
 
 (defn test-negate [im]
   (testing "negate"
-    (let [m (matrix [[1 2] [3 4]])]
+    (let [m (matrix im [[1 2] [3 4]])]
       (is (equals [[-1 -2] [-3 -4]] (negate m))))))
 
 (defn test-identity [im]
@@ -409,10 +409,10 @@
     (is (row-matrix? (transpose cm)))))
 
 (defn test-matrix-emul [im]
-  (is (equals [[2 2] [4 4]] (e* [[1 1] [2 2]] 2)))
-  (is (equals [[2 2] [4 4]] (e* 2 [[1 1] [2 2]])))
+  (is (equals [[2 2] [4 4]] (e* (matrix im [[1 1] [2 2]]) 2)))
+  (is (equals [[2 2] [4 4]] (e* 2 (matrix im [[1 1] [2 2]]))))
   (when (supports-dimensionality? im 1)
-    ;; TODO test vector broadcasting to matrix
+    (is (equals [[1 2] [1 2]] (broadcast (matrix im [1 2]) [2 2]))) 
     ))
 
 (defn matrix-tests-2d [im]
