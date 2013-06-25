@@ -62,6 +62,18 @@
 (deftest test-shape-errors
   (is (error? (add [1] [2 3])))) 
 
+(deftest test-mutable-matrix-fill
+  (let [m [1 2 3]
+        mm (mutable-matrix m)]
+    (fill! mm 0.5)
+    (is (equals mm [0.5 0.5 0.5])))) 
+
+(deftest test-mutable-matrix-assign
+  (let [m [1 2 3]
+        mm (mutable-matrix m)]
+    (assign! mm 0.5)
+    (is (equals mm [0.5 0.5 0.5])))) 
+
 (deftest test-coerce
   (testing "clojure vector coercion"
     (is (== 1.0 (coerce [] 1)))

@@ -528,6 +528,12 @@
   ([m shape]
     (mp/reshape m shape))) 
 
+(defn fill! 
+  "Fills a matrix with a single scalar value."
+  ([m value]
+    (mp/fill! m value)
+    m)) 
+
 ;; ======================================
 ;; matrix comparisons
 

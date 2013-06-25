@@ -188,8 +188,12 @@
       (let [dims (mp/dimensionality m)]
         (cond
           (== 1 dims)
-	          (dotimes [i (mp/dimension-count m 0)]
-	              (mp/set-1d! m i (mp/get-1d x i))) 
+	          (let [xdims (long (mp/dimensionality x))
+                  msize (long (mp/dimension-count m 0))]
+              (if (== 0 xdims)
+                (let [value (mp/get-0d x)]
+                  (dotimes [i msize] (mp/set-1d! m i value)))
+                (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i))))) 
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
 	        (array? m)
 	          (doall (map (fn [a b] (mp/assign! a b))
@@ -214,6 +218,11 @@
 	                skip (long (if ss (calc-element-count (first (mp/get-major-slice-seq m))) 0))]
 	            (doseq-indexed [s ss i]
 	              (mp/assign-array! s arr (+ start (* skip i)) skip))))))))
+
+(extend-protocol mp/PMutableFill
+  Object
+    (fill! [m value]
+      (mp/assign! m value)))
 
 (extend-protocol mp/PMatrixCloning
 	  java.lang.Cloneable

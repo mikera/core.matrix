@@ -218,12 +218,8 @@
 (extend-protocol mp/PMutableMatrixConstruction
   clojure.lang.IPersistentVector 
     (mutable-matrix [m]
-      (cond
-        (and (== 1 (mp/dimensionality m)) (every? #(or (instance? Double %) 
-                                                       ;; (and (number? %) (== % (double %)))
-                                                       ) m))
-          (double-array m) 
-        :else (mapv mp/mutable-matrix m)))) 
+      nil ;; fall-though: should get an ndarray result
+      )) 
 
 (extend-protocol mp/PVectorDistance
   clojure.lang.IPersistentVector

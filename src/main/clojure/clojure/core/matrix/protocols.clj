@@ -226,6 +226,11 @@
     [m arr start length]
     "Sets all the values in a matrix for an array source."))
 
+(defprotocol PMutableFill
+  (fill!
+    [m value]
+    "Fills the matrix with the given scalar value.")) 
+
 (defprotocol PDoubleArrayOutput
   "Protocol for getting data as a double array"
   (to-double-array [m]
