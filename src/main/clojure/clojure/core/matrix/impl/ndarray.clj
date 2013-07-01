@@ -179,6 +179,7 @@ of indexes and strides"
 
 ;; PIndexedAccess protocol defines a bunch of functions to allow
 ;; (surprisingly) indexed access into matrix.
+;; TODO: is it possible to avoid using this ugly type hints (also see [3])?
 
 (extend-type NDArray
   mp/PIndexedAccess
@@ -302,3 +303,4 @@ of indexes and strides"
 ;; ## Links
 ;; [1] http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
 ;; [2] http://scipy-lectures.github.io/advanced/advanced_numpy/
+;; [3] http://clj-me.cgrand.net/2009/08/06/what-warn-on-reflection-doesnt-tell-you-about-arrays/
