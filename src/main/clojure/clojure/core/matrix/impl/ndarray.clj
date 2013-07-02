@@ -26,6 +26,7 @@
 ;; the data itself.
 ;; In future, other memory layouts can be considered, such as Morton order.
 ;; TODO: try Morton order
+;; TODO: consider adding "offset" field (can be usable in slicing?)
 
 (deftype NDArray
     [^objects data
@@ -54,13 +55,7 @@
 ;; ```python
 ;; np.empty([4, 3, 2], dtype=np.int8, order="c").strides # (6, 2, 1)
 ;; ```
-
-(deftest c-strides-test
-  (are [strides shape] (= strides (c-strides shape))
-       [1]        [3]
-       [2 1]      [3 2]
-       [6 2 1]    [4 3 2]
-       [24 6 2 1] [5 4 3 2]))
+;; An actual test can be found in test_ndarray_implementation.clj.
 
 ;; When we are using Fortran-like striding (column-major ordering),
 ;; the formula for strides is different:
@@ -77,14 +72,8 @@
 ;; ```python
 ;; np.empty([4, 3, 2], dtype=np.int8, order="f").strides # (1, 4, 12)
 ;; ```
-
-(deftest f-strides-test
-  (are [strides shape] (= strides (f-strides shape))
-       [1]         [3]
-       [1 3]       [3 2]
-       [1 4 12]    [4 3 2]
-       [1 5 20 60] [5 4 3 2]))
-
+;; And again, an actual test can be found in test_ndarray_implementation.clj.
+;;
 ;; ## Constructors
 ;;
 ;; Constructing of an empty NDArray with given shape is fairly easy.
@@ -102,13 +91,6 @@
         len (reduce * shape)
         data (object-array len)]
     (NDArray. data ndims shape strides)))
-
-(deftest empty-ndarray-test
-  (let [^NDArray a (empty-ndarray [3 2])]
-    (is (= [nil nil nil nil nil nil] (vec (.data a))))
-    (is (= 2 (.ndims a)))
-    (is (= [3 2] (vec (.shape a))))
-    (is (= [2 1] (vec (.strides a))))))
 
 ;; Here we construct NDArray with given data. The caveat here is that we
 ;; can't really use this definition until we define an implementation for
@@ -146,6 +128,8 @@ of indexes and strides"
 ;;
 ;; PImplementation protocol contains methods for providing implementation
 ;; metadata and matrix construction.
+;; TODO: check if defining this implementations in deftype's body will
+;; inflict sensible performance benefit.
 
 (extend-type NDArray
   mp/PImplementation

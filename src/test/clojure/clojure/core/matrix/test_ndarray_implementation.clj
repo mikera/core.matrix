@@ -6,6 +6,27 @@
   (:require clojure.core.matrix.impl.persistent-vector)
   (:use clojure.core.matrix.impl.ndarray))
 
+(deftest c-strides-test
+  (are [strides shape] (= strides (c-strides shape))
+       [1]        [3]
+       [2 1]      [3 2]
+       [6 2 1]    [4 3 2]
+       [24 6 2 1] [5 4 3 2]))
+
+(deftest f-strides-test
+  (are [strides shape] (= strides (f-strides shape))
+       [1]         [3]
+       [1 3]       [3 2]
+       [1 4 12]    [4 3 2]
+       [1 5 20 60] [5 4 3 2]))
+
+(deftest empty-ndarray-test
+  (let [^NDArray a (empty-ndarray [3 2])]
+    (is (= [nil nil nil nil nil nil] (vec (.data a))))
+    (is (= 2 (.ndims a)))
+    (is (= [3 2] (vec (.shape a))))
+    (is (= [2 1] (vec (.strides a))))))
+
 (deftest regressions
   (let [m (empty-ndarray [2 2])
         vm [[1 2] [3 4]]]
