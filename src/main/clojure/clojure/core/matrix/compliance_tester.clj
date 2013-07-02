@@ -200,6 +200,11 @@
           js (slices j)]
       (is (== (first (shape j)) (inc (first (shape m))))))))
 
+(defn test-pm [m]
+  ;; TODO: fix issue #43 on GitHub
+  ;;(is (< 0 (count (with-out-str (pm m)))))
+  ) 
+
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-as-vector m)
@@ -213,6 +218,7 @@
   (test-vector-round-trip m)
   (test-ndarray-round-trip m)
   (test-reshape m)
+  (test-pm m)
   (test-broadcast m)
   (test-general-transpose m))
 
