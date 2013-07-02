@@ -21,7 +21,7 @@
        [1 5 20 60] [5 4 3 2]))
 
 (deftest empty-ndarray-test
-  (let [^NDArray a (empty-ndarray [3 2])]
+  (let [a (empty-ndarray [3 2])]
     (is (= [nil nil nil nil nil nil] (vec (.data a))))
     (is (= 2 (.ndims a)))
     (is (= [3 2] (vec (.shape a))))

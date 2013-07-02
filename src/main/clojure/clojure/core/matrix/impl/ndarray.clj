@@ -32,7 +32,11 @@
     [^objects data
      ^long ndims
      ^longs shape
-     ^longs strides])
+     ^longs strides]
+
+  java.lang.Object
+    (toString [m]
+      (str (mp/persistent-vector-coerce m))))
 
 ;; ## Default striding schemes
 ;;
@@ -101,7 +105,10 @@
   [data]
   (let [shape (long-array (mp/get-shape data))
         empty (empty-ndarray shape)]
-    (mp/assign! empty data)))
+    (mp/assign! empty data)
+    ;; TODO: fix this when default implementation of assign! will return
+    ;; mutated object
+    empty))
 
 ;; ## Helper functions
 ;;
@@ -265,26 +272,22 @@ of indexes and strides"
 
 ;; TODO: one can't register an implementation without implementing
 ;; PConversion first. Seems wrong to me.
-;;
-;; (extend-type NDArray
-;;   mp/PConversion
-;;   (convert-to-nested-vectors [m]
-;;     (cond
-;;      (== 0 (alength (.shape m)))
-;;      (aget (.data m) 0)
-;;      (== 1 (alength (.shape m)))
-;;      (into [] (.data m))
-;;      :else
-;;      (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))))
 
-;;   #_java.lang.Object
-;;   #_(toString [m]
-;;     (str (mp/persistent-vector-coerce m)))
-;;   )
+(extend-type NDArray
+  mp/PConversion
+  (convert-to-nested-vectors [m]
+    (let [ndims (.ndims m)
+          #^"[Ljava.lang.Object;" data (.data m)]
+      (case ndims
+        0 (aget data 0)
+        1 (into [] data)
+        ;; TODO: not sure if this is really efficient
+        (mapv mp/convert-to-nested-vectors
+              (mp/get-major-slice-seq m))))))
 
 ;; Register implementation
 
-#_(imp/register-implementation (empty-ndarray [1]))
+(imp/register-implementation (empty-ndarray [1]))
 
 ;; ## Links
 ;; [1] http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
