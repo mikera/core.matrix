@@ -1,5 +1,4 @@
 (ns clojure.core.matrix.impl.ndarray
-  (:use clojure.test)
   (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
