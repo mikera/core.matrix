@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.test-double-array
   (:use clojure.test)
   (:use clojure.core.matrix)
+  (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.compliance-tester])
@@ -40,7 +41,10 @@
           fs (first (slices da))]
       (is (not (scalar? fs)))
       (is (== 0 (dimensionality fs)))
-      (is (array? fs)))))
+      (is (array? fs))))
+  (testing "wrong dimension"
+    (let [da (double-array [1 2 3])]
+      (is (error? (slice da 1 1))))))
 
 (deftest test-functional-ops
   (testing "mapping"
