@@ -179,13 +179,13 @@ of indexes and strides"
     ;; TODO: check if this check is really needed
     (when-not (= 1 (.ndims m))
       (throw (IllegalArgumentException. "can't use get-1d on non-vector")))
-    (let [#^"[Ljava.lang.Object;" data (.data m)]
+    (let [^objects data (.data m)]
       (aget data x)))
   (get-2d [m x y]
     (when-not (= 2 (.ndims m))
       (throw (IllegalArgumentException. "can't use get-2d on non-matrix")))
     (let [^longs strides (.strides m)
-          #^"[Ljava.lang.Object;" data (.data m)
+          ^objects data (.data m)
           idx (+ (* (aget strides 0) (long x))
                  (* (aget strides 1) (long y)))]
       (aget data idx)))
@@ -195,7 +195,7 @@ of indexes and strides"
               "index count should match dimensionality")))
     (let [idxs (long-array indexes)
           strides (.strides m)
-          #^"[Ljava.lang.Object;" data (.data m)
+          ^objects data (.data m)
           idx (get-strided-idx idxs strides)]
       (aget data idx))))
 
@@ -234,13 +234,13 @@ of indexes and strides"
   (set-1d! [m x v]
     (when-not (= 1 (.ndims m))
       (throw (IllegalArgumentException. "can't use set-1d! on non-vector")))
-    (let [#^"[Ljava.lang.Object;" data (.data m)]
+    (let [^objects data (.data m)]
       (aset data x v)))
   (set-2d! [m x y v]
     (when-not (= 2 (.ndims m))
       (throw (IllegalArgumentException. "can't use set-2d! on non-matrix")))
     (let [^longs strides (.strides m)
-          #^"[Ljava.lang.Object;" data (.data m)
+          ^objects data (.data m)
           idx (+ (* (aget strides 0) (long x))
                  (* (aget strides 1) (long y)))]
       (aset data idx v)))
@@ -250,7 +250,7 @@ of indexes and strides"
               "index count should match dimensionality")))
     (let [idxs (long-array indexes)
           strides (.strides m)
-          #^"[Ljava.lang.Object;" data (.data m)
+          ^objects data (.data m)
           idx (get-strided-idx idxs strides)]
       (aset data idx v))))
 
@@ -262,7 +262,7 @@ of indexes and strides"
 (extend-type NDArray
   mp/PMatrixCloning
   (clone [m]
-    (let [#^"[Ljava.lang.Object;" data-old (.data m)
+    (let [^objects data-old (.data m)
           data (aclone data-old)
           ndims (.ndims m)
           shape (aclone (longs (.shape m)))
@@ -276,7 +276,7 @@ of indexes and strides"
   mp/PConversion
   (convert-to-nested-vectors [m]
     (let [ndims (.ndims m)
-          #^"[Ljava.lang.Object;" data (.data m)]
+          ^objects data (.data m)]
       (case ndims
         0 (aget data 0)
         1 (into [] data)
