@@ -226,6 +226,11 @@
     [m arr start length]
     "Sets all the values in a matrix for an array source."))
 
+(defprotocol PMutableFill
+  (fill!
+    [m value]
+    "Fills the matrix with the given scalar value.")) 
+
 (defprotocol PDoubleArrayOutput
   "Protocol for getting data as a double array"
   (to-double-array [m]
@@ -410,6 +415,10 @@
    double values: arrays supporting arbitrary precision numbers or complex types will need to
    provide their own implementation."
   (element-pow [m exponent])) 
+
+(defprotocol PSquare
+  "Protocol to support element-wise squaring of an array."
+  (square [m])) 
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!

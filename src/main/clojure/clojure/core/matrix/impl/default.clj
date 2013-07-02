@@ -188,13 +188,19 @@
       (let [dims (mp/dimensionality m)]
         (cond
           (== 1 dims)
-	          (dotimes [i (mp/dimension-count m 0)]
-	              (mp/set-1d! m i (mp/get-1d x i))) 
+	          (let [xdims (long (mp/dimensionality x))
+                  msize (long (mp/dimension-count m 0))]
+              (if (== 0 xdims)
+                (let [value (mp/get-0d x)]
+                  (dotimes [i msize] (mp/set-1d! m i value)))
+                (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i))))) 
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
 	        (array? m)
-	          (doall (map (fn [a b] (mp/assign! a b))
-	                      (mp/get-major-slice-seq m)
-	                      (mp/get-major-slice-seq x)))
+            (let [xdims (long (mp/dimensionality x))]
+              (if (> xdims 0)
+                (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) (mp/get-major-slice-seq x)))
+                (let [value (mp/get-0d x)]
+                  (doseq [ms (mp/get-major-slice-seq m)] (mp/assign! ms value)))))
 	        :else
 	          (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
@@ -214,6 +220,11 @@
 	                skip (long (if ss (calc-element-count (first (mp/get-major-slice-seq m))) 0))]
 	            (doseq-indexed [s ss i]
 	              (mp/assign-array! s arr (+ start (* skip i)) skip))))))))
+
+(extend-protocol mp/PMutableFill
+  Object
+    (fill! [m value]
+      (mp/assign! m value)))
 
 (extend-protocol mp/PMatrixCloning
 	  java.lang.Cloneable
@@ -540,7 +551,9 @@
   java.lang.Object
     (matrix-equals [a b]
       (let [[a b] (mp/broadcast-compatible a b)]
-        (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))))
+        (if (== 0 (mp/dimensionality a))
+          (== (mp/get-0d a) (mp/get-0d b))
+          (not (some false? (map == (mp/element-seq a) (mp/element-seq b))))))))
 
 (extend-protocol mp/PDoubleArrayOutput
   java.lang.Number
@@ -560,9 +573,9 @@
       ([m f]
         (f m))
       ([m f a]
-        (f m a))
+        (f m (mp/get-0d a)))
       ([m f a more]
-        (apply f m a more)))
+        (apply f m (mp/get-0d a) (map mp/get-0d more))))
     (element-map!
       ([m f]
         (error "java.lang.Number instance is not mutable!"))
@@ -580,7 +593,7 @@
       (let [dims (mp/dimensionality m)]
         (cond
           (== 0 dims) 
-            (if (mp/is-scalar? m) (list m) (list (mp/get-0d m))) 
+            (list (mp/get-0d m)) 
           (== 1 dims) 
             (map #(mp/get-1d m %) (range (mp/dimension-count m 0))) 
           (array? m) 
@@ -800,6 +813,12 @@
     (element-pow [m exponent]
       (let [x (double exponent)]
         (mp/element-map m #(Math/pow (.doubleValue ^Number %) x)))))  
+
+(extend-protocol mp/PSquare
+  Number
+   (square [m] (* m m)) 
+  Object 
+   (square [m] (mp/element-multiply m m))) 
 
 ;; define standard Java maths functions for numbers
 (eval

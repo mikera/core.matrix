@@ -127,7 +127,10 @@
    from another core.matrix implementation that supports the same element type."
   ([data]
     (or (mp/mutable-matrix data) 
-        (clojure.core.matrix.impl.ndarray/ndarray data)))) 
+        (clojure.core.matrix.impl.ndarray/ndarray data)))
+  ([data type]
+    (mutable-matrix data) ;; TODO: support creation with specific element types
+    )) 
 
 (defn diagonal-matrix
   "Constructs a 2D diagonal matrix with the given values on the main diagonal.
@@ -199,7 +202,7 @@
     m))
 
 (defn assign
-  "Assigns a value to a matrix, broadcasting to fill the whole matrix as necessary.
+  "Assigns a value to a matrix shape, broadcasting to fill the whole matrix as necessary.
    Returns a new matrix."
   ([m a]
     (mp/broadcast (mp/coerce-param m a) (mp/get-shape m)))) 
@@ -217,8 +220,9 @@
     (mp/clone m)))
 
 (defn to-nested-vectors
-  "Converts an array to nested vectors.
-   The depth of nesting is equal to the dimensionality of the array."
+  "Converts an array to an idiomatic, immutable nested Clojure vector format.
+
+   The depth of nesting will be equal to the dimensionality of the array."
   ([m]
     (mp/convert-to-nested-vectors m)))
 
@@ -241,7 +245,7 @@
     (mp/is-vector? m)))
 
 (defn scalar?
-  "Returns true if the parameter is a scalar value (i.e. zero dimensionality, acceptable as matrix value).
+  "Returns true if the parameter is a scalar value (i.e. acceptable as matrix element value).
    A 0-d array containing a scalar is *not* itself a scalar value."
   ([m]
     (mp/is-scalar? m)))
@@ -262,12 +266,12 @@
     (mp/dimensionality m)))
 
 (defn row-count
-  "Returns the number of rows in a matrix or vector (must be 1D or more)"
+  "Returns the number of rows in a matrix or vector (array must be 1D or more)"
   ([m]
     (mp/dimension-count m 0)))
 
 (defn column-count
-  "Returns the number of columns in a matrix (must be 2D or more)"
+  "Returns the number of columns in a matrix (array must be 2D or more)"
   ([m]
     (mp/dimension-count m 1)))
 
@@ -278,7 +282,7 @@
     (mp/dimension-count m dim)))
 
 (defn square?
-  "Returns true if matrix is square (2D with same number of rows and columns)"
+  "Returns true if matrix is square (i.e. 2D matrix with same number of rows and columns)"
   ([m]
     (and
       (== 2 (mp/dimensionality m))
@@ -313,7 +317,8 @@
 
 (defn conforming?
   "Returns true if two matrices have a conforming shape. Two matrices are conforming if there
-   exists a common shape that both can broadcast to." 
+   exists a common shape that both can broadcast to. This is a requirement for elementwise
+   operations to work correctly on two different-shaped arrays." 
   ([a] true)
   ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b)))))) 
 
@@ -476,7 +481,7 @@
       (TODO)))) 
 
 (defn rotate
-  "Rotates an array along specified dimensions"
+  "Rotates an array along specified dimensions."
   ([m dimension shift-amount]
     (let [c (mp/dimension-count m dimension)
           sh (mod shift-amount c)]
@@ -527,6 +532,14 @@
    Preserves the row-major order of matrix elements."
   ([m shape]
     (mp/reshape m shape))) 
+
+(defn fill! 
+  "Fills a matrix with a single scalar value. 
+
+   Equivalent to assign!, but is likely to be more efficient for scalar values."
+  ([m value]
+    (mp/fill! m value)
+    m)) 
 
 ;; ======================================
 ;; matrix comparisons
@@ -654,7 +667,7 @@
 
 (defn add!
   "Performs element-wise mutable matrix addition on one or more matrices. 
-   Returns the mutated matrix."
+   Returns the first matrix after it has been mutated."
   ([a] a)
   ([a b]
     (mp/matrix-add! a b)
@@ -664,7 +677,7 @@
 
 (defn sub!
   "Performs element-wise mutable matrix subtraction on one or more matrices. 
-   Returns the mutated matrix."
+   Returns the first matrix, after it has been mutated."
   ([a] a)
   ([a b]
     (mp/matrix-sub! a b)
@@ -673,14 +686,16 @@
     (reduce (fn [acc m] (sub! acc m)) (sub! a b) more)))
 
 (defn scale
-  "Scales a matrix by one or more scalar factors"
+  "Scales a matrix by one or more scalar factors.
+   Returns a new scaled matrix."
   ([m factor]
     (mp/scale m factor))
   ([m factor & more-factors]
     (mp/scale m (* factor (reduce * more-factors)))))
 
 (defn scale!
-  "Scales a matrix by one or more scalar factors (in place)"
+  "Scales a matrix by one or more scalar factors (in place).
+   Returns the matrix after it has been mutated."
   ([m factor]
     (mp/scale! m factor)
     m)
@@ -691,7 +706,7 @@
 (defn square
   "Squares every element of a matrix."
   ([m]
-    (e* m m))) ;; TODO: make this a protocol function
+    (mp/square m))) 
 
 (defn normalise
   "Normalises a matrix (scales to unit length). 
@@ -717,7 +732,7 @@
     v))
 
 (defn dot
-  "Computes the dot product (inner product) of two vectors"
+  "Computes the dot product (1Dx1D inner product) of two vectors"
   ([a b]
     (mp/vector-dot a b)))
 

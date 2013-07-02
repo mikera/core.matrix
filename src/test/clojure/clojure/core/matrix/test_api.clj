@@ -49,6 +49,11 @@
   (is (equals [7] (add-product [1] 2 3)))
   (is (equals [3 8] (add-product [0 0] [1 2] [3 4])))) 
 
+(deftest test-square
+  (is (equals 81 (square 9)))
+  (is (equals [1 4] (square [1 2])))
+  (is (equals [[1 4]] (square [(double-array [1 2])])))) 
+
 (deftest test-new
   (is (equals [0 0 0] (new-vector 3)))
   (is (= [0.0 0.0 0.0] (seq (new-vector :double-array 3))))
@@ -61,6 +66,18 @@
 ;; TODO: need to fix and have proper errors!
 (deftest test-shape-errors
   (is (error? (add [1] [2 3])))) 
+
+(deftest test-mutable-matrix-fill
+  (let [m [1 2 3]
+        mm (mutable-matrix m)]
+    (fill! mm 0.5)
+    (is (equals mm [0.5 0.5 0.5])))) 
+
+(deftest test-mutable-matrix-assign
+  (let [m [1 2 3]
+        mm (mutable-matrix m)]
+    (assign! mm 0.5)
+    (is (equals mm [0.5 0.5 0.5])))) 
 
 (deftest test-coerce
   (testing "clojure vector coercion"
@@ -86,8 +103,15 @@
 
 (deftest test-element-seq
   (is (= [0] (eseq 0)))
+  (is (= [1] (eseq [1])))
   (is (= [2] (eseq [[2]])))
   (is (= [4] (eseq [[[[4]]]]))))
+
+(deftest test-element-map
+  (is (= 1 (emap inc 0)))
+  (is (= [2] (emap inc [1])))
+  (is (= [[3]] (emap inc [[2]])))
+  (is (= [[[[5]]]] (emap inc [[[[4]]]])))) 
 
 (deftest test-conforming?
   (is (conforming? 1 [[2 2] [3 3]]))
@@ -143,6 +167,8 @@
   (testing "matrices"
     (is (equals [[1 0.0] [0 1.0]] [[1.0 0] [0.0 1]])))
   (testing "element e="
+    (is (e= 'a 'a))
+    (is (e= :foo :foo))
     (is (e= [1 2] [1 2]))
     (is (e= [1 2] [1 2] [1 2] [1 2]))
     (is (not (e= [1 2] [3 4])))
@@ -247,6 +273,8 @@
     (is (scalar? 1/7)))
   (testing "scalar dimensionality"
     (is (== 0 (dimensionality 1.0)))
+    (is (== 0 (dimensionality :foo)))
+    (is (== 0 (dimensionality 'bar)))
     (is (== 1.0 (mget 1.0)))
     (is (= [] (shape 1.0))))
   (testing "functional operations"
