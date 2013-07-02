@@ -106,6 +106,8 @@
 ;; ## Helper functions
 ;;
 ;; In this section we define a couple of useful functions.
+;; TODO: check if NDWrapper can reuse some of this; refactor to
+;; utils.clj?
 ;;
 ;; First of them is a function to find an index inside of strided array.
 ;; General formula for finding an element of given index inside of a
