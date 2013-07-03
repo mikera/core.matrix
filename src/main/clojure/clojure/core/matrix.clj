@@ -213,7 +213,7 @@
 
    Guarantees that:
    1. Mutating the returned matrix will not modify any other matrix (defensive copy)
-   2. The return matrix will be mutable, if the implementation supports mutable matrices.
+   2. The returned matrix will be fully mutable, if the implementation supports mutable matrices.
 
    A matrix implementation which only provides immutable matrices may safely return the same matrix."
   ([m]
