@@ -31,8 +31,10 @@
       (mutable-fn clonem)
       (equals clonem (immutable-fn m)))))
 
-(defn is-numeric-instance? [m]
-  (every? number? (eseq m))) 
+(defn is-numeric-instance? 
+  "Returns true if an array is completely numeric"
+  ([m]
+    (every? number? (eseq m)))) 
 
 (defn create-dimensioned
   "Create a test nested vector array with the specified number of dims. will have 2^dims numeric elements"
@@ -61,8 +63,10 @@
     (is (keyword? (imp/get-implementation-key im)))
     (is (= (imp/get-implementation-key im) (imp/get-implementation-key (imp/get-canonical-object im))))))
 
-(defn test-implementation [im]
-  (test-implementation-key im))
+(defn test-implementation 
+  "Tests that an implementation conforms to any general requirements"
+  ([im]
+    (test-implementation-key im)))
 
 ;; ==============================================
 ;; Test general array assumprions
@@ -200,10 +204,12 @@
           js (slices j)]
       (is (== (first (shape j)) (inc (first (shape m))))))))
 
-(defn test-pm [m]
-  ;; TODO: fix issue #43 on GitHub
-  ;;(is (< 0 (count (with-out-str (pm m)))))
-  ) 
+(defn test-pm 
+  "Test for matrix pretty-printing"
+  ([m] 
+    ;; TODO: fix issue #43 on GitHub
+    ;;(is (< 0 (count (with-out-str (pm m)))))
+    )) 
 
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
