@@ -13,3 +13,4 @@
          (fn [~(first bindings)] (matrix-for [~(next bindings) ~(next shape)] ~@body))
          (range ~(first shape)))
       `(do ~@body)))) 
+
