@@ -48,7 +48,7 @@
   ([canonical-object]
   (swap! canonical-objects assoc (mp/implementation-key canonical-object) canonical-object)))
 
-(defn- try-load-implementation [k]
+(defn try-load-implementation [k]
   (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
     (try 
       (do (require ns-sym) :ok)
