@@ -79,13 +79,19 @@
   (seq [[:h2 "Protocol implementation summary"]
         [:p "git hash: "
          [:a {:href (str repo-url "/blob/" git-hash)}
-          git-hash]]]))
+          git-hash]]
+        [:small "Hint: hover on protocol names to get their description"]]))
 
 (defn render-protocol
   [p git-hash]
   (let [src-href (str repo-url "/blob/" git-hash "/" src-path "/"
-                      (:file p) "#L" (:line p))]
-    (seq [(:name p) "&nbsp;"
+                      (:file p) "#L" (:line p))
+        doc-title (if (:doc p)
+                    {:title  (clojure.string/replace (:doc p) #"\s+" " ")}
+                    {})]
+    (seq [[:span doc-title
+           (:name p)]
+          "&nbsp;"
           [:small "(line " [:a {:href src-href} (:line p)] ")" ]])))
 
 (defn render-table
