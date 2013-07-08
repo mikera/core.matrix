@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.docgen.implementations
   (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.implementations :as mi]))
+            [clojure.core.matrix.implementations :as mi]
+            [hiccup.page :as h]))
 
 ;; ## Info
 ;; This file provides rather hacky solution for generating
@@ -32,18 +33,47 @@
   "Returns a list of available implementations' objects"
   []
   (filter second
-          (for [[name ns] mi/KNOWN-IMPLEMENTATIONS
-                :when (not (#{:TODO} ns))]
+          (for [;;[name ns] mi/KNOWN-IMPLEMENTATIONS
+                [name ns] {:ndarray 'clojure.core.matrix.impl.ndarray}
+                :when (not (#{:TODO :persistent-vector} ns))]
             (try
-              [ns (mi/get-canonical-object name)]
+              {:name name, :obj (mi/get-canonical-object name)}
               (catch Throwable t nil)))))
 
+(defn find-implementers
+  "Returns a set of implementation names of implementations that
+   support provided protocol"
+  [protocol impl-objs]
+  (->> impl-objs
+       (filter #(->> % :obj class (extends? protocol)))
+       (map :name)
+       (into #{})))
+
 (defn extract-implementations
-  [protocols]
-  (let [objs (get-impl-objs)]
-    (for [p protocols
-          :let [implementers (->> objs
-                                  (filter #(extends? p %))
-                                  (map type)
-                                  (into #{}))]]
-      (assoc p :implemented-by implementers))))
+  "Returns a a sequence of protocol maps augmented with :implemented-by key
+   that contains a set of names of supporting implementations"
+  [protocols impl-objs]
+  (for [proto protocols]
+    (assoc proto :implemented-by (find-implementers proto impl-objs))))
+
+(defn generate
+  []
+  (let [impl-objs (get-impl-objs)
+        impl-names (map :name impl-objs)
+        protos (extract-implementations (extract-protocols) impl-objs)]
+    (prn impl-names)
+    (h/html5
+     [:head
+      [:title "Protocol/Implementation summary"]]
+     [:body
+      [:table
+       [:tr
+        [:th "Protocol"]
+        (for [impl-name impl-names] [:th (name impl-name)])]
+       (for [p protos]
+         [:tr
+          [:td (:name p)]
+          (for [impl-name impl-names]
+            [:td (if ((:implemented-by p) impl-name) "+" "-")])
+          ])]
+      ])))
