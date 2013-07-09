@@ -32,7 +32,7 @@
 
 ;; hashmap of implementation keys to canonical objects
 ;; objects must implement PImplementation protocol at a minimum
-(def canonical-objects (atom {}))
+(defonce canonical-objects (atom {}))
 
 
 (defn get-implementation-key 
