@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.docgen.implementations
   (:use [clojure.java.shell :only [sh]])
-  (:require [clojure.core.matrix.protocols :as mp]
+  (:require [clojure.reflect :as r]
+            [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as mi]
             [hiccup.page :as h]))
 
@@ -38,24 +39,35 @@
   []
   (filter second
           (for [[name ns] mi/KNOWN-IMPLEMENTATIONS
-                ;; [name ns] {:vectorz 'mikera.vectorz.matrix-api
-                ;;            :ndarray 'clojure.core.matrix.impl.ndarray
-                ;;            :scalar-wrapper 'clojure.core.matrix.impl.wrappers
-                ;;            :slice-wrapper 'clojure.core.matrix.impl.wrappers
-                ;;            :nd-wrapper 'clojure.core.matrix.impl.wrappers
-                ;;            :persistent-vector 'clojure.core.matrix.impl.persistent-vector
-                ;;            }
                 :when (not (#{:TODO :persistent-vector} ns))]
             (try
               {:name name, :obj (mi/get-canonical-object name)}
               (catch Throwable t nil)))))
+
+(defn extends-deep?
+  "This functions differs from ordinary `extends?` by using `extends?`
+   on all ancestors of given type instead of just type itself. It also
+   skips `java.lang.Object` that serves as a default implementation
+   for all protocols"
+  [proto cls]
+  ;; Here we need a special case to avoid reflecting on primitive type
+  ;; (it will cause an exception)
+  (if (= (Class/forName "[D") cls)
+    (extends? proto cls)
+    (let [bases (-> cls (r/type-reflect :ancestors true) :ancestors)]
+      (->> bases
+           (filter (complement #{'java.lang.Object}))
+           (map resolve)
+           (cons cls)
+           (map (partial extends? proto))
+           (some true?)))))
 
 (defn find-implementers
   "Returns a set of implementation names of implementations that
    support provided protocol"
   [protocol impl-objs]
   (->> impl-objs
-       (filter #(->> % :obj class (extends? protocol)))
+       (filter #(->> % :obj class (extends-deep? protocol)))
        (map :name)
        (into #{})))
 
@@ -72,7 +84,6 @@
   (-> (sh "git" "log" "--pretty=format:'%H'" "-n 1")
       :out
       (clojure.string/replace #"'" "")))
-
 
 (defn render-header
   [git-hash]
