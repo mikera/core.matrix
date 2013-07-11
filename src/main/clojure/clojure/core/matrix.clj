@@ -1028,7 +1028,10 @@
   ([] (imp/get-canonical-object (current-implementation))))
 
 (defn set-current-implementation
-  "Sets the currently active matrix implementation"
+  "Sets the currently active matrix implementation. 
+
+   This is used primarily for functions that construct new matrices, i.e. it determines the 
+   implementation used for expressions like: (matrix [[1 2] [3 4]])"
   ([m]
     (alter-var-root (var clojure.core.matrix/*matrix-implementation*)
                     (fn [_] (imp/get-implementation-key m)))))
