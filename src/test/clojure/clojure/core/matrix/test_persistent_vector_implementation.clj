@@ -19,6 +19,9 @@
   (testing "scalar broadcast"
     (is (e= [11 12 13] (add [1 2 3] 10)))
     (is (e= [11 12 13] (add 10 [1 2 3]))))
+  (testing "persistent vector shape"
+    (is (= [2] (seq (shape [1 2]))))
+    (is (= [0] (seq (shape []))))) 
   (testing "empty vector"
     (is (e= [] (coerce [] [])))
     (is (e= [] (assign [] 1.0)))

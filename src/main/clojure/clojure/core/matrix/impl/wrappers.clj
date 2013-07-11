@@ -361,9 +361,9 @@
 (imp/register-implementation (ScalarWrapper. 13))
 
 (imp/register-implementation (NDWrapper. [1]
-                                         (long-array 1)
                                          (long-array 0)
                                          (long-array 0)
-                                         (long-array 0)))
+                                         (object-array 0)
+                                         (long-array [0])))
 
 (imp/register-implementation (wrap-slice [1 2] 0))
