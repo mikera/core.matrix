@@ -10,7 +10,8 @@
 ;; map of known implementation tags to namespace imports
 ;; we use this to attempt to load an implementation
 (def KNOWN-IMPLEMENTATIONS
-  {:vectorz 'mikera.vectorz.matrix-api
+  (array-map
+   :vectorz 'mikera.vectorz.matrix-api
    :ndarray 'clojure.core.matrix.impl.ndarray
    :persistent-vector 'clojure.core.matrix.impl.persistent-vector
    :persistent-map 'clojure.core.matrix.impl.sparse-map
@@ -24,7 +25,7 @@
    :parallel-colt :TODO
    :ejml :TODO
    :ujmp :TODO
-   :commons-math :TODO})
+   :commons-math :TODO))
 
 ;; default implementation to use
 ;; should be included with clojure.core.matrix for easy of use
@@ -33,7 +34,6 @@
 ;; hashmap of implementation keys to canonical objects
 ;; objects must implement PImplementation protocol at a minimum
 (defonce canonical-objects (atom {}))
-
 
 (defn get-implementation-key
   "Returns the implementation code for a given object"

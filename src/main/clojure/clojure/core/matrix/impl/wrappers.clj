@@ -22,6 +22,8 @@
     (implementation-key [m]
       :scalar-wrapper)
     ;; we delegate to persistent-vector implementation for new matrices.
+    (meta-info [m]
+      {:doc "Wraps a single scalar as a mutable 0-D array"})
     (new-vector [m length]
       (mp/new-vector [] length))
     (new-matrix [m rows columns]
@@ -98,6 +100,8 @@
     (implementation-key [m]
       :slice-wrapper)
     ;; we delegate to persistent-vector implementation for new matrices.
+    (meta-info [m]
+      {:doc "Wraps a row-major slice of an array"})
     (new-vector [m length]
       (mp/new-vector [] length))
     (new-matrix [m rows columns]
@@ -203,6 +207,8 @@
     (implementation-key [m]
       :nd-wrapper)
     ;; we delegate to persistent-vector implementation for new matrices.
+    (meta-info [m]
+      {:doc "Wraps an N-dimensional subset or broadcast of an array"})
     (new-vector [m length]
       (mp/new-vector [] length))
     (new-matrix [m rows columns]
