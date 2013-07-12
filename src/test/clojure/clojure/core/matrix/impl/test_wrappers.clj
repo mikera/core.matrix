@@ -1,8 +1,8 @@
 (ns clojure.core.matrix.impl.test-wrappers
   (:use clojure.test)
   (:use clojure.core.matrix)
-  (:use clojure.core.matrix.impl.wrappers) 
-  (:require [clojure.core.matrix.operators :as op]) 
+  (:use clojure.core.matrix.impl.wrappers)
+  (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.compliance-tester]))
 
@@ -57,10 +57,10 @@
   (is (equals [3 4] (seq (wrap-nd [3 4])))))
 
 (deftest test-as-vector
-  (is (e== [1] (as-vector (wrap-scalar 1))))) 
+  (is (e== [1] (as-vector (wrap-scalar 1)))))
 
 (deftest test-scalar-construct-vector
-  (is (e== [1] (coerce (wrap-scalar 2) [1])))) 
+  (is (e== [1] (coerce (wrap-scalar 2) [1]))))
 
 (deftest test-nd-slice
   (let [ss (second (slices (wrap-nd [[3 4] [5 6]])))]
@@ -83,5 +83,5 @@
   (clojure.core.matrix.compliance-tester/instance-test (wrap-scalar 1))
   (clojure.core.matrix.compliance-tester/instance-test (wrap-slice [[1 2] [3 4]] 1))
   (clojure.core.matrix.compliance-tester/instance-test (wrap-submatrix [[1 2] [3 4]] [[1 1] [0 1]]))
-  (clojure.core.matrix.compliance-tester/instance-test (wrap-nd [[1 2] [3 4]]))) 
+  (clojure.core.matrix.compliance-tester/instance-test (wrap-nd [[1 2] [3 4]])))
 

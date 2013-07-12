@@ -31,10 +31,10 @@
       (mutable-fn clonem)
       (equals clonem (immutable-fn m)))))
 
-(defn is-numeric-instance? 
+(defn is-numeric-instance?
   "Returns true if an array is completely numeric"
   ([m]
-    (every? number? (eseq m)))) 
+    (every? number? (eseq m))))
 
 (defn create-dimensioned
   "Create a test nested vector array with the specified number of dims. will have 2^dims numeric elements"
@@ -63,7 +63,7 @@
     (is (keyword? (imp/get-implementation-key im)))
     (is (= (imp/get-implementation-key im) (imp/get-implementation-key (imp/get-canonical-object im))))))
 
-(defn test-implementation 
+(defn test-implementation
   "Tests that an implementation conforms to any general requirements"
   ([im]
     (test-implementation-key im)))
@@ -107,7 +107,7 @@
 
 (defn test-mutable-assumptions [m]
   (testing "mutable-matrix works ok"
-    (let [mm (mutable-matrix m)] 
+    (let [mm (mutable-matrix m)]
       (is (mutable? mm))
       (is (not (identical? m mm)))
       (is (e= mm m))))
@@ -170,7 +170,7 @@
 
 (defn test-coerce [m]
   (let [vm (mp/convert-to-nested-vectors m)]
-    (is (or (clojure.core/vector? vm) (== 0 (mp/dimensionality vm))))  
+    (is (or (clojure.core/vector? vm) (== 0 (mp/dimensionality vm))))
     (is (clojure.core.matrix.impl.persistent-vector/is-nested-vectors? vm))
       (is (e= m vm))))
 
@@ -187,7 +187,7 @@
 (defn test-assign [m]
   (when (> (ecount m) 0)
     (let [e (first (eseq m))
-          m (or m (error "trying to assign to nil object!?!")) 
+          m (or m (error "trying to assign to nil object!?!"))
           n (assign m e)
           mm (mutable-matrix m)]
       (is (e= (broadcast e (shape m)) n))
@@ -204,12 +204,12 @@
           js (slices j)]
       (is (== (first (shape j)) (inc (first (shape m))))))))
 
-(defn test-pm 
+(defn test-pm
   "Test for matrix pretty-printing"
-  ([m] 
+  ([m]
     ;; TODO: fix issue #43 on GitHub
     ;;(is (< 0 (count (with-out-str (pm m)))))
-    )) 
+    ))
 
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
@@ -239,7 +239,7 @@
 ;; ==============================================
 ;; misc tests
 
-(defn test-implementation-namespace 
+(defn test-implementation-namespace
   [im]
   :TODO)
 
@@ -384,13 +384,13 @@
 (defn test-vector-distance [im]
   (let [a (matrix im [1 1])
         b (matrix im [4 -3])]
-    (is (== 5 (distance a b))))) 
+    (is (== 5 (distance a b)))))
 
 (defn test-1d-instances [im]
   (test-numeric-instance (matrix im [-1 2 -3]))
   (test-numeric-instance (matrix im [1]))
   (test-numeric-instance (matrix im [1 2 -3 4.5 7 -10.8]))
-  (test-numeric-instance (matrix im [0 0]))) 
+  (test-numeric-instance (matrix im [0 0])))
 
 (defn vector-tests-1d [im]
   (test-vector-mset im)
@@ -400,7 +400,7 @@
   (test-vector-normalise im)
   (test-vector-slices im)
   (test-vector-subvector im)
-  (test-vector-distance im) 
+  (test-vector-distance im)
   (test-element-add im)
   (test-1d-instances im))
 
@@ -450,14 +450,14 @@
   (is (equals [[2 2] [4 4]] (e* (matrix im [[1 1] [2 2]]) 2)))
   (is (equals [[2 2] [4 4]] (e* 2 (matrix im [[1 1] [2 2]]))))
   (when (supports-dimensionality? im 1)
-    (is (equals [[1 2] [1 2]] (broadcast (matrix im [1 2]) [2 2]))) 
+    (is (equals [[1 2] [1 2]] (broadcast (matrix im [1 2]) [2 2])))
     ))
 
 (defn test-2d-instances [im]
   (test-numeric-instance (matrix im [[1 2] [3 4]]))
   (test-numeric-instance (matrix im [[1 2]]))
   (test-numeric-instance (matrix im [[10]]))
-  (test-numeric-instance (matrix im [[10] [11]]))) 
+  (test-numeric-instance (matrix im [[10] [11]])))
 
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)

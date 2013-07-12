@@ -50,7 +50,7 @@
   (testing "mapping"
     (let [da (matrix :double-array [1 2])]
       (is (= [2.0 3.0] (seq (emap inc da))))
-      (emap! inc da) 
+      (emap! inc da)
       (is (= [2.0 3.0] (eseq da)))))
   (testing "nested double arrays"
     (is (= [1.0 2.0 3.0 4.0] (eseq [(double-array [1 2]) (double-array [3 4])])))))
@@ -58,36 +58,36 @@
 (deftest test-assign
   (testing "assign from a persistent vector"
     (let [da (double-array [1 2])]
-      (assign! da [2 3]) 
+      (assign! da [2 3])
       (is (= [2.0 3.0] (seq da)))))
   (testing "assign from an array"
     (let [da (double-array [1 2])]
-      (assign! da (double-array [2 4])) 
+      (assign! da (double-array [2 4]))
       (is (= [2.0 4.0] (seq da)))))
   (testing "assign from a Number array"
     (let [da (double-array [1 2])]
-      (mp/assign-array! da (into-array java.lang.Number [2 5])) 
+      (mp/assign-array! da (into-array java.lang.Number [2 5]))
       (is (= [2.0 5.0] (seq da))))))
 
 (deftest test-equals
   (testing "equality with persistent vector"
-    (let [da (double-array [1 2])] 
+    (let [da (double-array [1 2])]
       (is (= [1.0 2.0] (to-nested-vectors da)))
       (is (equals [1.0 2.0] da))
       (is (equals [1 2] da))
       (is (equals da [1.0 2.0])))))
 
 (deftest test-add-scaled
-  (let [da (double-array [1 2])] 
+  (let [da (double-array [1 2])]
     (is (equals [11 22] (add-scaled da [1 2] 10)))
     (is (equals [101 202] (add-scaled! da [1 2] 100)))
-    (is (equals [101 202] da)))) 
+    (is (equals [101 202] da))))
 
 (deftest test-add-scaled-product
-  (let [da (double-array [1 2])] 
+  (let [da (double-array [1 2])]
     (is (equals [2 6] (add-scaled-product da [1 2] [1 2] 1)))
     (is (equals [101 202] (add-scaled-product! da [1 2] [10 10] 10)))
-    (is (equals [101 202] da)))) 
+    (is (equals [101 202] da))))
 
 (deftest test-vector-scale
   (testing "scale!"
@@ -103,13 +103,13 @@
   (let [v (double-array [1 2 3])]
     (add! v [10 10 10])
     (sub! v [1 1 2])
-    (is (equals v [10 11 11])))) 
+    (is (equals v [10 11 11]))))
 
 (deftest test-mutable-multiply
   (let [a (double-array [1 2])
         b (double-array [2 3])]
     (is (identical? a (emul! a b)))
-    (is (equals [2.0 6.0] a)))) 
+    (is (equals [2.0 6.0] a))))
 
 (deftest test-maths-ops
   (testing "basic ops"
@@ -119,7 +119,7 @@
 (deftest instance-tests
   (clojure.core.matrix.compliance-tester/instance-test (double-array []))
   (clojure.core.matrix.compliance-tester/instance-test (double-array [1]))
-  (clojure.core.matrix.compliance-tester/instance-test (double-array [1 2]))) 
+  (clojure.core.matrix.compliance-tester/instance-test (double-array [1 2])))
 
 (deftest compliance-test
-  (clojure.core.matrix.compliance-tester/compliance-test (double-array [0.23]))) 
+  (clojure.core.matrix.compliance-tester/compliance-test (double-array [0.23])))

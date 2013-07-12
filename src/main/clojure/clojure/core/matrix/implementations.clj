@@ -5,7 +5,7 @@
 ;; =====================================================
 ;; Implementation utilities
 ;;
-;; Tools to support the registration / manangement of clojure.core.matrix implementations 
+;; Tools to support the registration / manangement of clojure.core.matrix implementations
 
 ;; map of known implementation tags to namespace imports
 ;; we use this to attempt to load an implementation
@@ -35,10 +35,10 @@
 (defonce canonical-objects (atom {}))
 
 
-(defn get-implementation-key 
+(defn get-implementation-key
   "Returns the implementation code for a given object"
-  ([m] 
-    (if (keyword? m) 
+  ([m]
+    (if (keyword? m)
       m
       (mp/implementation-key m))))
 
@@ -50,15 +50,15 @@
 
 (defn try-load-implementation [k]
   (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
-    (try 
+    (try
       (do (require ns-sym) :ok)
       (catch Throwable t nil))))
 
-(defn get-canonical-object 
+(defn get-canonical-object
   "Gets the canonical object for a specific implementation"
   ([m]
     (let [k (get-implementation-key m)
           obj (@canonical-objects k)]
-      (or obj 
+      (or obj
           (if (try-load-implementation k) (@canonical-objects k))
           (error "Unable to find implementation: [" k "]")))))

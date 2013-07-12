@@ -17,7 +17,7 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
-(defn with-shape 
+(defn with-shape
   ([m shape]
     (vary-meta m assoc :shape (to-long-array shape))))
 
@@ -31,8 +31,8 @@
     (construct-matrix [m data]
       (let [sh (mp/get-shape data)]
         (with-shape
-          (reduce 
-            (fn [mp [v i]] (if (nil? v) mp (assoc mp (vec i) v))) 
+          (reduce
+            (fn [mp [v i]] (if (nil? v) mp (assoc mp (vec i) v)))
             {}
             (map vector (mp/element-seq data) (base-index-seq-for-shape sh)))
           sh)))

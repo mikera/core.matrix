@@ -60,7 +60,7 @@
 
 (extend-protocol mp/PSliceView
   clojure.lang.ISeq
-    (get-major-slice-view [m i] 
+    (get-major-slice-view [m i]
       (nth m i)))
 
 (extend-protocol mp/PSliceSeq
@@ -102,8 +102,8 @@
           (mapv #(mp/element-map % f %2 %3) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
     (element-map!
       ([m f]
-        (do 
-          (doseq [s m] (mp/element-map! s f)) 
+        (do
+          (doseq [s m] (mp/element-map! s f))
           m))
       ([m f a]
         (error "Sequence arrays are not mutable!"))
