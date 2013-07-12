@@ -27,6 +27,10 @@
   (implementation-key [m]
     "Returns a keyword representing this implementation.
      Each implementation should have one unique key.")
+  (meta-info [m]
+    "Returns meta-information on the implementation. It is expected that
+     at least an element :doc containing a string describing an implementation
+     is provided.")
   (construct-matrix [m data]
     "Returns a new matrix containing the given data. data should be in the form of either
      nested sequences or a valid existing matrix")
@@ -466,15 +470,15 @@
   "Coerces to nested persistent vectors"
   (let [dims (dimensionality x)]
     (cond
-	    (is-scalar? x) x
-	    (== dims 0) (get-0d x)
+        (is-scalar? x) x
+        (== dims 0) (get-0d x)
       (> dims 0) (convert-to-nested-vectors x)
-	    (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
-	    (instance? java.util.List x) (mapv convert-to-nested-vectors x)
-	    (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
-	    (sequential? x) (mapv convert-to-nested-vectors x)
-	    (.isArray (class x)) (vec (seq x))
-	    :default (error "Can't coerce to vector: " (class x)))))
+        (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
+        (instance? java.util.List x) (mapv convert-to-nested-vectors x)
+        (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
+        (sequential? x) (mapv convert-to-nested-vectors x)
+        (.isArray (class x)) (vec (seq x))
+        :default (error "Can't coerce to vector: " (class x)))))
 
 (defn broadcast-compatible
   "Broadcasts two matrices into indentical shapes.

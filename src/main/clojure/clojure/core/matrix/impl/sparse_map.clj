@@ -24,6 +24,9 @@
 (extend-protocol mp/PImplementation
   clojure.lang.IPersistentMap
     (implementation-key [m] :persistent-map)
+    (meta-info [m]
+      {:doc "Core.matrix implementation enabling a map with appropriate
+             metadata to be used as a core.matrix implementation."})
     (new-vector [m length] (with-shape {} [length]))
     (new-matrix [m rows columns] (with-shape {} [rows columns]))
     (new-matrix-nd [m dims]
