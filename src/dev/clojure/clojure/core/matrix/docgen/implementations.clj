@@ -91,7 +91,8 @@
         [:p "git hash: "
          [:a {:href (str repo-url "/blob/" git-hash)}
           git-hash]]
-        [:small "Hint: hover on protocol names to get their description"]]))
+        [:small "Hint: hover on protocol or implementation names to "
+         "get their description"]]))
 
 (defn render-protocol
   [p git-hash]
@@ -106,16 +107,25 @@
           [:small "(line " [:a {:href src-href} (:line p)] ")" ]])))
 
 (defn render-table
-  [impl-names protos git-hash]
+  [impl-objs protos git-hash]
   [:table.pure-table
    [:thead
     [:th]
-    (for [impl-name impl-names] [:th (name impl-name)])]
+    (for [impl-obj impl-objs
+          :let [impl-name (-> impl-obj :name name)
+                impl-doc (try (-> impl-obj :obj mp/meta-info :doc)
+                              (catch IllegalArgumentException e nil))
+                impl-title (if impl-doc
+                             {:title (clojure.string/replace impl-doc
+                                                             #"\s+" " ")}
+                             {})]]
+      [:th [:span impl-title
+            impl-name]])]
    [:tbody
     (for [[i p] (map-indexed vector protos)]
       [:tr {:class (if (even? i) "pure-table-odd")}
        [:td (render-protocol p git-hash)]
-       (for [impl-name impl-names]
+       (for [impl-name (map :name impl-objs)]
          [:td {:style "text-align: center;"}
           (when ((:implemented-by p) impl-name)
             [:i.icon-ok.icon-large])])])]])
@@ -135,11 +145,9 @@
 (defn generate
   []
   (let [impl-objs (get-impl-objs)
-        impl-names (map :name impl-objs)
         protos (extract-implementations (extract-protocols) impl-objs)
         git-hash (get-git-hash)
         header (render-header git-hash)
-        table (render-table impl-names protos git-hash)
+        table (render-table impl-objs protos git-hash)
         page (render-page header table)]
-    (prn impl-names)
     (h/html5 page)))
