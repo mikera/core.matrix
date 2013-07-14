@@ -31,6 +31,8 @@
 (extend-protocol mp/PImplementation
   (Class/forName "[D")
     (implementation-key [m] :double-array)
+    (meta-info [m]
+      {:doc "Clojure.core.matrix implementation for Java double arrays"})
     (new-vector [m length] (double-array (int length)))
     (new-matrix [m rows columns] (error "Can't make a 2D matrix from a double array"))
     (new-matrix-nd [m dims]
@@ -165,4 +167,3 @@
 ;; registration
 
 (imp/register-implementation (double-array [1]))
-

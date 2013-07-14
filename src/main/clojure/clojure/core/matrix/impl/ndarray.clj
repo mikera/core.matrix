@@ -142,6 +142,8 @@ of indexes and strides"
 (extend-type NDArray
   mp/PImplementation
   (implementation-key [m] :ndarray)
+  (meta-info [m]
+    {:doc "An implementation of strided N-Dimensional array"})
   (new-vector [m length]
     (empty-ndarray [length]))
   (new-matrix [m rows columns]

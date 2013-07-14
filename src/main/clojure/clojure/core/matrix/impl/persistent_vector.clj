@@ -64,17 +64,17 @@
   "Coerces to nested persistent vectors"
   (let [dims (mp/dimensionality x)]
     (cond
-	    (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; arrays with zero dimensionality
+        (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; arrays with zero dimensionality
       (> dims 0) (mp/convert-to-nested-vectors x)
-	    (clojure.core/vector? x)
+        (clojure.core/vector? x)
         (if (is-nested-persistent-vectors? x) x (mapv mp/convert-to-nested-vectors x))
-	    (nil? x) x
+        (nil? x) x
       (.isArray (class x)) (map persistent-vector-coerce (seq x))
-	    (instance? java.util.List x) (coerce-nested x)
-	    (instance? java.lang.Iterable x) (coerce-nested x)
-	    (sequential? x) (coerce-nested x)
+        (instance? java.util.List x) (coerce-nested x)
+        (instance? java.lang.Iterable x) (coerce-nested x)
+        (sequential? x) (coerce-nested x)
       (mp/is-scalar? x) x
-	    :default (error "Can't coerce to vector: " (class x)))))
+        :default (error "Can't coerce to vector: " (class x)))))
 
 (defn vector-dimensionality [m]
   "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
@@ -106,6 +106,9 @@
 (extend-protocol mp/PImplementation
   clojure.lang.IPersistentVector
     (implementation-key [m] :persistent-vector)
+    (meta-info [m]
+      {:doc "Implementation for nested Clojure persistent vectors
+             used as matrices"})
     (new-vector [m length] (vec (repeat length 0.0)))
     (new-matrix [m rows columns] (vec (repeat rows (mp/new-vector m columns))))
     (new-matrix-nd [m dims]
@@ -249,8 +252,8 @@
           (== adims 0) (mp/scale m a)
           (and (== mdims 1) (== adims 2))
             (vec (for [i (range (mp/dimension-count a 1))]
-	                 (let [r (mp/get-column a i)]
-	                   (mp/vector-dot m r))))
+                     (let [r (mp/get-column a i)]
+                       (mp/vector-dot m r))))
           (and (== mdims 2) (== adims 1))
             (mapv #(mp/vector-dot % a) m)
           (and (== mdims 2) (== adims 2))
