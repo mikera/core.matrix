@@ -25,13 +25,17 @@
 ;; the data itself.
 ;; In future, other memory layouts can be considered, such as Morton order.
 ;; TODO: try Morton order
-;; TODO: consider adding "offset" field (can be usable in slicing?)
+;; TODO: consider moving offset field to View instead of NDArray itself
+;; I think that "offset" field should belong to a special "view" type,
+;; because this way we can easily see when matrix refers to a bigger
+;; memory chunk then it can.
 
 (deftype NDArray
     [^objects data
      ^long ndims
      ^longs shape
-     ^longs strides]
+     ^longs strides
+     ^long offset]
 
   java.lang.Object
     (toString [m]
@@ -92,8 +96,9 @@
                   :c (long-array (c-strides shape))
                   :f (long-array (f-strides shape)))
         len (reduce * shape)
-        data (object-array len)]
-    (NDArray. data ndims shape strides)))
+        data (object-array len)
+        offset 0]
+    (NDArray. data ndims shape strides offset)))
 
 ;; Here we construct NDArray with given data. The caveat here is that we
 ;; can't really use this definition until we define an implementation for
@@ -108,6 +113,23 @@
     ;; TODO: fix this when default implementation of assign! will return
     ;; mutated object
     empty))
+
+;; TODO: this destructuring should really be a macro
+;; TODO: doc
+;; TODO: abutfirst?
+
+(defn row-major-slice
+  [m idx]
+  (let [^objects data (.data m)
+        ^long ndims (.ndims m)
+        ^longs shape (.shape m)
+        ^longs strides (.strides m)
+        ^long offset (.offset m)]
+    (NDArray. data
+              (dec ndims)
+              (java.util.Arrays/copyOfRange shape (int 1) (dec ndims))
+              (java.util.Arrays/copyOfRange strides (int 1) (dec ndims))
+              (* idx (aget strides 0)))))
 
 ;; ## Helper functions
 ;;
@@ -260,6 +282,7 @@ of indexes and strides"
 ;; mutable matrix. The mutation of clone must not affect the original.
 ;; TODO: an open question is whether we need to normalize memory layout here
 ;; (forcing data to conform C-order, for example) or not
+;; TODO: move this constructor to constructors section
 
 (extend-type NDArray
   mp/PMatrixCloning
@@ -268,8 +291,9 @@ of indexes and strides"
           data (aclone data-old)
           ndims (.ndims m)
           shape (aclone (longs (.shape m)))
-          strides (aclone (longs (.strides m)))]
-      (NDArray. data ndims shape strides))))
+          strides (aclone (longs (.strides m)))
+          offset (.offset m)]
+      (NDArray. data ndims shape strides offset))))
 
 ;; TODO: one can't register an implementation without implementing
 ;; PConversion first. Seems wrong to me.
@@ -285,6 +309,36 @@ of indexes and strides"
         ;; TODO: not sure if this is really efficient
         (mapv mp/convert-to-nested-vectors
               (mp/get-major-slice-seq m))))))
+
+;; ## Seqable
+;;
+;; In general there is huge chunk of default-ish stuff that can be used here
+;; (see Seqable implementation in wrappers that use PSliceSeq and
+;; get-major-slice-seq, that in turn uses get-major-slice iteratively),
+;; but it looks horribly inefficient, so let's build a lazy seq here
+
+;;     [^objects data
+;;      ^long ndims
+;;      ^longs shape
+;;      ^longs strides]
+
+;; (defn row-major-seq
+;;   ([^NDArray m] (row-major-seq m (long 0)))
+;;   ([^NDArray m ^long i]
+;;      (let [^longs shape (.shape m)]
+;;        (when-not (>= i (aget shape 0))
+;;          (lazy-seq (cons (row-major-slice m i)
+;;                          (row-major-seq m (inc i))))))))
+
+;; (extend-type NDArray
+;;   clojure.lang.Seqable
+;;   (seq [m]
+;;     (letfn []
+
+;;       )
+;;     )
+
+;;   )
 
 ;; Register implementation
 
