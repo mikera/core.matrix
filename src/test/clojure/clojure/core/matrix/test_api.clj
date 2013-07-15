@@ -84,7 +84,12 @@
     (is (== 1.0 (coerce [] 1)))
     (is (= [1 2 3] (coerce [[1 0 0] [0 1 0] [0 0 1]] [1 2 3])))
     (is (= [[1 2] [3 4]] (coerce [1] [[1 2] [3 4]])))
-    (is (= [[1 2] [3 4]] (coerce [1] '((1 2) (3 4)))))))
+    (is (= [[1 2] [3 4]] (coerce [1] '((1 2) (3 4))))))
+  (testing "coerce to a number"
+  ;;   (is (= 1 (coerce 2 1))) TODO: what should happen here??
+    )
+  )
+
 (deftest test-slices
   (testing "rows and columns of clojure vector matrix"
     (is (= [1 2 3] (get-row [[1 2 3] [4 5 6]] 0)))
