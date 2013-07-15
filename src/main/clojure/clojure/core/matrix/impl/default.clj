@@ -303,9 +303,9 @@
           (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
             ;; note that function must come second for mp/element-map
             (case (count ss)
-              1 (mp/element-map (first ss) vector)
-              2 (mp/element-map (first ss) vector (second ss))
-              (mp/element-map (first ss) vector (second ss) (nnext ss))))))))
+              1 (mp/element-map (mp/coerce-param [] (first ss)) vector)
+              2 (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss))
+              (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss) (nnext ss))))))))
 
 (extend-protocol mp/PMatrixProducts
   java.lang.Number
