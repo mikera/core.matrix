@@ -908,7 +908,10 @@
 
 (defn emap
   "Element-wise map over all elements of one or more arrays.
-   Returns a new array of the same type and shape."
+   
+   f must return a result compatible with the element-type of the array m   
+   
+   Returns a new array of the same element-type and shape as the array m."
   ([f m]
     (mp/element-map m f))
   ([f m a]
@@ -943,7 +946,10 @@
     (reduce equals (equals m1 m2) more)))
 
 (defn emap!
-  "Element-wise map over all elements of one or more arrays.
+  "Element-wise map of a function f over all elements of one or more arrays.
+
+   f must return a result compatible with the element-type of the array m   
+
    Performs in-place modification of the first array argument."
   ([f m]
     (mp/element-map! m f) m)
