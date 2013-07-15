@@ -97,7 +97,7 @@
     (is (= (zero-dimensional? m) (== 0 (dimensionality m)))))
   (testing "element count"
     (is (== (ecount m) (reduce * 1 (shape m))))
-    (is (== (ecount m) (ereduce (fn [acc _] (inc acc)) 0 (eseq m))))
+    (is (== (ecount m) (ereduce (fn [acc _] (inc acc)) 0 m)))
     (is (or (not (scalar? m)) (== 1 (ecount m)))))
   (testing "accessing outside existing dimensions is an error"
     (let [sh (shape m)
