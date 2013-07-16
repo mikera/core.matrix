@@ -115,11 +115,11 @@
   "Returns NDArray with given data, preserving shape of the data"
   [data]
   (let [shape (long-array (mp/get-shape data))
-        empty (empty-ndarray shape)]
-    (mp/assign! empty data)
+        mtx (empty-ndarray shape)]
+    (mp/assign! mtx data)
     ;; TODO: fix this when default implementation of assign! will return
     ;; mutated object
-    empty))
+    mtx))
 
 ;; TODO: this destructuring should really be a macro
 ;; TODO: doc
