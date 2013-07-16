@@ -30,6 +30,9 @@
 ;; because this way we can easily see when matrix refers to a bigger
 ;; memory chunk then it can.
 
+;; TODO: doc this declare
+(declare row-major-seq)
+
 (deftype NDArray
     [^objects data
      ^long ndims
@@ -38,8 +41,12 @@
      ^long offset]
 
   java.lang.Object
-    (toString [m]
-      (str (mp/persistent-vector-coerce m))))
+  (toString [m]
+    (str (mp/persistent-vector-coerce m)))
+
+  clojure.lang.Seqable
+  (seq [m]
+    (row-major-seq m)))
 
 ;; ## Default striding schemes
 ;;
@@ -117,18 +124,20 @@
 ;; TODO: this destructuring should really be a macro
 ;; TODO: doc
 ;; TODO: abutfirst?
+;; TODO: not sure that strides don't matter
+;; TODO: check offset larger than array
 
 (defn row-major-slice
-  [m idx]
+  [^NDArray m idx]
   (let [^objects data (.data m)
-        ^long ndims (.ndims m)
+        ndims (.ndims m)
         ^longs shape (.shape m)
         ^longs strides (.strides m)
-        ^long offset (.offset m)]
+        offset (.offset m)]
     (NDArray. data
               (dec ndims)
-              (java.util.Arrays/copyOfRange shape (int 1) (dec ndims))
-              (java.util.Arrays/copyOfRange strides (int 1) (dec ndims))
+              (java.util.Arrays/copyOfRange shape (int 1) ndims)
+              (java.util.Arrays/copyOfRange strides (int 1) ndims)
               (* idx (aget strides 0)))))
 
 ;; ## Helper functions
@@ -147,10 +156,11 @@
 (defn get-strided-idx
   "Returns an index inside of a strided array given a primitive long arrays
 of indexes and strides"
-  ^long [^longs idxs ^longs strides]
-  (areduce idxs i res (long 0)
-           (+ (* (aget idxs i) (aget strides i))
-              res)))
+  ^long [^longs idxs ^longs strides ^long offset]
+  (+ (areduce idxs i res (long 0)
+              (+ (* (aget idxs i) (aget strides i))
+                 res))
+     offset))
 
 ;; ## Mandatory protocols for all matrix implementations
 ;;
@@ -219,8 +229,9 @@ of indexes and strides"
               "index count should match dimensionality")))
     (let [idxs (long-array indexes)
           strides (.strides m)
+          offset (.offset m)
           ^objects data (.data m)
-          idx (get-strided-idx idxs strides)]
+          idx (get-strided-idx idxs strides offset)]
       (aget data idx))))
 
 ;; PIndexedSetting is for non-mutative update of a matrix. Here we emulate
@@ -265,8 +276,10 @@ of indexes and strides"
       (throw (IllegalArgumentException. "can't use set-2d! on non-matrix")))
     (let [^longs strides (.strides m)
           ^objects data (.data m)
+          offset (.offset m)
           idx (+ (* (aget strides 0) (long x))
-                 (* (aget strides 1) (long y)))]
+                 (* (aget strides 1) (long y))
+                 offset)]
       (aset data idx v)))
   (set-nd! [m indexes v]
     (when-not (= (count indexes) (.ndims m))
@@ -274,8 +287,9 @@ of indexes and strides"
               "index count should match dimensionality")))
     (let [idxs (long-array indexes)
           strides (.strides m)
+          offset (.offset m)
           ^objects data (.data m)
-          idx (get-strided-idx idxs strides)]
+          idx (get-strided-idx idxs strides offset)]
       (aset data idx v))))
 
 ;; PMatrixCloning requires only "clone" method, which is used to clone
@@ -295,17 +309,24 @@ of indexes and strides"
           offset (.offset m)]
       (NDArray. data ndims shape strides offset))))
 
-;; TODO: one can't register an implementation without implementing
-;; PConversion first. Seems wrong to me.
-
 (extend-type NDArray
   mp/PConversion
   (convert-to-nested-vectors [m]
     (let [ndims (.ndims m)
+          offset (.offset m)
+          ^longs strides (.strides m)
+          ^longs shape (.shape m)
           ^objects data (.data m)]
       (case ndims
-        0 (aget data 0)
-        1 (into [] data)
+        0 (aget data offset)
+        1 (let [n (aget shape 0)
+                stride (aget strides 0)]
+            (loop [idx (long offset)
+                   cnt (long 0)
+                   res []]
+              (if (< cnt n)
+                (recur (+ idx stride) (inc cnt) (conj res (aget data idx)))
+                res)))
         ;; TODO: not sure if this is really efficient
         (mapv mp/convert-to-nested-vectors
               (mp/get-major-slice-seq m))))))
@@ -317,28 +338,13 @@ of indexes and strides"
 ;; get-major-slice-seq, that in turn uses get-major-slice iteratively),
 ;; but it looks horribly inefficient, so let's build a lazy seq here
 
-;;     [^objects data
-;;      ^long ndims
-;;      ^longs shape
-;;      ^longs strides]
-
-;; (defn row-major-seq
-;;   ([^NDArray m] (row-major-seq m (long 0)))
-;;   ([^NDArray m ^long i]
-;;      (let [^longs shape (.shape m)]
-;;        (when-not (>= i (aget shape 0))
-;;          (lazy-seq (cons (row-major-slice m i)
-;;                          (row-major-seq m (inc i))))))))
-
-;; (extend-type NDArray
-;;   clojure.lang.Seqable
-;;   (seq [m]
-;;     (letfn []
-
-;;       )
-;;     )
-
-;;   )
+(defn row-major-seq
+  ([m] (row-major-seq m (long 0)))
+  ([^NDArray m ^long i]
+     (let [^longs shape (.shape m)]
+       (when-not (>= i (aget shape 0))
+         (lazy-seq (cons (row-major-slice m i)
+                         (row-major-seq m (inc i))))))))
 
 ;; Register implementation
 
