@@ -8,6 +8,8 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
+;; TODO: abstract Java-related stuff so it can be ported to JS
+
 ;; ## Intro
 ;;
 ;; This is an implementation of strided N-Dimensional array (or NDArray
@@ -336,7 +338,9 @@ of indexes and strides"
 ;; In general there is huge chunk of default-ish stuff that can be used here
 ;; (see Seqable implementation in wrappers that use PSliceSeq and
 ;; get-major-slice-seq, that in turn uses get-major-slice iteratively),
-;; but it looks horribly inefficient, so let's build a lazy seq here
+;; but it looks horribly inefficient, so let's build a lazy seq here.
+;; NOTE: an actual implementations is now in the deftype itself, because
+;; Seqable is not a real protocol
 
 (defn row-major-seq
   ([m] (row-major-seq m (long 0)))
