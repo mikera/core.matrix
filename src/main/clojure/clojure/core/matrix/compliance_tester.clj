@@ -191,6 +191,7 @@
           m (or m (error "trying to assign to nil object!?!"))
           n (assign m e)
           mm (mutable-matrix m)]
+      (is (zero-dimensional? e))
       (is (e= (broadcast e (shape m)) n))
       (is (same-shape? m n))
       (fill! mm e)
