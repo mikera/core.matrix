@@ -12,7 +12,7 @@
 
 ;; clojure.core.matrix implementation for Java double arrays
 ;;
-;; Useful as a fast, mutable 1D vector implementation. 
+;; Useful as a fast, mutable 1D vector implementation.
 
 (def DOUBLE-ARRAY-CLASS (Class/forName "[D"))
 
@@ -20,10 +20,10 @@
   (instance? DOUBLE-ARRAY-CLASS m))
 
 (defn construct-double-array [data]
-  (cond 
-    (== (mp/dimensionality data) 1) 
+  (cond
+    (== (mp/dimensionality data) 1)
       (double-array (mp/element-seq data))
-    (mp/is-scalar? data) 
+    (mp/is-scalar? data)
       data
     :default
       nil))
@@ -31,10 +31,12 @@
 (extend-protocol mp/PImplementation
   (Class/forName "[D")
     (implementation-key [m] :double-array)
+    (meta-info [m]
+      {:doc "Clojure.core.matrix implementation for Java double arrays"})
     (new-vector [m length] (double-array (int length)))
     (new-matrix [m rows columns] (error "Can't make a 2D matrix from a double array"))
-    (new-matrix-nd [m dims] 
-      (if (== 1 (count dims)) 
+    (new-matrix-nd [m dims]
+      (if (== 1 (count dims))
         (double-array (int (first dims)))
         (error "Can't make a double array of dimensionality: " (count dims))))
     (construct-matrix [m data]
@@ -63,7 +65,7 @@
 (extend-protocol mp/PDoubleArrayOutput
   (Class/forName "[D")
     (to-double-array [m] (copy-double-array m))
-    (as-double-array [m] m)) 
+    (as-double-array [m] m))
 
 (extend-protocol mp/PIndexedAccess
   (Class/forName "[D")
@@ -72,7 +74,7 @@
     (get-2d [m x y]
       (error "Can't do get-2D from 1D double array"))
     (get-nd [m indexes]
-      (if (== 1 (count indexes)) 
+      (if (== 1 (count indexes))
         (aget ^doubles m (int (first indexes)))
         (error "Can't get from double array with dimensionality: " (count indexes)))))
 
@@ -85,15 +87,15 @@
 (extend-protocol mp/PIndexedSetting
   (Class/forName "[D")
     (set-1d [m x v]
-      (let [^doubles arr (copy-double-array m)] 
+      (let [^doubles arr (copy-double-array m)]
         (aset arr (int x) (double v))
         arr))
     (set-2d [m x y v]
       (error "Can't do 2D set on double array"))
     (set-nd [m indexes v]
-      (if (== 1 (count indexes)) 
+      (if (== 1 (count indexes))
         (let [^doubles arr (copy-double-array m)
-              x (int (first indexes))] 
+              x (int (first indexes))]
           (aset arr (int x) (double v))
           arr)
         (error "Can't set on double array with dimensionality: " (count indexes))))
@@ -106,28 +108,28 @@
     (set-2d! [m x y v]
       (error "Can't do 2D set on double array"))
     (set-nd! [m indexes v]
-      (if (== 1 (count indexes)) 
+      (if (== 1 (count indexes))
         (aset ^doubles m (int (first indexes)) (double v))
         (error "Can't set on double array with dimensionality: " (count indexes)))))
 
 (extend-protocol mp/PMutableMatrixConstruction
-  (Class/forName "[D") 
+  (Class/forName "[D")
     (mutable-matrix [m]
-      (copy-double-array m))) 
+      (copy-double-array m)))
 
 (extend-protocol mp/PMatrixScaling
   (Class/forName "[D")
     (scale [m a]
-      (let [^doubles m m 
+      (let [^doubles m m
             len (alength m)
-            arr (double-array len) 
+            arr (double-array len)
             a (double a)]
         (dotimes [i len] (aset arr i (* a (aget m i))))
         arr))
     (pre-scale [m a]
-      (let [^doubles m m 
+      (let [^doubles m m
             len (alength m)
-            arr (double-array len) 
+            arr (double-array len)
             a (double a)]
         (dotimes [i len] (aset arr i (* a (aget m i))))
         arr)))
@@ -136,11 +138,11 @@
 (extend-protocol mp/PMatrixMutableScaling
   (Class/forName "[D")
     (scale! [m a]
-      (let [^doubles m m 
+      (let [^doubles m m
             a (double a)]
         (dotimes [i (alength m)] (aset m i (* a (aget m i))))))
     (pre-scale! [m a]
-      (let [^doubles m m 
+      (let [^doubles m m
             a (double a)]
         (dotimes [i (alength m)] (aset m i (* a (aget m i)))))))
 
@@ -165,4 +167,3 @@
 ;; registration
 
 (imp/register-implementation (double-array [1]))
-

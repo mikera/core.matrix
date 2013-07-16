@@ -5,12 +5,13 @@
 ;; =====================================================
 ;; Implementation utilities
 ;;
-;; Tools to support the registration / manangement of clojure.core.matrix implementations 
+;; Tools to support the registration / manangement of clojure.core.matrix implementations
 
 ;; map of known implementation tags to namespace imports
 ;; we use this to attempt to load an implementation
 (def KNOWN-IMPLEMENTATIONS
-  {:vectorz 'mikera.vectorz.matrix-api
+  (array-map
+   :vectorz 'mikera.vectorz.matrix-api
    :ndarray 'clojure.core.matrix.impl.ndarray
    :persistent-vector 'clojure.core.matrix.impl.persistent-vector
    :persistent-map 'clojure.core.matrix.impl.sparse-map
@@ -24,7 +25,7 @@
    :parallel-colt :TODO
    :ejml :TODO
    :ujmp :TODO
-   :commons-math :TODO})
+   :commons-math :TODO))
 
 ;; default implementation to use
 ;; should be included with clojure.core.matrix for easy of use
@@ -32,13 +33,12 @@
 
 ;; hashmap of implementation keys to canonical objects
 ;; objects must implement PImplementation protocol at a minimum
-(def canonical-objects (atom {}))
+(defonce canonical-objects (atom {}))
 
-
-(defn get-implementation-key 
+(defn get-implementation-key
   "Returns the implementation code for a given object"
-  ([m] 
-    (if (keyword? m) 
+  ([m]
+    (if (keyword? m)
       m
       (mp/implementation-key m))))
 
@@ -48,17 +48,17 @@
   ([canonical-object]
   (swap! canonical-objects assoc (mp/implementation-key canonical-object) canonical-object)))
 
-(defn- try-load-implementation [k]
+(defn try-load-implementation [k]
   (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
-    (try 
+    (try
       (do (require ns-sym) :ok)
       (catch Throwable t nil))))
 
-(defn get-canonical-object 
+(defn get-canonical-object
   "Gets the canonical object for a specific implementation"
   ([m]
     (let [k (get-implementation-key m)
           obj (@canonical-objects k)]
-      (or obj 
+      (or obj
           (if (try-load-implementation k) (@canonical-objects k))
           (error "Unable to find implementation: [" k "]")))))

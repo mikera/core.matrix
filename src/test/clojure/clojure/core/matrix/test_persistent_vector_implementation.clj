@@ -19,6 +19,9 @@
   (testing "scalar broadcast"
     (is (e= [11 12 13] (add [1 2 3] 10)))
     (is (e= [11 12 13] (add 10 [1 2 3]))))
+  (testing "persistent vector shape"
+    (is (= [2] (seq (shape [1 2]))))
+    (is (= [0] (seq (shape [])))))
   (testing "empty vector"
     (is (e= [] (coerce [] [])))
     (is (e= [] (assign [] 1.0)))
@@ -47,7 +50,7 @@
     (is (= [1 2 3] (transpose [1 2 3])))
     (is (= [[[[1]]]] (transpose [[[[1]]]])))))
 
-(deftest test-broadcast 
+(deftest test-broadcast
   (is (equals [[1 2] [1 2]] (broadcast [1 2] [2 2]))))
 
 (deftest test-rows-columns
@@ -63,11 +66,11 @@
 (deftest test-incompatible
   (is (error? (add [1 2] [3 4 5])))
   (is (error? (sub [[1] [2]] [[3] [4] [5]])))
-  (is (error? (emul [[1] [2]] [[3] [4] [5]])))) 
+  (is (error? (emul [[1] [2]] [[3] [4] [5]]))))
 
 (deftest test-functional-op
   (testing "map"
-    (is (= 2 (emap inc 1))) 
+    (is (= 2 (emap inc 1)))
     (is (= [1 2] (emap inc [0 1])))
     (is (= [1 2] (emap + [0 1] [1 1])))
     (is (= [3 5] (emap + [0 1] [1 1] [0 0] [2 3])))
@@ -100,7 +103,7 @@
     (equals [2 3] (emap inc [1 2])))
   (testing "nested implementations"
     (equals [[2 3]] (emap inc [(double-array [1 2])]))
-    (equals [[2 3]] (emap inc [[(wrap/wrap-scalar 1) (wrap/wrap-scalar 2)]])))) 
+    (equals [[2 3]] (emap inc [[(wrap/wrap-scalar 1) (wrap/wrap-scalar 2)]]))))
 
 (deftest test-eseq
   (testing "basic"
@@ -112,7 +115,7 @@
     (= [1 2] (eseq [[(wrap/wrap-scalar 1) (wrap/wrap-scalar 2)]]))))
 
 (deftest test-slices
-  (is (= [1 2] (slices [1 2])))) 
+  (is (= [1 2] (slices [1 2]))))
 
 (deftest test-sum
   (testing "summing"
@@ -125,7 +128,7 @@
   (testing "double arrays"
     (is (= [1.0 2.0] (coerce [] (double-array [1 2])))))
   (testing "nested sequences"
-    (is (= [[1 2] [3 4]] (coerce [] '((1 2) (3 4))))))) 
+    (is (= [[1 2] [3 4]] (coerce [] '((1 2) (3 4)))))))
 
 ;; run complicance tests
 
@@ -135,7 +138,7 @@
   (testing "matrices of symbols are supported"
     (clojure.core.matrix.compliance-tester/instance-test ['a 'b]))
   (testing "matrices of heterogeneous submatrices"
-    (clojure.core.matrix.compliance-tester/instance-test [[1 2.0] (double-array [3 4])]))) 
+    (clojure.core.matrix.compliance-tester/instance-test [[1 2.0] (double-array [3 4])])))
 
 (deftest compliance-test
   (clojure.core.matrix.compliance-tester/compliance-test [1]))

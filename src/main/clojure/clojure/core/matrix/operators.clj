@@ -47,4 +47,4 @@
   ([] true)
   ([a] true)
   ([a b] (m/equals a b))
-  ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more))) 
+  ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more)))
