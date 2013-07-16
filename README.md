@@ -1,7 +1,7 @@
 core.matrix
 ===========
 
-N-dimensional Array / Matrix / Vector API for Clojure.
+N-dimensional Matrix / Vector maths API for Clojure.
 
 ```clojure
 (+ [[1 2]
@@ -21,7 +21,7 @@ Key objectives:
  - Enable plugable support for different underlying matrix library implementations
  - Provide a general purpose n-dimensional array implementation (NumPy style NDArray)
  - Provide a foundation layer for other projects (e.g. Incanter)
- - Maintain good performance wherever possible
+ - Maintain high performance wherever possible
 
 ### Status
 
