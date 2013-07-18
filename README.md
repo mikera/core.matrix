@@ -3,6 +3,9 @@ core.matrix
 
 N-dimensional Matrix / Vector maths API for Clojure.
 
+If it looks like a matrix, it works like a matrix. core.matrix allows you to write clean, functional code 
+with matrices as mathematical objects
+
 ```clojure
 (+ [[1 2]
     [3 4]]
@@ -13,7 +16,7 @@ N-dimensional Matrix / Vector maths API for Clojure.
 ```
 
 The objective of `core.matrix` is to provide a common and idiomatic abstraction for matrix maths in Clojure,
-independent of underlying implementations. The plan is to become an official Clojure Contrib language extension once the API has matured. Like NumPy, but with more parens and functional goodness..
+independent of underlying implementations. Like NumPy, but with more parens and functional goodness..
 
 Key objectives:
 
@@ -34,6 +37,8 @@ matrix implementations. The most mature implementations are currently:
 
 However the API is still *subject to some changes* at present (at least up until release 1.0.0),
 so users should be prepared to deal with potential breaking changes in future releases.
+
+The plan is to become an official Clojure Contrib language extension once the API has been well tested. 
 
 [![Build Status](https://travis-ci.org/mikera/matrix-api.png?branch=master)](https://travis-ci.org/mikera/matrix-api)
 
