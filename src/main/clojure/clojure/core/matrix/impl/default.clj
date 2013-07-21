@@ -188,38 +188,38 @@
       (let [dims (mp/dimensionality m)]
         (cond
           (== 1 dims)
-	          (let [xdims (long (mp/dimensionality x))
+              (let [xdims (long (mp/dimensionality x))
                   msize (long (mp/dimension-count m 0))]
               (if (== 0 xdims)
                 (let [value (mp/get-0d x)]
                   (dotimes [i msize] (mp/set-1d! m i value)))
                 (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
-	        (array? m)
+            (array? m)
             (let [xdims (long (mp/dimensionality x))]
               (if (> xdims 0)
                 (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) (mp/get-major-slice-seq x)))
                 (let [value (mp/get-0d x)]
                   (doseq [ms (mp/get-major-slice-seq m)] (mp/assign! ms value)))))
-	        :else
-	          (error "Can't assign to a non-array object: " (class m)))))
+            :else
+              (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
       ([m arr]
-	      (let [alen (long (count arr))]
-	        (if (mp/is-vector? m)
-	          (dotimes [i alen]
-	            (mp/set-1d! m i (nth arr i)))
-	          (mp/assign-array! m arr 0 alen))))
+          (let [alen (long (count arr))]
+            (if (mp/is-vector? m)
+              (dotimes [i alen]
+                (mp/set-1d! m i (nth arr i)))
+              (mp/assign-array! m arr 0 alen))))
       ([m arr start length]
-	      (let [length (long length)
+          (let [length (long length)
               start (long start)]
          (if (mp/is-vector? m)
-	          (dotimes [i length]
-	            (mp/set-1d! m i (nth arr (+ start i))))
-	          (let [ss (seq (mp/get-major-slice-seq m))
-	                skip (long (if ss (calc-element-count (first (mp/get-major-slice-seq m))) 0))]
-	            (doseq-indexed [s ss i]
-	              (mp/assign-array! s arr (+ start (* skip i)) skip))))))))
+              (dotimes [i length]
+                (mp/set-1d! m i (nth arr (+ start i))))
+              (let [ss (seq (mp/get-major-slice-seq m))
+                    skip (long (if ss (calc-element-count (first (mp/get-major-slice-seq m))) 0))]
+                (doseq-indexed [s ss i]
+                  (mp/assign-array! s arr (+ start (* skip i)) skip))))))))
 
 (extend-protocol mp/PMutableFill
   Object
@@ -227,12 +227,12 @@
       (mp/assign! m value)))
 
 (extend-protocol mp/PMatrixCloning
-	  java.lang.Cloneable
-	    (clone [m]
-	      (.invoke ^java.lang.reflect.Method (.getDeclaredMethod (class m) "clone" nil) m nil))
-	  java.lang.Object
-	    (clone [m]
-	      (mp/coerce-param m (mp/coerce-param [] m))))
+      java.lang.Cloneable
+        (clone [m]
+          (.invoke ^java.lang.reflect.Method (.getDeclaredMethod (class m) "clone" nil) m nil))
+      java.lang.Object
+        (clone [m]
+          (mp/coerce-param m (mp/coerce-param [] m))))
 
 (extend-protocol mp/PMutableMatrixConstruction
   nil
@@ -352,10 +352,40 @@
         (array? a) (mp/pre-scale a m)
         :else (error "Don't know how to multiply number with: " (class a))))
   java.lang.Object
-    (matrix-multiply [m a]
+    #_(matrix-multiply [m a]
       (if (number? a)
         (mp/scale m a)
         (mp/coerce-param m (mp/matrix-multiply (mp/coerce-param [] m) a))))
+    (matrix-multiply [m a]
+      (let [mdims (long (mp/dimensionality m))
+            adims (long (mp/dimensionality a))]
+        (cond
+         (== adims 0) (mp/scale m a)
+         (and (== mdims 1) (== adims 2)) (TODO)
+         (and (== mdims 2) (== adims 1)) (TODO)
+         (and (== mdims 2) (== adims 2))
+           (if (mp/is-mutable? m)
+             (let [[rows cols] (mp/get-shape m)
+                   new-m (mp/new-matrix m rows cols)
+                   n rows]
+               (do
+                 ;; TODO: non-square matrices
+                 ;; TODO: vector-matrix and matrix-vector
+                 ;; TODO: doseq -> loop and test perf
+                 ;; TODO: optimize cache-locality (http://bit.ly/12FgFbl)
+                 ;; TODO: use NDArray for non-mutable matrices
+                 ;; TODO: cleanup
+                 (doseq [i (range rows)
+                         j (range cols)]
+                   (mp/set-2d! new-m i j 0))
+                 (doseq [i (range n)
+                         j (range n)
+                         k (range n)]
+                   (mp/set-2d! new-m i j (+ (mp/get-2d new-m i j)
+                                            (* (mp/get-2d m i k)
+                                               (mp/get-2d a k j)))))
+                 new-m))
+             (TODO)))))
     (element-multiply [m a]
       (if (number? a)
         (mp/scale m a)
@@ -729,17 +759,17 @@
       (let [dims (mp/dimensionality m)]
         (cond
           (<= dims 0)
-	          (mp/get-0d m)
-	        (== 1 dims)
-	          (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
-	        (array? m)
-	          (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
-	        (sequential? m)
-	          (mapv mp/convert-to-nested-vectors m)
-	        (seq? m)
-	          (mapv mp/convert-to-nested-vectors m)
-	        :default
-	          (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
+              (mp/get-0d m)
+            (== 1 dims)
+              (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
+            (array? m)
+              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
+            (sequential? m)
+              (mapv mp/convert-to-nested-vectors m)
+            (seq? m)
+              (mapv mp/convert-to-nested-vectors m)
+            :default
+              (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
 
 (extend-protocol mp/PVectorView
   nil
