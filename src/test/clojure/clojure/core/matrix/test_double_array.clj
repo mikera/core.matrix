@@ -119,7 +119,8 @@
 (deftest instance-tests
   (clojure.core.matrix.compliance-tester/instance-test (double-array []))
   (clojure.core.matrix.compliance-tester/instance-test (double-array [1]))
-  (clojure.core.matrix.compliance-tester/instance-test (double-array [1 2])))
+  (clojure.core.matrix.compliance-tester/instance-test (double-array [1 2]))
+  (clojure.core.matrix.compliance-tester/instance-test (double-array [-1 4 2 7 -3])))
 
 (deftest compliance-test
   (clojure.core.matrix.compliance-tester/compliance-test (double-array [0.23])))
