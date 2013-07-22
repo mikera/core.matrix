@@ -5,7 +5,8 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.impl.wrappers :as wrap])
   (:require [clojure.core.matrix.multimethods :as mm])
-  (:require [clojure.core.matrix.impl.mathsops :as mops]))
+  (:require [clojure.core.matrix.impl.mathsops :as mops])
+  (:require [clojure.core.matrix.implementations :as imp]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -340,6 +341,7 @@
                                (mp/element-map m (fn [v] (mp/pre-scale a v))))))))
 
 ;; matrix multiply
+;; TODO: document returning NDArray
 (extend-protocol mp/PMatrixMultiply
   java.lang.Number
     (element-multiply [m a]
@@ -352,10 +354,6 @@
         (array? a) (mp/pre-scale a m)
         :else (error "Don't know how to multiply number with: " (class a))))
   java.lang.Object
-    #_(matrix-multiply [m a]
-      (if (number? a)
-        (mp/scale m a)
-        (mp/coerce-param m (mp/matrix-multiply (mp/coerce-param [] m) a))))
     (matrix-multiply [m a]
       (let [mdims (long (mp/dimensionality m))
             adims (long (mp/dimensionality a))]
@@ -364,28 +362,24 @@
          (and (== mdims 1) (== adims 2)) (TODO)
          (and (== mdims 2) (== adims 1)) (TODO)
          (and (== mdims 2) (== adims 2))
-           (if (mp/is-mutable? m)
-             (let [[rows cols] (mp/get-shape m)
-                   new-m (mp/new-matrix m rows cols)
-                   n rows]
-               (do
-                 ;; TODO: non-square matrices
-                 ;; TODO: vector-matrix and matrix-vector
-                 ;; TODO: doseq -> loop and test perf
-                 ;; TODO: optimize cache-locality (http://bit.ly/12FgFbl)
-                 ;; TODO: use NDArray for non-mutable matrices
-                 ;; TODO: cleanup
-                 (doseq [i (range rows)
-                         j (range cols)]
-                   (mp/set-2d! new-m i j 0))
-                 (doseq [i (range n)
-                         j (range n)
-                         k (range n)]
-                   (mp/set-2d! new-m i j (+ (mp/get-2d new-m i j)
-                                            (* (mp/get-2d m i k)
-                                               (mp/get-2d a k j)))))
-                 new-m))
-             (TODO)))))
+           (let [mutable (mp/is-mutable? m)
+                 [mrows mcols] (mp/get-shape m)
+                 [arows acols] (mp/get-shape a)
+                 new-m-type (if mutable m (imp/get-canonical-object :ndarray))
+                 new-m (mp/new-matrix new-m-type mrows acols)]
+             (do
+               ;; TODO: vector-matrix and matrix-vector
+               ;; TODO: optimize cache-locality (http://bit.ly/12FgFbl)
+               (c-for [i (long 0) (< i mrows) (inc i)
+                       j (long 0) (< j acols) (inc j)]
+                 (mp/set-2d! new-m i j 0))
+               (c-for [i (long 0) (< i mrows) (inc i)
+                       j (long 0) (< j acols) (inc j)
+                       k (long 0) (< k mcols) (inc k)]
+                 (mp/set-2d! new-m i j (+ (mp/get-2d new-m i j)
+                                          (* (mp/get-2d m i k)
+                                             (mp/get-2d a k j)))))
+               new-m)))))
     (element-multiply [m a]
       (if (number? a)
         (mp/scale m a)
