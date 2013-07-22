@@ -800,7 +800,7 @@
     (mp/trace a)))
 
 (defn length
-  "Calculates the length (magnitude) of a vector"
+  "Calculates the euclidean length (magnitude) of a vector"
   ([m]
     (mp/length m)))
 
@@ -810,7 +810,10 @@
      (mp/length-squared m)))
 
 (defn pow
-  "Raises every element of a numerical matrix by the given exponent."
+  "Raises every element of a numerical matrix by the given exponent. 
+
+   Note that behaviour for large exponents may depend on the underlying implementation: 
+   for example double-based matrices may overflow to Double/POSITIVE_INFINITY."
   ([m]
     m)
   ([m exponent]
