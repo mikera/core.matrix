@@ -202,7 +202,8 @@
   (when (> 0 (dimensionality m))
     (let [j (join m m)
           js (slices j)]
-      (is (== (first (shape j)) (* 2 (first (shape m))))))
+      (is (== (first (shape j)) (* 2 (first (shape m)))))
+      (is (e= m (first js))))
     (let [j (join m (first (slices m)))
           js (slices j)]
       (is (== (first (shape j)) (inc (first (shape m))))))))
