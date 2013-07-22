@@ -198,15 +198,17 @@
       (fill! mm e)
       (is (e= mm n)))))
 
-(defn test-join [m]
-  (when (> 0 (dimensionality m))
-    (let [j (join m m)
-          js (slices j)]
-      (is (== (first (shape j)) (* 2 (first (shape m)))))
-      (is (e= m (first js))))
-    (let [j (join m (first (slices m)))
-          js (slices j)]
-      (is (== (first (shape j)) (inc (first (shape m))))))))
+(defn test-join 
+  "Test for joining matrices along major dimension"
+  ([m]
+    (when (> 0 (dimensionality m))
+      (let [j (join m m)
+            js (slices j)]
+        (is (== (first (shape j)) (* 2 (first (shape m)))))
+        (is (e= m (first js))))
+      (let [j (join m (first (slices m)))
+            js (slices j)]
+        (is (== (first (shape j)) (inc (first (shape m)))))))))
 
 (defn test-pm
   "Test for matrix pretty-printing"
