@@ -428,7 +428,7 @@
 
 (defn test-identity [im]
   (let [I (identity-matrix im 3)]
-    (is (equals [1 2 3] (mul I [1 2 3])))
+    (is (equals [[1] [2] [3]] (mul I [[1] [2] [3]])))
     (is (equals I (transpose I)))))
 
 (defn test-trace [im]
@@ -439,7 +439,7 @@
 
 (defn test-diagonal [im]
   (let [I (diagonal-matrix im [1 2 3])]
-    (is (equals [1 4 9] (mul I [1 2 3])))
+    (is (equals [[1] [4] [9]] (mul I [[1] [2] [3]])))
     (is (equals I (transpose I)))))
 
 (defn test-row-column-matrices [im]
