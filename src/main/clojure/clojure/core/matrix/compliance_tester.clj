@@ -328,6 +328,8 @@
 
 (defn misc-numeric-tests [m]
   (is (equals (add m m) (scale m 2.0)))
+  (is (equals (square m) (** m 2)))
+  (is (equals m (** m 1)))
   (is (equals (sub m 0.0) (scale m 1.0)))
   (is (equals (negate m) (outer-product -1.0 m)))
   (is (equals (add 0.0 m) (mul 1 m)))
