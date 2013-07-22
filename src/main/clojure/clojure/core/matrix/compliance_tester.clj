@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.compliance-tester
   (:use clojure.core.matrix)
   (:use clojure.test)
+  (:require [clojure.core.matrix.operators :as ops])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.utils :as utils :refer [error]]))
@@ -328,8 +329,8 @@
 
 (defn misc-numeric-tests [m]
   (is (equals (add m m) (scale m 2.0)))
-  (is (equals (square m) (** m 2)))
-  (is (equals m (** m 1)))
+  (is (equals (square m) (ops/** m 2)))
+  (is (equals m (ops/** m 1)))
   (is (equals (sub m 0.0) (scale m 1.0)))
   (is (equals (negate m) (outer-product -1.0 m)))
   (is (equals (add 0.0 m) (mul 1 m)))
