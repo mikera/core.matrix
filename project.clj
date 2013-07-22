@@ -10,5 +10,5 @@
                                   [net.mikera/cljunit "0.2.0"]
                                   [criterium/criterium "0.4.1"]
                                   [hiccup "1.0.3"]
-                                  [net.mikera/vectorz-clj "0.10.0"]]
+                                  [net.mikera/vectorz-clj "0.12.0"]]
                    :source-paths ["src/main/clojure" "src/dev/clojure"]}})

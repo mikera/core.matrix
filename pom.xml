@@ -34,6 +34,12 @@
 			<artifactId>clojure</artifactId>
 			<version>1.4.0</version>
 		</dependency>
+		<dependency>
+			<groupId>net.mikera</groupId>
+			<artifactId>vectorz-clj</artifactId>
+			<version>0.12.0</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<licenses>
