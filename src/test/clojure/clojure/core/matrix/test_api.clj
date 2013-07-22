@@ -90,6 +90,10 @@
     )
   )
 
+(deftest test-pow
+  (is (== 8 (pow 2 3)))
+  (is (== 8 (op/** 2 3)))) 
+
 (deftest test-slices
   (testing "rows and columns of clojure vector matrix"
     (is (= [1 2 3] (get-row [[1 2 3] [4 5 6]] 0)))

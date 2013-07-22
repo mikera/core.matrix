@@ -16,6 +16,12 @@
   ([a b & more]
     (reduce m/mul (m/mul a b) more)))
 
+(defn ^:static **
+  "Matrix exponent operator. Raises every element in matrix a to the given exponent.
+   Uses clojure.core.matrix/pow."
+  ([a exponent]
+    (m/pow a exponent)))
+
 (defn +
   "Matrix addition operator"
   ([a] a)
