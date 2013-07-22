@@ -19,7 +19,7 @@
        (->> rand-row repeatedly (take n) vec))))
 
 (defn mmultiply-bench []
-  (let [n 50]
+  (let [n 70]
     (println "Test matrix size:" n)
     (println "Vectorz:")
     (let [[ma mb] (->> #(rand-mtx n)
