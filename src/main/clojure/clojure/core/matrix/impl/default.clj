@@ -359,8 +359,14 @@
             adims (long (mp/dimensionality a))]
         (cond
          (== adims 0) (mp/scale m a)
-         (and (== mdims 1) (== adims 2)) (TODO)
-         (and (== mdims 2) (== adims 1)) (TODO)
+         (and (== mdims 1) (== adims 2))
+           (let [[arows acols] (mp/get-shape a)]
+             (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
+                         [arows]))
+         (and (== mdims 2) (== adims 1))
+           (let [[mrows mcols] (mp/get-shape m)]
+             (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
+                         [mcols]))
          (and (== mdims 2) (== adims 2))
            (let [mutable (mp/is-mutable? m)
                  [mrows mcols] (mp/get-shape m)
@@ -368,7 +374,6 @@
                  new-m-type (if mutable m (imp/get-canonical-object :ndarray))
                  new-m (mp/new-matrix new-m-type mrows acols)]
              (do
-               ;; TODO: vector-matrix and matrix-vector
                ;; TODO: optimize cache-locality (http://bit.ly/12FgFbl)
                (c-for [i (long 0) (< i mrows) (inc i)
                        j (long 0) (< j acols) (inc j)]
