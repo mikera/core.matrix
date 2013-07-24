@@ -198,7 +198,7 @@
       (fill! mm e)
       (is (e= mm n)))))
 
-(defn test-join 
+(defn test-join
   "Test for joining matrices along major dimension"
   ([m]
     (when (> 0 (dimensionality m))
@@ -427,8 +427,10 @@
       (is (equals [[-1 -2] [-3 -4]] (negate m))))))
 
 (defn test-identity [im]
-  (let [I (identity-matrix im 3)]
+  (let [I (identity-matrix im 3)
+        test-mtx [[1 2 3] [4 5 6] [7 8 9]]]
     (is (equals [1 2 3] (mul I [1 2 3])))
+    (is (equals test-mtx (mul I test-mtx)))
     (is (equals I (transpose I)))))
 
 (defn test-trace [im]
@@ -438,8 +440,10 @@
     (is (== 5.0 (trace m)))))
 
 (defn test-diagonal [im]
-  (let [I (diagonal-matrix im [1 2 3])]
+  (let [I (diagonal-matrix im [1 2 3])
+        I-squared (diagonal-matrix im [1 4 9])]
     (is (equals [1 4 9] (mul I [1 2 3])))
+    (is (equals I-squared (mul I I)))
     (is (equals I (transpose I)))))
 
 (defn test-row-column-matrices [im]
