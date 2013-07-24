@@ -158,8 +158,10 @@
 
 (defn test-submatrix-assumptions [m]
   (let [shp (shape m)
+        dims (dimensionality m) 
         full-ranges (map (fn [c] [0 c]) shp)]
     (is (e= m (submatrix m full-ranges)))
+    (is (e= m (submatrix m (repeat dims nil))))
     ;; TODO: test a variety of different submatrices
     ))
 

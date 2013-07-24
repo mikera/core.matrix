@@ -3,9 +3,9 @@
   (:require [clojure.reflect :as r]
             [clojure.string :as s]
             [hiccup.page :as h]
-            #_[clojure.core.matrix.protocols :as mp]
-            #_[clojure.core.matrix.implementations :as mi]
-            #_[clojure.core.matrix.docgen.common :as c]))
+            [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.implementations :as mi]
+            [clojure.core.matrix.docgen.common :as c]))
 
 ;; ## Info
 ;; This file provides rather hacky solution for generating
