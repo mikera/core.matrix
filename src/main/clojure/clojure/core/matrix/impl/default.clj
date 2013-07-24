@@ -5,7 +5,8 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.impl.wrappers :as wrap])
   (:require [clojure.core.matrix.multimethods :as mm])
-  (:require [clojure.core.matrix.impl.mathsops :as mops]))
+  (:require [clojure.core.matrix.impl.mathsops :as mops])
+  (:require [clojure.core.matrix.implementations :as imp]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -188,38 +189,38 @@
       (let [dims (mp/dimensionality m)]
         (cond
           (== 1 dims)
-	          (let [xdims (long (mp/dimensionality x))
+              (let [xdims (long (mp/dimensionality x))
                   msize (long (mp/dimension-count m 0))]
               (if (== 0 xdims)
                 (let [value (mp/get-0d x)]
                   (dotimes [i msize] (mp/set-1d! m i value)))
                 (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
-	        (array? m)
+            (array? m)
             (let [xdims (long (mp/dimensionality x))]
               (if (> xdims 0)
                 (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) (mp/get-major-slice-seq x)))
                 (let [value (mp/get-0d x)]
                   (doseq [ms (mp/get-major-slice-seq m)] (mp/assign! ms value)))))
-	        :else
-	          (error "Can't assign to a non-array object: " (class m)))))
+            :else
+              (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
       ([m arr]
-	      (let [alen (long (count arr))]
-	        (if (mp/is-vector? m)
-	          (dotimes [i alen]
-	            (mp/set-1d! m i (nth arr i)))
-	          (mp/assign-array! m arr 0 alen))))
+          (let [alen (long (count arr))]
+            (if (mp/is-vector? m)
+              (dotimes [i alen]
+                (mp/set-1d! m i (nth arr i)))
+              (mp/assign-array! m arr 0 alen))))
       ([m arr start length]
-	      (let [length (long length)
+          (let [length (long length)
               start (long start)]
          (if (mp/is-vector? m)
-	          (dotimes [i length]
-	            (mp/set-1d! m i (nth arr (+ start i))))
-	          (let [ss (seq (mp/get-major-slice-seq m))
-	                skip (long (if ss (calc-element-count (first (mp/get-major-slice-seq m))) 0))]
-	            (doseq-indexed [s ss i]
-	              (mp/assign-array! s arr (+ start (* skip i)) skip))))))))
+              (dotimes [i length]
+                (mp/set-1d! m i (nth arr (+ start i))))
+              (let [ss (seq (mp/get-major-slice-seq m))
+                    skip (long (if ss (calc-element-count (first (mp/get-major-slice-seq m))) 0))]
+                (doseq-indexed [s ss i]
+                  (mp/assign-array! s arr (+ start (* skip i)) skip))))))))
 
 (extend-protocol mp/PMutableFill
   Object
@@ -227,12 +228,12 @@
       (mp/assign! m value)))
 
 (extend-protocol mp/PMatrixCloning
-	  java.lang.Cloneable
-	    (clone [m]
-	      (.invoke ^java.lang.reflect.Method (.getDeclaredMethod (class m) "clone" nil) m nil))
-	  java.lang.Object
-	    (clone [m]
-	      (mp/coerce-param m (mp/coerce-param [] m))))
+      java.lang.Cloneable
+        (clone [m]
+          (.invoke ^java.lang.reflect.Method (.getDeclaredMethod (class m) "clone" nil) m nil))
+      java.lang.Object
+        (clone [m]
+          (mp/coerce-param m (mp/coerce-param [] m))))
 
 (extend-protocol mp/PMutableMatrixConstruction
   nil
@@ -340,6 +341,7 @@
                                (mp/element-map m (fn [v] (mp/pre-scale a v))))))))
 
 ;; matrix multiply
+;; TODO: document returning NDArray
 (extend-protocol mp/PMatrixMultiply
   java.lang.Number
     (element-multiply [m a]
@@ -353,9 +355,36 @@
         :else (error "Don't know how to multiply number with: " (class a))))
   java.lang.Object
     (matrix-multiply [m a]
-      (if (number? a)
-        (mp/scale m a)
-        (mp/coerce-param m (mp/matrix-multiply (mp/coerce-param [] m) a))))
+      (let [mdims (long (mp/dimensionality m))
+            adims (long (mp/dimensionality a))]
+        (cond
+         (== adims 0) (mp/scale m a)
+         (and (== mdims 1) (== adims 2))
+           (let [[arows acols] (mp/get-shape a)]
+             (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
+                         [arows]))
+         (and (== mdims 2) (== adims 1))
+           (let [[mrows mcols] (mp/get-shape m)]
+             (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
+                         [mcols]))
+         (and (== mdims 2) (== adims 2))
+           (let [mutable (mp/is-mutable? m)
+                 [mrows mcols] (mp/get-shape m)
+                 [arows acols] (mp/get-shape a)
+                 new-m-type (if mutable m (imp/get-canonical-object :ndarray))
+                 new-m (mp/new-matrix new-m-type mrows acols)]
+             (do
+               ;; TODO: optimize cache-locality (http://bit.ly/12FgFbl)
+               (c-for [i (long 0) (< i mrows) (inc i)
+                       j (long 0) (< j acols) (inc j)]
+                 (mp/set-2d! new-m i j 0))
+               (c-for [i (long 0) (< i mrows) (inc i)
+                       j (long 0) (< j acols) (inc j)
+                       k (long 0) (< k mcols) (inc k)]
+                 (mp/set-2d! new-m i j (+ (mp/get-2d new-m i j)
+                                          (* (mp/get-2d m i k)
+                                             (mp/get-2d a k j)))))
+               new-m)))))
     (element-multiply [m a]
       (if (number? a)
         (mp/scale m a)
@@ -729,17 +758,17 @@
       (let [dims (mp/dimensionality m)]
         (cond
           (<= dims 0)
-	          (mp/get-0d m)
-	        (== 1 dims)
-	          (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
-	        (array? m)
-	          (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
-	        (sequential? m)
-	          (mapv mp/convert-to-nested-vectors m)
-	        (seq? m)
-	          (mapv mp/convert-to-nested-vectors m)
-	        :default
-	          (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
+              (mp/get-0d m)
+            (== 1 dims)
+              (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
+            (array? m)
+              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
+            (sequential? m)
+              (mapv mp/convert-to-nested-vectors m)
+            (seq? m)
+              (mapv mp/convert-to-nested-vectors m)
+            :default
+              (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
 
 (extend-protocol mp/PVectorView
   nil

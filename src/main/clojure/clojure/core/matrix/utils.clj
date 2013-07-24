@@ -164,4 +164,17 @@
           r (broadcast-shape* a b)]
       (if r (reverse r) nil))))
 
+(defmacro c-for
+  "C-like loop with nested loops support"
+  [loops & body]
+  (letfn [(c-for-rec [loops body-stmts]
+            (if (seq loops)
+              (let [[var init check next] (take 4 loops)]
+                `((loop [~var ~init]
+                     (when ~check
+                       ~@(c-for-rec (nthrest loops 4) body-stmts)
+                       (recur ~next)))))
+              body-stmts))]
+    `(do ~@(c-for-rec loops body) nil)))
 
+#_(c-for [i (long 0) (< i mrows) (inc i)])
