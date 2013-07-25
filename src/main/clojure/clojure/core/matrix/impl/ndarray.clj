@@ -64,7 +64,86 @@
 
   clojure.lang.Seqable
   (seq [m]
-    (row-major-seq-double m)))
+    (row-major-seq-double m))
+
+  mp/PMatrixMultiply
+    (matrix-multiply [m a]
+      (let [mdims (long (mp/dimensionality m))
+            adims (long (mp/dimensionality a))]
+        (cond
+         (== adims 0) (mp/scale m a)
+         (and (== mdims 1) (== adims 2))
+           (let [[arows acols] (mp/get-shape a)]
+             (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
+                         [arows]))
+         (and (== mdims 2) (== adims 1))
+           (let [[mrows mcols] (mp/get-shape m)]
+             (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
+                         [mcols]))
+         (and (== mdims 2) (== adims 2))
+           (let [mutable (mp/is-mutable? m)
+                 [mrows mcols] (mp/get-shape m)
+                 [arows acols] (mp/get-shape a)
+                 ^NDArrayDouble new-m (mp/new-matrix m mrows acols)
+                 ^longs nm-strides (.strides new-m)
+                 ^doubles nm-data (.data new-m)
+                 ^longs m-strides (.strides m)
+                 ^doubles m-data (.data m)
+                 m-offset (.offset m)
+                 ;; we can't really do the following optimization unless
+                 ;; we are sure that a is NDArrayDouble;
+                 ;; it's around 8ms at n=70 (or 2x slowdown)
+                 ^longs a-strides (.strides ^NDArrayDouble a)
+                 ^doubles a-data (.data ^NDArrayDouble a)
+                 a-offset (.offset ^NDArrayDouble a)]
+             (do
+               (c-for [i (long 0) (< i mrows) (inc i)]
+                 (let [t (aget a-data (+ (* (aget m-strides 0) i)
+                                         m-offset))]
+                   (c-for [j (long 0) (< j acols) (inc j)]
+                     (aset nm-data (+ (* (aget nm-strides 0) i)
+                                      (* (aget nm-strides 1) j))
+                           (double (* (aget a-data (+ (* (aget a-strides 1) j)
+                                                      a-offset))))))
+                   (c-for [k (long 0) (< k mcols) (inc k)]
+                     (loop [j (long 0) s (double 0)]
+                       (if (< j acols)
+                         (recur (inc j)
+                                (+ s
+                                   (* (aget m-data
+                                            (+ (+ (* (aget m-strides 0) i)
+                                                  (* (aget m-strides 1) k))
+                                               m-offset))
+                                      (aget a-data
+                                            (+ (+ (* (aget a-strides 0) k)
+                                                  (* (aget a-strides 1) j))
+                                               a-offset)))))
+                         (aset nm-data (+ (* (aget nm-strides 0) i)
+                                          (* (aget nm-strides 1) (dec j)))
+                               s))))))
+
+               #_(c-for [i (long 0) (< i mrows) (inc i)
+                       j (long 0) (< j acols) (inc j)
+                       k (long 0) (< k mcols) (inc k)]
+                      (let [new-m-idx (+ (* (aget nm-strides 0) i)
+                                         (* (aget nm-strides 1) j))
+                            m-idx (+ (+ (* (aget m-strides 0) i)
+                                        (* (aget m-strides 1) k))
+                                     m-offset)
+                            a-idx (+ (+ (* (aget a-strides 0) k)
+                                        (* (aget a-strides 1) j))
+                                     a-offset)]
+                        (aset nm-data new-m-idx
+                              (+ (aget nm-data new-m-idx)
+                                 (* (aget m-data m-idx)
+                                    (aget a-data a-idx))))))
+               new-m)))))
+    (element-multiply [m a]
+      (if (number? a)
+        (mp/scale m a)
+        (let [[m a] (mp/broadcast-compatible m a)]
+          (mp/element-map m clojure.core/* a))))
+  )
 
 
 ;; ## Default striding schemes
@@ -409,7 +488,7 @@ of indexes and strides"
     (when-not (= 1 (.ndims m))
       (throw (IllegalArgumentException. "can't use set-1d! on non-vector")))
     (let [^doubles data (.data m)]
-      (aset data x v)))
+      (aset data x (double v))))
   (set-2d! [m x y v]
     (when-not (= 2 (.ndims m))
       (throw (IllegalArgumentException. "can't use set-2d! on non-matrix")))
@@ -429,7 +508,7 @@ of indexes and strides"
           offset (.offset m)
           ^doubles data (.data m)
           idx (get-strided-idx idxs strides offset)]
-      (aset data idx v))))
+      (aset data idx (double v)))))
 
 ;; PMatrixCloning requires only "clone" method, which is used to clone
 ;; mutable matrix. The mutation of clone must not affect the original.
@@ -527,6 +606,12 @@ of indexes and strides"
        (when-not (>= i (aget shape 0))
          (lazy-seq (cons (row-major-slice m i)
                          (row-major-seq m (inc i))))))))
+
+;; ## Optional protocols
+;;
+;; Following protocols are implemented for performance only
+
+#_(extend-protocol mp/PMatrixMultiply)
 
 ;; Register implementation
 
