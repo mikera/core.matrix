@@ -82,8 +82,12 @@
                          [mcols]))
          (and (== mdims 2) (== adims 2))
            (let [mutable (mp/is-mutable? m)
-                 [mrows mcols] (mp/get-shape m)
-                 [arows acols] (mp/get-shape a)
+                 [mrows-t mcols-t] (mp/get-shape m)
+                 [arows-t acols-t] (mp/get-shape a)
+                 mrows (long mrows-t)
+                 mcols (long mcols-t)
+                 arows (long arows-t)
+                 acols (long acols-t)
                  ^NDArrayDouble new-m (mp/new-matrix m mrows acols)
                  ^longs nm-strides (.strides new-m)
                  ^doubles nm-data (.data new-m)
@@ -104,8 +108,9 @@
                      (aset nm-data (+ (* (aget nm-strides 0) i)
                                       (* (aget nm-strides 1) j))
                            (double (* (aget a-data (+ (* (aget a-strides 1) j)
-                                                      a-offset))))))
-                   (c-for [k (long 0) (< k mcols) (inc k)]
+                                                      a-offset))
+                                      t))))
+                   (c-for [k (long 1) (< k mcols) (inc k)]
                      (loop [j (long 0) s (double 0)]
                        (if (< j acols)
                          (recur (inc j)
