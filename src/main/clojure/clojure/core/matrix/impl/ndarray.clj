@@ -84,34 +84,34 @@
            (let [mutable (mp/is-mutable? m)
                  [mrows-t mcols-t] (mp/get-shape m)
                  [arows-t acols-t] (mp/get-shape a)
-                 mrows (long mrows-t)
-                 mcols (long mcols-t)
-                 arows (long arows-t)
-                 acols (long acols-t)
+                 mrows (int mrows-t)
+                 mcols (int mcols-t)
+                 arows (int arows-t)
+                 acols (int acols-t)
                  ^NDArrayDouble new-m (mp/new-matrix m mrows acols)
-                 ^longs nm-strides (.strides new-m)
+                 ^ints nm-strides (int-array (.strides new-m))
                  ^doubles nm-data (.data new-m)
-                 ^longs m-strides (.strides m)
+                 ^ints m-strides (int-array (.strides m))
                  ^doubles m-data (.data m)
-                 m-offset (.offset m)
+                 m-offset (int (.offset m))
                  ;; we can't really do the following optimization unless
                  ;; we are sure that a is NDArrayDouble;
                  ;; it's around 8ms at n=70 (or 2x slowdown)
-                 ^longs a-strides (.strides ^NDArrayDouble a)
+                 ^ints a-strides (int-array (.strides ^NDArrayDouble a))
                  ^doubles a-data (.data ^NDArrayDouble a)
-                 a-offset (.offset ^NDArrayDouble a)]
+                 a-offset (int (.offset ^NDArrayDouble a))]
              (do
-               (c-for [i (long 0) (< i mrows) (inc i)]
+               (c-for [i (int 0) (< i mrows) (inc i)]
                  (let [t (aget a-data (+ (* (aget m-strides 0) i)
                                          m-offset))]
-                   (c-for [j (long 0) (< j acols) (inc j)]
+                   (c-for [j (int 0) (< j acols) (inc j)]
                      (aset nm-data (+ (* (aget nm-strides 0) i)
                                       (* (aget nm-strides 1) j))
                            (double (* (aget a-data (+ (* (aget a-strides 1) j)
                                                       a-offset))
                                       t))))
-                   (c-for [k (long 1) (< k mcols) (inc k)]
-                     (loop [j (long 0) s (double 0)]
+                   (c-for [k (int 1) (< k mcols) (inc k)]
+                     (loop [j (int 0) s (double 0)]
                        (if (< j acols)
                          (recur (inc j)
                                 (+ s
@@ -126,22 +126,6 @@
                          (aset nm-data (+ (* (aget nm-strides 0) i)
                                           (* (aget nm-strides 1) (dec j)))
                                s))))))
-
-               #_(c-for [i (long 0) (< i mrows) (inc i)
-                       j (long 0) (< j acols) (inc j)
-                       k (long 0) (< k mcols) (inc k)]
-                      (let [new-m-idx (+ (* (aget nm-strides 0) i)
-                                         (* (aget nm-strides 1) j))
-                            m-idx (+ (+ (* (aget m-strides 0) i)
-                                        (* (aget m-strides 1) k))
-                                     m-offset)
-                            a-idx (+ (+ (* (aget a-strides 0) k)
-                                        (* (aget a-strides 1) j))
-                                     a-offset)]
-                        (aset nm-data new-m-idx
-                              (+ (aget nm-data new-m-idx)
-                                 (* (aget m-data m-idx)
-                                    (aget a-data a-idx))))))
                new-m)))))
     (element-multiply [m a]
       (if (number? a)
