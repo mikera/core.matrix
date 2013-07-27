@@ -305,10 +305,8 @@
 (defn shape
   "Returns the shape of a matrix, i.e. the dimension sizes for all dimensions.
 
-   Result may be a sequence or Java array, to allow implemenations flexibility to return
-   their own internal representation of matrix shape.
-
-   You are guaranteed however that you can call `seq` on this to get a sequence of dimension sizes."
+   The result will be a Clojure vector containing only integer values, with a count
+   equal to the dimensionality of the array."
   ([m]
     (vec (mp/get-shape m))))
 
