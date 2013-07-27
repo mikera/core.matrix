@@ -256,12 +256,14 @@
   (== 0 (mp/dimensionality m)))
 
 (defn element-type
-  "Returns the class of elements in the array."
+  "Returns the class of elements that can be in the array. For example, a numerical array may return
+   the class java.lang.Double."
   ([m]
     (mp/element-type m)))
 
 (defn dimensionality
-  "Returns the dimensionality (number of array dimensions) of a matrix / array"
+  "Returns the dimensionality of an array. The dimensionality is equal to 
+   the number of dimensions in the array's shape."
   ([m]
     (mp/dimensionality m)))
 
@@ -282,7 +284,7 @@
     (mp/dimension-count m dim)))
 
 (defn square?
-  "Returns true if matrix is square (i.e. 2D matrix with same number of rows and columns)"
+  "Returns true if matrix is square (i.e. a 2D array with same number of rows and columns)"
   ([m]
     (and
       (== 2 (mp/dimensionality m))
@@ -308,7 +310,7 @@
 
    You are guaranteed however that you can call `seq` on this to get a sequence of dimension sizes."
   ([m]
-    (mp/get-shape m)))
+    (vec (mp/get-shape m))))
 
 (defn mutable?
   "Returns true if the matrix is mutable, i.e. supports setting of values"
@@ -534,7 +536,8 @@
     (mp/reshape m shape)))
 
 (defn fill!
-  "Fills a matrix with a single scalar value.
+  "Fills a matrix with a single scalar value. The scalar value must be compatible with the element-type
+   of the array.
 
    Equivalent to assign!, but is likely to be more efficient for scalar values."
   ([m value]
@@ -545,7 +548,9 @@
 ;; matrix comparisons
 
 (defn equals
-  "Returns true if two matrices are numerically equal. If epsilon is provided, performs an equality test
+  "Returns true if two arrays are numerically equal. 
+
+   If epsilon is provided, performs an equality test
    with the given maximum tolerance (default is 0.0, i.e. exact numerical equivalence)"
   ([a b]
     (mp/matrix-equals a b))
@@ -556,9 +561,7 @@
 ;; matrix maths / operations
 
 (defn mul
-  "Performs standard matrix multiplication with matrices, vectors or scalars.
-
-   Uses the inner product."
+  "Performs standard (inner-product) multiplication with numerical arrays."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -570,7 +573,7 @@
     (reduce mul (mul a b) more)))
 
 (defn emul
-  "Performs element-wise matrix multiplication. Matrices should be the same size."
+  "Performs element-wise multiplication."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -579,7 +582,7 @@
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
 (defn e*
-  "Matrix element-wise multiply operator. Equivalent to emul."
+  "Element-wise multiply operator. Equivalent to emul."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -588,13 +591,13 @@
     (reduce e* (e* a b) more)))
 
 (defn div
-  "Element-wise matrix division."
+  "Performs element-wise matrix division for numerical arrays."
   ([a] (mp/element-divide a))
   ([a b] (mp/element-divide a b))
   ([a b & more] (reduce mp/element-divide (mp/element-divide a b) more)))
 
 (defn emul!
-  "Performs in-place element-wise matrix multiplication."
+  "Performs in-place element-wise multiplication of numerical arrays."
   ([a] a)
   ([a b]
     (mp/element-multiply! a b)
@@ -606,7 +609,7 @@
     a))
 
 (defn transform
-  "Transforms a given vector, returning a new vector"
+  "Transforms a given vector with a matrix, returning a new vector."
   ([m v]
     (mp/vector-transform m v)))
 
@@ -617,7 +620,7 @@
     v))
 
 (defn add
-  "Performs element-wise matrix addition on one or more matrices."
+  "Performs element-wise addition on one or more numerical arrays."
   ([a] a)
   ([a b]
     (mp/matrix-add a b))
@@ -625,40 +628,41 @@
     (reduce mp/matrix-add (mp/matrix-add a b) more)))
 
 (defn add-product
-  "Adds the product of two matrices to the first matrix"
+  "Adds the product of two numerical ararys to the first array"
   ([m a b]
     (mp/add-product m a b)))
 
 (defn add-product!
-  "Adds the product of two matrices to the first matrix. Returns the mutated matrix."
+  "Adds the product of two numerical arrays to the first array. Returns the mutated array."
   ([m a b]
     (mp/add-product! m a b)
     m))
 
 (defn add-scaled
-  "Adds a matrix scaled by a given factor to the first matrix"
+  "Adds a numerical array scaled by a given factor to the first array"
   ([m a factor]
     (mp/add-scaled m a factor)))
 
 (defn add-scaled!
-  "Adds a matrix scaled by a given factor to the first matrix. Returns the mutated matrix."
+  "Adds a numerical array scaled by a given factor to the first array. Returns the mutated array."
   ([m a factor]
     (mp/add-scaled! m a factor)
     m))
 
 (defn add-scaled-product
-  "Adds the product of two matrices scaled by a given factor to the first matrix"
+  "Adds the product of two numerical arrays scaled by a given factor to the first array"
   ([m a b factor]
     (mp/add-scaled-product m a b factor)))
 
 (defn add-scaled-product!
-  "Adds the product of two matrices scaled by a given factor to the first matrix. Returns the mutated matrix."
+  "Adds the product of two numerical arrays scaled by a given factor to the first array. 
+   Returns the mutated array."
   ([m a b factor]
     (mp/add-scaled-product! m a b factor)
     m))
 
 (defn sub
-  "Performs element-wise matrix subtraction on one or more matrices."
+  "Performs element-wise subtraction on one or more numerical arrays."
   ([a] a)
   ([a b]
     (mp/matrix-sub a b))
@@ -666,8 +670,8 @@
     (reduce mp/matrix-sub (mp/matrix-sub a b) more)))
 
 (defn add!
-  "Performs element-wise mutable matrix addition on one or more matrices.
-   Returns the first matrix after it has been mutated."
+  "Performs element-wise mutable addition on one or more numerical arrays.
+   Returns the first array after it has been mutated."
   ([a] a)
   ([a b]
     (mp/matrix-add! a b)
@@ -676,8 +680,8 @@
     (reduce (fn [acc m] (add! acc m)) (add! a b) more)))
 
 (defn sub!
-  "Performs element-wise mutable matrix subtraction on one or more matrices.
-   Returns the first matrix, after it has been mutated."
+  "Performs element-wise mutable subtraction on one or more numerical arrays.
+   Returns the first array, after it has been mutated."
   ([a] a)
   ([a b]
     (mp/matrix-sub! a b)
@@ -686,7 +690,7 @@
     (reduce (fn [acc m] (sub! acc m)) (sub! a b) more)))
 
 (defn scale
-  "Scales a matrix by one or more scalar factors.
+  "Scales a numerical array by one or more scalar factors.
    Returns a new scaled matrix."
   ([m factor]
     (mp/scale m factor))
@@ -694,7 +698,7 @@
     (mp/scale m (* factor (reduce * more-factors)))))
 
 (defn scale!
-  "Scales a matrix by one or more scalar factors (in place).
+  "Scales a numerical array by one or more scalar factors (in place).
    Returns the matrix after it has been mutated."
   ([m factor]
     (mp/scale! m factor)
@@ -704,18 +708,18 @@
     m))
 
 (defn square
-  "Squares every element of a matrix."
+  "Squares every element of a numerical array."
   ([m]
     (mp/square m)))
 
 (defn normalise
-  "Normalises a matrix (scales to unit length).
+  "Normalises a numerical vector (scales to unit length).
    Returns a new normalised vector."
   ([v]
     (mp/normalise v)))
 
 (defn normalise-probabilities
-  "Normalises a probability vector, i.e. to a vector where all elements sum to 1"
+  "Normalises a probability vector, i.e. to a vector where all elements sum to 1.0"
   ([v]
     (let [v (mp/element-map v #(if (>= % 0.0) % 0.0))
           len (double (mp/element-sum v))]
@@ -725,21 +729,21 @@
         :else (scale v (/ 1.0 len))))))
 
 (defn normalise!
-  "Normalises a vector in-place (scales to unit length).
+  "Normalises a numerical vector in-place (scales to unit length).
    Returns the modified vector."
   ([v]
     (mp/normalise! v)
     v))
 
 (defn dot
-  "Computes the dot product (1Dx1D inner product) of two vectors"
+  "Computes the dot product (1Dx1D inner product) of two numerical vectors"
   ([a b]
     (mp/vector-dot a b)))
 
 (defn inner-product
-  "Computes the inner product of two arrays.
+  "Computes the inner product of numerical arrays.
 
-   The inner product of matrixes with indexed dimensions {.. i j} and {j k ...} has dimensions {.. i k ...}"
+   The inner product of two arrays with indexed dimensions {.. i j} and {j k ...} has dimensions {.. i k ...}"
   ([] 1.0)
   ([a]
     a)
@@ -749,7 +753,7 @@
     (reduce inner-product (inner-product a b) more)))
 
 (defn outer-product
-  "Computes the outer product of matrices."
+  "Computes the outer product of numerical arrays."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -758,44 +762,46 @@
     (reduce outer-product (outer-product a b) more)))
 
 (defn cross
-  "Computes the cross-product of two vectors"
+  "Computes the cross-product of two numerical 3D vectors"
   ([a b]
     (mp/cross-product a b)))
 
 (defn cross!
-  "Computes the cross-product of two vectors, storing the result in the first vector.
+  "Computes the cross-product of two numerical 3D vectors, storing the result in the first vector.
    Returns the (mutated) first vector."
   ([a b]
     (mp/cross-product! a b)
     a))
 
 (defn distance
-  "Calculates the euclidean distance between two vectors."
+  "Calculates the euclidean distance between two numerical vectors."
   ([a b]
     (mp/distance a b)))
 
 (defn det
-  "Calculates the determinant of a matrix."
+  "Calculates the determinant of a 2D numerical matrix.
+
+   Throws an exception if the matrix is not square."
   ([a]
     (mp/determinant a)))
 
 (defn inverse
-  "Calculates the inverse of a matrix."
+  "Calculates the inverse of a 2D numerical matrix."
   ([m]
     (mp/inverse m)))
 
 (defn negate
-  "Calculates the negation of a matrix. Should normally be equivalent to scaling by -1.0"
+  "Calculates the negation of a numerical array. Should normally be equivalent to scaling by -1.0"
   ([m]
     (mp/negate m)))
 
 (defn negate!
-  "Calculates the negation of a matrix in place. Equivalent to scaling by -1.0"
+  "Calculates the negation of a numerical array in place. Equivalent to scaling by -1.0"
   ([m]
     (mp/scale! m -1.0)))
 
 (defn trace
-  "Calculates the trace of a matrix (sum of elements on main diagonal)"
+  "Calculates the trace of a 2D numerical matrix (sum of elements on main diagonal)"
   ([a]
     (mp/trace a)))
 
@@ -890,7 +896,9 @@
 ;; a matrix in row-major ordering
 
 (defn ecount
-  "Returns the total count of elements in an array."
+  "Returns the total count of elements in an array.
+
+   Equal to the product of the lenegths of each dimension in the array's shape."
   ([m]
     (cond
       (array? m) (reduce *' 1 (mp/get-shape m))
@@ -923,7 +931,7 @@
     (mp/element-map m f a more)))
 
 (defn esum
-  "Calculates the sum of all the elements"
+  "Calculates the sum of all the elements in a numerical array"
   [m]
   (mp/element-sum m))
 
@@ -1037,7 +1045,7 @@
   ([] (imp/get-canonical-object (current-implementation))))
 
 (defn set-current-implementation
-  "Sets the currently active matrix implementation.
+  "Sets the currently active core.matrix implementation.
 
    This is used primarily for functions that construct new matrices, i.e. it determines the
    implementation used for expressions like: (matrix [[1 2] [3 4]])"
