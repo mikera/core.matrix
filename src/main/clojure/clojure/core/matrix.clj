@@ -317,7 +317,7 @@
 
 (defn conforming?
   "Returns true if two matrices have a conforming shape. Two matrices are conforming if there
-   exists a common shape that both can broadcast to. This is a requirement for elementwise
+   exists a common shape that both can broadcast to. This is a requirement for element-wise
    operations to work correctly on two different-shaped arrays."
   ([a] true)
   ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b))))))
@@ -339,7 +339,7 @@
 ;; Conversions
 
 (defn to-double-array
-   "Returns a double array containing the values of m in row-major order.
+   "Returns a double array containing the values of a numerical array m in row-major order.
     If want-copy is true, will guarantee a new double array (defensive copy).
     If want-copy is false, will return the internal array used by m, or nil if not supported
     by the implementation.
@@ -409,8 +409,8 @@
 (defn coerce
   "Coerces param into a format preferred by a specific matrix implementation.
    If param is already in a format deemed usable by the implementation, returns it unchanged."
-  ([m param]
-    (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
+  ([matrix-or-implementation param]
+    (let [m (if (keyword? matrix-or-implementation) (imp/get-canonical-object matrix-or-implementation) matrix-or-implementation)]
       (or
         (mp/coerce-param m param)
         (mp/coerce-param m (mp/convert-to-nested-vectors param))))))
@@ -419,13 +419,15 @@
 ;; matrix slicing and views
 
 (defn submatrix
-  "Gets a view of a submatrix, for a set of index-ranges.
-   Index ranges should be  a sequence of [start, length] pairs.
-   Index range pair can be nil (gets the whole range) "
+  "Gets a view of a submatrix, for a set of index ranges.
+   Index ranges should be [start, length] pairs.
+   Index range pairs can be nil (gets the whole range) "
   ([m index-ranges]
     (mp/submatrix m index-ranges))
   ([m dimension index-range]
-    (mp/submatrix m (assoc (vec (repeat (mp/dimensionality m) nil)) dimension index-range))))
+    (mp/submatrix m (assoc (vec (repeat (mp/dimensionality m) nil)) dimension index-range)))
+  ([m row-start row-length col-start col-length]
+    (mp/submatrix (list row-start row-length) (list col-start col-length))))
 
 (defn subvector
   "Gets a view of part of a vector. The view maintains a reference to the original,
