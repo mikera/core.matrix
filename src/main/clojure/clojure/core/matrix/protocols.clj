@@ -430,23 +430,24 @@
   (element-pow [m exponent]))
 
 (defprotocol PSquare
-  "Protocol to support element-wise squaring of an array."
+  "Protocol to support element-wise squaring of a numerical array."
   (square [m]))
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
 (eval
   `(defprotocol PMathsFunctions
-  "Protocol to support mathematic functions applied element-wise to a matrix"
+  "Protocol to support mathematic functions applied element-wise to a numerical array"
   ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)))
 
 (eval
   `(defprotocol PMathsFunctionsMutable
-  "Protocol to support mutable mathematic functions applied element-wise to a matrix"
+  "Protocol to support mutable mathematic functions applied element-wise to a numerical array"
   ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
 
 (defprotocol PElementCount
-  "Protocol to return the total count of elements in matrix. Result may be any integer type."
+  "Protocol to return the total count of elements in matrix. Result may be any integer type, 
+   typically a java.lang.Long"
   (element-count [m]))
 
 (defprotocol PFunctionalOperations
@@ -479,15 +480,13 @@
   "Coerces to nested persistent vectors"
   (let [dims (dimensionality x)]
     (cond
-        (is-scalar? x) x
-        (== dims 0) (get-0d x)
-      (> dims 0) (convert-to-nested-vectors x)
-        (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
-        (instance? java.util.List x) (mapv convert-to-nested-vectors x)
-        (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
-        (sequential? x) (mapv convert-to-nested-vectors x)
-        (.isArray (class x)) (vec (seq x))
-        :default (error "Can't coerce to vector: " (class x)))))
+      (== dims 0) (get-0d x)
+      (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
+      (instance? java.util.List x) (mapv convert-to-nested-vectors x)
+      (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
+      (sequential? x) (mapv convert-to-nested-vectors x)
+      (.isArray (class x)) (mapv convert-to-nested-vectors (seq x))
+      :default (error "Can't coerce to vector: " (class x)))))
 
 (defn broadcast-compatible
   "Broadcasts two matrices into indentical shapes.
