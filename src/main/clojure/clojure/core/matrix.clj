@@ -316,7 +316,7 @@
     (and (satisfies? mp/PIndexedSetting m) (mp/is-mutable? m))))
 
 (defn conforming?
-  "Returns true if two matrices have a conforming shape. Two matrices are conforming if there
+  "Returns true if two arrays have a conforming shape. Two arrays are conforming if there
    exists a common shape that both can broadcast to. This is a requirement for element-wise
    operations to work correctly on two different-shaped arrays."
   ([a] true)
@@ -441,7 +441,8 @@
    Slicing a 1D vector will return a scalar.
 
    Slicing on the first dimension (dimension 0) is likely to perform better
-   for many matrix implementations."
+   for many array implementations, and is therefore the default if no 
+   dimension is specified."
   ([m index]
     (mp/get-slice m 0 index))
   ([m dimension index]
@@ -539,7 +540,7 @@
   "Fills a matrix with a single scalar value. The scalar value must be compatible with the element-type
    of the array.
 
-   Equivalent to assign!, but is likely to be more efficient for scalar values."
+   Equivalent to assign!, but may be more efficient for scalar values."
   ([m value]
     (mp/fill! m value)
     m))
