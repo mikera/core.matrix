@@ -45,17 +45,19 @@
     "Returns true if the implementation supports matrices with the given number of dimensions."))
 
 (defprotocol PDimensionInfo
-  "Protocol to return standard dimension information about a matrix.
+  "Protocol to return standard dimension information about an array.
    dimensionality and dimension-count are mandatory for implementations"
   (dimensionality [m]
-    "Returns the number of dimensions of a matrix")
+    "Returns the number of dimensions of an array")
   (get-shape [m]
-    "Returns the shape of the matrix, as an array or sequence of dimension sizes")
+    "Returns the shape of the array, typically as a Java array or sequence of dimension sizes.
+     Implementations are free to choose what type is used to represent the shape, but it must 
+     contain only integer values and be traversable as a sequence via clojure.core/seq")
   (is-scalar? [m]
     "Tests whether an object is a scalar value, i.e. a value that can exist at a
      specific position in an array.")
   (is-vector? [m]
-    "Tests whether an object is a vector (1D matrix)")
+    "Tests whether an object is a vector (1D array)")
   (dimension-count [m dimension-number]
     "Returns the size of a specific dimension. Must throw an exception if the array does not
      have the specified dimension."))
@@ -63,15 +65,16 @@
 ;; protocol arity overloads behave oddly, so different names used for simplicity
 ;; we provide fast paths for 1D and 2D access (common case)
 (defprotocol PIndexedAccess
-  "Protocol for indexed read access to matrices and vectors."
+  "Protocol for indexed read access to arrays, matrices and vectors. Indexing values can
+   be assumed to be integers. indexes may be any sequence or Java array of index values."
   (get-1d [m row])
   (get-2d [m row column])
   (get-nd [m indexes]))
 
 (defprotocol PIndexedSetting
-  "Protocol for indexed 'setter' operations on matrices and vectors. These are like Clojure's 'assoc'
-   function, i.e. they return an updated copy of the original matrix, which is itself unchanged.
-   Must be supported for any immutable matrix type."
+  "Protocol for indexed 'setter' operations. These are like Clojure's 'assoc'
+   function, i.e. they return an updated copy of the original array, which is itself unchanged.
+   Must be supported for any immutable array type."
   (set-1d [m row v])
   (set-2d [m row column v])
   (set-nd [m indexes v])
@@ -205,7 +208,7 @@
   (get-major-slice-view [m i] "Gets a view of a major array slice"))
 
 (defprotocol PSliceSeq
-  "Returns the row-major slices of the matrix as a sequence. These must be views or immutable sub-arrays.
+  "Returns the row-major slices of the array as a sequence. These must be views or immutable sub-arrays.
    The default implementation uses get-major-slice-view to obtain the slices."
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
 
@@ -215,25 +218,26 @@
 
 ;; TODO: should return either an immutable sub-matrix or a mutable view
 (defprotocol PMatrixSubComponents
-  "Protocol for picking out subsections of a matrix. Should return a mutable view if possible.
+  "Protocol for picking out subsections of a 2D matrix. Should return a mutable view if possible.
    The default implementation creates a new vector containing the diagonal values."
   (main-diagonal [m]))
 
 
 (defprotocol PAssignment
-  "Protocol for assigning values to mutable matrices."
+  "Protocol for assigning values element-wise to mutable arrays."
   (assign!
     [m source]
-    "Sets all the values in a matrix from a matrix source.")
+    "Sets all the values in an array from a given source. Source may be a scalar
+     or a smaller array that can be broadcast to the shape of m.")
   (assign-array!
     [m arr]
     [m arr start length]
-    "Sets all the values in a matrix for an array source."))
+    "Sets the elements in an array from an Java array source, in row-major order."))
 
 (defprotocol PMutableFill
   (fill!
     [m value]
-    "Fills the matrix with the given scalar value."))
+    "Fills the array with the given scalar value."))
 
 (defprotocol PDoubleArrayOutput
   "Protocol for getting data as a double array"
@@ -245,7 +249,7 @@
      Provides an opportunity to avoid copying the internal array."))
 
 (defprotocol PMatrixEquality
-  "Protocol for matrix equality operations"
+  "Protocol for numeical array equality operations"
   (matrix-equals [a b]
      "Return true if a equals b, i.e. if all elements are equal.
       Must use numerical value comparison on numbers (==) to account for matrices that may hold a mix of
@@ -256,12 +260,12 @@
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar.
 
    Implementation may return nil if the implementation does not support one of the parameters, in
-   which case a more general inner-product operation will be attempted."
+   which case a more general operation will be attempted."
   (matrix-multiply [m a])
   (element-multiply [m a]))
 
 (defprotocol PMatrixProducts
-  "Protocol for general inner and outer products of matrices.
+  "Protocol for general inner and outer products of arrays.
    Products should use + and * as normally defined for numerical types"
   (inner-product [m a])
   (outer-product [m a]))
@@ -312,32 +316,37 @@
   (vector-transform! [t v] "Transforms a vector in place - mutates the vector argument"))
 
 (defprotocol PMatrixScaling
-  "Protocol to support matrix scaling by scalar values. Provided because matrix classes may have
-   efficient specialised scaling operaions."
+  "Protocol to support numerical array scaling by scalar values. Provided because array classes may have
+   efficient specialised scaling operaions. 
+
+   Works according the the default definition of multiplication for the matrix class 
+   (usually numerical, i.e. equivalent to clojure.core/+)"
   (scale [m a]
-    "Multiplies a matrix by the scalar value a")
+    "Multiplies a array by the scalar value a, ")
   (pre-scale [m a]
-    "Pre-multiplies the matrix with the scalar. This is the same as scale for matrices
+    "Pre-multiplies the array with the scalar. This is the same as scale for arrays
      where multiplication is commutative, but may be different for special kinds of scalars."))
 
 (defprotocol PMatrixMutableScaling
-  "Protocol to support mutable matrix scaling by scalar values."
+  "Protocol to support mutable array scaling by scalar values."
   (scale! [m a])
   (pre-scale! [m a]))
 
 (defprotocol PMatrixAdd
-  "Protocol to support matrix addition and subtraction on arbitrary matrices"
+  "Protocol to support addition and subtraction on arbitrary matrices"
   (matrix-add [m a])
   (matrix-sub [m a]))
 
 (defprotocol PMatrixAddMutable
-  "Protocol to support matrix addition on any matrices of same size"
+  "Protocol to support mutable addition and subtraction"
   (matrix-add! [m a])
   (matrix-sub! [m a]))
 
 (defprotocol PSubMatrix
-  "Protocol to get a submatrix of another matrix. dim-ranges should be a sequence of [start len]
-   pairs, one for each dimension. If a pair is nil, it should be interpreted to take the whole dimension."
+  "Protocol to get a subarray of another array. dim-ranges should be a sequence of [start len]
+   pairs, one for each dimension. If a pair is nil, it should be interpreted to take the whole dimension.
+
+   Returning a mutable view is preferred, if the implementation supports this."
   (submatrix [d dim-ranges]))
 
 (defprotocol PComputeMatrix
@@ -346,7 +355,7 @@
   (compute-matrix [m shape f]))
 
 (defprotocol PTranspose
-  "Protocol for matrix transpose operation"
+  "Protocol for array transpose operation"
   (transpose [m]
     "Returns the transpose of a matrix. Equivalent to reversing the \"shape\".
      Note that:
@@ -355,7 +364,7 @@
      - The transpose of a 2D matrix swaps rows and columns"))
 
 (defprotocol PVectorOps
-  "Protocol to support common vector operations."
+  "Protocol to support common numerical vector operations."
   (vector-dot [a b]
      "Dot product of two vectors. Should return a scalar value.")
   (length [a]
@@ -386,11 +395,11 @@
 
 
 (defprotocol PMutableVectorOps
-  "Protocol for mutable versions of commn vector operations"
+  "Protocol for mutable versions of common vector operations"
   (normalise! [a]))
 
 (defprotocol PMatrixOps
-  "Protocol to support common matrix operations"
+  "Protocol to support common 2D numerical matrix operations"
   (trace [m]
     "Returns the trace of a matrix (sum of elements on main diagonal.
      Must throw an error if the matrix is not square (i.e. all dimensions sizes are equal)")
@@ -401,10 +410,10 @@
 
 (defprotocol PNegation
   (negate [m]
-    "Returns a new matrix with all elements negated."))
+    "Returns a new numerical array with all elements negated."))
 
 (defprotocol PMatrixRank
-  "Protocol to support computing the rank (number of linearly independent rows) ina matrix"
+  "Protocol to support computing the rank (number of linearly independent rows) in a matrix"
   (rank [m]
         "Returns the rank of a matrix"))
 
