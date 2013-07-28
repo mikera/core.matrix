@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.impl.ndarray
+  (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
@@ -116,11 +117,11 @@
                     s))]
     (if-let [m (meta s)]
       (with-meta new-s
-        (clojure.walk/postwalk-replace replaces m))
+        (w/postwalk-replace replaces m))
       new-s)))
 
 (defn handle-forms [t replaces form]
-  (clojure.walk/postwalk
+  (w/postwalk
    (fn [x] (if (symbol? x) (handle-symbol t replaces x)
                x))
    form))
@@ -128,7 +129,7 @@
 (defn handle-defn-form [t replaces [_ fn-name & _ :as form]]
   (let [new-fn-name (add-fn-suffix t fn-name)
         new-replaces (assoc replaces fn-name new-fn-name)]
-    (clojure.walk/postwalk
+    (w/postwalk
      (fn [x]
        (if (symbol? x) (handle-symbol t new-replaces x)
                  x))
