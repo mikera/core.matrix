@@ -33,6 +33,47 @@
 ;; memory chunk then it can.
 
 ;; TODO: doc this declare
+
+;; ## Default striding schemes
+;;
+;; When we are using C-like striding (row-major ordering), the formula for
+;; strides is as follows:
+;; shape = (d_1, d_2, \dots, d_N)
+;; strides = (s_1, s_2, \dots, s_N)
+;; s_j = d_{j+1} d_{j+2} \dots d_N
+;; (see [2])
+
+(defn c-strides [shape]
+  (conj (->> shape
+             reverse
+             (reductions *)
+             reverse
+             rest
+             vec) 1))
+
+;; We can easily check for correctness here using NumPy:
+;; ```python
+;; np.empty([4, 3, 2], dtype=np.int8, order="c").strides # (6, 2, 1)
+;; ```
+;; An actual test can be found in test_ndarray_implementation.clj.
+
+;; When we are using Fortran-like striding (column-major ordering),
+;; the formula for strides is different:
+;; s_j = d_1 d_2 \dots d_{j-1}
+
+(defn f-strides [shape]
+  (->> shape
+       (reductions *)
+       butlast
+       (cons 1)
+       vec))
+
+;; Again, it's easy to use NumPy to verify this implementation:
+;; ```python
+;; np.empty([4, 3, 2], dtype=np.int8, order="f").strides # (1, 4, 12)
+;; ```
+;; And again, an actual test can be found in test_ndarray_implementation.clj.
+
 (declare row-major-seq)
 (declare row-major-seq-double)
 
@@ -51,6 +92,208 @@
   (seq [m]
     (row-major-seq m)))
 
+(defn init-magic [types]
+  (def type-table-magic types)
+  (def deftypes-magic (atom {}))
+  (def defns-magic (atom {})))
+
+(defn form-replaces [extra-parts t]
+  (->> (merge (type-table-magic t) (extra-parts t))
+       (map (juxt #(-> % key name (str "#") symbol) val))
+       (into {})))
+
+;; TODO: document symbol replacement and #t fn-suffix addition
+
+(defn add-fn-suffix [t s]
+  (if-let [suffix (->> t type-table-magic :fn-suffix)]
+    (->> suffix name (str s "-") symbol)
+    s))
+
+(defn handle-symbol [t replaces s]
+  (let [new-s (or (replaces s)
+                  (if (.endsWith (name s) "#t")
+                    (->> s name (drop-last 2) (apply str) (add-fn-suffix t))
+                    s))]
+    (if-let [m (meta s)]
+      (with-meta new-s
+        (clojure.walk/postwalk-replace replaces m))
+      new-s)))
+
+(defn handle-forms [t replaces form]
+  (clojure.walk/postwalk
+   (fn [x] (if (symbol? x) (handle-symbol t replaces x)
+               x))
+   form))
+
+(defn handle-defn-form [t replaces [_ fn-name & _ :as form]]
+  (let [new-fn-name (add-fn-suffix t fn-name)
+        new-replaces (assoc replaces fn-name new-fn-name)]
+    (clojure.walk/postwalk
+     (fn [x]
+       (if (symbol? x) (handle-symbol t new-replaces x)
+                 x))
+     [new-fn-name form])))
+
+(defmacro with-magic
+  ([types form] `(with-magic ~types {} ~form))
+  ([types extra-parts form]
+     (doseq [t types
+             :let [replaces (form-replaces extra-parts t)]]
+       (when-not (type-table-magic t)
+         (throw (IllegalArgumentException.
+                 (str "there is no type " (name t) " in init-magic"))))
+       (case (first form)
+         deftype (swap! deftypes-magic assoc t
+                        (handle-forms t replaces form))
+         defn (swap! defns-magic conj
+                     (handle-defn-form t replaces form))
+         :else (throw (IllegalArgumentException.
+                       "only deftype and defn are supported in with-magic"))))
+     :ok))
+
+(defmacro extend-types-magic [types & forms]
+  (let [[extra-parts forms] (if (map? (first forms))
+                              [(first forms) (rest forms)]
+                              [{} forms])]
+    (doseq [t types
+             :let [replaces (form-replaces extra-parts t)]]
+       (when-not (type-table-magic t)
+         (throw (IllegalArgumentException.
+                 (str "there is no type " (name t) " in init-magic"))))
+       (swap! deftypes-magic update-in [t] concat
+              (handle-forms t replaces forms)))))
+
+(defmacro spit-code-magic []
+  `(do
+     ~@(map #(list 'declare %) (keys @defns-magic))
+     ~@(vals @deftypes-magic)
+     ~@(vals @defns-magic)
+     ~@(map (fn [t] `(imp/register-implementation
+                      (~(add-fn-suffix t 'empty-ndarray) [1])))
+            (keys type-table-magic))))
+
+(init-magic
+ {:long {:regname :ndarray-long
+         :fn-suffix 'long
+         :typename 'NDArrayLong
+         :array-tag 'longs
+         :array-cast 'long-array}
+  :float {:regname :ndarray-float
+          :fn-suffix 'float
+          :typename 'NDArrayFloat
+          :array-tag 'floats
+          :array-cast 'float-array}})
+
+(with-magic
+  [:long :float]
+  (deftype typename#
+      [^array-tag# data
+       ^int ndims
+       ^ints shape
+       ^ints strides
+       ^int offset]))
+
+;; TODO: describe auto-declaring
+
+(with-magic
+  [:long :float]
+  (defn empty-ndarray
+    "Returns an empty NDArray of given shape"
+    [shape & {:keys [order] :or {order :c}}]
+    (let [shape (int-array shape)
+          ndims (count shape)
+          strides (case order
+                    :c (int-array (c-strides shape))
+                    :f (int-array (f-strides shape)))
+          len (reduce * shape)
+          data (array-cast# len)
+          offset 0]
+      (new typename# data ndims shape strides offset))))
+
+(with-magic
+  [:long :float]
+  (defn ndarray
+    "Returns NDArray with given data, preserving shape of the data"
+    [data]
+    (let [shape (array-cast# (mp/get-shape data))
+          mtx (empty-ndarray#t shape)]
+      (mp/assign! mtx data)
+      mtx)))
+
+(with-magic
+  [:long :float]
+  (defn row-major-slice
+    [^typename# m idx]
+    (let [^array-tag# data (.data m)
+          ndims (.ndims m)
+          ^ints shape (.shape m)
+          ^ints strides (.strides m)
+          offset (.offset m)]
+      (new typename# data
+                (dec ndims)
+                (java.util.Arrays/copyOfRange shape (int 1) ndims)
+                (java.util.Arrays/copyOfRange strides (int 1) ndims)
+                (* idx (aget strides 0))))))
+
+(with-magic
+  [:long :float]
+  (defn row-major-seq
+    ([m] (row-major-seq#t m (long 0)))
+    ([^typename# m ^long i]
+       (let [^ints shape (.shape m)]
+         (when-not (>= i (aget shape 0))
+           (lazy-seq (cons (row-major-slice#t m i)
+                           (row-major-seq#t m (inc i)))))))))
+
+(extend-types-magic
+  [:long :float]
+  java.lang.Object
+    (toString [m]
+       (str (mp/persistent-vector-coerce m)))
+
+  clojure.lang.Seqable
+    (seq [m]
+      (row-major-seq#t m))
+
+  mp/PImplementation
+    (implementation-key [m] regname#)
+    (meta-info [m]
+      {:doc "An implementation of strided N-Dimensional array"})
+    (new-vector [m length]
+      (empty-ndarray#t [length]))
+    (new-matrix [m rows columns]
+      (empty-ndarray#t [rows columns]))
+    (new-matrix-nd [m shape]
+      (empty-ndarray#t shape))
+    (construct-matrix [m data]
+      (ndarray#t data))
+    (supports-dimensionality? [m dims]
+      true)
+
+  mp/PDimensionInfo
+    (get-shape [m] (vec shape))
+    (is-vector? [m] (= 1 ndims))
+    (is-scalar? [m] false)
+    (dimensionality [m] ndims)
+    (dimension-count [m x] (aget shape x))
+
+  mp/PConversion
+    (convert-to-nested-vectors [m]
+      (case ndims
+        0 (aget data offset)
+        1 (let [n (aget shape 0)
+                stride (aget strides 0)]
+            (loop [idx (int offset)
+                   cnt (int 0)
+                   res []]
+              (if (< cnt n)
+                (recur (+ idx stride) (inc cnt) (conj res (aget data idx)))
+                res)))
+        (mapv mp/convert-to-nested-vectors
+              (mp/get-major-slice-seq m)))))
+
+(spit-code-magic)
+
 (deftype NDArrayDouble
     [^doubles data
      ^long ndims
@@ -59,12 +302,12 @@
      ^long offset]
 
   java.lang.Object
-  (toString [m]
-    (str (mp/persistent-vector-coerce m)))
+    (toString [m]
+      (str (mp/persistent-vector-coerce m)))
 
   clojure.lang.Seqable
-  (seq [m]
-    (row-major-seq-double m))
+    (seq [m]
+      (row-major-seq-double m))
 
   mp/PMatrixMultiply
     (matrix-multiply [m a]
@@ -131,49 +374,8 @@
       (if (number? a)
         (mp/scale m a)
         (let [[m a] (mp/broadcast-compatible m a)]
-          (mp/element-map m clojure.core/* a))))
-  )
+          (mp/element-map m clojure.core/* a)))))
 
-
-;; ## Default striding schemes
-;;
-;; When we are using C-like striding (row-major ordering), the formula for
-;; strides is as follows:
-;; shape = (d_1, d_2, \dots, d_N)
-;; strides = (s_1, s_2, \dots, s_N)
-;; s_j = d_{j+1} d_{j+2} \dots d_N
-;; (see [2])
-
-(defn c-strides [shape]
-  (conj (->> shape
-             reverse
-             (reductions *)
-             reverse
-             rest
-             vec) 1))
-
-;; We can easily check for correctness here using NumPy:
-;; ```python
-;; np.empty([4, 3, 2], dtype=np.int8, order="c").strides # (6, 2, 1)
-;; ```
-;; An actual test can be found in test_ndarray_implementation.clj.
-
-;; When we are using Fortran-like striding (column-major ordering),
-;; the formula for strides is different:
-;; s_j = d_1 d_2 \dots d_{j-1}
-
-(defn f-strides [shape]
-  (->> shape
-       (reductions *)
-       butlast
-       (cons 1)
-       vec))
-
-;; Again, it's easy to use NumPy to verify this implementation:
-;; ```python
-;; np.empty([4, 3, 2], dtype=np.int8, order="f").strides # (1, 4, 12)
-;; ```
-;; And again, an actual test can be found in test_ndarray_implementation.clj.
 ;;
 ;; ## Constructors
 ;;
