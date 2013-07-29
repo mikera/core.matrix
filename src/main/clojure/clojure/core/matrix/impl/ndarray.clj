@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.impl.ndarray
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
+  (:use clojure.core.matrix.impl.ndarray-magic)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.multimethods :as mm])
@@ -78,6 +79,29 @@
 (declare row-major-seq)
 (declare row-major-seq-double)
 
+;; ## Helper functions
+;;
+;; In this section we define a couple of useful functions.
+;; TODO: check if NDWrapper can reuse some of this; refactor to
+;; utils.clj?
+;;
+;; First of them is a function to find an index inside of strided array.
+;; General formula for finding an element of given index inside of a
+;; strided array is
+;; index = (n_1, n_2, \dots d_N)
+;; offset = \sum_{i=0}^{N-1} s_i n_i
+;; (see [1])
+;; TODO: this should be a macro
+
+(defn get-strided-idx
+  "Returns an index inside of a strided array given a primitive long arrays
+of indexes and strides"
+  ^long [^longs idxs ^longs strides ^long offset]
+  (+ (areduce idxs i res (long 0)
+              (+ (* (aget idxs i) (aget strides i))
+                 res))
+     offset))
+
 (deftype NDArray
     [^objects data
      ^long ndims
@@ -93,100 +117,28 @@
   (seq [m]
     (row-major-seq m)))
 
-(defn init-magic [types]
-  (def type-table-magic types)
-  (def deftypes-magic (atom {}))
-  (def defns-magic (atom {})))
-
-(defn form-replaces [extra-parts t]
-  (->> (merge (type-table-magic t) (extra-parts t))
-       (map (juxt #(-> % key name (str "#") symbol) val))
-       (into {})))
-
-;; TODO: document symbol replacement and #t fn-suffix addition
-
-(defn add-fn-suffix [t s]
-  (if-let [suffix (->> t type-table-magic :fn-suffix)]
-    (->> suffix name (str s "-") symbol)
-    s))
-
-(defn handle-symbol [t replaces s]
-  (let [new-s (or (replaces s)
-                  (if (.endsWith (name s) "#t")
-                    (->> s name (drop-last 2) (apply str) (add-fn-suffix t))
-                    s))]
-    (if-let [m (meta s)]
-      (with-meta new-s
-        (w/postwalk-replace replaces m))
-      new-s)))
-
-(defn handle-forms [t replaces form]
-  (w/postwalk
-   (fn [x] (if (symbol? x) (handle-symbol t replaces x)
-               x))
-   form))
-
-(defn handle-defn-form [t replaces [_ fn-name & _ :as form]]
-  (let [new-fn-name (add-fn-suffix t fn-name)
-        new-replaces (assoc replaces fn-name new-fn-name)]
-    (w/postwalk
-     (fn [x]
-       (if (symbol? x) (handle-symbol t new-replaces x)
-                 x))
-     [new-fn-name form])))
-
-(defmacro with-magic
-  ([types form] `(with-magic ~types {} ~form))
-  ([types extra-parts form]
-     (doseq [t types
-             :let [replaces (form-replaces extra-parts t)]]
-       (when-not (type-table-magic t)
-         (throw (IllegalArgumentException.
-                 (str "there is no type " (name t) " in init-magic"))))
-       (case (first form)
-         deftype (swap! deftypes-magic assoc t
-                        (handle-forms t replaces form))
-         defn (swap! defns-magic conj
-                     (handle-defn-form t replaces form))
-         :else (throw (IllegalArgumentException.
-                       "only deftype and defn are supported in with-magic"))))
-     :ok))
-
-(defmacro extend-types-magic [types & forms]
-  (let [[extra-parts forms] (if (map? (first forms))
-                              [(first forms) (rest forms)]
-                              [{} forms])]
-    (doseq [t types
-             :let [replaces (form-replaces extra-parts t)]]
-       (when-not (type-table-magic t)
-         (throw (IllegalArgumentException.
-                 (str "there is no type " (name t) " in init-magic"))))
-       (swap! deftypes-magic update-in [t] concat
-              (handle-forms t replaces forms)))))
-
-(defmacro spit-code-magic []
-  `(do
-     ~@(map #(list 'declare %) (keys @defns-magic))
-     ~@(vals @deftypes-magic)
-     ~@(vals @defns-magic)
-     ~@(map (fn [t] `(imp/register-implementation
-                      (~(add-fn-suffix t 'empty-ndarray) [1])))
-            (keys type-table-magic))))
-
 (init-magic
  {:long {:regname :ndarray-long
          :fn-suffix 'long
          :typename 'NDArrayLong
          :array-tag 'longs
-         :array-cast 'long-array}
+         :array-cast 'long-array
+         :type-cast 'long}
   :float {:regname :ndarray-float
           :fn-suffix 'float
           :typename 'NDArrayFloat
           :array-tag 'floats
-          :array-cast 'float-array}})
+          :array-cast 'float-array
+          :type-cast 'float}
+  :double {:regname :ndarray-double
+           :fn-suffix 'double
+           :typename 'NDArrayDouble
+           :array-tag 'doubles
+           :array-cast 'double-array
+           :type-cast 'double}})
 
 (with-magic
-  [:long :float]
+  [:long :float :double]
   (deftype typename#
       [^array-tag# data
        ^int ndims
@@ -197,7 +149,7 @@
 ;; TODO: describe auto-declaring
 
 (with-magic
-  [:long :float]
+  [:long :float :double]
   (defn empty-ndarray
     "Returns an empty NDArray of given shape"
     [shape & {:keys [order] :or {order :c}}]
@@ -212,7 +164,7 @@
       (new typename# data ndims shape strides offset))))
 
 (with-magic
-  [:long :float]
+  [:long :float :double]
   (defn ndarray
     "Returns NDArray with given data, preserving shape of the data"
     [data]
@@ -222,7 +174,7 @@
       mtx)))
 
 (with-magic
-  [:long :float]
+  [:long :float :double]
   (defn row-major-slice
     [^typename# m idx]
     (let [^array-tag# data (.data m)
@@ -237,7 +189,7 @@
                 (* idx (aget strides 0))))))
 
 (with-magic
-  [:long :float]
+  [:long :float :double]
   (defn row-major-seq
     ([m] (row-major-seq#t m (long 0)))
     ([^typename# m ^long i]
@@ -247,7 +199,7 @@
                            (row-major-seq#t m (inc i)))))))))
 
 (extend-types-magic
-  [:long :float]
+  [:long :float :double]
   java.lang.Object
     (toString [m]
        (str (mp/persistent-vector-coerce m)))
@@ -278,6 +230,68 @@
     (dimensionality [m] ndims)
     (dimension-count [m x] (aget shape x))
 
+  mp/PIndexedAccess
+    (get-1d [m x]
+    ;; TODO: check if this check is really needed
+      (when-not (= 1 (.ndims m))
+        (throw (IllegalArgumentException. "can't use get-1d on non-vector")))
+      (aget data x))
+    (get-2d [m x y]
+      (when-not (= 2 (.ndims m))
+        (throw (IllegalArgumentException. "can't use get-2d on non-matrix")))
+      (let [idx (+ (* (aget strides 0) (int x))
+                   (* (aget strides 1) (int y)))]
+        (aget data idx)))
+    (get-nd [m indexes]
+      (when-not (= (count indexes) ndims)
+        (throw (IllegalArgumentException.
+                "index count should match dimensionality")))
+      (let [idxs (int-array indexes)
+            idx (get-strided-idx idxs strides offset)]
+        (aget data idx)))
+
+  mp/PIndexedSetting
+    (set-1d [m row v]
+      (let [m-new (mp/clone m)]
+        (mp/set-1d! m-new row v)
+        m-new))
+    (set-2d [m row column v]
+      (let [m-new (mp/clone m)]
+        (mp/set-2d! m-new row column v)
+        m-new))
+    (set-nd [m indexes v]
+      (let [m-new (mp/clone m)]
+        (mp/set-nd! m-new indexes v)
+        m-new))
+    (is-mutable? [m] true)
+
+  mp/PIndexedSettingMutable
+    (set-1d! [m x v]
+      (when-not (= 1 (.ndims m))
+        (throw (IllegalArgumentException. "can't use set-1d! on non-vector")))
+      (aset data x (type-cast# v)))
+    (set-2d! [m x y v]
+      (when-not (= 2 (.ndims m))
+        (throw (IllegalArgumentException. "can't use set-2d! on non-matrix")))
+      (let [idx (+ (* (aget strides 0) (int x))
+                   (* (aget strides 1) (int y))
+                   offset)]
+        (aset data idx (type-cast# v))))
+    (set-nd! [m indexes v]
+      (when-not (= (count indexes) (.ndims m))
+        (throw (IllegalArgumentException.
+                "index count should match dimensionality")))
+      (let [idxs (int-array indexes)
+            idx (get-strided-idx idxs strides offset)]
+        (aset data idx (type-cast# v))))
+
+  mp/PMatrixCloning
+    (clone [m]
+      (let [data-new (aclone data)
+            shape-new (aclone shape)
+            strides-new (aclone strides)]
+        (new typename# data-new ndims shape-new strides-new offset)))
+
   mp/PConversion
     (convert-to-nested-vectors [m]
       (case ndims
@@ -293,89 +307,76 @@
         (mapv mp/convert-to-nested-vectors
               (mp/get-major-slice-seq m)))))
 
+(extend-types-magic
+ [:double]
+ mp/PMatrixMultiply
+ (matrix-multiply [m a]
+   (let [mdims (long (mp/dimensionality m))
+         adims (long (mp/dimensionality a))]
+     (cond
+      (== adims 0) (mp/scale m a)
+      (and (== mdims 1) (== adims 2))
+      (let [[arows acols] (mp/get-shape a)]
+        (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
+                    [arows]))
+      (and (== mdims 2) (== adims 1))
+      (let [[mrows mcols] (mp/get-shape m)]
+        (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
+                    [mcols]))
+      (and (== mdims 2) (== adims 2))
+      (let [mutable (mp/is-mutable? m)
+            [mrows-t mcols-t] (mp/get-shape m)
+            [arows-t acols-t] (mp/get-shape a)
+            mrows (int mrows-t)
+            mcols (int mcols-t)
+            arows (int arows-t)
+            acols (int acols-t)
+            ^NDArrayDouble new-m (mp/new-matrix m mrows acols)
+            ^ints nm-strides (int-array (.strides new-m))
+            ^doubles nm-data (.data new-m)
+            ^ints m-strides (int-array (.strides m))
+            ^doubles m-data (.data m)
+            m-offset (int (.offset m))
+            ;; we can't really do the following optimization unless
+            ;; we are sure that a is NDArrayDouble;
+            ;; it's around 8ms at n=70 (or 2x slowdown)
+            ^ints a-strides (int-array (.strides ^NDArrayDouble a))
+            ^doubles a-data (.data ^NDArrayDouble a)
+            a-offset (int (.offset ^NDArrayDouble a))]
+        (do
+          (c-for [i (int 0) (< i mrows) (inc i)]
+            (let [t (aget a-data (+ (* (aget m-strides 0) i)
+                                    m-offset))]
+              (c-for [j (int 0) (< j acols) (inc j)]
+                (aset nm-data (+ (* (aget nm-strides 0) i)
+                                 (* (aget nm-strides 1) j))
+                      (double (* (aget a-data (+ (* (aget a-strides 1) j)
+                                                 a-offset))
+                                 t))))
+              (c-for [k (int 1) (< k mcols) (inc k)]
+                (loop [j (int 0) s (double 0)]
+                  (if (< j acols)
+                    (recur (inc j)
+                           (+ s
+                              (* (aget m-data
+                                       (+ (+ (* (aget m-strides 0) i)
+                                             (* (aget m-strides 1) k))
+                                          m-offset))
+                                 (aget a-data
+                                       (+ (+ (* (aget a-strides 0) k)
+                                             (* (aget a-strides 1) j))
+                                          a-offset)))))
+                    (aset nm-data (+ (* (aget nm-strides 0) i)
+                                     (* (aget nm-strides 1) (dec j)))
+                          s))))))
+          new-m)))))
+   (element-multiply [m a]
+     (if (number? a)
+       (mp/scale m a)
+       (let [[m a] (mp/broadcast-compatible m a)]
+         (mp/element-map m clojure.core/* a)))))
+
 (spit-code-magic)
-
-(deftype NDArrayDouble
-    [^doubles data
-     ^long ndims
-     ^longs shape
-     ^longs strides
-     ^long offset]
-
-  java.lang.Object
-    (toString [m]
-      (str (mp/persistent-vector-coerce m)))
-
-  clojure.lang.Seqable
-    (seq [m]
-      (row-major-seq-double m))
-
-  mp/PMatrixMultiply
-    (matrix-multiply [m a]
-      (let [mdims (long (mp/dimensionality m))
-            adims (long (mp/dimensionality a))]
-        (cond
-         (== adims 0) (mp/scale m a)
-         (and (== mdims 1) (== adims 2))
-           (let [[arows acols] (mp/get-shape a)]
-             (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
-                         [arows]))
-         (and (== mdims 2) (== adims 1))
-           (let [[mrows mcols] (mp/get-shape m)]
-             (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
-                         [mcols]))
-         (and (== mdims 2) (== adims 2))
-           (let [mutable (mp/is-mutable? m)
-                 [mrows-t mcols-t] (mp/get-shape m)
-                 [arows-t acols-t] (mp/get-shape a)
-                 mrows (int mrows-t)
-                 mcols (int mcols-t)
-                 arows (int arows-t)
-                 acols (int acols-t)
-                 ^NDArrayDouble new-m (mp/new-matrix m mrows acols)
-                 ^ints nm-strides (int-array (.strides new-m))
-                 ^doubles nm-data (.data new-m)
-                 ^ints m-strides (int-array (.strides m))
-                 ^doubles m-data (.data m)
-                 m-offset (int (.offset m))
-                 ;; we can't really do the following optimization unless
-                 ;; we are sure that a is NDArrayDouble;
-                 ;; it's around 8ms at n=70 (or 2x slowdown)
-                 ^ints a-strides (int-array (.strides ^NDArrayDouble a))
-                 ^doubles a-data (.data ^NDArrayDouble a)
-                 a-offset (int (.offset ^NDArrayDouble a))]
-             (do
-               (c-for [i (int 0) (< i mrows) (inc i)]
-                 (let [t (aget a-data (+ (* (aget m-strides 0) i)
-                                         m-offset))]
-                   (c-for [j (int 0) (< j acols) (inc j)]
-                     (aset nm-data (+ (* (aget nm-strides 0) i)
-                                      (* (aget nm-strides 1) j))
-                           (double (* (aget a-data (+ (* (aget a-strides 1) j)
-                                                      a-offset))
-                                      t))))
-                   (c-for [k (int 1) (< k mcols) (inc k)]
-                     (loop [j (int 0) s (double 0)]
-                       (if (< j acols)
-                         (recur (inc j)
-                                (+ s
-                                   (* (aget m-data
-                                            (+ (+ (* (aget m-strides 0) i)
-                                                  (* (aget m-strides 1) k))
-                                               m-offset))
-                                      (aget a-data
-                                            (+ (+ (* (aget a-strides 0) k)
-                                                  (* (aget a-strides 1) j))
-                                               a-offset)))))
-                         (aset nm-data (+ (* (aget nm-strides 0) i)
-                                          (* (aget nm-strides 1) (dec j)))
-                               s))))))
-               new-m)))))
-    (element-multiply [m a]
-      (if (number? a)
-        (mp/scale m a)
-        (let [[m a] (mp/broadcast-compatible m a)]
-          (mp/element-map m clojure.core/* a)))))
 
 ;;
 ;; ## Constructors
@@ -397,19 +398,6 @@
         offset 0]
     (NDArray. data ndims shape strides offset)))
 
-(defn empty-ndarray-double
-  "Returns an empty NDArray of given shape"
-  [shape & {:keys [order] :or {order :c}}]
-  (let [shape (long-array shape)
-        ndims (count shape)
-        strides (case order
-                  :c (long-array (c-strides shape))
-                  :f (long-array (f-strides shape)))
-        len (reduce * shape)
-        data (double-array len)
-        offset 0]
-    (NDArrayDouble. data ndims shape strides offset)))
-
 ;; Here we construct NDArray with given data. The caveat here is that we
 ;; can't really use this definition until we define an implementation for
 ;; protocol PIndexedSettingMutable because of mp/assign! use.
@@ -419,16 +407,6 @@
   [data]
   (let [shape (long-array (mp/get-shape data))
         mtx (empty-ndarray shape)]
-    (mp/assign! mtx data)
-    ;; TODO: fix this when default implementation of assign! will return
-    ;; mutated object
-    mtx))
-
-(defn ndarray-double
-  "Returns NDArray with given data, preserving shape of the data"
-  [data]
-  (let [shape (long-array (mp/get-shape data))
-        mtx (empty-ndarray-double shape)]
     (mp/assign! mtx data)
     ;; TODO: fix this when default implementation of assign! will return
     ;; mutated object
@@ -452,41 +430,6 @@
               (java.util.Arrays/copyOfRange shape (int 1) ndims)
               (java.util.Arrays/copyOfRange strides (int 1) ndims)
               (* idx (aget strides 0)))))
-
-(defn row-major-slice-double
-  [^NDArray m idx]
-  (let [^doubles data (.data m)
-        ndims (.ndims m)
-        ^longs shape (.shape m)
-        ^longs strides (.strides m)
-        offset (.offset m)]
-    (NDArray. data
-              (dec ndims)
-              (java.util.Arrays/copyOfRange shape (int 1) ndims)
-              (java.util.Arrays/copyOfRange strides (int 1) ndims)
-              (* idx (aget strides 0)))))
-
-;; ## Helper functions
-;;
-;; In this section we define a couple of useful functions.
-;; TODO: check if NDWrapper can reuse some of this; refactor to
-;; utils.clj?
-;;
-;; First of them is a function to find an index inside of strided array.
-;; General formula for finding an element of given index inside of a
-;; strided array is
-;; index = (n_1, n_2, \dots d_N)
-;; offset = \sum_{i=0}^{N-1} s_i n_i
-;; (see [1])
-
-(defn get-strided-idx
-  "Returns an index inside of a strided array given a primitive long arrays
-of indexes and strides"
-  ^long [^longs idxs ^longs strides ^long offset]
-  (+ (areduce idxs i res (long 0)
-              (+ (* (aget idxs i) (aget strides i))
-                 res))
-     offset))
 
 ;; ## Mandatory protocols for all matrix implementations
 ;;
@@ -513,39 +456,10 @@ of indexes and strides"
   (supports-dimensionality? [m dims]
     true))
 
-(extend-type NDArrayDouble
-  mp/PImplementation
-  (implementation-key [m] :ndarray-double)
-  (meta-info [m]
-    {:doc "An implementation of strided N-Dimensional array"})
-  (new-vector [m length]
-    (empty-ndarray-double [length]))
-  (new-matrix [m rows columns]
-    (empty-ndarray-double [rows columns]))
-  (new-matrix-nd [m shape]
-    (empty-ndarray-double shape))
-  (construct-matrix [m data]
-    (ndarray-double data))
-  (supports-dimensionality? [m dims]
-    true))
-
 ;; PDimensionInfo is for letting know core.matrix about dimensionality
 ;; of the matrix.
 
 (extend-type NDArray
-  mp/PDimensionInfo
-  (get-shape [m]
-    (vec (.shape m))) ;; TODO: check if we really need primitive here
-  (is-vector? [m]
-    (= 1 (.ndims m)))
-  (is-scalar? [m]
-    false)
-  (dimensionality [m]
-    (.ndims m))
-  (dimension-count [m x]
-    (aget (longs (.shape m)) x)))
-
-(extend-type NDArrayDouble
   mp/PDimensionInfo
   (get-shape [m]
     (vec (.shape m))) ;; TODO: check if we really need primitive here
@@ -586,33 +500,6 @@ of indexes and strides"
           strides (.strides m)
           offset (.offset m)
           ^objects data (.data m)
-          idx (get-strided-idx idxs strides offset)]
-      (aget data idx))))
-
-(extend-type NDArrayDouble
-  mp/PIndexedAccess
-  (get-1d [m x]
-    ;; TODO: check if this check is really needed
-    (when-not (= 1 (.ndims m))
-      (throw (IllegalArgumentException. "can't use get-1d on non-vector")))
-    (let [^doubles data (.data m)]
-      (aget data x)))
-  (get-2d [m x y]
-    (when-not (= 2 (.ndims m))
-      (throw (IllegalArgumentException. "can't use get-2d on non-matrix")))
-    (let [^longs strides (.strides m)
-          ^doubles data (.data m)
-          idx (+ (* (aget strides 0) (long x))
-                 (* (aget strides 1) (long y)))]
-      (aget data idx)))
-  (get-nd [m indexes]
-    (when-not (= (count indexes) (.ndims m))
-      (throw (IllegalArgumentException.
-              "index count should match dimensionality")))
-    (let [idxs (long-array indexes)
-          strides (.strides m)
-          offset (.offset m)
-          ^doubles data (.data m)
           idx (get-strided-idx idxs strides offset)]
       (aget data idx))))
 
@@ -674,34 +561,6 @@ of indexes and strides"
           idx (get-strided-idx idxs strides offset)]
       (aset data idx v))))
 
-(extend-type NDArrayDouble
-  mp/PIndexedSettingMutable
-  (set-1d! [m x v]
-    (when-not (= 1 (.ndims m))
-      (throw (IllegalArgumentException. "can't use set-1d! on non-vector")))
-    (let [^doubles data (.data m)]
-      (aset data x (double v))))
-  (set-2d! [m x y v]
-    (when-not (= 2 (.ndims m))
-      (throw (IllegalArgumentException. "can't use set-2d! on non-matrix")))
-    (let [^longs strides (.strides m)
-          ^doubles data (.data m)
-          offset (.offset m)
-          idx (+ (* (aget strides 0) (long x))
-                 (* (aget strides 1) (long y))
-                 offset)]
-      (aset data idx (double v))))
-  (set-nd! [m indexes v]
-    (when-not (= (count indexes) (.ndims m))
-      (throw (IllegalArgumentException.
-              "index count should match dimensionality")))
-    (let [idxs (long-array indexes)
-          strides (.strides m)
-          offset (.offset m)
-          ^doubles data (.data m)
-          idx (get-strided-idx idxs strides offset)]
-      (aset data idx (double v)))))
-
 ;; PMatrixCloning requires only "clone" method, which is used to clone
 ;; mutable matrix. The mutation of clone must not affect the original.
 ;; TODO: an open question is whether we need to normalize memory layout here
@@ -719,17 +578,6 @@ of indexes and strides"
           offset (.offset m)]
       (NDArray. data ndims shape strides offset))))
 
-(extend-type NDArrayDouble
-  mp/PMatrixCloning
-  (clone [m]
-    (let [^doubles data-old (.data m)
-          data (aclone data-old)
-          ndims (.ndims m)
-          shape (aclone (longs (.shape m)))
-          strides (aclone (longs (.strides m)))
-          offset (.offset m)]
-      (NDArrayDouble. data ndims shape strides offset))))
-
 (extend-type NDArray
   mp/PConversion
   (convert-to-nested-vectors [m]
@@ -738,28 +586,6 @@ of indexes and strides"
           ^longs strides (.strides m)
           ^longs shape (.shape m)
           ^objects data (.data m)]
-      (case ndims
-        0 (aget data offset)
-        1 (let [n (aget shape 0)
-                stride (aget strides 0)]
-            (loop [idx (long offset)
-                   cnt (long 0)
-                   res []]
-              (if (< cnt n)
-                (recur (+ idx stride) (inc cnt) (conj res (aget data idx)))
-                res)))
-        ;; TODO: not sure if this is really efficient
-        (mapv mp/convert-to-nested-vectors
-              (mp/get-major-slice-seq m))))))
-
-(extend-type NDArrayDouble
-  mp/PConversion
-  (convert-to-nested-vectors [m]
-    (let [ndims (.ndims m)
-          offset (.offset m)
-          ^longs strides (.strides m)
-          ^longs shape (.shape m)
-          ^doubles data (.data m)]
       (case ndims
         0 (aget data offset)
         1 (let [n (aget shape 0)
@@ -791,24 +617,14 @@ of indexes and strides"
          (lazy-seq (cons (row-major-slice m i)
                          (row-major-seq m (inc i))))))))
 
-(defn row-major-seq-double
-  ([m] (row-major-seq-double m (long 0)))
-  ([^NDArrayDouble m ^long i]
-     (let [^longs shape (.shape m)]
-       (when-not (>= i (aget shape 0))
-         (lazy-seq (cons (row-major-slice m i)
-                         (row-major-seq m (inc i))))))))
-
 ;; ## Optional protocols
 ;;
 ;; Following protocols are implemented for performance only
 
-#_(extend-protocol mp/PMatrixMultiply)
-
 ;; Register implementation
 
 (imp/register-implementation (empty-ndarray [1]))
-(imp/register-implementation (empty-ndarray-double [1]))
+
 
 ;; ## Links
 ;; [1] http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
