@@ -2,6 +2,7 @@
   (:use clojure.core.matrix)
   (:use clojure.test)
   (:require [clojure.core.matrix.operators :as ops])
+  (:require [clojure.core.matrix.utils :as utils])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.utils :as utils :refer [error]]))
@@ -87,9 +88,12 @@
 
 (defn test-dimensionality-assumptions [m]
   (testing "shape"
-    (is (>= (count (shape m)) 0))
-    (is (= (seq (shape m))
-           (seq (for [i (range (dimensionality m))] (dimension-count m i))))))
+    (let [sh (shape m)
+          dims (dimensionality m)]
+      (is (utils/valid-shape? sh))
+      (is (== (count sh) dims)) 
+      (is (= (seq sh)
+             (for [i (range dims)] (dimension-count m i))))))
   (testing "vectors always have dimensionality == 1"
     (is (or (= (boolean (vec? m)) (boolean (== 1 (dimensionality m)))) (error "Failed with : " m))))
   (testing "scalars always have dimensionality == 0"
@@ -148,7 +152,7 @@
 
 (defn test-slice-assumptions [m]
   (let [dims (dimensionality m)]
-    (when (> dims 0)
+    (when (> dims 0) ;; slices only valid for dimensionality 1 or above
       (doseq [sl (slices m)]
         (is (== (dec dims) (dimensionality sl)))
         (is (= (next (shape m)) (seq (shape sl)))))

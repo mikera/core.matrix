@@ -32,6 +32,12 @@
   ([]
     `(error "TODO: not yet implemented")))
 
+(defn valid-shape? [shape]
+  (try 
+    (and (>= (count shape) 0)
+         (every? integer? shape))
+    (catch Throwable t false)))
+
 (defn same-shape-object? [sa sb]
   (cond
     (= sa sb) true
