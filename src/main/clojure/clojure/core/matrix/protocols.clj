@@ -51,7 +51,7 @@
     "Returns the number of dimensions of an array")
   (get-shape [m]
     "Returns the shape of the array, typically as a Java array or sequence of dimension sizes.
-     Implementations are free to choose what type is used to represent the shape, but it must 
+     Implementations are free to choose what type is used to represent the shape, but it must
      contain only integer values and be traversable as a sequence via clojure.core/seq")
   (is-scalar? [m]
     "Tests whether an object is a scalar value, i.e. a value that can exist at a
@@ -317,9 +317,9 @@
 
 (defprotocol PMatrixScaling
   "Protocol to support numerical array scaling by scalar values. Provided because array classes may have
-   efficient specialised scaling operaions. 
+   efficient specialised scaling operaions.
 
-   Works according the the default definition of multiplication for the matrix class 
+   Works according the the default definition of multiplication for the matrix class
    (usually numerical, i.e. equivalent to clojure.core/+)"
   (scale [m a]
     "Multiplies a array by the scalar value a, ")
@@ -446,7 +446,7 @@
   ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
 
 (defprotocol PElementCount
-  "Protocol to return the total count of elements in matrix. Result may be any integer type, 
+  "Protocol to return the total count of elements in matrix. Result may be any integer type,
    typically a java.lang.Long"
   (element-count [m]))
 
@@ -484,7 +484,7 @@
       (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
       (instance? java.util.List x) (mapv convert-to-nested-vectors x)
       (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
-      (sequential? x) (mapv convert-to-nested-vectors x)
+      (instance? clojure.lang.Seqable x) (mapv convert-to-nested-vectors x)
       (.isArray (class x)) (mapv convert-to-nested-vectors (seq x))
       :default (error "Can't coerce to vector: " (class x)))))
 
