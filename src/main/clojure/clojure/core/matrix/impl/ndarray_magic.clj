@@ -24,7 +24,7 @@
 (defn add-fn-suffix [t s]
   (if-let [suffix (->> t type-table-magic :fn-suffix)]
     (->> suffix name (str s "-") symbol)
-    s))
+    (symbol s)))
 
 (defn handle-symbol [t replaces s]
   (let [new-s (or (replaces s)
@@ -80,6 +80,9 @@
        (swap! deftypes-magic update-in [t] concat
               (handle-forms t replaces forms)))))
 
+;; TODO: it's possible to carry over line numbers manually through macro
+;; expansion like this: `(-> &form meta :line)` in with-magic macro and
+;; `(with-meta obj {:line (int line-num})` here
 (defmacro spit-code-magic []
   `(do
      ~@(map #(list 'declare %) (keys @defns-magic))

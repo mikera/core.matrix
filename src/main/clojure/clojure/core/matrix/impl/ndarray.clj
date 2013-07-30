@@ -76,8 +76,6 @@
 ;; ```
 ;; And again, an actual test can be found in test_ndarray_implementation.clj.
 
-(declare row-major-seq)
-(declare row-major-seq-double)
 
 ;; ## Helper functions
 ;;
@@ -91,34 +89,27 @@
 ;; index = (n_1, n_2, \dots d_N)
 ;; offset = \sum_{i=0}^{N-1} s_i n_i
 ;; (see [1])
-;; TODO: this should be a macro
+;; TODO: unroll this for common dimensions
 
-(defn get-strided-idx
+(defmacro get-strided-idx
   "Returns an index inside of a strided array given a primitive long arrays
 of indexes and strides"
-  ^long [^longs idxs ^longs strides ^long offset]
-  (+ (areduce idxs i res (long 0)
-              (+ (* (aget idxs i) (aget strides i))
-                 res))
-     offset))
+  [idxs strides offset]
+  `(+ (areduce ~idxs i# res# (int 0)
+              (+ (* (aget ~idxs i#) (aget ~strides i#))
+                 res#))
+     ~offset))
 
-(deftype NDArray
-    [^objects data
-     ^long ndims
-     ^longs shape
-     ^longs strides
-     ^long offset]
-
-  java.lang.Object
-  (toString [m]
-    (str (mp/persistent-vector-coerce m)))
-
-  clojure.lang.Seqable
-  (seq [m]
-    (row-major-seq m)))
+(defmacro id-macro [x] x)
 
 (init-magic
- {:long {:regname :ndarray-long
+ {:object {:regname :ndarray
+           :fn-suffix nil
+           :typename 'NDArray
+           :array-tag 'objects
+           :array-cast 'object-array
+           :type-cast 'identity}
+  :long {:regname :ndarray-long
          :fn-suffix 'long
          :typename 'NDArrayLong
          :array-tag 'longs
@@ -138,7 +129,7 @@ of indexes and strides"
            :type-cast 'double}})
 
 (with-magic
-  [:long :float :double]
+  [:long :float :double :object]
   (deftype typename#
       [^array-tag# data
        ^int ndims
@@ -148,8 +139,14 @@ of indexes and strides"
 
 ;; TODO: describe auto-declaring
 
+;; ## Constructors
+;;
+;; Constructing of an empty NDArray with given shape is fairly easy.
+;; Here, we provide an optional argument so user can choose to use
+;; Fortran-like data layout.
+
 (with-magic
-  [:long :float :double]
+  [:long :float :double :object]
   (defn empty-ndarray
     "Returns an empty NDArray of given shape"
     [shape & {:keys [order] :or {order :c}}]
@@ -163,18 +160,29 @@ of indexes and strides"
           offset 0]
       (new typename# data ndims shape strides offset))))
 
+;; Here we construct NDArray with given data. The caveat here is that we
+;; can't really use this definition until we define an implementation for
+;; protocol PIndexedSettingMutable because of mp/assign! use.
+
 (with-magic
-  [:long :float :double]
+  [:long :float :double :object]
   (defn ndarray
     "Returns NDArray with given data, preserving shape of the data"
     [data]
-    (let [shape (array-cast# (mp/get-shape data))
-          mtx (empty-ndarray#t shape)]
+    (let [mtx (empty-ndarray#t (mp/get-shape data))]
       (mp/assign! mtx data)
       mtx)))
 
+
+
+;; TODO: this destructuring should really be a macro
+;; TODO: doc
+;; TODO: abutfirst?
+;; TODO: not sure that strides don't matter
+;; TODO: check offset larger than array
+
 (with-magic
-  [:long :float :double]
+  [:long :float :double :object]
   (defn row-major-slice
     [^typename# m idx]
     (let [^array-tag# data (.data m)
@@ -188,8 +196,17 @@ of indexes and strides"
                 (java.util.Arrays/copyOfRange strides (int 1) ndims)
                 (* idx (aget strides 0))))))
 
+;; ## Seqable
+;;
+;; In general there is huge chunk of default-ish stuff that can be used here
+;; (see Seqable implementation in wrappers that use PSliceSeq and
+;; get-major-slice-seq, that in turn uses get-major-slice iteratively),
+;; but it looks horribly inefficient, so let's build a lazy seq here.
+;; NOTE: an actual implementations is now in the deftype itself, because
+;; Seqable is not a real protocol
+
 (with-magic
-  [:long :float :double]
+  [:long :float :double :object]
   (defn row-major-seq
     ([m] (row-major-seq#t m (long 0)))
     ([^typename# m ^long i]
@@ -199,7 +216,7 @@ of indexes and strides"
                            (row-major-seq#t m (inc i)))))))))
 
 (extend-types-magic
-  [:long :float :double]
+  [:long :float :double :object]
   java.lang.Object
     (toString [m]
        (str (mp/persistent-vector-coerce m)))
@@ -207,6 +224,13 @@ of indexes and strides"
   clojure.lang.Seqable
     (seq [m]
       (row-major-seq#t m))
+
+;; ## Mandatory protocols for all matrix implementations
+;;
+;; This bunch of protocols is mandatory for all core.matrix implementations.
+;;
+;; PImplementation protocol contains methods for providing implementation
+;; metadata and matrix construction.
 
   mp/PImplementation
     (implementation-key [m] regname#)
@@ -223,12 +247,19 @@ of indexes and strides"
     (supports-dimensionality? [m dims]
       true)
 
+;; PDimensionInfo is for letting know core.matrix about dimensionality
+;; of the matrix.
+
   mp/PDimensionInfo
     (get-shape [m] (vec shape))
     (is-vector? [m] (= 1 ndims))
     (is-scalar? [m] false)
     (dimensionality [m] ndims)
     (dimension-count [m x] (aget shape x))
+
+;; PIndexedAccess protocol defines a bunch of functions to allow
+;; (surprisingly) indexed access into matrix.
+;; TODO: is it possible to avoid using this ugly type hints (also see [3])?
 
   mp/PIndexedAccess
     (get-1d [m x]
@@ -250,6 +281,9 @@ of indexes and strides"
             idx (get-strided-idx idxs strides offset)]
         (aget data idx)))
 
+;; PIndexedSetting is for non-mutative update of a matrix. Here we emulate
+;; "non-mutative" setting by making a mutable copy and mutating it.
+
   mp/PIndexedSetting
     (set-1d [m row v]
       (let [m-new (mp/clone m)]
@@ -264,6 +298,16 @@ of indexes and strides"
         (mp/set-nd! m-new indexes v)
         m-new))
     (is-mutable? [m] true)
+
+;; ## Mandatory protocols for mutable matrix implementations
+;;
+;; In this section, protocols that help to work with mutable matrixes are
+;; defined. It is worth noting that in the previous section, namely
+;; PIndexedSetting protocol implementation, we used mutative operations,
+;; therefore this section is required for previous section to work.
+;;
+;; PIndexedSettingMutable defines operations for matrix mutation at given
+;; index.
 
   mp/PIndexedSettingMutable
     (set-1d! [m x v]
@@ -284,6 +328,12 @@ of indexes and strides"
       (let [idxs (int-array indexes)
             idx (get-strided-idx idxs strides offset)]
         (aset data idx (type-cast# v))))
+
+;; PMatrixCloning requires only "clone" method, which is used to clone
+;; mutable matrix. The mutation of clone must not affect the original.
+;; TODO: an open question is whether we need to normalize memory layout here
+;; (forcing data to conform C-order, for example) or not
+;; TODO: move this constructor to constructors section
 
   mp/PMatrixCloning
     (clone [m]
@@ -307,6 +357,10 @@ of indexes and strides"
         (mapv mp/convert-to-nested-vectors
               (mp/get-major-slice-seq m)))))
 
+;; ## Optional protocols
+;;
+;; Following protocols are implemented for performance only
+
 (extend-types-magic
  [:double]
  mp/PMatrixMultiply
@@ -324,14 +378,13 @@ of indexes and strides"
         (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
                     [mcols]))
       (and (== mdims 2) (== adims 2))
-      (let [mutable (mp/is-mutable? m)
-            [mrows-t mcols-t] (mp/get-shape m)
+      (let [[mrows-t mcols-t] (mp/get-shape m)
             [arows-t acols-t] (mp/get-shape a)
             mrows (int mrows-t)
             mcols (int mcols-t)
             arows (int arows-t)
             acols (int acols-t)
-            ^NDArrayDouble new-m (mp/new-matrix m mrows acols)
+            ^typename# new-m (mp/new-matrix m mrows acols)
             ^ints nm-strides (int-array (.strides new-m))
             ^doubles nm-data (.data new-m)
             ^ints m-strides (int-array (.strides m))
@@ -377,254 +430,6 @@ of indexes and strides"
          (mp/element-map m clojure.core/* a)))))
 
 (spit-code-magic)
-
-;;
-;; ## Constructors
-;;
-;; Constructing of an empty NDArray with given shape is fairly easy.
-;; Here, we provide an optional argument so user can choose to use
-;; Fortran-like data layout.
-
-(defn empty-ndarray
-  "Returns an empty NDArray of given shape"
-  [shape & {:keys [order] :or {order :c}}]
-  (let [shape (long-array shape)
-        ndims (count shape)
-        strides (case order
-                  :c (long-array (c-strides shape))
-                  :f (long-array (f-strides shape)))
-        len (reduce * shape)
-        data (object-array len)
-        offset 0]
-    (NDArray. data ndims shape strides offset)))
-
-;; Here we construct NDArray with given data. The caveat here is that we
-;; can't really use this definition until we define an implementation for
-;; protocol PIndexedSettingMutable because of mp/assign! use.
-
-(defn ndarray
-  "Returns NDArray with given data, preserving shape of the data"
-  [data]
-  (let [shape (long-array (mp/get-shape data))
-        mtx (empty-ndarray shape)]
-    (mp/assign! mtx data)
-    ;; TODO: fix this when default implementation of assign! will return
-    ;; mutated object
-    mtx))
-
-;; TODO: this destructuring should really be a macro
-;; TODO: doc
-;; TODO: abutfirst?
-;; TODO: not sure that strides don't matter
-;; TODO: check offset larger than array
-
-(defn row-major-slice
-  [^NDArray m idx]
-  (let [^objects data (.data m)
-        ndims (.ndims m)
-        ^longs shape (.shape m)
-        ^longs strides (.strides m)
-        offset (.offset m)]
-    (NDArray. data
-              (dec ndims)
-              (java.util.Arrays/copyOfRange shape (int 1) ndims)
-              (java.util.Arrays/copyOfRange strides (int 1) ndims)
-              (* idx (aget strides 0)))))
-
-;; ## Mandatory protocols for all matrix implementations
-;;
-;; This bunch of protocols is mandatory for all core.matrix implementations.
-;;
-;; PImplementation protocol contains methods for providing implementation
-;; metadata and matrix construction.
-;; TODO: check if defining this implementations in deftype's body will
-;; inflict sensible performance benefit.
-
-(extend-type NDArray
-  mp/PImplementation
-  (implementation-key [m] :ndarray)
-  (meta-info [m]
-    {:doc "An implementation of strided N-Dimensional array"})
-  (new-vector [m length]
-    (empty-ndarray [length]))
-  (new-matrix [m rows columns]
-    (empty-ndarray [rows columns]))
-  (new-matrix-nd [m shape]
-    (empty-ndarray shape))
-  (construct-matrix [m data]
-    (ndarray data))
-  (supports-dimensionality? [m dims]
-    true))
-
-;; PDimensionInfo is for letting know core.matrix about dimensionality
-;; of the matrix.
-
-(extend-type NDArray
-  mp/PDimensionInfo
-  (get-shape [m]
-    (vec (.shape m))) ;; TODO: check if we really need primitive here
-  (is-vector? [m]
-    (= 1 (.ndims m)))
-  (is-scalar? [m]
-    false)
-  (dimensionality [m]
-    (.ndims m))
-  (dimension-count [m x]
-    (aget (longs (.shape m)) x)))
-
-;; PIndexedAccess protocol defines a bunch of functions to allow
-;; (surprisingly) indexed access into matrix.
-;; TODO: is it possible to avoid using this ugly type hints (also see [3])?
-
-(extend-type NDArray
-  mp/PIndexedAccess
-  (get-1d [m x]
-    ;; TODO: check if this check is really needed
-    (when-not (= 1 (.ndims m))
-      (throw (IllegalArgumentException. "can't use get-1d on non-vector")))
-    (let [^objects data (.data m)]
-      (aget data x)))
-  (get-2d [m x y]
-    (when-not (= 2 (.ndims m))
-      (throw (IllegalArgumentException. "can't use get-2d on non-matrix")))
-    (let [^longs strides (.strides m)
-          ^objects data (.data m)
-          idx (+ (* (aget strides 0) (long x))
-                 (* (aget strides 1) (long y)))]
-      (aget data idx)))
-  (get-nd [m indexes]
-    (when-not (= (count indexes) (.ndims m))
-      (throw (IllegalArgumentException.
-              "index count should match dimensionality")))
-    (let [idxs (long-array indexes)
-          strides (.strides m)
-          offset (.offset m)
-          ^objects data (.data m)
-          idx (get-strided-idx idxs strides offset)]
-      (aget data idx))))
-
-;; PIndexedSetting is for non-mutative update of a matrix. Here we emulate
-;; "non-mutative" setting by making a mutable copy and mutating it.
-
-(extend-type NDArray
-  mp/PIndexedSetting
-  (set-1d [m row v]
-    (let [m-new (mp/clone m)]
-      (mp/set-1d! m-new row v)
-      m-new))
-  (set-2d [m row column v]
-    (let [m-new (mp/clone m)]
-      (mp/set-2d! m-new row column v)
-      m-new))
-  (set-nd [m indexes v]
-    (let [m-new (mp/clone m)]
-      (mp/set-nd! m-new indexes v)
-      m-new))
-  (is-mutable? [m]
-    true))
-
-;; ## Mandatory protocols for mutable matrix implementations
-;;
-;; In this section, protocols that help to work with mutable matrixes are
-;; defined. It is worth noting that in the previous section, namely
-;; PIndexedSetting protocol implementation, we used mutative operations,
-;; therefore this section is required for previous section to work.
-;;
-;; PIndexedSettingMutable defines operations for matrix mutation at given
-;; index.
-
-(extend-type NDArray
-  mp/PIndexedSettingMutable
-  (set-1d! [m x v]
-    (when-not (= 1 (.ndims m))
-      (throw (IllegalArgumentException. "can't use set-1d! on non-vector")))
-    (let [^objects data (.data m)]
-      (aset data x v)))
-  (set-2d! [m x y v]
-    (when-not (= 2 (.ndims m))
-      (throw (IllegalArgumentException. "can't use set-2d! on non-matrix")))
-    (let [^longs strides (.strides m)
-          ^objects data (.data m)
-          offset (.offset m)
-          idx (+ (* (aget strides 0) (long x))
-                 (* (aget strides 1) (long y))
-                 offset)]
-      (aset data idx v)))
-  (set-nd! [m indexes v]
-    (when-not (= (count indexes) (.ndims m))
-      (throw (IllegalArgumentException.
-              "index count should match dimensionality")))
-    (let [idxs (long-array indexes)
-          strides (.strides m)
-          offset (.offset m)
-          ^objects data (.data m)
-          idx (get-strided-idx idxs strides offset)]
-      (aset data idx v))))
-
-;; PMatrixCloning requires only "clone" method, which is used to clone
-;; mutable matrix. The mutation of clone must not affect the original.
-;; TODO: an open question is whether we need to normalize memory layout here
-;; (forcing data to conform C-order, for example) or not
-;; TODO: move this constructor to constructors section
-
-(extend-type NDArray
-  mp/PMatrixCloning
-  (clone [m]
-    (let [^objects data-old (.data m)
-          data (aclone data-old)
-          ndims (.ndims m)
-          shape (aclone (longs (.shape m)))
-          strides (aclone (longs (.strides m)))
-          offset (.offset m)]
-      (NDArray. data ndims shape strides offset))))
-
-(extend-type NDArray
-  mp/PConversion
-  (convert-to-nested-vectors [m]
-    (let [ndims (.ndims m)
-          offset (.offset m)
-          ^longs strides (.strides m)
-          ^longs shape (.shape m)
-          ^objects data (.data m)]
-      (case ndims
-        0 (aget data offset)
-        1 (let [n (aget shape 0)
-                stride (aget strides 0)]
-            (loop [idx (long offset)
-                   cnt (long 0)
-                   res []]
-              (if (< cnt n)
-                (recur (+ idx stride) (inc cnt) (conj res (aget data idx)))
-                res)))
-        ;; TODO: not sure if this is really efficient
-        (mapv mp/convert-to-nested-vectors
-              (mp/get-major-slice-seq m))))))
-
-;; ## Seqable
-;;
-;; In general there is huge chunk of default-ish stuff that can be used here
-;; (see Seqable implementation in wrappers that use PSliceSeq and
-;; get-major-slice-seq, that in turn uses get-major-slice iteratively),
-;; but it looks horribly inefficient, so let's build a lazy seq here.
-;; NOTE: an actual implementations is now in the deftype itself, because
-;; Seqable is not a real protocol
-
-(defn row-major-seq
-  ([m] (row-major-seq m (long 0)))
-  ([^NDArray m ^long i]
-     (let [^longs shape (.shape m)]
-       (when-not (>= i (aget shape 0))
-         (lazy-seq (cons (row-major-slice m i)
-                         (row-major-seq m (inc i))))))))
-
-;; ## Optional protocols
-;;
-;; Following protocols are implemented for performance only
-
-;; Register implementation
-
-(imp/register-implementation (empty-ndarray [1]))
-
 
 ;; ## Links
 ;; [1] http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
