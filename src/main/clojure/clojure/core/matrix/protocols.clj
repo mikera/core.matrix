@@ -363,6 +363,11 @@
      - The transpose of a 1D vector is the same 1D vector
      - The transpose of a 2D matrix swaps rows and columns"))
 
+(defprotocol PNumerical
+  "Protocol for identifying numerical arrays"
+  (numerical? [m]
+    "Returns true if the array is numerical."))
+
 (defprotocol PVectorOps
   "Protocol to support common numerical vector operations."
   (vector-dot [a b]

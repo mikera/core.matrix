@@ -335,6 +335,11 @@
       (same-shape? m n)
       (every? #(same-shape? m %) more))))
 
+(defn numerical? 
+  "Returns true if the matrix is a valid numerical matrix (i.e. supports numerical core.matrix operations."
+  ([m]
+    (boolean (mp/numerical? m)))) 
+
 ;; =======================================
 ;; Conversions
 

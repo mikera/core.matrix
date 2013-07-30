@@ -127,6 +127,17 @@
     (is-mutable? [m]
       true))
 
+(extend-protocol mp/PNumerical
+  java.lang.Number
+    (numerical? [m]
+      true)
+  java.lang.Object 
+    (numerical? [m]
+      (if (mp/is-scalar? m)
+        false ;; it's a scalar but not a number, so must not be numerical
+              ;; TODO: probably needs special handling for generic numerical types?
+        (every? number? (mp/element-seq m)))))
+
 (extend-protocol mp/PVectorOps
   java.lang.Number
     (vector-dot [a b] (* a b))

@@ -352,6 +352,7 @@
   (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m))))))
 
 (defn test-numeric-instance [m]
+  (is (numerical? m))
   (misc-numeric-tests m))
 
 ;; ========================================
