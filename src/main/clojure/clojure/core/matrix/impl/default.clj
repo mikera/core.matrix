@@ -131,6 +131,9 @@
   java.lang.Number
     (numerical? [m]
       true)
+  nil
+    (numerical? [m]
+      false)   
   java.lang.Object 
     (numerical? [m]
       (if (mp/is-scalar? m)

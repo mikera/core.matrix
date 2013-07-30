@@ -335,8 +335,8 @@
       (same-shape? m n)
       (every? #(same-shape? m %) more))))
 
-(defn numerical? 
-  "Returns true if the matrix is a valid numerical matrix (i.e. supports numerical core.matrix operations."
+(defn numerical?
+  "Returns true if the matrix is a valid numerical matrix (i.e. supports numerical core.matrix operations)."
   ([m]
     (boolean (mp/numerical? m)))) 
 
@@ -942,7 +942,7 @@
   (mp/element-sum m))
 
 (defn e=
-  "Returns true if all array elements are equal (using Object.equals).
+  "Returns true if all array elements are equal (using clojure.core/=).
    WARNING: a java.lang.Long does not equal a java.lang.Double.
    Use 'equals' or 'e==' instead if you want numerical equality."
   ([m1]

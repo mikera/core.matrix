@@ -33,11 +33,6 @@
       (mutable-fn clonem)
       (equals clonem (immutable-fn m)))))
 
-(defn is-numeric-instance?
-  "Returns true if an array is completely numeric"
-  ([m]
-    (every? number? (eseq m))))
-
 (defn create-dimensioned
   "Create a test nested vector array with the specified number of dims. will have 2^dims numeric elements"
   ([dims]
@@ -92,8 +87,8 @@
           dims (dimensionality m)]
       (is (utils/valid-shape? sh))
       (is (== (count sh) dims)) 
-      (is (= (seq sh)
-             (for [i (range dims)] (dimension-count m i))))))
+      (is (= (seq sh) ;; we need the seqs to account for empty shapes (need to comapre equal to nil)
+             (seq (for [i (range dims)] (dimension-count m i))))))) 
   (testing "vectors always have dimensionality == 1"
     (is (or (= (boolean (vec? m)) (boolean (== 1 (dimensionality m)))) (error "Failed with : " m))))
   (testing "scalars always have dimensionality == 0"
@@ -498,7 +493,7 @@
 ;;
 ;; All matrix implementations must pass this test for any valid matrix
 (defn instance-test [m]
-  (when (is-numeric-instance? m)
+  (when (numerical? m)
     (test-numeric-instance m))
   (test-array-assumptions m))
 

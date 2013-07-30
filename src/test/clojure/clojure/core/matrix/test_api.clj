@@ -1,5 +1,4 @@
 (ns clojure.core.matrix.test-api
-  (:use clojure.test)
   (:use clojure.core.matrix)
   (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.protocols :as mp])
@@ -7,7 +6,8 @@
   (:require [clojure.core.matrix.implementations :as imp])
   (:require clojure.core.matrix.examples)
   (:require clojure.core.matrix.impl.persistent-vector)
-  (:refer-clojure :exclude [vector?]))
+  (:refer-clojure :exclude [vector?])
+  (:use clojure.test))
 
 (deftest test-indexed-access
   (testing "clojure vector indexed access"
@@ -16,12 +16,14 @@
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
 
 (deftest test-shape
-  (is (= 0 (count (shape 1))))
-  (is (= [2] (seq (int-array [2]))))
-  (is (same-shape? [1 2] [3 4]))
-  (is (same-shape? 0 1))
-  (is (not (same-shape? [1 2] [2 3 4])))
-  (is (not (same-shape? [1 2] [[0 1] [2 3]]))))
+  (testing "basic array shapes" 
+           (is (= 0 (count (shape 1))))
+           (is (= [2] (seq (int-array [2])))))
+  (testing "same shape function"
+    (is (same-shape? [1 2] [3 4]))
+    (is (same-shape? 0 1))
+    (is (not (same-shape? [1 2] [2 3 4])))
+    (is (not (same-shape? [1 2] [[0 1] [2 3]])))))
 
 (deftest test-as-vector
   (is (e== [1] (as-vector 1))))
@@ -339,6 +341,14 @@
     (testing "example code"
       (clojure.core.matrix.examples/all-examples))))
 
+(deftest test-numerical
+  (testing "numerical predicate"
+    (is true)
+    (is (clojure.core.matrix/numerical? 3))
+    (is (numerical? [1 1.0 2N (float 0)]))
+    (is (not (numerical? [1 :foo nil (float 0)])))
+    (is (not (numerical? nil))))) 
+ 
 (deftest test-predicates
   (testing "scalar predicates"
     (is (not (array? 1)))
