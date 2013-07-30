@@ -173,8 +173,6 @@ of indexes and strides"
       (mp/assign! mtx data)
       mtx)))
 
-
-
 ;; TODO: this destructuring should really be a macro
 ;; TODO: doc
 ;; TODO: abutfirst?
@@ -191,10 +189,10 @@ of indexes and strides"
           ^ints strides (.strides m)
           offset (.offset m)]
       (new typename# data
-                (dec ndims)
-                (java.util.Arrays/copyOfRange shape (int 1) ndims)
-                (java.util.Arrays/copyOfRange strides (int 1) ndims)
-                (* idx (aget strides 0))))))
+           (dec ndims)
+           (java.util.Arrays/copyOfRange shape (int 1) ndims)
+           (java.util.Arrays/copyOfRange strides (int 1) ndims)
+           (* idx (aget strides 0))))))
 
 ;; ## Seqable
 ;;
@@ -204,16 +202,14 @@ of indexes and strides"
 ;; but it looks horribly inefficient, so let's build a lazy seq here.
 ;; NOTE: an actual implementations is now in the deftype itself, because
 ;; Seqable is not a real protocol
+;; TODO: test for seq
+;; TODO: test for .toString
 
 (with-magic
   [:long :float :double :object]
-  (defn row-major-seq
-    ([m] (row-major-seq#t m (long 0)))
-    ([^typename# m ^long i]
-       (let [^ints shape (.shape m)]
-         (when-not (>= i (aget shape 0))
-           (lazy-seq (cons (row-major-slice#t m i)
-                           (row-major-seq#t m (inc i)))))))))
+  (defn row-major-seq [^typename# m]
+    (let [^ints shape (.shape m)]
+      (map #(row-major-slice#t m %) (range (aget shape 0))))))
 
 (extend-types-magic
   [:long :float :double :object]
@@ -224,6 +220,8 @@ of indexes and strides"
   clojure.lang.Seqable
     (seq [m]
       (row-major-seq#t m))
+
+  clojure.lang.Sequential
 
 ;; ## Mandatory protocols for all matrix implementations
 ;;
@@ -354,19 +352,24 @@ of indexes and strides"
               (if (< cnt n)
                 (recur (+ idx stride) (inc cnt) (conj res (aget data idx)))
                 res)))
-        (mapv mp/convert-to-nested-vectors
+        ;; TODO: this can be done more efficiently
+       (mapv mp/convert-to-nested-vectors
               (mp/get-major-slice-seq m)))))
 
 ;; ## Optional protocols
 ;;
 ;; Following protocols are implemented for performance only
 
+;; TODO: optimize on smaller arrays
+;; TODO: optimize vector-matrix and matrix-vector
+;; TODO: optimize when second argument is different
+;; TODO: replace messy striding code with macroses
 (extend-types-magic
- [:double]
+ [:double :float]
  mp/PMatrixMultiply
  (matrix-multiply [m a]
-   (let [mdims (long (mp/dimensionality m))
-         adims (long (mp/dimensionality a))]
+   (let [mdims ndims
+         adims (int (mp/dimensionality a))]
      (cond
       (== adims 0) (mp/scale m a)
       (and (== mdims 1) (== adims 2))
@@ -378,56 +381,51 @@ of indexes and strides"
         (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
                     [mcols]))
       (and (== mdims 2) (== adims 2))
-      (let [[mrows-t mcols-t] (mp/get-shape m)
-            [arows-t acols-t] (mp/get-shape a)
-            mrows (int mrows-t)
-            mcols (int mcols-t)
-            arows (int arows-t)
-            acols (int acols-t)
-            ^typename# new-m (mp/new-matrix m mrows acols)
-            ^ints nm-strides (int-array (.strides new-m))
-            ^doubles nm-data (.data new-m)
-            ^ints m-strides (int-array (.strides m))
-            ^doubles m-data (.data m)
-            m-offset (int (.offset m))
-            ;; we can't really do the following optimization unless
-            ;; we are sure that a is NDArrayDouble;
-            ;; it's around 8ms at n=70 (or 2x slowdown)
-            ^ints a-strides (int-array (.strides ^NDArrayDouble a))
-            ^doubles a-data (.data ^NDArrayDouble a)
-            a-offset (int (.offset ^NDArrayDouble a))]
-        (do
-          (c-for [i (int 0) (< i mrows) (inc i)]
-            (let [t (aget a-data (+ (* (aget m-strides 0) i)
-                                    m-offset))]
-              (c-for [j (int 0) (< j acols) (inc j)]
-                (aset nm-data (+ (* (aget nm-strides 0) i)
-                                 (* (aget nm-strides 1) j))
-                      (double (* (aget a-data (+ (* (aget a-strides 1) j)
-                                                 a-offset))
-                                 t))))
-              (c-for [k (int 1) (< k mcols) (inc k)]
-                (loop [j (int 0) s (double 0)]
-                  (if (< j acols)
-                    (recur (inc j)
-                           (+ s
-                              (* (aget m-data
-                                       (+ (+ (* (aget m-strides 0) i)
-                                             (* (aget m-strides 1) k))
-                                          m-offset))
-                                 (aget a-data
-                                       (+ (+ (* (aget a-strides 0) k)
-                                             (* (aget a-strides 1) j))
-                                          a-offset)))))
-                    (aset nm-data (+ (* (aget nm-strides 0) i)
-                                     (* (aget nm-strides 1) (dec j)))
-                          s))))))
-          new-m)))))
-   (element-multiply [m a]
-     (if (number? a)
-       (mp/scale m a)
-       (let [[m a] (mp/broadcast-compatible m a)]
-         (mp/element-map m clojure.core/* a)))))
+      (let [a (if (= (type m) (type a)) a
+                  (mp/coerce-param m a))]
+        (let [mrows (aget shape (int 0))
+              mcols (aget shape (int 1))
+              arows (aget (int-array (.shape ^typename# a)) (int 0))
+              acols (aget (int-array (.shape ^typename# a)) (int 1))
+              ^typename# new-m (mp/new-matrix m mrows acols)
+              ^ints nm-strides (.strides new-m)
+              ^array-tag# nm-data (.data new-m)
+              ^ints a-strides (int-array (.strides ^typename# a))
+              ^array-tag# a-data (.data ^typename# a)
+              a-offset (int (.offset ^typename# a))]
+          (do
+            (c-for [i (int 0) (< i mrows) (inc i)]
+              (let [t (aget a-data (+ (* (aget strides (int 0)) i)
+                                      offset))]
+                (c-for [j (int 0) (< j acols) (inc j)]
+                  (aset nm-data (+ (* (aget nm-strides (int 0)) i)
+                                   (* (aget nm-strides (int 1)) j))
+                        (type-cast# (* (aget a-data
+                                             (+ (* (aget a-strides (int 1)) j)
+                                                a-offset))
+                                   t))))
+                (c-for [k (int 1) (< k mcols) (inc k)]
+                  (loop [j (int 0) s (double 0)]
+                    (if (< j acols)
+                      (recur (inc j)
+                             (+ s
+                                (* (aget data
+                                         (+ (+ (* (aget strides (int 0)) i)
+                                               (* (aget strides (int 1)) k))
+                                            offset))
+                                   (aget a-data
+                                         (+ (+ (* (aget a-strides (int 0)) k)
+                                               (* (aget a-strides (int 1)) j))
+                                            a-offset)))))
+                      (aset nm-data (+ (* (aget nm-strides (int 0)) i)
+                                       (* (aget nm-strides (int 1)) (dec j)))
+                            s))))))
+            new-m))))))
+ (element-multiply [m a]
+   (if (number? a)
+     (mp/scale m a)
+     (let [[m a] (mp/broadcast-compatible m a)]
+       (mp/element-map m clojure.core/* a)))))
 
 (spit-code-magic)
 
@@ -435,3 +433,8 @@ of indexes and strides"
 ;; [1] http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
 ;; [2] http://scipy-lectures.github.io/advanced/advanced_numpy/
 ;; [3] http://clj-me.cgrand.net/2009/08/06/what-warn-on-reflection-doesnt-tell-you-about-arrays/
+
+;; ## Counterexamples
+;;
+;; Things that doesn't work as expected
+;; (mp/convert-to-nested-vectors (empty-ndarray-double [3 3 3]))
