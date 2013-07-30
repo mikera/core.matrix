@@ -158,7 +158,7 @@
 
 (defn test-submatrix-assumptions [m]
   (let [shp (shape m)
-        dims (dimensionality m) 
+        dims (dimensionality m)
         full-ranges (map (fn [c] [0 c]) shp)]
     (is (e= m (submatrix m full-ranges)))
     (is (e= m (submatrix m (repeat dims nil))))
@@ -219,6 +219,9 @@
     ;;(is (< 0 (count (with-out-str (pm m)))))
     ))
 
+(defn test-to-string [m]
+  (is (string? (.toString m))))
+
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-as-vector m)
@@ -233,6 +236,7 @@
   (test-ndarray-round-trip m)
   (test-reshape m)
   (test-pm m)
+  (test-to-string m)
   (test-broadcast m)
   (test-general-transpose m))
 
