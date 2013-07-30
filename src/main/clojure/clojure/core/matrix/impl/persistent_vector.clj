@@ -17,6 +17,11 @@
 ;; Vectors can contain other matrices to add an extra dimension to another implementation.
 ;; this is a powerful feature - it means we can do higher dimensional work with matrices
 ;; even if the underlying implementation does not natively support this
+;;
+;; However: this also imposes limitations, in the sense that Persistent Vector matrices
+;; cannot hold other array types without considering them to be part of the array structure.
+;; This means that a 2D matrix of 1D vectors gets treated as a single 3D matrix. This may
+;; cause some surprising / undefined behaviours.
 
 (declare persistent-vector-coerce)
 
