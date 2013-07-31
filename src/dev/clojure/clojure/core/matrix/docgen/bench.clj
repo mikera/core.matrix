@@ -34,4 +34,9 @@
     (println "NDArray:")
     (let [[ma mb] (->> #(rand-mtx n)
                        repeatedly (map #(m/array :ndarray %)) (take 2))]
+      (cr/report-result (cr/quick-benchmark (mp/matrix-multiply ma mb) {})))
+    (println "-----")
+    (println "NDArrayDouble:")
+    (let [[ma mb] (->> #(rand-mtx n)
+                       repeatedly (map #(m/array :ndarray-double %)) (take 2))]
       (cr/report-result (cr/quick-benchmark (mp/matrix-multiply ma mb) {})))))
