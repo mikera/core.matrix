@@ -68,6 +68,12 @@
     (assign! m vm)
     (is (= (eseq m) (range 8)))))
 
+(deftest test-object-emap
+  (let [m (new-array :ndarray [2 2])
+        vecs (for [i (range 4)] [i (inc i)])]
+    (assign-array! m (object-array vecs))
+    (is (equals [[2 2] [2 2]] (emap count m)))))
+
 #_(deftest test-helper-functions
   (is (== 35 (calc-index [1 5] (long-array [100 30]))))
   (is (== 10101 (calc-index [1 1 1] (long-array [200 100 100])))))
