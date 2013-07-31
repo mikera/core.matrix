@@ -13,6 +13,9 @@
   (array-map
    :vectorz 'mikera.vectorz.matrix-api
    :ndarray 'clojure.core.matrix.impl.ndarray
+   :ndarray-double 'clojure.core.matrix.impl.ndarray
+   :ndarray-float 'clojure.core.matrix.impl.ndarray
+   :ndarray-long 'clojure.core.matrix.impl.ndarray
    :persistent-vector 'clojure.core.matrix.impl.persistent-vector
    :persistent-map 'clojure.core.matrix.impl.sparse-map
    :sequence 'clojure.core.matrix.impl.sequence
@@ -48,8 +51,8 @@
   ([canonical-object]
     (swap! canonical-objects assoc (mp/implementation-key canonical-object) canonical-object)))
 
-(defn try-load-implementation 
-  "Attempts to load an implementation for the given keyword. 
+(defn try-load-implementation
+  "Attempts to load an implementation for the given keyword.
    Returns nil if not possible, a non-nil value otherwise."
   ([k]
     (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]

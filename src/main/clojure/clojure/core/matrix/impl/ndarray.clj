@@ -108,25 +108,29 @@ of indexes and strides"
            :typename 'NDArray
            :array-tag 'objects
            :array-cast 'object-array
-           :type-cast 'identity}
+           :type-cast 'identity
+           :type-object java.lang.Object}
   :long {:regname :ndarray-long
          :fn-suffix 'long
          :typename 'NDArrayLong
          :array-tag 'longs
          :array-cast 'long-array
-         :type-cast 'long}
+         :type-cast 'long
+         :type-object Long/TYPE}
   :float {:regname :ndarray-float
           :fn-suffix 'float
           :typename 'NDArrayFloat
           :array-tag 'floats
           :array-cast 'float-array
-          :type-cast 'float}
+          :type-cast 'float
+          :type-object Float/TYPE}
   :double {:regname :ndarray-double
            :fn-suffix 'double
            :typename 'NDArrayDouble
            :array-tag 'doubles
            :array-cast 'double-array
-           :type-cast 'double}})
+           :type-cast 'double
+           :type-object Double/TYPE}})
 
 (with-magic
   [:long :float :double :object]
@@ -340,6 +344,10 @@ of indexes and strides"
             strides-new (aclone strides)]
         (new typename# data-new ndims shape-new strides-new offset)))
 
+;; ## Optional protocols
+;;
+;; Following protocols are implemented for performance or better behaviour.
+
   mp/PConversion
     (convert-to-nested-vectors [m]
       (case ndims
@@ -354,11 +362,65 @@ of indexes and strides"
                 res)))
         ;; TODO: this can be done more efficiently
        (mapv mp/convert-to-nested-vectors
-              (mp/get-major-slice-seq m)))))
+             (mp/get-major-slice-seq m))))
 
-;; ## Optional protocols
-;;
-;; Following protocols are implemented for performance only
+  mp/PTypeInfo
+    (element-type [m] type-object#)
+
+  mp/PMutableMatrixConstruction
+    (mutable-matrix [m] (mp/clone m))
+
+  mp/PZeroDimensionAccess
+    (get-0d [m] (aget data offset))
+    (set-0d! [m v] (aset data offset (type-cast# v)))
+
+  ;; TODO: figure out why this causes reflection warnings (???!!!)
+  ;;
+  ;; mp/PSpecialisedConstructors
+  ;;   (identity-matrix [m n]
+  ;;     (let [^typename# new-m (empty-ndarray#t [n n])]
+  ;;       (when (= type-object# java.lang.Object)
+  ;;         (c-for [i (int 0) (< i (* n n)) (inc i)]
+  ;;           (aset (array-cast# (.data new-m)) (int i) (int 0))))
+  ;;       (c-for [i (int 0) (< i n) (inc i)]
+  ;;         (aset (array-cast# (.data new-m)) (int (+ i (* i n)))
+  ;;               (type-cast# 1)))
+  ;;       new-m))
+  ;;   (diagonal-matrix [m diag]
+  ;;     (let [prim-diag (array-cast# diag)
+  ;;           n (alength prim-diag)
+  ;;           ^typename# new-m (empty-ndarray#t [n n])]
+  ;;       (when (= type-object# java.lang.Object)
+  ;;         (c-for [i (int 0) (< i (* n n)) (inc i)]
+  ;;           (aset (array-cast# (.data new-m)) i (type-cast# 0))))
+  ;;       (c-for [i (int 0) (< i n) (inc i)]
+  ;;         (aset (array-cast# (.data new-m)) (int (+ i (* i n)))
+  ;;               (type-cast# (aget prim-diag i))))
+  ;;       new-m))
+
+  mp/PMutableFill
+    (fill! [m v]
+      (let [end (+ offset (areduce shape i s (int 1)
+                                   (* s (aget shape i))))]
+        (c-for [i offset (< i end) (inc i)]
+          (aset data i (type-cast# v)))))
+
+  ;; TODO: fix this, brokes a lot of tests (suspect broken offset somewhere)
+  ;;
+  ;; mp/PSliceSeq
+  ;;   (get-major-slice-seq [m] (seq m))
+  ;;
+  ;; TODO: after fixing the above, find out why this didn't broke (not
+  ;; enough tests?)
+  ;;
+  ;; mp/PSliceView
+  ;;  (get-major-slice-view [m i] (row-major-slice#t m i))
+
+  mp/PElementCount
+    (element-count [m]
+      (areduce shape i s (int 1)
+               (* s (aget shape i)))))
+
 
 ;; TODO: optimize on smaller arrays
 ;; TODO: optimize vector-matrix and matrix-vector
@@ -370,6 +432,7 @@ of indexes and strides"
 ;; TODO: be ready to normalize arguments if they are not in row-major
 ;; TODO: check bit.ly/16ECque for inspiration
 ;; TODO: for objects implement zeroing of target array
+;; TODO: optimize element-multiply
 
 (extend-types-magic
  [:double :float]
