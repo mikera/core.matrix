@@ -46,13 +46,16 @@
   "Registers a matrix implementation for use. Should be called by all implementations
    when they are loaded."
   ([canonical-object]
-  (swap! canonical-objects assoc (mp/implementation-key canonical-object) canonical-object)))
+    (swap! canonical-objects assoc (mp/implementation-key canonical-object) canonical-object)))
 
-(defn try-load-implementation [k]
-  (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
-    (try
-      (do (require ns-sym) :ok)
-      (catch Throwable t nil))))
+(defn try-load-implementation 
+  "Attempts to load an implementation for the given keyword. 
+   Returns nil if not possible, a non-nil value otherwise."
+  ([k]
+    (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
+      (try
+        (do (require ns-sym) :ok)
+        (catch Throwable t nil)))))
 
 (defn get-canonical-object
   "Gets the canonical object for a specific implementation"
