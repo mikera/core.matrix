@@ -36,15 +36,15 @@
 			<version>1.4.0</version>
 		</dependency>
 		<dependency>
-			<groupId>net.mikera</groupId>
-			<artifactId>vectorz-clj</artifactId>
-			<version>0.13.2</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>hiccup</groupId>
 			<artifactId>hiccup</artifactId>
 			<version>1.0.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.mikera</groupId>
+			<artifactId>vectorz-clj</artifactId>
+			<version>0.13.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -58,6 +58,9 @@
 
 	<build>
 		<resources>
+			<resource>
+				<directory>src/main/clojure</directory>
+			</resource>
 			<resource>
 				<directory>src/dev/clojure</directory>
 			</resource>
