@@ -364,6 +364,13 @@ of indexes and strides"
 ;; TODO: optimize vector-matrix and matrix-vector
 ;; TODO: optimize when second argument is different
 ;; TODO: replace messy striding code with macroses
+;; TODO: replace stride multiplication with addition
+;; (one can use explicit addition of stride instead of (inc i)
+;; TODO: implement transposition of argument for faster access
+;; TODO: be ready to normalize arguments if they are not in row-major
+;; TODO: check bit.ly/16ECque for inspiration
+;; TODO: for objects implement zeroing of target array
+
 (extend-types-magic
  [:double :float]
  mp/PMatrixMultiply
@@ -394,32 +401,22 @@ of indexes and strides"
               ^array-tag# a-data (.data ^typename# a)
               a-offset (int (.offset ^typename# a))]
           (do
-            (c-for [i (int 0) (< i mrows) (inc i)]
-              (let [t (aget a-data (+ (* (aget strides (int 0)) i)
-                                      offset))]
+            (c-for [i (int 0) (< i mrows) (inc i)
+                    k (int 0) (< k mcols) (inc k)]
+              (let [t (aget data
+                            (+ (+ (* (aget strides (int 0)) i)
+                                  (* (aget strides (int 1)) k))
+                               offset))]
                 (c-for [j (int 0) (< j acols) (inc j)]
-                  (aset nm-data (+ (* (aget nm-strides (int 0)) i)
-                                   (* (aget nm-strides (int 1)) j))
-                        (type-cast# (* (aget a-data
-                                             (+ (* (aget a-strides (int 1)) j)
-                                                a-offset))
-                                   t))))
-                (c-for [k (int 1) (< k mcols) (inc k)]
-                  (loop [j (int 0) s (double 0)]
-                    (if (< j acols)
-                      (recur (inc j)
-                             (+ s
-                                (* (aget data
-                                         (+ (+ (* (aget strides (int 0)) i)
-                                               (* (aget strides (int 1)) k))
-                                            offset))
-                                   (aget a-data
-                                         (+ (+ (* (aget a-strides (int 0)) k)
-                                               (* (aget a-strides (int 1)) j))
-                                            a-offset)))))
-                      (aset nm-data (+ (* (aget nm-strides (int 0)) i)
-                                       (* (aget nm-strides (int 1)) (dec j)))
-                            s))))))
+                  (let [nm-idx (+ (* (aget nm-strides (int 0)) i)
+                                  (* (aget nm-strides (int 1)) j))]
+                    (aset nm-data nm-idx
+                          (+ (aget nm-data nm-idx)
+                             (* t
+                                (aget a-data
+                                      (+ (+ (* (aget a-strides (int 0)) k)
+                                            (* (aget a-strides (int 1)) j))
+                                         a-offset)))))))))
             new-m))))))
  (element-multiply [m a]
    (if (number? a)

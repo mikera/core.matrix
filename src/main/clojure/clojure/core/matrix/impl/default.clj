@@ -133,8 +133,8 @@
       true)
   nil
     (numerical? [m]
-      false)   
-  java.lang.Object 
+      false)
+  java.lang.Object
     (numerical? [m]
       (if (mp/is-scalar? m)
         false ;; it's a scalar but not a number, so must not be numerical

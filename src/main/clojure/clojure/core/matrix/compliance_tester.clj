@@ -86,9 +86,9 @@
     (let [sh (shape m)
           dims (dimensionality m)]
       (is (utils/valid-shape? sh))
-      (is (== (count sh) dims)) 
+      (is (== (count sh) dims))
       (is (= (seq sh) ;; we need the seqs to account for empty shapes (need to comapre equal to nil)
-             (seq (for [i (range dims)] (dimension-count m i))))))) 
+             (seq (for [i (range dims)] (dimension-count m i)))))))
   (testing "vectors always have dimensionality == 1"
     (is (or (= (boolean (vec? m)) (boolean (== 1 (dimensionality m)))) (error "Failed with : " m))))
   (testing "scalars always have dimensionality == 0"
@@ -391,10 +391,12 @@
     (is (== 25 (dot m m)))))
 
 (defn test-vector-normalise [im]
-  (let [m (matrix im [3 4])
-        n (normalise m)]
-    (is (equals n [0.6 0.8] 0.000001))
-    (is (mutable-equivalent? m normalise! normalise))))
+  ;; we need to check if implementation supports non-integer values
+  (when (-> (matrix im [0 0]) (assign 2.5) (equals [2.5 2.5]))
+    (let [m (matrix im [3 4])
+          n (normalise m)]
+      (is (equals n [0.6 0.8] 0.000001))
+      (is (mutable-equivalent? m normalise! normalise)))))
 
 (defn test-vector-distance [im]
   (let [a (matrix im [1 1])

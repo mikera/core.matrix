@@ -2,7 +2,7 @@
   (:use clojure.test)
   (:use clojure.core.matrix)
   (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.compliance-tester])
+  (:require [clojure.core.matrix.compliance-tester :as ct])
   (:require clojure.core.matrix.impl.persistent-vector)
   (:use clojure.core.matrix.impl.ndarray))
 
@@ -77,9 +77,18 @@
     (is (= [5 6 7] (seq (shape m))))
     (is (= [7 6 5] (seq (shape (transpose m)))))))
 
+(defn get-primitive-ndarrays []
+  [(empty-ndarray-double [3 3])
+   (empty-ndarray-long [3 3])
+   (empty-ndarray-float [3 3])])
+
 (deftest ndarray-test
-   (clojure.core.matrix.compliance-tester/test-ndarray-implementation (empty-ndarray [3 3])))
+  (ct/test-ndarray-implementation (empty-ndarray [3 3])))
 
 ;; run complicance tests
 (deftest compliance-test
-   (clojure.core.matrix.compliance-tester/compliance-test (empty-ndarray [3 3])))
+  (ct/compliance-test (empty-ndarray [3 3])))
+
+(deftest compliance-test-primitives
+  (doseq [m (get-primitive-ndarrays)]
+    (ct/compliance-test m)))
