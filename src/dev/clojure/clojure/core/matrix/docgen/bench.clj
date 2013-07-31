@@ -18,25 +18,28 @@
                                repeatedly (map caster) (take n) vec))]
        (->> rand-row repeatedly (take n) vec))))
 
+(def tests
+  (array-map
+   :vectorz {:name "vectorz"
+             :constructor #(m/array :vectorz %)
+             :counts [5 50 500]}
+   :vecs {:name "persistent vectors"
+          :constructor identity
+          :counts [5 50]}
+   :ndarray {:name "ndarray"
+             :constructor #(m/array :ndarray %)
+             :counts [5 50]}
+   :ndarray-double {:name "ndarray-double"
+                    :constructor #(m/array :ndarray-double %)
+                    :counts [5 50 500]}))
+
 (defn mmultiply-bench []
-  (let [n 70]
-    (println "Test matrix size:" n)
-    (println "Vectorz:")
-    (let [[ma mb] (->> #(rand-mtx n)
-                       repeatedly (map #(m/array :vectorz %)) (take 2))]
-      (cr/report-result (cr/quick-benchmark (mp/matrix-multiply ma mb) {})))
-    (println "-----")
-    (println "Persistent vectors:")
-    (let [[ma mb] (->> #(rand-mtx n)
-                       repeatedly (take 2))]
-      (cr/report-result (cr/quick-benchmark (mp/matrix-multiply ma mb) {})))
-    (println "-----")
-    (println "NDArray:")
-    (let [[ma mb] (->> #(rand-mtx n)
-                       repeatedly (map #(m/array :ndarray %)) (take 2))]
-      (cr/report-result (cr/quick-benchmark (mp/matrix-multiply ma mb) {})))
-    (println "-----")
-    (println "NDArrayDouble:")
-    (let [[ma mb] (->> #(rand-mtx n)
-                       repeatedly (map #(m/array :ndarray-double %)) (take 2))]
-      (cr/report-result (cr/quick-benchmark (mp/matrix-multiply ma mb) {})))))
+  (doseq [[_ {:keys [name constructor counts]}] tests]
+    (println (str name ":"))
+    (doseq [n counts]
+      (let [[ma mb] (->> #(rand-mtx n)
+                         repeatedly (map constructor) (take 2))]
+        (binding [cr/*final-gc-problem-threshold* 0.5]
+          (->> (cr/quick-benchmark (mp/matrix-multiply ma mb) {})
+               :mean
+               (cr/report-point-estimate (str n ":"))))))))
