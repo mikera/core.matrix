@@ -644,11 +644,20 @@
           :else (error "Don't know how to create element-seq from: " m))))
     (element-map
       ([m f]
-        (mp/coerce-param m (mp/element-map (mp/convert-to-nested-vectors m) f)))
+        (let [s (map f (mp/element-seq m))]
+          (mp/reshape (mp/coerce-param m s)
+                      (mp/get-shape m))))
       ([m f a]
-        (mp/coerce-param m (mp/element-map (mp/convert-to-nested-vectors m) f a)))
+        (let [s (map f (mp/element-seq m) (mp/element-seq a))]
+          (mp/reshape (mp/coerce-param m s)
+                      (mp/get-shape m))))
       ([m f a more]
-        (mp/coerce-param m (mp/element-map (mp/convert-to-nested-vectors m) f a more))))
+        (let [s (map f (mp/element-seq m) (mp/element-seq a))
+              s (apply map f (list* (mp/element-seq m)
+                                    (mp/element-seq a)
+                                    (map mp/element-seq more)))]
+          (mp/reshape (mp/coerce-param m s)
+                      (mp/get-shape m)))))
     (element-map!
       ([m f]
         (mp/assign! m (mp/element-map m f)))
