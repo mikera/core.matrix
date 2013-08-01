@@ -493,8 +493,3 @@ of indexes and strides"
 ;; [1] http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
 ;; [2] http://scipy-lectures.github.io/advanced/advanced_numpy/
 ;; [3] http://clj-me.cgrand.net/2009/08/06/what-warn-on-reflection-doesnt-tell-you-about-arrays/
-
-;; ## Counterexamples
-;;
-;; Things that doesn't work as expected
-;; (mp/convert-to-nested-vectors (empty-ndarray-double [3 3 3]))
