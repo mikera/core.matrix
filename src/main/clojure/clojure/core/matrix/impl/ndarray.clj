@@ -11,6 +11,7 @@
 (set! *unchecked-math* true)
 
 ;; TODO: abstract Java-related stuff so it can be ported to JS
+;; TODO: check explicit throwing of out-of-bounds exceptions everywhere
 
 ;; ## Intro
 ;;
@@ -196,7 +197,7 @@ of indexes and strides"
            (dec ndims)
            (java.util.Arrays/copyOfRange shape (int 1) ndims)
            (java.util.Arrays/copyOfRange strides (int 1) ndims)
-           (* idx (aget strides 0))))))
+           (+ offset (* idx (aget strides 0)))))))
 
 ;; ## Seqable
 ;;
@@ -212,6 +213,11 @@ of indexes and strides"
 (with-magic
   [:long :float :double :object]
   (defn row-major-seq [^typename# m]
+    (when (<= (.ndims m) 0)
+      (throw (IllegalArgumentException.
+              (str "can't get slices on [" (.ndims m) "]-dimensional"
+                   "object"
+                   ))))
     (let [^ints shape (.shape m)]
       (map #(row-major-slice#t m %) (range (aget shape 0))))))
 
@@ -268,12 +274,13 @@ of indexes and strides"
     ;; TODO: check if this check is really needed
       (when-not (= 1 (.ndims m))
         (throw (IllegalArgumentException. "can't use get-1d on non-vector")))
-      (aget data x))
+      (aget data (+ offset x)))
     (get-2d [m x y]
       (when-not (= 2 (.ndims m))
         (throw (IllegalArgumentException. "can't use get-2d on non-matrix")))
-      (let [idx (+ (* (aget strides 0) (int x))
-                   (* (aget strides 1) (int y)))]
+      (let [idx (+ offset
+                   (+ (* (aget strides 0) (int x))
+                      (* (aget strides 1) (int y))))]
         (aget data idx)))
     (get-nd [m indexes]
       (when-not (= (count indexes) ndims)
@@ -315,7 +322,7 @@ of indexes and strides"
     (set-1d! [m x v]
       (when-not (= 1 (.ndims m))
         (throw (IllegalArgumentException. "can't use set-1d! on non-vector")))
-      (aset data x (type-cast# v)))
+      (aset data (+ offset x) (type-cast# v)))
     (set-2d! [m x y v]
       (when-not (= 2 (.ndims m))
         (throw (IllegalArgumentException. "can't use set-2d! on non-matrix")))
@@ -405,22 +412,16 @@ of indexes and strides"
         (c-for [i offset (< i end) (inc i)]
           (aset data i (type-cast# v)))))
 
-  ;; TODO: fix this, brokes a lot of tests (suspect broken offset somewhere)
-  ;;
-  ;; mp/PSliceSeq
-  ;;   (get-major-slice-seq [m] (seq m))
-  ;;
-  ;; TODO: after fixing the above, find out why this didn't broke (not
-  ;; enough tests?)
-  ;;
-  ;; mp/PSliceView
-  ;;  (get-major-slice-view [m i] (row-major-slice#t m i))
+  mp/PSliceView
+   (get-major-slice-view [m i] (row-major-slice#t m i))
+
+  mp/PSliceSeq
+    (get-major-slice-seq [m] (seq m))
 
   mp/PElementCount
     (element-count [m]
       (areduce shape i s (int 1)
                (* s (aget shape i)))))
-
 
 ;; TODO: optimize on smaller arrays
 ;; TODO: optimize vector-matrix and matrix-vector

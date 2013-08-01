@@ -3,6 +3,7 @@
   (:use clojure.core.matrix)
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.compliance-tester :as ct])
+  (:require [clojure.core.matrix.protocols :as mp])
   (:require clojure.core.matrix.impl.persistent-vector)
   (:use clojure.core.matrix.impl.ndarray))
 
@@ -61,6 +62,13 @@
       (is (= [[nil nil] [nil nil]]
              (map #(coerce [] %)
                   (slices (empty-ndarray [2 2]))))))))
+
+(deftest test-seq
+  (is (= (-> (array :ndarray [[1 2] [3 4]])
+             seq
+             second
+             mp/persistent-vector-coerce)
+         [3 4])))
 
 (deftest test-assign
   (let [m (empty-ndarray [2 2 2])
