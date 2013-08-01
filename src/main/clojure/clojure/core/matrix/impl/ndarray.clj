@@ -433,6 +433,7 @@ of indexes and strides"
 ;; TODO: check bit.ly/16ECque for inspiration
 ;; TODO: for objects implement zeroing of target array
 ;; TODO: optimize element-multiply
+;; For algorithms see [4]
 
 (extend-types-magic
  [:double :float]
@@ -490,6 +491,7 @@ of indexes and strides"
 (spit-code-magic)
 
 ;; ## Links
-;; [1] http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
-;; [2] http://scipy-lectures.github.io/advanced/advanced_numpy/
-;; [3] http://clj-me.cgrand.net/2009/08/06/what-warn-on-reflection-doesnt-tell-you-about-arrays/
+;; [1]: http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
+;; [2]: http://scipy-lectures.github.io/advanced/advanced_numpy/
+;; [3]: http://clj-me.cgrand.net/2009/08/06/what-warn-on-reflection-doesnt-tell-you-about-arrays/
+;; [4]: http://penguin.ewu.edu/~trolfe/MatMult/MatOpt.html
