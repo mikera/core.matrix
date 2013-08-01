@@ -22,7 +22,7 @@
   (array-map
    :vectorz {:name "vectorz"
              :constructor #(m/array :vectorz %)
-             :counts [5 50 500]}
+             :counts [5 50 500 1000]}
    :vecs {:name "persistent vectors"
           :constructor identity
           :counts [5 50]}
@@ -31,7 +31,7 @@
              :counts [5 50]}
    :ndarray-double {:name "ndarray-double"
                     :constructor #(m/array :ndarray-double %)
-                    :counts [5 50 500]}))
+                    :counts [5 50 500 1000]}))
 
 (defn mmultiply-bench []
   (doseq [[_ {:keys [name constructor counts]}] tests]
@@ -42,4 +42,4 @@
         (binding [cr/*final-gc-problem-threshold* 0.5]
           (->> (cr/quick-benchmark (mp/matrix-multiply ma mb) {})
                :mean
-               (cr/report-point-estimate (str n ":"))))))))
+               (cr/report-point-estimate (str "n=" n ":"))))))))
