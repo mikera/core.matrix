@@ -793,6 +793,7 @@
             :default
               (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
 
+;; TODO: shouldn't this be returning a view?
 (extend-protocol mp/PVectorView
   nil
     (as-vector [m]
@@ -835,7 +836,7 @@
       (case (long (reduce * 1 (seq shape)))
         0 (mp/broadcast m shape)
         1 (mp/broadcast m shape)
-        (error "Can reshape a scalar value to shape: " (vec shape))))
+        (error "Can't reshape a scalar value to shape: " (vec shape))))
   java.lang.Object
     (reshape [m shape]
       (let [partition-shape (fn partition-shape [es shape]

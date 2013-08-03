@@ -441,8 +441,8 @@
     (mp/subvector m start length)))
 
 (defn slice
-  "Gets a view of a slice of a matrix along a specific dimension.
-   The returned matrix will have one less dimension.
+  "Gets a view of a slice of an array along a specific dimension.
+   The returned array will have one less dimension.
    Slicing a 1D vector will return a scalar.
 
    Slicing on the first dimension (dimension 0) is likely to perform better
@@ -498,12 +498,14 @@
     (TODO)))
 
 (defn as-vector
-  "Creates a view of an array as a single flattened vector."
+  "Creates a view of an array as a single flattened vector. 
+   Returns nil if this is not supported by the implementation."
   ([m]
     (mp/as-vector m)))
 
 (defn to-vector
-  "Creates a new array representing the elements of array m as a single flattened vector"
+  "Creates a new array representing the elements of array m as a single flattened vector.
+   The new vector will be a mutable copy if the implementation supports mutable vectors."
   ([m]
     (or
       (mp/to-vector m)
