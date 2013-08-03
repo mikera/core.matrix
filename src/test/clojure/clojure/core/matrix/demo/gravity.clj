@@ -15,7 +15,7 @@
                        (* radius radius radius)]))))
 
 ;; a gravitational constant
-(def G 0.001)
+(def G 0.003)
 
 ;; effective max radius
 (def R 0.05)
@@ -25,7 +25,7 @@
         n (dimension-count model 0)
         positions (slice model 1 2)
         masses (slice model 1 4)
-        calc-force-vector (fn [pos] 
+        calc-force-vector (fn [pos] ;; calculate the gravity field at a point in space 
                             (let [offsets (sub positions pos)
                                   dists (mapv length offsets)
                                   DR (* 2.0 R)]
@@ -42,7 +42,7 @@
       model)))
 
 (defn demo []
-  (let [model (atom (new-model 10))
+  (let [model (atom (new-model 30))
         ^JComponent comp (proxy [JComponent] []
                            (paintComponent [^Graphics g]
                              (let [h (int (.getHeight this))
@@ -66,7 +66,7 @@
                              (when (.isShowing comp)
                                (swap! model update 0.02)
                                 (.repaint comp))))]
-    (.setPreferredSize comp (Dimension. 300 300))
+    (.setPreferredSize comp (Dimension. 700 700))
     (.add (.getContentPane frame) comp)
     (.start (Timer. 50 anim)) 
     (.pack frame)
