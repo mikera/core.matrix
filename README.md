@@ -50,23 +50,10 @@ For code examples see:
 
  - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/clojure/core/matrix/examples.clj
 
- For documentation and further examples see the Wiki:
+For documentation and further examples see the Wiki:
 
  - https://github.com/mikera/matrix-api/wiki
 
-### Getting started
-
-You can include the latest released version by adding it as a leiningen or Maven dependency from Clojars, but be aware that this is probably out of data compared to the latest master branch.
-
- - https://clojars.org/mikera/matrix-api
-
-Some documentation / examples can be found in the Wiki:
-
- - https://github.com/mikera/matrix-api/wiki
-
-You can also find a protocol implementation summary here:
-
- - http://mikera.github.io/matrix-api/summary.html
 
 ### Contributing
 
@@ -83,3 +70,7 @@ Discussions related to core.matrix generally take place on the "Numerical Clojur
 If you are interested in writing a `core.matrix` implementation, see:
 
  - https://github.com/mikera/matrix-api/wiki/Implementation-Guide
+
+You can also find a protocol implementation summary here:
+
+ - http://mikera.github.io/matrix-api/summary.html
