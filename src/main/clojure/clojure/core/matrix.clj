@@ -568,6 +568,7 @@
 ;; ======================================
 ;; matrix maths / operations
 
+;; TODO: switch to elementwise multiplication
 (defn mul
   "Performs standard (inner-product) multiplication with numerical arrays."
   ([] 1.0)

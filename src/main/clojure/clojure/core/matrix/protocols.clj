@@ -364,7 +364,8 @@
      - The transpose of a 2D matrix swaps rows and columns"))
 
 (defprotocol PNumerical
-  "Protocol for identifying numerical arrays"
+  "Protocol for identifying numerical arrays. Should return true if every element in the
+   array is a valid numerical value."
   (numerical? [m]
     "Returns true if the array is numerical."))
 
