@@ -177,7 +177,7 @@
   (convert-to-nested-vectors [m]))
 
 (defprotocol PReshaping
-  "Protocol to reshape matrices. Must support any new shape allowed by the implementation.
+  "Protocol to reshape matrices. Should support any new shape allowed by the implementation.
    Must preserve row-major ordering of matrix elements.
    If the original matrix is mutable, must return a new mutable copy of data.
    If the new shape has less elements than the original shape, it is OK to truncate the remaining elements.
