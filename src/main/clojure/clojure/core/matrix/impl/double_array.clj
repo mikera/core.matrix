@@ -16,6 +16,15 @@
 
 (def DOUBLE-ARRAY-CLASS (Class/forName "[D"))
 
+(def array-magic-data 
+  {:double {:class (Class/forName "[D")
+            :regname :ndarray-double
+            :fn-suffix 'double
+            :array-tag 'doubles
+            :array-cast 'double-array
+            :type-cast 'double
+            :type-object Double/TYPE}})
+
 (defn is-double-array? [m]
   (instance? DOUBLE-ARRAY-CLASS m))
 
