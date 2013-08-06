@@ -4,6 +4,7 @@
 ;; Placeholder namespace for generic versions of core.matrix algorithms
 
 ;; generic element accessor functions
+;; TODO: revisit these names?
 
 (defn generic-zero
   "Returns the standard 'zero' scalar value for the given array / implementation"
