@@ -1,7 +1,7 @@
 (ns clojure.core.matrix.examples
+  (:refer-clojure :exclude [* - + == /])
   (:use clojure.core.matrix)
-  (:use clojure.core.matrix.operators)
-  (:refer-clojure :exclude [* - + == /]))
+  (:use clojure.core.matrix.operators))
 
 ;; =============================================================
 ;; Set of clojure.core.matrix examples

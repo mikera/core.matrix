@@ -29,24 +29,26 @@
 
 ;; useful TODO macro facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO
-  ([]
-    `(error "TODO: not yet implemented")))
+  ([] `(error "TODO: not yet implemented")))
 
-(defn valid-shape? [shape]
-  (try 
-    (and (>= (count shape) 0)
-         (every? integer? shape))
-    (catch Throwable t false)))
+(defn valid-shape? 
+  "returns true if the given object is a valid core.matrix array shape."
+  ([shape]
+    (try 
+      (and (>= (count shape) 0)
+           (every? integer? shape))
+      (catch Throwable t false))))
 
-(defn same-shape-object? [sa sb]
-  (cond
-    (= sa sb) true
-    (not= (count sa) (count sb)) false
-    (let [sa (seq sa)
-          sb (seq sb)]
-      (every? true? (map == sa sb))) true
-
-    :else false))
+(defn same-shape-object? 
+  "Returns true if two shapes are the same."
+  ([sa sb]
+    (cond
+      (= sa sb) true
+      (not= (count sa) (count sb)) false
+      (let [sa (seq sa)
+            sb (seq sb)]
+        (every? true? (map == sa sb))) true
+      :else false)))
 
 (defn xor
   "Returns the logical xor of a set of values, considered as booleans"
