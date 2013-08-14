@@ -35,7 +35,7 @@
 
 (defn -
   "Matrix subtraction operator"
-  ([a] a)
+  ([a] (m/negate a))
   ([a b]
     (if (and (number? a) (number? b))
       (clojure.core/- a b)

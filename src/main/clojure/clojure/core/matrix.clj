@@ -672,7 +672,7 @@
 
 (defn sub
   "Performs element-wise subtraction on one or more numerical arrays."
-  ([a] a)
+  ([a] (mp/negate a))
   ([a b]
     (mp/matrix-sub a b))
   ([a b & more]

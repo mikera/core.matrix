@@ -229,6 +229,9 @@
     (is (= [[[6.0]]] (add [[[2.0]]] [[[4.0]]])))))
 
 (deftest test-subtraction
+  (testing "unary subtraction"
+    (is (== (- 10) (op/- 10)))
+    (is (equals (sub [1 2]) (op/- [1 2]))))
   (testing "matrix subtraction"
     (is (= [1.0] (sub [3.0] [2.0])))
     (is (= [[8.0]] (sub [[12.0]] [[4.0]])))
