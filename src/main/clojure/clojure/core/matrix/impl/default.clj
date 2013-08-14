@@ -766,6 +766,16 @@
           ;    (mp/broadcast (vec (repeat rep m)) new-shape))
           :else (clojure.core.matrix.impl.wrappers/wrap-broadcast m new-shape)))))
 
+(extend-protocol mp/PBroadcastLike
+  nil
+    (broadcast-like [m a]
+      (clojure.core.matrix.impl.wrappers/wrap-broadcast a (mp/get-shape m)))
+  java.lang.Object
+    (broadcast-like [m a]
+      (let [sm (mp/get-shape m) sa (mp/get-shape a)]
+        (if (clojure.core.matrix.utils/same-shape-object? sm sa)
+          a
+          (mp/broadcast a sm)))))
 
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion

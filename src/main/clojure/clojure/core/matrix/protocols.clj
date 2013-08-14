@@ -172,6 +172,10 @@
 
      Broadcasting may return either a view with replicated element or a new immutable matrix."))
 
+(defprotocol PBroadcastLike
+  "Protocol to broadcast into a given matrix shape. May also perform coercion if needed by the implementation."
+  (broadcast-like [m a]))
+
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))
@@ -507,11 +511,3 @@
                 a (broadcast a bs)]
             [a b])
           (error "Shapes are not compatible"))))))
-
-(defn broadcast-like 
-  "Broadcasts a second matrix into the shape of the first. Throws an error if not possible."
-  ([m a]
-    (let [sm (get-shape m) sa (get-shape a)]
-      (if (clojure.core.matrix.utils/same-shape-object? sm sa)
-        a
-        (broadcast a sm)))))
