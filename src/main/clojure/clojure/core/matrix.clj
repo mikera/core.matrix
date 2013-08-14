@@ -568,16 +568,15 @@
 ;; ======================================
 ;; matrix maths / operations
 
-;; TODO: switch to elementwise multiplication
 (defn mul
-  "Performs standard (inner-product) multiplication with numerical arrays."
+  "Performs element-wise multiplication with numerical arrays."
   ([] 1.0)
   ([a] a)
   ([a b]
     (cond
       (number? b) (if (number? a) (* a b) (mp/scale a b))
       (number? a) (mp/pre-scale b a)
-      :else (or (mp/matrix-multiply a b) (mp/inner-product a b))))
+      :else (mp/element-multiply a b)))
   ([a b & more]
     (reduce mul (mul a b) more)))
 
@@ -589,6 +588,15 @@
     (mp/element-multiply a b))
   ([a b & more]
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
+
+(defn mmul
+  "Performs matrix multiplication (equivalent to inner-product)."
+  ([] 1.0)
+  ([a] a)
+  ([a b]
+    (mp/matrix-multiply a b))
+  ([a b & more]
+    (reduce mp/matrix-multiply (mp/matrix-multiply a b) more)))
 
 (defn e*
   "Element-wise multiply operator. Equivalent to emul."

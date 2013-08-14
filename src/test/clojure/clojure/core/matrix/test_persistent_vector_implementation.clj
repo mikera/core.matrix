@@ -78,11 +78,13 @@
 
 (deftest test-matrix-multiply
   (testing "matrix multiplication"
-    (is (= [[5 10] [15 20]] (mul [[1 2] [3 4]] 5)))
-    (is (= [[1 0] [2 2] [5 0]] (mul [[1 0] [0 2] [5 0]] [[1 0] [1 1]])))
-    (is (= [[1 2] [3 4]] (mul [[1 2] [3 4]] [[1 0] [0 1]])))
-    (is (= [[5]] (mul [[1 2]] [[1] [2]])))
-    (is (= [7 10] (mul [1 2] [[1 2] [3 4]])))))
+    (is (= [[5 10] [15 20]] (mmul [[1 2] [3 4]] 5)))
+    (is (= [[1 0] [2 2] [5 0]] (mmul [[1 0] [0 2] [5 0]] [[1 0] [1 1]])))
+    (is (= [[1 2] [3 4]] (mmul [[1 2] [3 4]] [[1 0] [0 1]])))
+    (is (= [[5]] (mmul [[1 2]] [[1] [2]])))
+    (is (= [7 10] (mmul [1 2] [[1 2] [3 4]]))))
+  (testing "elementwise multiplication"
+    (is (= [2 4] (mul [1 2] 2)))))
 
 (deftest test-transform
   (testing "matrix transform"
@@ -95,7 +97,7 @@
     (let [m [(double-array [1 2]) (double-array [3 4])]]
       (is (mutable? m))
       (is (== 2 (dimensionality m)))
-      (is (equals [3 7] (mul m [1 1])))
+      (is (equals [3 7] (mmul m [1 1])))
       (is (equals [2 4] (get-column m 1))))))
 
 (deftest test-emap
