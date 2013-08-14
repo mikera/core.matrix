@@ -772,7 +772,7 @@
 (defn inner-product
   "Computes the inner product of numerical arrays.
 
-   The inner product of two arrays with indexed dimensions {.. i j} and {j k ...} has dimensions {.. i k ...}"
+   The inner product of two arrays with indexed dimensions {..i j} and {j k..} has dimensions {..i k..}"
   ([] 1.0)
   ([a]
     a)
