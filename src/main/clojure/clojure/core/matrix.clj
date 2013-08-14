@@ -613,6 +613,18 @@
   ([a b] (mp/element-divide a b))
   ([a b & more] (reduce mp/element-divide (mp/element-divide a b) more)))
 
+(defn mul!
+  "Performs in-place element-wise multiplication of numerical arrays."
+  ([a] a)
+  ([a b]
+    (mp/element-multiply! a b)
+    a)
+  ([a b & more]
+    (mp/element-multiply! a b)
+    (doseq [c more]
+      (mp/element-multiply! a c))
+    a))
+
 (defn emul!
   "Performs in-place element-wise multiplication of numerical arrays."
   ([a] a)
