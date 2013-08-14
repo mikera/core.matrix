@@ -211,6 +211,10 @@
 (deftest test-broadcast-compatibile
   (is (equals [[2 1] [2 2]] (mp/broadcast-compatible [2 1] 2))))
 
+(deftest test-broadcast-like
+  (is (equals [2 2] (mp/broadcast-like [1 1] 2)))
+  (is (equals [2 2] (mp/broadcast-like [1 1] [2 2]))))
+
 (deftest test-divide
   (is (== 2 (div 4 2)))
   (is (op/== [2 1] (div [4 2] 2)))
