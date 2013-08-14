@@ -414,7 +414,7 @@
       (error "Can't do mutable multiply on a scalar number"))
   java.lang.Object
     (element-multiply! [m a]
-      (mp/element-map! m * a))
+      (mp/element-map! m * (mp/broadcast-like m a)))
     (matrix-multiply! [m a]
       (mp/assign! m (mp/matrix-multiply m a))))
 

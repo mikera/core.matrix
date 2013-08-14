@@ -507,3 +507,11 @@
                 a (broadcast a bs)]
             [a b])
           (error "Shapes are not compatible"))))))
+
+(defn broadcast-like 
+  "Broadcasts a second matrix into the shape of the first. Throws an error if not possible."
+  ([m a]
+    (let [sm (get-shape m) sa (get-shape a)]
+      (if (clojure.core.matrix.utils/same-shape-object? sm sa)
+        a
+        (broadcast a sm)))))

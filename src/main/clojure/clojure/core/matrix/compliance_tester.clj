@@ -321,7 +321,8 @@
 
 (defn test-scale
   ([m]
-    (is (mutable-equivalent? m #(scale! % 2) #(scale % 2)))))
+    (is (mutable-equivalent? m #(scale! % 2) #(scale % 2)))
+    (is (mutable-equivalent? m #(mul! % 2) #(mul % 2)))))
 
 (defn test-numeric-functions [im]
   (when (supports-dimensionality? im 2)
