@@ -86,6 +86,12 @@
   (testing "elementwise multiplication"
     (is (= [2 4] (mul [1 2] 2)))))
 
+(deftest test-division
+  (testing "unary division"
+    (is (== 0.5 (div 2))))
+  (testing "vector elementwise division"
+     (is (= [2 4] (div [4 4] [2 1])))))
+
 (deftest test-transform
   (testing "matrix transform"
     (is (= [5 10] (transform [[1 0] [0 2]] [5 5]))))

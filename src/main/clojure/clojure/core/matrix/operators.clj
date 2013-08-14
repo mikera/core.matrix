@@ -45,7 +45,7 @@
 
 (defn /
   "Element-wise matrix division."
-  ([a] a)
+  ([a] (m/div a)) ;; this computes the reciprocal
   ([a b] (m/div a b))
   ([a b & more] (reduce m/div (m/div a b) more)))
 
