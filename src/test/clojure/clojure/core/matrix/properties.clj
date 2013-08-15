@@ -21,13 +21,17 @@
 (def gen-impl
   (gen/elements [:ndarray :persistent-vector]))
 
-;; TODO: such-that is inefficient, patch simple-check so vec can accept
-;; desired length
-(def gen-vec-mtx
-  (gen/such-that
-   (fn [mtx] (and (every? #(= (count mtx) (count %)) mtx)
-                  (> (count mtx) 0)))
-   (gen/vector (gen/vector gen/int))))
+;; TODO: remove this as soon as simple-check is updated
+(defn gen-vector
+  "Create a generator whose elements are chosen from `gen`. The count of the
+  vector will be bounded by the `size` generator parameter."
+  [gen num-elements]
+  [:gen (fn [rand-seed size]
+          (vec (repeatedly num-elements #(gen/call-gen gen rand-seed size))))])
+
+;; TODO: n should be generated as well
+(defn gen-vec-mtx [n]
+  (gen-vector (gen-vector gen/int n) n))
 
 ;; TODO: write N-Dimensional array generator
 
@@ -52,17 +56,17 @@
 ;;
 ;; Check if we can construct matrix and get nested vectors back
 
-(defspec matrix-constructable num-tests
+(defspec matrix-constructible num-tests
   (prop/for-all [impl gen-impl
-                 vec-mtx gen-vec-mtx]
+                 vec-mtx (gen-vec-mtx 5)]
     (let [mtx (matrix impl vec-mtx)]
       (= vec-mtx (to-nested-vectors mtx)))))
 
 ;; Check if we can construct an array and get nested vectors back
 ;; TODO: here we should use N-Dimensional array
-(defspec array-constructable num-tests
+(defspec array-constructible num-tests
   (prop/for-all [impl gen-impl
-                 vec-mtx gen-vec-mtx]
+                 vec-mtx (gen-vec-mtx 5)]
     (let [mtx (array impl vec-mtx)]
       (= vec-mtx (to-nested-vectors mtx)))))
 
