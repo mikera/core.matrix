@@ -47,6 +47,12 @@
 			<version>0.13.2</version>
 			<scope>test</scope>
 		</dependency>
+   		<dependency>
+			<groupId>reiddrapper</groupId>
+			<artifactId>simple-check</artifactId>
+			<version>0.2.1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<licenses>
