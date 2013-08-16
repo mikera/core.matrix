@@ -48,7 +48,7 @@
 			<scope>test</scope>
 		</dependency>
    		<dependency>
-			<groupId>reiddrapper</groupId>
+			<groupId>reiddraper</groupId>
 			<artifactId>simple-check</artifactId>
 			<version>0.2.1</version>
 			<scope>test</scope>
