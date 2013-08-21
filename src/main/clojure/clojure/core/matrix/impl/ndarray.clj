@@ -383,27 +383,28 @@ of indexes and strides"
 
   ;; TODO: figure out why this causes reflection warnings (???!!!)
   ;;
-  ;; mp/PSpecialisedConstructors
-  ;;   (identity-matrix [m n]
-  ;;     (let [^typename# new-m (empty-ndarray#t [n n])]
-  ;;       (when (= type-object# java.lang.Object)
-  ;;         (c-for [i (int 0) (< i (* n n)) (inc i)]
-  ;;           (aset (array-cast# (.data new-m)) (int i) (int 0))))
-  ;;       (c-for [i (int 0) (< i n) (inc i)]
-  ;;         (aset (array-cast# (.data new-m)) (int (+ i (* i n)))
-  ;;               (type-cast# 1)))
-  ;;       new-m))
-  ;;   (diagonal-matrix [m diag]
-  ;;     (let [prim-diag (array-cast# diag)
-  ;;           n (alength prim-diag)
-  ;;           ^typename# new-m (empty-ndarray#t [n n])]
-  ;;       (when (= type-object# java.lang.Object)
-  ;;         (c-for [i (int 0) (< i (* n n)) (inc i)]
-  ;;           (aset (array-cast# (.data new-m)) i (type-cast# 0))))
-  ;;       (c-for [i (int 0) (< i n) (inc i)]
-  ;;         (aset (array-cast# (.data new-m)) (int (+ i (* i n)))
-  ;;               (type-cast# (aget prim-diag i))))
-  ;;       new-m))
+  mp/PSpecialisedConstructors
+    (identity-matrix [m n]
+      (let [^typename# new-m (empty-ndarray#t [n n])
+            ^array-tag# new-m-data (.data new-m)]
+        (when (= type-object# java.lang.Object)
+          (c-for [i (int 0) (< i (* n n)) (inc i)]
+            (aset new-m-data i (type-cast# 0))))
+        (c-for [i (int 0) (< i n) (inc i)]
+          (aset new-m-data (+ i (* i n)) (type-cast# 1)))
+        new-m))
+    (diagonal-matrix [m diag]
+      (let [prim-diag (array-cast# diag)
+            n (alength prim-diag)
+            ^typename# new-m (empty-ndarray#t [n n])
+            ^array-tag# new-m-data (.data new-m)]
+        (when (= type-object# java.lang.Object)
+          (c-for [i (int 0) (< i (* n n)) (inc i)]
+            (aset new-m-data i (type-cast# 0))))
+        (c-for [i (int 0) (< i n) (inc i)]
+          (aset new-m-data (int (+ i (* i n)))
+                (type-cast# (aget prim-diag i))))
+        new-m))
 
   mp/PMutableFill
     (fill! [m v]

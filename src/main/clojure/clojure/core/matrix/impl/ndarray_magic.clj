@@ -73,12 +73,13 @@
                               [(first forms) (rest forms)]
                               [{} forms])]
     (doseq [t types
-             :let [replaces (form-replaces extra-parts t)]]
+            :let [replaces (form-replaces extra-parts t)]]
        (when-not (type-table-magic t)
          (throw (IllegalArgumentException.
                  (str "there is no type " (name t) " in init-magic"))))
        (swap! deftypes-magic update-in [t] concat
-              (handle-forms t replaces forms)))))
+              (handle-forms t replaces forms)))
+    :ok))
 
 ;; TODO: it's possible to carry over line numbers manually through macro
 ;; expansion like this: `(-> &form meta :line)` in with-magic macro and
