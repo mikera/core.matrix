@@ -31,15 +31,22 @@
 (defmacro TODO
   ([] `(error "TODO: not yet implemented")))
 
-(defn valid-shape? 
+(defmacro iae-when-not
+  "Throws an IllegalArgumentException when the predicate is not satisfied"
+  [pred? exception-str]
+  `(when-not ~pred?
+     (throw (IllegalArgumentException.
+             ~exception-str))))
+
+(defn valid-shape?
   "returns true if the given object is a valid core.matrix array shape."
   ([shape]
-    (try 
+    (try
       (and (>= (count shape) 0)
            (every? integer? shape))
       (catch Throwable t false))))
 
-(defn same-shape-object? 
+(defn same-shape-object?
   "Returns true if two shapes are the same."
   ([sa sb]
     (cond

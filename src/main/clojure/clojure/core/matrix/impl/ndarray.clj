@@ -178,26 +178,57 @@ of indexes and strides"
       (mp/assign! mtx data)
       mtx)))
 
+(defmacro abutnth [i xs]
+  `(let [n# (alength ~xs)
+         new-xs# (java.util.Arrays/copyOf ~xs (int (dec n#)))]
+     (c-for [j# (int ~i) (< j# (dec n#)) (inc j#)]
+       (aset new-xs# (int j#) (aget ~xs (int (inc j#)))))
+     new-xs#))
+
+(defmacro areverse [xs]
+  `(let [n# (alength ~xs)
+         new-xs# (java.util.Arrays/copyOf ~xs (int n#))]
+     (c-for [i# (int 0) (< i# (quot n# 2)) (inc i#)]
+       (let [j# (- (- n# 1) i#)
+             t# (aget new-xs# j#)]
+         (aset new-xs# j# (aget new-xs# i#))
+         (aset new-xs# i# t#)))
+     new-xs#))
+
 ;; TODO: this destructuring should really be a macro
 ;; TODO: doc
-;; TODO: abutfirst?
 ;; TODO: not sure that strides don't matter
 ;; TODO: check offset larger than array
 
 (with-magic
   [:long :float :double :object]
-  (defn row-major-slice
-    [^typename# m idx]
+  (defn arbitrary-slice
+    [^typename# m dim idx]
     (let [^array-tag# data (.data m)
           ndims (.ndims m)
           ^ints shape (.shape m)
           ^ints strides (.strides m)
-          offset (.offset m)]
-      (new typename# data
-           (dec ndims)
-           (java.util.Arrays/copyOfRange shape (int 1) ndims)
-           (java.util.Arrays/copyOfRange strides (int 1) ndims)
-           (+ offset (* idx (aget strides 0)))))))
+          offset (.offset m)
+          new-ndims (dec ndims)
+          new-shape (abutnth dim shape)
+          new-strides (abutnth dim strides)
+          new-offset (+ offset (* idx (aget strides dim)))]
+      (new typename# data new-ndims new-shape new-strides new-offset))))
+
+(with-magic
+  [:long :float :double :object]
+  (defn row-major-slice
+    [^typename# m idx]
+    (arbitrary-slice#t m 0 idx)))
+
+(with-magic
+  [:long :float :double :object]
+  (defn reshape-restride
+    [^typename# m new-ndims ^ints new-shape ^ints new-strides new-offset]
+    (let [^array-tag# data (.data m)
+          new-ndims (int new-ndims)
+          new-offset (int new-offset)]
+      (new typename# data new-ndims new-shape new-strides new-offset))))
 
 ;; ## Seqable
 ;;
@@ -272,20 +303,19 @@ of indexes and strides"
   mp/PIndexedAccess
     (get-1d [m x]
     ;; TODO: check if this check is really needed
-      (when-not (= 1 (.ndims m))
-        (throw (IllegalArgumentException. "can't use get-1d on non-vector")))
+      (iae-when-not (= 1 (.ndims m))
+        "can't use get-1d on non-vector")
       (aget data (+ offset x)))
     (get-2d [m x y]
-      (when-not (= 2 (.ndims m))
-        (throw (IllegalArgumentException. "can't use get-2d on non-matrix")))
+      (iae-when-not (= 2 (.ndims m))
+        "can't use get-2d on non-matrix")
       (let [idx (+ offset
                    (+ (* (aget strides 0) (int x))
                       (* (aget strides 1) (int y))))]
         (aget data idx)))
     (get-nd [m indexes]
-      (when-not (= (count indexes) ndims)
-        (throw (IllegalArgumentException.
-                "index count should match dimensionality")))
+      (iae-when-not (= (count indexes) ndims)
+        "index count should match dimensionality")
       (let [idxs (int-array indexes)
             idx (get-strided-idx idxs strides offset)]
         (aget data idx)))
@@ -320,18 +350,18 @@ of indexes and strides"
 
   mp/PIndexedSettingMutable
     (set-1d! [m x v]
-      (when-not (= 1 (.ndims m))
+      (when-not (== 1 ndims)
         (throw (IllegalArgumentException. "can't use set-1d! on non-vector")))
       (aset data (+ offset x) (type-cast# v)))
     (set-2d! [m x y v]
-      (when-not (= 2 (.ndims m))
+      (when-not (== 2 ndims)
         (throw (IllegalArgumentException. "can't use set-2d! on non-matrix")))
       (let [idx (+ (* (aget strides 0) (int x))
                    (* (aget strides 1) (int y))
                    offset)]
         (aset data idx (type-cast# v))))
     (set-nd! [m indexes v]
-      (when-not (= (count indexes) (.ndims m))
+      (when-not (= (count indexes) ndims)
         (throw (IllegalArgumentException.
                 "index count should match dimensionality")))
       (let [idxs (int-array indexes)
@@ -381,8 +411,6 @@ of indexes and strides"
     (get-0d [m] (aget data offset))
     (set-0d! [m v] (aset data offset (type-cast# v)))
 
-  ;; TODO: figure out why this causes reflection warnings (???!!!)
-  ;;
   mp/PSpecialisedConstructors
     (identity-matrix [m n]
       (let [^typename# new-m (empty-ndarray#t [n n])
@@ -406,12 +434,36 @@ of indexes and strides"
                 (type-cast# (aget prim-diag i))))
         new-m))
 
-  mp/PMutableFill
-    (fill! [m v]
-      (let [end (+ offset (areduce shape i s (int 1)
-                                   (* s (aget shape i))))]
-        (c-for [i offset (< i end) (inc i)]
-          (aset data i (type-cast# v)))))
+  ;; mp/PCoercion
+  ;;   (coerce-param [m param])
+  ;; mp/PBroadcast
+  ;;   (broadcast [m target-shape])
+  ;; mp/PBroadcastLike
+  ;;   (broadcast-like [m a])
+  ;; mp/PReshaping
+  ;;   (reshape [m shape])
+
+  mp/PMatrixSlices
+    (get-row [m i]
+      (iae-when-not (== ndims 2)
+        "get-row is applicable only for matrices")
+      (row-major-slice#t m i))
+    (get-column [m i]
+      (iae-when-not (== ndims 2)
+        "get-column is applicable only for matrices")
+      (arbitrary-slice#t m 1 i))
+    (get-major-slice [m i]
+      (row-major-slice#t m i))
+    (get-slice [m dimension i]
+      (arbitrary-slice#t m dimension i))
+
+  mp/PSubVector
+    (subvector [m start length]
+      (iae-when-not (== ndims 1)
+        "subvector is applicable only for vectors")
+      (let [new-shape (int-array 1 (int length))
+            new-offset (+ offset (* (aget strides 0) start))]
+        (reshape-restride#t m ndims new-shape strides new-offset)))
 
   mp/PSliceView
    (get-major-slice-view [m i] (row-major-slice#t m i))
@@ -419,10 +471,47 @@ of indexes and strides"
   mp/PSliceSeq
     (get-major-slice-seq [m] (seq m))
 
+  ;; mp/PSliceJoin
+  ;;   (join [m a])
+
+  ;; TODO: generalize for higher dimensions (think tensor trace)
+  mp/PMatrixSubComponents
+    (main-diagonal [m]
+      (iae-when-not (and (== ndims 2) (== (aget shape 0)
+                                          (aget shape 1)))
+        "main-diagonal is applicable only for square matrices")
+      (let [new-ndims (int 1)
+            new-shape (int-array 1 (aget shape 0))
+            new-strides (int-array 1 (+ (* (aget shape 0)
+                                           (aget strides 1))
+                                        (aget strides 1)))]
+        (reshape-restride#t m new-ndims new-shape new-strides offset)))
+
+  ;; mp/PAssignment
+  ;;   (assign! [m source])
+  ;;   (assign-array! [m arr] [m arr start length])
+
+  mp/PMutableFill
+    (fill! [m v]
+      (let [end (+ offset (areduce shape i s (int 1)
+                                   (* s (aget shape i))))]
+        (c-for [i offset (< i end) (inc i)]
+          (aset data i (type-cast# v)))))
+
   mp/PElementCount
     (element-count [m]
       (areduce shape i s (int 1)
-               (* s (aget shape i)))))
+               (* s (aget shape i))))
+
+  ;; mp/PTranspose
+  ;;   (transpose [m]
+  ;;     (iae-when-not (<= ndims 2)
+  ;;       "transpose is applicable only for dimensions lower than 2")
+  ;;     (let [new-shape (areverse shape)
+  ;;           new-strides (areverse strides)]
+  ;;       (reshape-restride#t m ndims new-shape new-strides offset)))
+
+    )
 
 ;; TODO: optimize on smaller arrays
 ;; TODO: optimize vector-matrix and matrix-vector
