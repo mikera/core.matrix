@@ -4,6 +4,7 @@
   (:require [clojure.core.matrix.impl sequence]) ;; TODO: figure out if we want this?
   (:require [clojure.core.matrix.multimethods :as mm])
   (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.impl.pprint :as pprint])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
@@ -1044,11 +1045,8 @@
 
 (defn pm
   "Pretty-prints a matrix"
-  [[mat-first & mat-rest :as m]]
-  (let [len (longest-nums m)
-        start (str "[" (str-row mat-first len))
-        out (str start (rprint mat-rest "" len))]
-    (println out)))
+  [m]
+  (pprint/pm m))
 
 ;; =========================================================
 ;; Implementation management functions

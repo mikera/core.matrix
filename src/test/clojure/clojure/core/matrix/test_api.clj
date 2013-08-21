@@ -57,7 +57,9 @@
   (is (equals [[1 4]] (square [(double-array [1 2])]))))
 
 (deftest test-new
-  (is (equals [0 0 0] (new-vector 3)))
+  (is (e= [nil] (new-vector :ndarray 1)))
+  (is (equals [0 0 0] (new-vector :persistent-vector 3)))
+  (is (equals [0 0 0] (new-vector :ndarray-double 3)))
   (is (= [0.0 0.0 0.0] (seq (new-vector :double-array 3))))
   (is (e= [0.0 0.0 0.0] (new-vector :double-array 3))))
 
