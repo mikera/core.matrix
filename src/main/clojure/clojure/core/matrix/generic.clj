@@ -6,18 +6,18 @@
 ;; generic element accessor functions
 ;; TODO: revisit these names?
 
-(defn generic-zero
+(defn zero
   "Returns the standard 'zero' scalar value for the given array / implementation"
-  ([] (TODO)))
+  ([m] (TODO)))
 
-(defn generic-one
+(defn one
   "Returns the standard 'one' scalar value for the given array / implementation"
-  ([] (TODO)))
+  ([m] (TODO)))
 
-(defn generic-add-fn
+(defn add-fn
   "Returns the standard 'add' function for the given array / implementation."
-  ([] (TODO)))
+  ([m] (TODO)))
 
-(defn generic-mul-fn
+(defn mul-fn
   "Returns the standard 'multiply' function for the given array / implementation."
-  ([] (TODO)))
+  ([m] (TODO)))
