@@ -1,7 +1,5 @@
 (ns clojure.core.matrix.docgen.implementations
-  (:use [clojure.java.shell :only [sh]])
-  (:require [clojure.reflect :as r]
-            [clojure.string :as s]
+  (:require [clojure.string :as s]
             [hiccup.page :as h]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as mi]
@@ -15,16 +13,9 @@
 (def repo-url "https://github.com/mikera/matrix-api")
 (def src-path "src/main/clojure")
 
-(defn get-git-hash
-  "Returns current revision's git hash"
-  []
-  (-> (sh "git" "log" "--pretty=format:'%H'" "-n 1")
-      :out
-      (s/replace #"'" "")))
-
 (defn render-header
   [git-hash]
-  (seq [[:h2 "Protocol implementation summary"]
+  (seq [[:h2 "Protocol/Implementation summary"]
         [:p "git hash: "
          [:a {:href (str repo-url "/blob/" git-hash)}
           git-hash]]
@@ -69,21 +60,20 @@
 (defn render-page
   [header table]
   (h/html5
-     [:head
-      [:title "Protocol/Implementation summary"]
-      (h/include-css "http://yui.yahooapis.com/pure/0.2.0/pure-min.css")
-      (h/include-css "http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css")]
-     [:body {:style "padding: 0 2em;"}
-      [:div.pure-g
-       [:div.pure-u-1 header]
-       [:div.pure-u-1 table]]]))
+   [:head
+    [:title "Protocol/Implementation summary"]
+    (h/include-css "http://yui.yahooapis.com/pure/0.2.0/pure-min.css")
+    (h/include-css "http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css")]
+   [:body {:style "padding: 0 2em;"}
+    [:div.pure-g
+     [:div.pure-u-1 header]
+     [:div.pure-u-1 table]]]))
 
 (defn generate
   []
   (let [impl-objs (c/get-impl-objs)
         protos (c/extract-implementations (c/extract-protocols) impl-objs)
-        git-hash (get-git-hash)
+        git-hash (c/get-git-hash)
         header (render-header git-hash)
-        table (render-table impl-objs protos git-hash)
-        page (render-page header table)]
-    (h/html5 page)))
+        table (render-table impl-objs protos git-hash)]
+    (render-page header table)))

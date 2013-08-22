@@ -1,5 +1,7 @@
 (ns clojure.core.matrix.docgen.common
+  (:use [clojure.java.shell :only [sh]])
   (:require [clojure.reflect :as r]
+            [clojure.string :as s]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.multimethods :as mm]
@@ -70,3 +72,10 @@
   [protocols impl-objs]
   (for [proto protocols]
     (assoc proto :implemented-by (find-implementers proto impl-objs))))
+
+(defn get-git-hash
+  "Returns current revision's git hash"
+  []
+  (-> (sh "git" "log" "--pretty=format:'%H'" "-n 1")
+      :out
+      (s/replace #"'" "")))
