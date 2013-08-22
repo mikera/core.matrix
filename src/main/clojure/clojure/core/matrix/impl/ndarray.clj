@@ -204,6 +204,8 @@ of indexes and strides"
   [:long :float :double :object]
   (defn arbitrary-slice
     [^typename# m dim idx]
+    (iae-when-not (> (.ndims m) 0)
+      (str "can't get slices on [" (.ndims m) "]-dimensional object"))
     (let [^array-tag# data (.data m)
           ndims (.ndims m)
           ^ints shape (.shape m)
@@ -244,13 +246,19 @@ of indexes and strides"
 (with-magic
   [:long :float :double :object]
   (defn row-major-seq [^typename# m]
-    (when (<= (.ndims m) 0)
-      (throw (IllegalArgumentException.
-              (str "can't get slices on [" (.ndims m) "]-dimensional"
-                   "object"
-                   ))))
+    (iae-when-not (> (.ndims m) 0)
+      (str "can't get slices on [" (.ndims m) "]-dimensional object"))
     (let [^ints shape (.shape m)]
-      (map #(row-major-slice#t m %) (range (aget shape 0))))))
+      (map (partial row-major-slice#t m) (range (aget shape 0))))))
+
+(with-magic
+  [:long :float :double :object]
+  (defn row-major-seq-no0d
+    "like row-major-seq but drops NDArray's wrapping on 0d-slices"
+    [^typename# m]
+    (if (== (.ndims m) 1)
+      (map mp/get-0d (row-major-seq#t m))
+      (row-major-seq#t m))))
 
 (extend-types-magic
   [:long :float :double :object]
@@ -260,7 +268,7 @@ of indexes and strides"
 
   clojure.lang.Seqable
     (seq [m]
-      (row-major-seq#t m))
+      (row-major-seq-no0d#t m))
 
   clojure.lang.Sequential
 
@@ -475,6 +483,10 @@ of indexes and strides"
   ;;   (join [m a])
 
   ;; TODO: generalize for higher dimensions (think tensor trace)
+  ;; TODO: make it work for rectangular matrices
+  ;; TODO: clarify docstring about rectangulra matrices
+  ;; TODO: clarify docstring about higher dimensions
+  ;; TODO: rewrite + * as * inc
   mp/PMatrixSubComponents
     (main-diagonal [m]
       (iae-when-not (and (== ndims 2) (== (aget shape 0)
