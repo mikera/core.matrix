@@ -197,7 +197,9 @@
     (is (not (op/== nil [nil])))
     (is (not (op/== nil []))))
   (testing "unequal lengths"
-    (is (not (equals [1] [1 2])))))
+    (is (not (equals [1] [1 2]))))
+  (testing "equals does not broadcast"
+    (is (not (equals (array 1) (array [1 1]))))))
 
 (deftest test-multiply
   (testing "scalars"
@@ -271,9 +273,9 @@
 
 (deftest test-normalise
   (testing "vector normalise"
-    (is (= [1.0] (normalise [1.0])))
-    (is (= [1.0] (normalise [2.0])))
-    (is (= [-1.0 0.0] (normalise [-2.0 0.0])))))
+    (is (e== [1.0] (normalise (array [1.0]))))
+    (is (e== [1.0] (normalise (array [2.0]))))
+    (is (e== [-1.0 0.0] (normalise (array [-2.0 0.0]))))))
 
 (deftest test-mathsops
   (testing "ops on scalars"

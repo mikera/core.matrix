@@ -590,7 +590,10 @@
       (nil? b))
   java.lang.Number
     (matrix-equals [a b]
-      (== a (if (number? b) b (mp/get-0d b))))
+      (cond 
+        (number? b) (== a b) 
+        (== 0 (mp/dimensionality b)) (== a (mp/get-0d b))
+        :else false))
   java.lang.Object
     (matrix-equals [a b]
       (let [[a b] (mp/broadcast-compatible a b)]
