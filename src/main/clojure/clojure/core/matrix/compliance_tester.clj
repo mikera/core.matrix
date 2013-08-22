@@ -165,8 +165,7 @@
     ))
 
 (defn test-general-transpose [m]
-  (when (and (> (ecount m) 0)
-             (<= (dimensionality m) 2))
+  (when (> (ecount m) 0)
     (let [mt (transpose m)]
       (is (e= m (transpose mt)))
       (is (= (seq (shape m))
