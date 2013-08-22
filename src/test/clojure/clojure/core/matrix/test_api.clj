@@ -106,14 +106,14 @@
   (testing "get-nd on scalar with zero dimensions"
     (is (== 10.0 (mget 10.0)))
     (is (== 10.0 (mp/get-nd 10.0 []))))
-  (testing "slices of clojure vector are scalar numbers"
-    (is (= [1 2 3] (slices [1 2 3])))))
+  (testing "slices of a standard vector are scalar numbers"
+    (is (= [1 2 3] (slices (array [1 2 3]))))))
 
 (deftest test-submatrix
-  (is (equals [[3]] (submatrix [[1 2] [3 4]] [[1 1] [0 1]])))
-  (is (equals [[2] [4]] (submatrix [[1 2] [3 4]] 1 [1 1])))
-  (is (equals [2 3] (submatrix [1 2 3 4] [[1 2]])))
-  (is (equals [2 3] (submatrix [1 2 3 4] 0 [1 2]))))
+  (is (equals [[3]] (submatrix (array [[1 2] [3 4]]) [[1 1] [0 1]])))
+  (is (equals [[2] [4]] (submatrix (array [[1 2] [3 4]]) 1 [1 1])))
+  (is (equals [2 3] (submatrix (array [1 2 3 4]) [[1 2]])))
+  (is (equals [2 3] (submatrix (array [1 2 3 4]) 0 [1 2]))))
 
 (deftest test-element-seq
   (is (= [0] (eseq 0)))
@@ -122,10 +122,10 @@
   (is (= [4] (eseq [[[[4]]]]))))
 
 (deftest test-element-map
-  (is (= 1 (emap inc 0)))
-  (is (= [2] (emap inc [1])))
-  (is (= [[3]] (emap inc [[2]])))
-  (is (= [[[[5]]]] (emap inc [[[[4]]]]))))
+  (is (equals 1 (emap inc (array 0))))
+  (is (equals [2] (emap inc (array [1]))))
+  (is (equals [[3]] (emap inc (array [[2]]))))
+  (is (equals [[[[5]]]] (emap inc (array [[[[4]]]])))))
 
 (deftest test-conforming?
   (is (conforming? 1 [[2 2] [3 3]]))
