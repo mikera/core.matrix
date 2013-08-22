@@ -1,4 +1,4 @@
-(defproject net.mikera/core.matrix "0.7.2"
+(defproject net.mikera/core.matrix "0.9.0"
   :url "https://github.com/mikera/matrix-api"
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
