@@ -253,12 +253,13 @@
      Provides an opportunity to avoid copying the internal array."))
 
 (defprotocol PMatrixEquality
-  "Protocol for numeical array equality operations"
+  "Protocol for numerical array equality operations."
   (matrix-equals [a b]
-     "Return true if a equals b, i.e. if all elements are equal.
+     "Return true if a equals b, i.e. if a and b are have the same shape and all elements are equal.
       Must use numerical value comparison on numbers (==) to account for matrices that may hold a mix of
       numercial types (e.g. java.lang.Long and java.lang.Double). Implementations that only support doubles
-      should use Number.doubleValue() to get a numeric value to compare."))
+      should use Number.doubleValue() to get a numeric value to compare.
+      May throw an exception if the matrices are non-numeric"))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar.
@@ -275,7 +276,8 @@
   (outer-product [m a]))
 
 (defprotocol PAddProduct
-  "Protocol for add-product operation."
+  "Protocol for add-product operation.
+   Intended to implement a fast version for result = m + a * b"
   (add-product [m a b]))
 
 (defprotocol PAddProductMutable
@@ -283,7 +285,8 @@
   (add-product! [m a b]))
 
 (defprotocol PAddScaledProduct
-  "Protocol for add-product operation."
+  "Protocol for add-product operation. 
+   Intended to implement a fast version for result = m + a * b * factor"
   (add-scaled-product [m a b factor]))
 
 (defprotocol PAddScaledProductMutable
@@ -291,11 +294,12 @@
   (add-scaled-product! [m a b factor]))
 
 (defprotocol PAddScaled
-  "Protocol for add-product operation."
+  "Protocol for add-scaled operation.
+   Intended to implement a fast version for result = m + a * factor"
   (add-scaled [m a factor]))
 
 (defprotocol PAddScaledMutable
-  "Protocol for mutable add-product! operation."
+  "Protocol for mutable add-scaled! operation."
   (add-scaled! [m a factor]))
 
 (defprotocol PMatrixDivide

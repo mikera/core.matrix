@@ -106,14 +106,14 @@
   (testing "get-nd on scalar with zero dimensions"
     (is (== 10.0 (mget 10.0)))
     (is (== 10.0 (mp/get-nd 10.0 []))))
-  (testing "slices of clojure vector are scalar numbers"
-    (is (= [1 2 3] (slices [1 2 3])))))
+  (testing "slices of a standard vector are scalar numbers"
+    (is (= [1 2 3] (slices (array [1 2 3]))))))
 
 (deftest test-submatrix
-  (is (equals [[3]] (submatrix [[1 2] [3 4]] [[1 1] [0 1]])))
-  (is (equals [[2] [4]] (submatrix [[1 2] [3 4]] 1 [1 1])))
-  (is (equals [2 3] (submatrix [1 2 3 4] [[1 2]])))
-  (is (equals [2 3] (submatrix [1 2 3 4] 0 [1 2]))))
+  (is (equals [[3]] (submatrix (array [[1 2] [3 4]]) [[1 1] [0 1]])))
+  (is (equals [[2] [4]] (submatrix (array [[1 2] [3 4]]) 1 [1 1])))
+  (is (equals [2 3] (submatrix (array [1 2 3 4]) [[1 2]])))
+  (is (equals [2 3] (submatrix (array [1 2 3 4]) 0 [1 2]))))
 
 (deftest test-element-seq
   (is (= [0] (eseq 0)))
@@ -122,10 +122,10 @@
   (is (= [4] (eseq [[[[4]]]]))))
 
 (deftest test-element-map
-  (is (= 1 (emap inc 0)))
-  (is (= [2] (emap inc [1])))
-  (is (= [[3]] (emap inc [[2]])))
-  (is (= [[[[5]]]] (emap inc [[[[4]]]]))))
+  (is (equals 1 (emap inc (array 0))))
+  (is (equals [2] (emap inc (array [1]))))
+  (is (equals [[3]] (emap inc (array [[2]]))))
+  (is (equals [[[[5]]]] (emap inc (array [[[[4]]]])))))
 
 (deftest test-conforming?
   (is (conforming? 1 [[2 2] [3 3]]))
@@ -137,7 +137,7 @@
 
 (deftest test-broadcast
   (is (= [[1 1] [1 1]] (coerce [] (broadcast 1 [2 2]))))
-  (is (equals [[[[2]]]] (broadcast 2 [1 1 1 1])))
+  (is (equals [[[[2]]]] (broadcast (array 2) [1 1 1 1])))
   (is (= [2 2] (add [1 1] 1))))
 
 (deftest test-mutable-matrix
@@ -183,7 +183,7 @@
   (testing "element e="
     (is (e= 'a 'a))
     (is (e= :foo :foo))
-    (is (e= [1 2] [1 2]))
+    (is (e= [1 2] (array [1 2])))
     (is (e= [1 2] [1 2] [1 2] [1 2]))
     (is (not (e= [1 2] [3 4])))
     (is (not (e= [1 2] [1.0 2.0])))
@@ -197,7 +197,9 @@
     (is (not (op/== nil [nil])))
     (is (not (op/== nil []))))
   (testing "unequal lengths"
-    (is (not (equals [1] [1 2])))))
+    (is (not (equals [1] [1 2]))))
+  (testing "equals does not broadcast"
+    (is (not (equals (array 1) (array [1 1]))))))
 
 (deftest test-multiply
   (testing "scalars"
@@ -205,13 +207,15 @@
     (is (== 6 (scale 3 2)))
     (is (== 6 (mp/pre-scale 3 2))))
   (testing "matrix scaling"
-    (is (= [6] (mul [3] 2)))
-    (is (= [6] (mul 2 [3])))
-    (is (= [[6]] (mul 2 [[3]])))
-    (is (= [[6]] (mul [[2]] 3)))))
+    (is (equals [6] (mul (array [3]) 2)))
+    (is (equals [6] (mul 2 (array [3]))))
+    (is (equals [[6]] (mul 2 (array [[3]]))))
+    (is (equals [[6]] (mul (array [[2]]) 3)))
+    (is (equals [[6]] (mul (array 2) (array [[3]]))))
+    (is (equals [[6]] (mul (array [[2]]) (array 3))))))
 
 (deftest test-broadcast-compatibile
-  (is (equals [[2 1] [2 2]] (mp/broadcast-compatible [2 1] 2))))
+  (is (equals [[2 1] [2 2]] (mp/broadcast-compatible (array [2 1]) (array 2)))))
 
 (deftest test-broadcast-like
   (is (equals [2 2] (mp/broadcast-like [1 1] 2)))
@@ -239,9 +243,9 @@
     (is (== (- 10) (op/- 10)))
     (is (equals (sub [1 2]) (op/- [1 2]))))
   (testing "matrix subtraction"
-    (is (= [1.0] (sub [3.0] [2.0])))
-    (is (= [[8.0]] (sub [[12.0]] [[4.0]])))
-    (is (= [[[8.0]]] (sub [[[12.0]]] [[[4.0]]]))))
+    (is (= [1.0] (sub (array [3.0]) [2.0])))
+    (is (= [[8.0]] (sub (array [[12.0]]) [[4.0]])))
+    (is (= [[[8.0]]] (sub (array [[[12.0]]]) [[[4.0]]]))))
   (testing "mutable sub"
     (let [v (mutable-matrix [10 10])]
       (sub! v [1 2] [1 2])
@@ -269,9 +273,9 @@
 
 (deftest test-normalise
   (testing "vector normalise"
-    (is (= [1.0] (normalise [1.0])))
-    (is (= [1.0] (normalise [2.0])))
-    (is (= [-1.0 0.0] (normalise [-2.0 0.0])))))
+    (is (e== [1.0] (normalise (array [1.0]))))
+    (is (e== [1.0] (normalise (array [2.0]))))
+    (is (e== [-1.0 0.0] (normalise (array [-2.0 0.0]))))))
 
 (deftest test-mathsops
   (testing "ops on scalars"
