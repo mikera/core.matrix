@@ -51,7 +51,8 @@
 
 (def tests
   {:matrix-multiply
-   {:vectorz
+   {:varying "matrix sizes"
+    :vectorz
     {:s [(rand-mtx 5) (rand-mtx 5)]
      :m [(rand-mtx 50) (rand-mtx 50)]
      :l [(rand-mtx 500) (rand-mtx 500)]}
@@ -67,7 +68,8 @@
      :l [(rand-mtx 500) (rand-mtx 500)]}}
 
    :clone
-   {:vectorz
+   {:varying "2d matrix sizes"
+    :vectorz
     {:s [(rand-mtx 5)]
      :m [(rand-mtx 50)]
      :l [(rand-mtx 500)]}
@@ -112,7 +114,7 @@
           arg-sets (for [[size args] bench]
                      [size (map constructor args)])]
       (into {} (for [[size args] arg-sets]
-                 [size (->> (cr/quick-benchmark (apply f args) {})
+                 [size 0.0001 #_(->> (cr/quick-benchmark (apply f args) {})
                             :mean
                             first)])))))
 
@@ -156,7 +158,8 @@
   [header table]
   (h/html5
    [:head
-    [:title "Protocol/Implementation summary"]
+    [:title "Benchmark summary"]
+    [:meta {:charset "UTF-8"}]
     (h/include-css "http://yui.yahooapis.com/pure/0.2.0/pure-min.css")
     (h/include-css "http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css")
     [:style {:type "text/css"}
