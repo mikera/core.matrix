@@ -132,7 +132,7 @@
 
 (defn render-table [protos]
   [:small
-   [:table.pure-table.pure-table-horizontal
+   [:table#benchtable.pure-table.pure-table-horizontal
     [:thead
      [:th "Protocol"]
      [:th "Method"]
@@ -162,6 +162,8 @@
     [:meta {:charset "UTF-8"}]
     (h/include-css "http://yui.yahooapis.com/pure/0.2.0/pure-min.css")
     (h/include-css "http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css")
+    (h/include-js "http://code.jquery.com/jquery-2.0.3.min.js")
+    (h/include-js "mikera.github.io/matrix-api/js/jquery.stickytableheaders.min.js")
     [:style {:type "text/css"}
      "td.bench-results {width: 8em; text-align:right;}"
      "th.bench-results {text-align: left; border-right: 1px solid #cbcbcb;  border-left: 1px solid #cbcbcb;}"
@@ -170,7 +172,11 @@
    [:body {:style "padding: 0 2em; font-family: sans-serif;"}
     [:div.pure-g
      [:div.pure-u-1 header]
-     [:div.pure-u-1 table]]]))
+     [:div.pure-u-1 table]
+     [:script {:type "text/javascript"}
+      "$('#benchtable').stickyTableHeaders();"
+      ]
+     ]]))
 
 (defn generate []
   (let [git-hash (c/get-git-hash)
