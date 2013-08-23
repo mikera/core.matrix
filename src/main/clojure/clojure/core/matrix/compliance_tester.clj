@@ -151,9 +151,10 @@
       (doseq [sl (slices m)]
         (is (== (dec dims) (dimensionality sl)))
         (is (= (next (shape m)) (seq (shape sl)))))
-      (if-let [ss (seq (slices m))]
-        (let [fss (first ss)]
-          (is (= (mutable? fss) (mutable? m))))))))
+      (when (> dims 1) ;; we get non-mutable scalars back when slicing 1d
+        (if-let [ss (seq (slices m))]
+          (let [fss (first ss)]
+            (is (= (mutable? fss) (mutable? m)))))))))
 
 (defn test-submatrix-assumptions [m]
   (let [shp (shape m)

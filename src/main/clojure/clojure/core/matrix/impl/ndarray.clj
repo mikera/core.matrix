@@ -165,6 +165,24 @@ of indexes and strides"
           offset 0]
       (new typename# data ndims shape strides offset))))
 
+#_(with-magic
+  [:object]
+  (defn empty-ndarray
+    "Returns an empty NDArray of given shape, filling it with zeroes"
+    [shape & {:keys [order] :or {order :c}}]
+    (let [shape (int-array shape)
+          ndims (count shape)
+          strides (case order
+                    :c (int-array (c-strides shape))
+                    :f (int-array (f-strides shape)))
+          len (reduce * shape)
+          data (array-cast# len)
+          offset 0
+          m (new typename# data ndims shape strides offset)]
+      (java.util.Arrays/fill ^objects data
+                             (cast java.lang.Object 0.0))
+      m)))
+
 ;; Here we construct NDArray with given data. The caveat here is that we
 ;; can't really use this definition until we define an implementation for
 ;; protocol PIndexedSettingMutable because of mp/assign! use.
@@ -178,23 +196,6 @@ of indexes and strides"
       (mp/assign! mtx data)
       mtx)))
 
-(defmacro abutnth [i xs]
-  `(let [n# (alength ~xs)
-         new-xs# (java.util.Arrays/copyOf ~xs (int (dec n#)))]
-     (c-for [j# (int ~i) (< j# (dec n#)) (inc j#)]
-       (aset new-xs# (int j#) (aget ~xs (int (inc j#)))))
-     new-xs#))
-
-(defmacro areverse [xs]
-  `(let [n# (alength ~xs)
-         new-xs# (java.util.Arrays/copyOf ~xs (int n#))]
-     (c-for [i# (int 0) (< i# (quot n# 2)) (inc i#)]
-       (let [j# (- (- n# 1) i#)
-             t# (aget new-xs# j#)]
-         (aset new-xs# j# (aget new-xs# i#))
-         (aset new-xs# i# t#)))
-     new-xs#))
-
 ;; TODO: this destructuring should really be a macro
 ;; TODO: doc
 ;; TODO: not sure that strides don't matter
@@ -204,6 +205,8 @@ of indexes and strides"
   [:long :float :double :object]
   (defn arbitrary-slice
     [^typename# m dim idx]
+    (iae-when-not (> (.ndims m) 0)
+      (str "can't get slices on [" (.ndims m) "]-dimensional object"))
     (let [^array-tag# data (.data m)
           ndims (.ndims m)
           ^ints shape (.shape m)
@@ -244,13 +247,19 @@ of indexes and strides"
 (with-magic
   [:long :float :double :object]
   (defn row-major-seq [^typename# m]
-    (when (<= (.ndims m) 0)
-      (throw (IllegalArgumentException.
-              (str "can't get slices on [" (.ndims m) "]-dimensional"
-                   "object"
-                   ))))
+    (iae-when-not (> (.ndims m) 0)
+      (str "can't get slices on [" (.ndims m) "]-dimensional object"))
     (let [^ints shape (.shape m)]
-      (map #(row-major-slice#t m %) (range (aget shape 0))))))
+      (map (partial row-major-slice#t m) (range (aget shape 0))))))
+
+(with-magic
+  [:long :float :double :object]
+  (defn row-major-seq-no0d
+    "like row-major-seq but drops NDArray's wrapping on 0d-slices"
+    [^typename# m]
+    (if (== (.ndims m) 1)
+      (map mp/get-0d (row-major-seq#t m))
+      (row-major-seq#t m))))
 
 (extend-types-magic
   [:long :float :double :object]
@@ -260,7 +269,7 @@ of indexes and strides"
 
   clojure.lang.Seqable
     (seq [m]
-      (row-major-seq#t m))
+      (row-major-seq-no0d#t m))
 
   clojure.lang.Sequential
 
@@ -475,6 +484,10 @@ of indexes and strides"
   ;;   (join [m a])
 
   ;; TODO: generalize for higher dimensions (think tensor trace)
+  ;; TODO: make it work for rectangular matrices
+  ;; TODO: clarify docstring about rectangulra matrices
+  ;; TODO: clarify docstring about higher dimensions
+  ;; TODO: rewrite + * as * inc
   mp/PMatrixSubComponents
     (main-diagonal [m]
       (iae-when-not (and (== ndims 2) (== (aget shape 0)
