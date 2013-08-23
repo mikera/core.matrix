@@ -102,7 +102,8 @@
   (seq [[:h2 "Benchmark summary"]
         [:p "git hash: "
          [:a {:href (str repo-url "/blob/" git-hash)}
-          git-hash]]]))
+          git-hash]]
+        [:small "Hint: hover on method name to see an additional information"]]))
 
 (defn enumerated [xs]
   (map vector (range (count xs)) xs))
@@ -147,7 +148,14 @@
           (when (= f-i 0)
             [:td {:rowspan (count (:sigs proto))}
              [:strong (:name proto)]])
-          [:td f-name]
+          [:td
+           (let [additional-info
+                 (when-let [varying (-> tests ((keyword f-name)) :varying)]
+                   (str "Varying: " varying))]
+             [:span
+              (when additional-info
+                {:title additional-info})
+              f-name])]
           (for [[a-type a-info] array-types]
             [:td.bench-results
              (when-let [bench (-> tests ((keyword f-name)) a-type)]
