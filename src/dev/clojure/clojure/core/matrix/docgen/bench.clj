@@ -163,7 +163,7 @@
     (h/include-css "http://yui.yahooapis.com/pure/0.2.0/pure-min.css")
     (h/include-css "http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css")
     (h/include-js "http://code.jquery.com/jquery-2.0.3.min.js")
-    (h/include-js "mikera.github.io/matrix-api/js/jquery.stickytableheaders.min.js")
+    (h/include-js "http://mikera.github.io/matrix-api/js/jquery.stickytableheaders.min.js")
     [:style {:type "text/css"}
      "td.bench-results {width: 8em; text-align:right;}"
      "th.bench-results {text-align: left; border-right: 1px solid #cbcbcb;  border-left: 1px solid #cbcbcb;}"
