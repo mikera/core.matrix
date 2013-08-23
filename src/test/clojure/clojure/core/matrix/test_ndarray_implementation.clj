@@ -63,6 +63,14 @@
              (map #(coerce [] %)
                   (slices (empty-ndarray [2 2]))))))))
 
+(deftest test-contained-vectors
+  (let [a (array :ndarray :foo)]
+    (mset! a [1 2 3])
+    (is (== 1 (ecount a)))
+    (is (= [1 2 3] (mget a)))
+    (is (= [] (shape a)))
+    (is (equals 3 (emap count a)))))
+
 (deftest test-seq
   (is (= (-> (array :ndarray [[1 2] [3 4]])
              seq
