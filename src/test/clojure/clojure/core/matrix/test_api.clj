@@ -16,7 +16,7 @@
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
 
 (deftest test-shape
-  (testing "basic array shapes" 
+  (testing "basic array shapes"
            (is (= 0 (count (shape 1))))
            (is (= [2] (seq (int-array [2])))))
   (testing "same shape function"
@@ -57,7 +57,9 @@
   (is (equals [[1 4]] (square [(double-array [1 2])]))))
 
 (deftest test-new
-  (is (e= [nil] (new-vector :ndarray 1)))
+  (is (e= [0.0] (new-vector :ndarray 1)))
+  (is (e= [[0.0]] (new-matrix :ndarray 1 1)))
+  (is (e= [nil] (new-array :ndarray [1])))
   (is (equals [0 0 0] (new-vector :persistent-vector 3)))
   (is (equals [0 0 0] (new-vector :ndarray-double 3)))
   (is (= [0.0 0.0 0.0] (seq (new-vector :double-array 3))))
@@ -97,7 +99,7 @@
 (deftest test-pow
   (is (== 8 (pow 2 3)))
  ;; (is (== 8 (clojure.core.matrix.operators/** 2 3))) ;; TODO: why isn't this working???
-  ) 
+  )
 
 (deftest test-slices
   (testing "rows and columns of clojure vector matrix"
@@ -360,8 +362,8 @@
     (is (clojure.core.matrix/numerical? 3))
     (is (numerical? [1 1.0 2N (float 0)]))
     (is (not (numerical? [1 :foo nil (float 0)])))
-    (is (not (numerical? nil))))) 
- 
+    (is (not (numerical? nil)))))
+
 (deftest test-predicates
   (testing "scalar predicates"
     (is (not (array? 1)))

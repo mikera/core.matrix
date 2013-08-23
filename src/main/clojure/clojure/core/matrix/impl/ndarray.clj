@@ -165,10 +165,25 @@ of indexes and strides"
           offset 0]
       (new typename# data ndims shape strides offset))))
 
-#_(with-magic
+(with-magic
+  [:long :float :double]
+  (defn empty-ndarray-zeroed
+    "Returns an empty NDArray of given shape, guaranteed to be zeroed"
+    [shape & {:keys [order] :or {order :c}}]
+    (let [shape (int-array shape)
+          ndims (count shape)
+          strides (case order
+                    :c (int-array (c-strides shape))
+                    :f (int-array (f-strides shape)))
+          len (reduce * shape)
+          data (array-cast# len)
+          offset 0]
+      (new typename# data ndims shape strides offset))))
+
+(with-magic
   [:object]
-  (defn empty-ndarray
-    "Returns an empty NDArray of given shape, filling it with zeroes"
+  (defn empty-ndarray-zeroed
+    "Returns an empty NDArray of given shape, guaranteed to be zeroed"
     [shape & {:keys [order] :or {order :c}}]
     (let [shape (int-array shape)
           ndims (count shape)
@@ -285,9 +300,9 @@ of indexes and strides"
     (meta-info [m]
       {:doc "An implementation of strided N-Dimensional array"})
     (new-vector [m length]
-      (empty-ndarray#t [length]))
+      (empty-ndarray-zeroed#t [length]))
     (new-matrix [m rows columns]
-      (empty-ndarray#t [rows columns]))
+      (empty-ndarray-zeroed#t [rows columns]))
     (new-matrix-nd [m shape]
       (empty-ndarray#t shape))
     (construct-matrix [m data]
