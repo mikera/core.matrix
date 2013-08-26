@@ -4,6 +4,7 @@
   (:require [clojure.core.matrix.operators :as ops])
   (:require [clojure.core.matrix.utils :as utils])
   (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.generic :as generic])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.utils :as utils :refer [error]]))
 
@@ -338,6 +339,10 @@
 ;; ========================================
 ;; arbitrary numeric instance tests
 
+;(defn test-generic-numerical-assumptions [m]
+;  (is (equals m (add m (generic/zero m))))
+;  (is (equals m (mul m (generic/one m)))))
+
 (defn misc-numeric-tests [m]
   (is (equals (add m m) (scale m 2.0)))
   (is (equals (square m) (ops/** m 2)))
@@ -351,6 +356,7 @@
 
 (defn test-numeric-instance [m]
   (is (numerical? m))
+;  (test-generic-numerical-assumptions m)
   (misc-numeric-tests m))
 
 ;; ========================================
