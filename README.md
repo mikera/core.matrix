@@ -34,7 +34,7 @@ matrix implementations. The most mature implementations are currently:
  - **Clatrix** : native code matrix library using BLAS
 
 However the API is still *subject to some changes* at present (at least up until release 1.0.0),
-so users should be prepared to deal with potential breaking changes in future releases.
+so users should be prepared to deal with potential breaking changes when updating to future releases.
 
 The plan is to become an official Clojure Contrib language extension once the API has been well tested. 
 
