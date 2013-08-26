@@ -122,6 +122,9 @@
     (= [1 2] (eseq [(double-array [1 2])]))
     (= [1 2] (eseq [[(wrap/wrap-scalar 1) (wrap/wrap-scalar 2)]]))))
 
+(deftest test-scalar-interop
+  (is (equals [2 4] (mul [1 2] (scalar-array 2)))))
+
 (deftest test-slices
   (is (= [1 2] (slices [1 2]))))
 

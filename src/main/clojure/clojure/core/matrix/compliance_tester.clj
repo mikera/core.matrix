@@ -55,6 +55,12 @@
 ;; ===========================================
 ;; General implementation tests
 
+(defn test-impl-scalar-array 
+  [im]
+  (let [sa (new-scalar-array im)]
+    (is (array? sa))
+    (is (zero-dimensional? sa))))
+
 (defn test-implementation-key
   [im]
   (testing "Implementation keyword"
@@ -64,6 +70,7 @@
 (defn test-implementation
   "Tests that an implementation conforms to any general requirements"
   ([im]
+    (test-impl-scalar-array im)
     (test-implementation-key im)))
 
 ;; ==============================================
