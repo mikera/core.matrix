@@ -235,6 +235,12 @@
   ([m]
     (mp/convert-to-nested-vectors m)))
 
+(defn scalar 
+  "Coerces m to a scalar value. Result is guaranteed not to be an array.
+   Will throw an exception if m is not zero-dimensional."
+  ([m]
+    (mp/get-0d m)))
+
 ;; ==============================
 ;; Matrix predicates and querying
 

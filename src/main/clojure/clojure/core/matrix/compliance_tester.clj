@@ -224,6 +224,11 @@
 (defn test-to-string [m]
   (is (string? (.toString m))))
 
+(defn test-elements [m]
+  (let [es (eseq m)]
+    (testing "scalar should be equivalent to identity function on elements"
+      (is (= es (map scalar es))))))
+
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-as-vector m)
@@ -239,6 +244,7 @@
   (test-reshape m)
   (test-pm m)
   (test-to-string m)
+  (test-elements m)
   (test-broadcast m)
   (test-general-transpose m))
 
