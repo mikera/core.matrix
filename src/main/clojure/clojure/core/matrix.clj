@@ -97,7 +97,7 @@
     (mp/new-matrix-nd (implementation-check implementation) shape)))
 
 (defn new-scalar-array
-  "Returns a new scalar array containing the scalar value zero."
+  "Returns a new mutable scalar array containing the scalar value zero."
   ([]
     (new-scalar-array *matrix-implementation*))
   ([implementation]
