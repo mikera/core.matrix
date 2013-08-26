@@ -371,7 +371,8 @@
     (is (equals 4 (mset a 4)))
     (is (equals 6 (add a a)))
     (is (= 3 (mget a)))
-    (is (= 3 (scalar a)))))
+    (is (= 3 (scalar a))))
+  (is (equals 0 (new-scalar-array))))
 
 (deftest test-predicates
   (testing "scalar predicates"
