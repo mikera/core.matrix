@@ -21,6 +21,13 @@
   "Returns the standard 'one' scalar value for the given array / implementation"
   ([impl] (TODO)))
 
+(defn two
+  "Returns the standard 'two' scalar value for the given array / implementation"
+  ([impl] 
+    (let [o (one impl)]
+      (mp/get-0d (mp/matrix-add o o)))))
+
+
 (defn add-fn
   "Returns the standard 'add' function for the given array / implementation."
   ([impl] (TODO)))
