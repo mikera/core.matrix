@@ -27,7 +27,7 @@
     (let [o (one impl)]
       (mp/get-0d (mp/matrix-add o o)))))
 
-
+;; TODO: better naming for these?
 (defn add-fn
   "Returns the standard 'add' function for the given array / implementation."
   ([impl] (TODO)))
