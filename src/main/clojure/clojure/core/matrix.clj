@@ -70,7 +70,7 @@
     (mp/construct-matrix (implementation-check implementation) data)))
 
 (defn new-vector
-  "Constructs a new zero-filled vector with the given length.
+  "Constructs a new zero-filled numerical vector with the given length.
    New matrix will contain default values as defined by the implementation (usually null or zero).
    If the implementation supports mutable vectors, then the new vector will be fully mutable."
   ([length]
@@ -79,7 +79,7 @@
     (mp/new-vector (implementation-check implementation) length)))
 
 (defn new-matrix
-  "Constructs a new zero-filled matrix with the given dimensions.
+  "Constructs a new zero-filled numerical matrix with the given dimensions.
    New matrix will contain default values as defined by the implementation (usually null or zero).
    If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([rows columns]
@@ -125,7 +125,7 @@
   "Constructs a mutable copy of the given matrix.
 
    If the implementation does not support mutable matrices, will return a mutable array
-   from another core.matrix implementation that supports the same element type."
+   from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/mutable-matrix data)
         (clojure.core.matrix.impl.ndarray/ndarray data)))
@@ -134,7 +134,8 @@
     ))
 
 (defn diagonal-matrix
-  "Constructs a 2D diagonal matrix with the given values on the main diagonal.
+  "Constructs a 2D diagonal matrix with the given numerical values on the main diagonal.
+   All off-diagonal elements will be zero.
    diagonal-values may be a vector or any Clojure sequence of values."
   ([diagonal-values]
     (mp/diagonal-matrix (current-implementation-object) diagonal-values))
@@ -658,7 +659,8 @@
     (reduce mp/matrix-add (mp/matrix-add a b) more)))
 
 (defn add-product
-  "Adds the product of two numerical ararys to the first array"
+  "Adds the element-wise product of two numerical ararys to the first array.
+   Arrays must be the same shape."
   ([m a b]
     (mp/add-product m a b)))
 
