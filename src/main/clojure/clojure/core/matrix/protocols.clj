@@ -136,7 +136,10 @@
   (mutable-matrix [m]))
 
 (defprotocol PZeroDimensionConstruction
-  (new-scalar-array [m value] "Construct a new zero-dimensional array with the specified value"))
+  (new-scalar-array 
+    [m] 
+    [m value]
+    "Construct a new zero-dimensional array with the specified scalar value (zero if not specified)"))
 
 (defprotocol PZeroDimensionAccess
   "Protocol for accessing the scalar value in zero-dimensional arrays. Zero dimensional arrays differ

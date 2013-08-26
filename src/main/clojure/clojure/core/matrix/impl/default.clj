@@ -93,11 +93,14 @@
 
 (extend-protocol mp/PZeroDimensionConstruction
   nil
-    (new-scalar-array [m value]
-      (wrap/wrap-scalar value))
+    (new-scalar-array 
+      ([m] 0.0)
+      ([m value]
+        (wrap/wrap-scalar value)))
   Object
-    (new-scalar-array [m value]
-      (wrap/wrap-scalar value)))
+    (new-scalar-array 
+      ([m] (wrap/wrap-scalar 0.0))
+      ([m value] (wrap/wrap-scalar value))))
 
 (extend-protocol mp/PZeroDimensionAccess
   nil

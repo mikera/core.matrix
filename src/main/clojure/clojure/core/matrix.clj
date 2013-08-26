@@ -96,6 +96,14 @@
   ([implementation shape]
     (mp/new-matrix-nd (implementation-check implementation) shape)))
 
+(defn new-scalar-array
+  "Returns a new scalar array containing the scalar value zero."
+  ([]
+    (new-scalar-array *matrix-implementation*))
+  ([implementation]
+    (let [implementation (implementation-check implementation)]
+      (mp/new-scalar-array implementation))))
+
 (defn scalar-array
   "Creates a new zero-dimensional array containing the specified scalar value."
   ([value]
