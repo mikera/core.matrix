@@ -369,6 +369,7 @@
     (is (array? a))
     (is (equals 3 a))
     (is (equals 4 (mset a 4)))
+    (is (equals 6 (add a a)))
     (is (= 3 (mget a)))))
 
 (deftest test-predicates
