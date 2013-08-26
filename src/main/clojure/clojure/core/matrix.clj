@@ -751,7 +751,8 @@
     (mp/normalise v)))
 
 (defn normalise-probabilities
-  "Normalises a probability vector, i.e. to a vector where all elements sum to 1.0"
+  "Normalises a numerical probability vector, i.e. to a vector where all elements sum to 1.0.
+   Negative values are clamped to 0.0. A zero vector will be set set to [1/n .... 1/n]."
   ([v]
     (let [v (mp/element-map v #(if (>= % 0.0) % 0.0))
           len (double (mp/element-sum v))]
