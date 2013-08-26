@@ -488,6 +488,21 @@
     "Reduces with the function f over all elements of m."))
 
 ;; ============================================================
+;; Generic values and functions
+
+(defprotocol PGenericValues
+  "Protocol for returning the generic/default values of a matrix implementation"
+  (generic-zero [m] "Generic 'zero' value for numerical arrays. Must satisfy (equals m (add m zero)).")
+  (generic-one [m] "Generic 'one' value for numerical arrays. Must satisfy (equals m (mul m one)).")
+  (generic-value [m] "Generic value for a new array. Likely to be zero or nil."))
+
+(defprotocol PGenericOperations
+  "Protocol for returning the generic/default values of a matrix implementation"
+  (generic-add [m] "Generic 'add' function for numerical values. Must satisfy (equals x (add zero x)).")
+  (generic-mul [m] "Generic 'mul' function for numerical values. Must satisfy (equals x (mul one x)).")
+  (generic-negate [m] "Generic 'negate' function for numerical values."))
+
+;; ============================================================
 ;; Utility functions
 
 (defn persistent-vector-coerce [x]
