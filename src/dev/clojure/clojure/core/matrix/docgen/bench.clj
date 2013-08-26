@@ -86,6 +86,8 @@
      :m [(rand-mtx 50)]
      :l [(rand-mtx 500)]}}})
 
+(defonce bench-results (atom {}))
+
 (defn mmultiply-bench []
   (doseq [[_ {:keys [name constructor counts]}] tests]
     (println (str name ":"))
@@ -115,13 +117,16 @@
           arg-sets (for [[size args] bench]
                      [size (map constructor args)])]
       (into {} (for [[size args] arg-sets]
-                 [size 0.0001 #_(->> (cr/quick-benchmark (apply f args) {})
-                            :mean
-                            first)])))))
+                 [size #_0.0001
+                  (->> (cr/quick-benchmark (apply f args) {})
+                       :mean
+                       first)])))))
 
 (defn format-elapsed [t]
-  (let [[factor unit] (cr/scale-time t)]
-    (format "%2.2f %s" (* factor t) unit)))
+  (if (< t Double/POSITIVE_INFINITY)
+    (let [[factor unit] (cr/scale-time t)]
+      (format "%2.2f %s" (* factor t) unit))
+    "t/o"))
 
 ;; TODO: output quantiles/variance
 (defn render-bench-results [bench-res]
@@ -141,7 +146,8 @@
        [:th.bench-results (:name a-info)])]
     [:tbody
      (for [[proto-i proto] (enumerated protos)]
-       (for [[f-i [_ {f-name :name}]] (enumerated (:sigs proto))]
+       (for [[f-i [_ {f-name :name}]] (enumerated (:sigs proto))
+             :let [f-name-kw (keyword f-name)]]
          [:tr
           (when (= (rem proto-i 2) 0)
             {:class "pure-table-odd"})
@@ -158,9 +164,8 @@
               f-name])]
           (for [[a-type a-info] array-types]
             [:td.bench-results
-             (when-let [bench (-> tests ((keyword f-name)) a-type)]
-               (render-bench-results
-                (make-bench f-name a-type bench)))])]))]]])
+             (when-let [bench-result (-> @bench-results f-name-kw a-type)]
+               (render-bench-results bench-result))])]))]]])
 
 (defn render-page
   [header table]
@@ -182,9 +187,29 @@
      [:div.pure-u-1 header]
      [:div.pure-u-1 table]
      [:script {:type "text/javascript"}
-      "$('#benchtable').stickyTableHeaders();"
-      ]
-     ]]))
+      "$('#benchtable').stickyTableHeaders();"]]]))
+
+(defn perform-bench []
+  (for [proto (c/extract-protocols)]
+    (for [[_ {f-name :name}] (:sigs proto)
+          :let [f-name-kw (keyword f-name)]]
+      (for [[a-type a-info] array-types]
+        (when-let [bench (-> tests f-name-kw a-type)]
+          (swap! bench-results assoc-in [f-name-kw a-type]
+                 (make-bench f-name a-type bench)))))))
+
+(defn dump-bench-results [fname]
+  (binding [*print-dup* true]
+    (->> @bench-results
+         pr-str
+         (spit fname))))
+
+(defn load-bench-results [fname]
+  (->> fname
+       slurp
+       read-string
+       (reset! bench-results))
+  :ok)
 
 (defn generate []
   (let [git-hash (c/get-git-hash)
