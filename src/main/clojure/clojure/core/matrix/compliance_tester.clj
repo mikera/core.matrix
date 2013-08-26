@@ -356,6 +356,11 @@
 ;  (is (equals m (add m (generic/zero m))))
 ;  (is (equals m (mul m (generic/one m)))))
 
+(defn numeric-scalar-tests [m]
+  (is (equals (scalar-array 0) (new-scalar-array m)))
+  (is (equals m (add m (new-scalar-array m))))
+  (is (equals m (add (scalar-array 0) m))))
+
 (defn misc-numeric-tests [m]
   (is (equals (add m m) (scale m 2.0)))
   (is (equals (square m) (ops/** m 2)))
@@ -370,6 +375,7 @@
 (defn test-numeric-instance [m]
   (is (numerical? m))
 ;  (test-generic-numerical-assumptions m)
+  (numeric-scalar-tests m)
   (misc-numeric-tests m))
 
 ;; ========================================
