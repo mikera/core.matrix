@@ -482,7 +482,9 @@
     (slices m 1)))
 
 (defn main-diagonal
-  "Returns the main diagonal of a matrix or general array, as a vector"
+  "Returns the main diagonal of a matrix or general array, as a vector. 
+   The main diagonal of a general array is defined as those elements where the all the 
+   indexes are equal, i.e. the index is of the form [i i ... i]"
   ([m]
     (mp/main-diagonal m)))
 
@@ -577,6 +579,8 @@
 
 (defn equals
   "Returns true if two arrays are numerically equal. 
+
+   Will return false for arrays of different shapes.
 
    If epsilon is provided, performs an equality test
    with the given maximum tolerance (default is 0.0, i.e. exact numerical equivalence)"
