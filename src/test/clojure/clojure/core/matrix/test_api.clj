@@ -370,7 +370,8 @@
     (is (equals 3 a))
     (is (equals 4 (mset a 4)))
     (is (equals 6 (add a a)))
-    (is (= 3 (mget a)))))
+    (is (= 3 (mget a)))
+    (is (= 3 (scalar a)))))
 
 (deftest test-predicates
   (testing "scalar predicates"
