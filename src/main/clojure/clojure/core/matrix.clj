@@ -564,7 +564,7 @@
    with the given maximum tolerance (default is 0.0, i.e. exact numerical equivalence)"
   ([a b]
     (mp/matrix-equals a b))
-  ([a b epsilon]
+  ([a b epsilon] ;; TODO: proper protocol implementation
     (every? #(<= (Math/abs (double %)) epsilon) (map - (mp/element-seq a) (mp/element-seq b)))))
 
 ;; ======================================

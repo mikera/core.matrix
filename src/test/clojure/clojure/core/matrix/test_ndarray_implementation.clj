@@ -4,6 +4,7 @@
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.compliance-tester :as ct])
   (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.generic :as gen])
   (:require clojure.core.matrix.impl.persistent-vector)
   (:use clojure.core.matrix.impl.ndarray))
 
@@ -103,6 +104,11 @@
   [(empty-ndarray-double [3 3])
    (empty-ndarray-long [3 3])
    (empty-ndarray-float [3 3])])
+
+(deftest default-values
+  (is (nil? (gen/default-value :ndarray)))
+  (is (= 0.0 (gen/default-value :ndarray-double)))
+  (is (= 0 (gen/default-value :ndarray-long))))
 
 (deftest ndarray-test
   (ct/test-ndarray-implementation (empty-ndarray [3 3])))
