@@ -497,10 +497,11 @@
   (generic-value [m] "Generic value for a new array. Likely to be zero or nil."))
 
 (defprotocol PGenericOperations
-  "Protocol for returning the generic/default values of a matrix implementation"
+  "Protocol for returning the generic numerical functions of a matrix implementation"
   (generic-add [m] "Generic 'add' function for numerical values. Must satisfy (equals x (add zero x)).")
   (generic-mul [m] "Generic 'mul' function for numerical values. Must satisfy (equals x (mul one x)).")
-  (generic-negate [m] "Generic 'negate' function for numerical values."))
+  (generic-negate [m] "Generic 'negate' function for numerical values.")
+  (generic-div [m] "Generic 'div' function for numerical values."))
 
 ;; ============================================================
 ;; Utility functions
