@@ -451,7 +451,7 @@
     (mp/subvector m start length)))
 
 (defn slice
-  "Gets a view of a slice of an array along a specific dimension.
+  "Gets a slice of an array along a specific dimension.
    The returned array will have one less dimension.
    Slicing a 1D vector will return a scalar.
 
@@ -485,6 +485,16 @@
   "Returns the main diagonal of a matrix or general array, as a vector"
   ([m]
     (mp/main-diagonal m)))
+
+(defn diagonal 
+  "Returns the specified diagonal of a 2D matrix as a vector.
+   If k>0, returns a diagonal above the main diagonal.
+   If k<0, returns a diagonal below the main diagonal.
+   Works on both square and rectangular matrices."
+  ([m] 
+    (mp/main-diagonal [m]))
+  ([m k]
+    (TODO)))
 
 (defn join
   "Joins arrays together, along dimension 0. Other dimensions must be compatible"
