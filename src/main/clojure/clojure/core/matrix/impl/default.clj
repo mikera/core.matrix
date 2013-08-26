@@ -91,7 +91,13 @@
         (error "Indexed get failed, not defined for:" (class m))
         (if (mp/is-scalar? m) m (mp/get-0d m)))))
 
-
+(extend-protocol mp/PZeroDimensionConstruction
+  nil
+    (new-scalar-array [m value]
+      (wrap/wrap-scalar value))
+  Object
+    (new-scalar-array [m value]
+      (wrap/wrap-scalar value)))
 
 (extend-protocol mp/PZeroDimensionAccess
   nil
@@ -109,6 +115,14 @@
       (if (mp/is-scalar? m) m (mp/get-nd m [])))
     (set-0d! [m value]
       (mp/set-nd! m [] value)))
+
+(extend-protocol mp/PZeroDimensionSet
+  nil
+    (set-0d [m value] 
+      (wrap/wrap-scalar value))
+  Object
+    (set-0d [m value] 
+      (mp/new-scalar-array m value)))
 
 (extend-protocol mp/PIndexedSetting
   java.lang.Object

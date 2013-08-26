@@ -364,6 +364,13 @@
     (is (not (numerical? [1 :foo nil (float 0)])))
     (is (not (numerical? nil)))))
 
+(deftest test-scalar-array
+  (let [a (scalar-array 3)]
+    (is (array? a))
+    (is (equals 3 a))
+    (is (equals 4 (mset a 4)))
+    (is (= 3 (mget a)))))
+
 (deftest test-predicates
   (testing "scalar predicates"
     (is (not (array? 1)))

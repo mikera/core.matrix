@@ -135,6 +135,9 @@
    The default implementation will attempt to choose a suitable mutable matrix implementation."
   (mutable-matrix [m]))
 
+(defprotocol PZeroDimensionConstruction
+  (new-scalar-array [m value] "Construct a new zero-dimensional array with the specified value"))
+
 (defprotocol PZeroDimensionAccess
   "Protocol for accessing the scalar value in zero-dimensional arrays. Zero dimensional arrays differ
    from scalar values in the following two senses:
@@ -143,6 +146,10 @@
       contained scalar value"
   (get-0d [m])
   (set-0d! [m value]))
+
+(defprotocol PZeroDimensionSet
+  "Protocol for setting the scalar value in zero-dimensional arrays."
+  (set-0d [m value] "Sets the scalar value in a 0-d array, returning a new 0-d array"))
 
 (defprotocol PSpecialisedConstructors
   "Protocol for construction of special matrices."

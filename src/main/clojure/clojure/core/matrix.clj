@@ -96,6 +96,13 @@
   ([implementation shape]
     (mp/new-matrix-nd (implementation-check implementation) shape)))
 
+(defn scalar-array
+  "Creates a new zero-dimensional array containing the specified scalar value."
+  ([value]
+    (mp/new-scalar-array (implementation-check) value))
+  ([implementation value]
+    (mp/new-scalar-array (implementation-check implementation) value)))
+
 (defn row-matrix
   "Constucts a row matrix with the given data. The returned matrix is a 2D 1xN row matrix.
 
@@ -376,7 +383,8 @@
 (defn mset
   "Sets a scalar value in a matrix at a specified position, returning a new matrix and leaving the
    original unchanged."
-  ([m v] v)
+  ([m v] 
+    (mp/set-0d m v))
   ([m x v]
     (mp/set-1d m x v))
   ([m x y v]
