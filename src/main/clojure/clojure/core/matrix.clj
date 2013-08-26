@@ -709,7 +709,7 @@
     (mp/matrix-add! a b)
     a)
   ([a b & more]
-    (reduce (fn [acc m] (add! acc m)) (add! a b) more)))
+    (reduce add! (add! a b) more)))
 
 (defn sub!
   "Performs element-wise mutable subtraction on one or more numerical arrays.
@@ -719,7 +719,7 @@
     (mp/matrix-sub! a b)
     a)
   ([a b & more]
-    (reduce (fn [acc m] (sub! acc m)) (sub! a b) more)))
+    (reduce sub! (sub! a b) more)))
 
 (defn scale
   "Scales a numerical array by one or more scalar factors.
