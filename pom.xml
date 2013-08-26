@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>core.matrix</artifactId>
-	<version>0.7.2</version>
+	<version>0.10.1-SNAPSHOT</version>
 
 	<parent>
 		<groupId>net.mikera</groupId>
@@ -13,7 +13,7 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>cljunit</artifactId>
-			<version>0.2.0</version>
+			<version>0.3.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -34,6 +34,24 @@
 			<artifactId>clojure</artifactId>
 			<version>1.4.0</version>
 		</dependency>
+		<dependency>
+			<groupId>hiccup</groupId>
+			<artifactId>hiccup</artifactId>
+			<version>1.0.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.mikera</groupId>
+			<artifactId>vectorz-clj</artifactId>
+			<version>0.13.2</version>
+			<scope>test</scope>
+		</dependency>
+   		<dependency>
+			<groupId>reiddraper</groupId>
+			<artifactId>simple-check</artifactId>
+			<version>0.2.1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<licenses>
@@ -42,6 +60,17 @@
 			<url>http://www.eclipse.org/legal/epl-v10.html</url>
 		</license>
 	</licenses>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/clojure</directory>
+			</resource>
+			<resource>
+				<directory>src/dev/clojure</directory>
+			</resource>
+		</resources>
+	</build>
 
 	<repositories>
 		<repository>
@@ -55,6 +84,6 @@
 		<connection>scm:git:git@github.com:clojure-numerics/core.matrix.git</connection>
 		<url>scm:git:git@github.com:clojure-numerics/core.matrix.git</url>
 		<developerConnection>scm:git:git@github.com:clojure-numerics/core.matrix.git</developerConnection>
-		<tag>core.matrix-0.7.2</tag>
+		<tag>HEAD</tag>
 	</scm>
 </project>

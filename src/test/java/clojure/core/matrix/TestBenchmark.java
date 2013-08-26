@@ -7,7 +7,7 @@ import com.google.caliper.SimpleBenchmark;
 
 /**
  * Caliper based benchmarks
- * 
+ *
  * @author Mike
  */
 

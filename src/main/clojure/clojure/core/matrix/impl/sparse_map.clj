@@ -17,13 +17,16 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
-(defn with-shape 
+(defn with-shape
   ([m shape]
     (vary-meta m assoc :shape (to-long-array shape))))
 
 (extend-protocol mp/PImplementation
   clojure.lang.IPersistentMap
     (implementation-key [m] :persistent-map)
+    (meta-info [m]
+      {:doc "Core.matrix implementation enabling a map with appropriate
+             metadata to be used as a core.matrix implementation."})
     (new-vector [m length] (with-shape {} [length]))
     (new-matrix [m rows columns] (with-shape {} [rows columns]))
     (new-matrix-nd [m dims]
@@ -31,8 +34,8 @@
     (construct-matrix [m data]
       (let [sh (mp/get-shape data)]
         (with-shape
-          (reduce 
-            (fn [mp [v i]] (if (nil? v) mp (assoc mp (vec i) v))) 
+          (reduce
+            (fn [mp [v i]] (if (nil? v) mp (assoc mp (vec i) v)))
             {}
             (map vector (mp/element-seq data) (base-index-seq-for-shape sh)))
           sh)))

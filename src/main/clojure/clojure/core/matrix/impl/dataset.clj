@@ -5,8 +5,8 @@
 ;; columns are Java Object[] arrays??
 
 (defrecord DataSet
-  [column-names 
-   column-types 
+  [column-names
+   column-types
    columns]
-  
+
   )

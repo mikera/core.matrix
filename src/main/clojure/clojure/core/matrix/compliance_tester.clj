@@ -1,7 +1,10 @@
 (ns clojure.core.matrix.compliance-tester
   (:use clojure.core.matrix)
   (:use clojure.test)
+  (:require [clojure.core.matrix.operators :as ops])
+  (:require [clojure.core.matrix.utils :as utils])
   (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.generic :as generic])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.utils :as utils :refer [error]]))
 
@@ -52,14 +55,23 @@
 ;; ===========================================
 ;; General implementation tests
 
+(defn test-impl-scalar-array 
+  [im]
+  (let [sa (new-scalar-array im)]
+    (is (array? sa))
+    (is (zero-dimensional? sa))))
+
 (defn test-implementation-key
   [im]
   (testing "Implementation keyword"
     (is (keyword? (imp/get-implementation-key im)))
     (is (= (imp/get-implementation-key im) (imp/get-implementation-key (imp/get-canonical-object im))))))
 
-(defn test-implementation [im]
-  (test-implementation-key im))
+(defn test-implementation
+  "Tests that an implementation conforms to any general requirements"
+  ([im]
+    (test-impl-scalar-array im)
+    (test-implementation-key im)))
 
 ;; ==============================================
 ;; Test general array assumprions
@@ -79,9 +91,12 @@
 
 (defn test-dimensionality-assumptions [m]
   (testing "shape"
-    (is (>= (count (shape m)) 0))
-    (is (= (seq (shape m))
-           (seq (for [i (range (dimensionality m))] (dimension-count m i))))))
+    (let [sh (shape m)
+          dims (dimensionality m)]
+      (is (utils/valid-shape? sh))
+      (is (== (count sh) dims))
+      (is (= (seq sh) ;; we need the seqs to account for empty shapes (need to comapre equal to nil)
+             (seq (for [i (range dims)] (dimension-count m i)))))))
   (testing "vectors always have dimensionality == 1"
     (is (or (= (boolean (vec? m)) (boolean (== 1 (dimensionality m)))) (error "Failed with : " m))))
   (testing "scalars always have dimensionality == 0"
@@ -90,7 +105,8 @@
     (is (= (zero-dimensional? m) (== 0 (dimensionality m)))))
   (testing "element count"
     (is (== (ecount m) (reduce * 1 (shape m))))
-    (is (== (ecount m) (ereduce (fn [acc _] (inc acc)) 0 (eseq m))))
+    (is (== (ecount m) (ereduce (fn [acc _] (inc acc)) 0 m)))
+    (is (== (ecount m) (reduce (fn [acc _] (inc acc)) 0 (eseq m))))
     (is (or (not (scalar? m)) (== 1 (ecount m)))))
   (testing "accessing outside existing dimensions is an error"
     (let [sh (shape m)
@@ -100,7 +116,7 @@
 
 (defn test-mutable-assumptions [m]
   (testing "mutable-matrix works ok"
-    (let [mm (mutable-matrix m)] 
+    (let [mm (mutable-matrix m)]
       (is (mutable? mm))
       (is (not (identical? m mm)))
       (is (e= mm m))))
@@ -139,18 +155,21 @@
 
 (defn test-slice-assumptions [m]
   (let [dims (dimensionality m)]
-    (when (> dims 0)
+    (when (> dims 0) ;; slices only valid for dimensionality 1 or above
       (doseq [sl (slices m)]
         (is (== (dec dims) (dimensionality sl)))
         (is (= (next (shape m)) (seq (shape sl)))))
-      (if-let [ss (seq (slices m))]
-        (let [fss (first ss)]
-          (is (= (mutable? fss) (mutable? m))))))))
+      (when (> dims 1) ;; we get non-mutable scalars back when slicing 1d
+        (if-let [ss (seq (slices m))]
+          (let [fss (first ss)]
+            (is (= (mutable? fss) (mutable? m)))))))))
 
 (defn test-submatrix-assumptions [m]
   (let [shp (shape m)
+        dims (dimensionality m)
         full-ranges (map (fn [c] [0 c]) shp)]
     (is (e= m (submatrix m full-ranges)))
+    (is (e= m (submatrix m (repeat dims nil))))
     ;; TODO: test a variety of different submatrices
     ))
 
@@ -162,10 +181,11 @@
              (seq (reverse (shape mt))))))))
 
 (defn test-coerce [m]
+  ;; (is (identical? m (coerce m m))) ;; TODO: figure out if we should enforce this?
   (let [vm (mp/convert-to-nested-vectors m)]
-    (is (or (clojure.core/vector? vm) (== 0 (mp/dimensionality vm))))  
+    (is (or (clojure.core/vector? vm) (== 0 (mp/dimensionality vm))))
     (is (clojure.core.matrix.impl.persistent-vector/is-nested-vectors? vm))
-      (is (e= m vm))))
+    (is (e= m vm))))
 
 (defn test-vector-round-trip [m]
   (is (e= m (coerce m (coerce [] m)))))
@@ -178,20 +198,43 @@
   (is (e= (reshape (as-vector m) (shape m)) m)))
 
 (defn test-assign [m]
-  (let [e (first (eseq m))
-        m (or m (error "trying to assign to nil object!?!")) 
-        n (assign m e)]
-    (is (e= (broadcast e (shape m)) n))
-    (is (same-shape? m n))))
+  (when (> (ecount m) 0)
+    (let [e (first (eseq m))
+          m (or m (error "trying to assign to nil object!?!"))
+          n (assign m e)
+          mm (mutable-matrix m)]
+      (is (zero-dimensional? e))
+      (is (e= (broadcast e (shape m)) n))
+      (is (same-shape? m n))
+      (fill! mm e)
+      (is (e= mm n)))))
 
-(defn test-join [m]
-  (when (> 0 (dimensionality m))
-    (let [j (join m m)
-          js (slices j)]
-      (is (== (first (shape j)) (* 2 (first (shape m))))))
-    (let [j (join m (first (slices m)))
-          js (slices j)]
-      (is (== (first (shape j)) (inc (first (shape m))))))))
+(defn test-join
+  "Test for joining matrices along major dimension"
+  ([m]
+    (when (> 0 (dimensionality m))
+      (let [j (join m m)
+            js (slices j)]
+        (is (== (first (shape j)) (* 2 (first (shape m)))))
+        (is (e= m (first js))))
+      (let [j (join m (first (slices m)))
+            js (slices j)]
+        (is (== (first (shape j)) (inc (first (shape m)))))))))
+
+(defn test-pm
+  "Test for matrix pretty-printing"
+  ([m]
+    ;; TODO: fix issue #43 on GitHub
+    ;;(is (< 0 (count (with-out-str (pm m)))))
+    ))
+
+(defn test-to-string [m]
+  (is (string? (.toString m))))
+
+(defn test-elements [m]
+  (let [es (eseq m)]
+    (testing "scalar should be equivalent to identity function on elements"
+      (is (= es (map scalar es))))))
 
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
@@ -206,6 +249,9 @@
   (test-vector-round-trip m)
   (test-ndarray-round-trip m)
   (test-reshape m)
+  (test-pm m)
+  (test-to-string m)
+  (test-elements m)
   (test-broadcast m)
   (test-general-transpose m))
 
@@ -220,7 +266,7 @@
 ;; ==============================================
 ;; misc tests
 
-(defn test-implementation-namespace 
+(defn test-implementation-namespace
   [im]
   :TODO)
 
@@ -290,7 +336,8 @@
 
 (defn test-scale
   ([m]
-    (is (mutable-equivalent? m #(scale! % 2) #(scale % 2)))))
+    (is (mutable-equivalent? m #(scale! % 2) #(scale % 2)))
+    (is (mutable-equivalent? m #(mul! % 2) #(mul % 2)))))
 
 (defn test-numeric-functions [im]
   (when (supports-dimensionality? im 2)
@@ -301,6 +348,35 @@
     (let [m (matrix im [1 2 3])]
       (is (== 6 (esum m)))
       (test-scale m))))
+
+;; ========================================
+;; arbitrary numeric instance tests
+
+;(defn test-generic-numerical-assumptions [m]
+;  (is (equals m (add m (generic/zero m))))
+;  (is (equals m (mul m (generic/one m)))))
+
+(defn numeric-scalar-tests [m]
+  (is (equals (scalar-array 0) (new-scalar-array m)))
+  (is (equals m (add m (new-scalar-array m))))
+  (is (equals m (add (scalar-array 0) m))))
+
+(defn misc-numeric-tests [m]
+  (is (equals (add m m) (scale m 2.0)))
+  (is (equals (square m) (ops/** m 2)))
+  (is (equals m (ops/** m 1)))
+  (is (equals (sub m 0.0) (scale m 1.0)))
+  (is (equals (negate m) (outer-product -1.0 m)))
+  (is (equals (add 0.0 m) (mul 1 m)))
+  (is (equals (emul m m) (square m)))
+  (is (equals (esum m) (ereduce + m)))
+  (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m))))))
+
+(defn test-numeric-instance [m]
+  (is (numerical? m))
+;  (test-generic-numerical-assumptions m)
+  (numeric-scalar-tests m)
+  (misc-numeric-tests m))
 
 ;; ========================================
 ;; 1D vector tests
@@ -342,15 +418,23 @@
     (is (== 25 (dot m m)))))
 
 (defn test-vector-normalise [im]
-  (let [m (matrix im [3 4])
-        n (normalise m)]
-    (is (equals n [0.6 0.8] 0.000001))
-    (is (mutable-equivalent? m normalise! normalise))))
+  ;; we need to check if implementation supports non-integer values
+  (when (-> (matrix im [0 0]) (assign 2.5) (equals [2.5 2.5]))
+    (let [m (matrix im [3 4])
+          n (normalise m)]
+      (is (equals n [0.6 0.8] 0.000001))
+      (is (mutable-equivalent? m normalise! normalise)))))
 
 (defn test-vector-distance [im]
   (let [a (matrix im [1 1])
         b (matrix im [4 -3])]
-    (is (== 5 (distance a b))))) 
+    (is (== 5 (distance a b)))))
+
+(defn test-1d-instances [im]
+  (test-numeric-instance (matrix im [-1 2 -3]))
+  (test-numeric-instance (matrix im [1]))
+  (test-numeric-instance (matrix im [1 2 -3 4.5 7 -10.8]))
+  (test-numeric-instance (matrix im [0 0])))
 
 (defn vector-tests-1d [im]
   (test-vector-mset im)
@@ -360,26 +444,29 @@
   (test-vector-normalise im)
   (test-vector-slices im)
   (test-vector-subvector im)
-  (test-vector-distance im) 
-  (test-element-add im))
+  (test-vector-distance im)
+  (test-element-add im)
+  (test-1d-instances im))
 
 ;; ========================================
 ;; 2D matrix tests
 
 (defn test-transpose [im]
   (testing "2D transpose"
-    (let [im (matrix [[1 2] [3 4]])]
-      (is (equals [[1 3] [2 4]] (transpose im)))
-      (is (equals im (transpose (transpose im)))))))
+    (let [m (matrix im [[1 2] [3 4]])]
+      (is (equals [[1 3] [2 4]] (transpose m)))
+      (is (equals m (transpose (transpose m)))))))
 
 (defn test-negate [im]
   (testing "negate"
-    (let [m (matrix [[1 2] [3 4]])]
+    (let [m (matrix im [[1 2] [3 4]])]
       (is (equals [[-1 -2] [-3 -4]] (negate m))))))
 
 (defn test-identity [im]
-  (let [I (identity-matrix im 3)]
-    (is (equals [1 2 3] (mul I [1 2 3])))
+  (let [I (identity-matrix im 3)
+        test-mtx [[1 2 3] [4 5 6] [7 8 9]]]
+    (is (equals [1 2 3] (mmul I [1 2 3])))
+    (is (equals test-mtx (mmul I test-mtx)))
     (is (equals I (transpose I)))))
 
 (defn test-trace [im]
@@ -389,8 +476,10 @@
     (is (== 5.0 (trace m)))))
 
 (defn test-diagonal [im]
-  (let [I (diagonal-matrix im [1 2 3])]
-    (is (equals [1 4 9] (mul I [1 2 3])))
+  (let [I (diagonal-matrix im [1 2 3])
+        I-squared (diagonal-matrix im [1 4 9])]
+    (is (equals [1 4 9] (mmul I [1 2 3])))
+    (is (equals I-squared (mmul I I)))
     (is (equals I (transpose I)))))
 
 (defn test-row-column-matrices [im]
@@ -406,11 +495,17 @@
     (is (row-matrix? (transpose cm)))))
 
 (defn test-matrix-emul [im]
-  (is (equals [[2 2] [4 4]] (e* [[1 1] [2 2]] 2)))
-  (is (equals [[2 2] [4 4]] (e* 2 [[1 1] [2 2]])))
+  (is (equals [[2 2] [4 4]] (e* (matrix im [[1 1] [2 2]]) 2)))
+  (is (equals [[2 2] [4 4]] (e* 2 (matrix im [[1 1] [2 2]]))))
   (when (supports-dimensionality? im 1)
-    ;; TODO test vector broadcasting to matrix
+    (is (equals [[1 2] [1 2]] (broadcast (matrix im [1 2]) [2 2])))
     ))
+
+(defn test-2d-instances [im]
+  (test-numeric-instance (matrix im [[1 2] [3 4]]))
+  (test-numeric-instance (matrix im [[1 2]]))
+  (test-numeric-instance (matrix im [[10]]))
+  (test-numeric-instance (matrix im [[10] [11]])))
 
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)
@@ -418,7 +513,8 @@
   (test-diagonal im)
   (test-trace im)
   (test-matrix-emul im)
-  (test-identity im))
+  (test-identity im)
+  (test-2d-instances im))
 
 ;; ======================================
 ;; Instance test function
@@ -427,6 +523,8 @@
 ;;
 ;; All matrix implementations must pass this test for any valid matrix
 (defn instance-test [m]
+  (when (numerical? m)
+    (test-numeric-instance m))
   (test-array-assumptions m))
 
 ;; ==============================================
