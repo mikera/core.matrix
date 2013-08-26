@@ -197,22 +197,22 @@
 ;; matrix assignment and copying
 
 (defn assign!
-  "Assigns a value to a matrix.
-   Returns the mutated matrix"
+  "Assigns a new value to an array. Sets the values of the target elementwise, broadcasting where necessary.
+   Returns the mutated array."
   ([m a]
     (mp/assign! m a)
     m))
 
 (defn assign-array!
-  "Assigns values to a matrix from an array.
-   Returns the mutated matrix"
+  "Assigns values to a core.matrix array from a Java array.
+   Returns the mutated core.matrix array"
   ([m a]
     (mp/assign-array! m a)
     m))
 
 (defn assign
-  "Assigns a value to a matrix shape, broadcasting to fill the whole matrix as necessary.
-   Returns a new matrix."
+  "Assigns a value elementwise to a given matrix, broadcasting to fill the whole matrix as necessary.
+   Returns a new matrix, of the same shape and implementation type as the original."
   ([m a]
     (mp/broadcast (mp/coerce-param m a) (mp/get-shape m))))
 
@@ -716,12 +716,14 @@
     m))
 
 (defn sub
-  "Performs element-wise subtraction on one or more numerical arrays."
+  "Performs element-wise subtraction on one or more numerical arrays.
+   Returns the first array after it has been mutated."
   ([a] (mp/negate a))
   ([a b]
     (mp/matrix-sub a b))
   ([a b & more]
-    (reduce mp/matrix-sub (mp/matrix-sub a b) more)))
+    (reduce mp/matrix-sub (mp/matrix-sub a b) more)
+    a))
 
 (defn add!
   "Performs element-wise mutable addition on one or more numerical arrays.
@@ -731,7 +733,8 @@
     (mp/matrix-add! a b)
     a)
   ([a b & more]
-    (reduce add! (add! a b) more)))
+    (reduce mp/matrix-add! (mp/matrix-add! a b) more)
+    a))
 
 (defn sub!
   "Performs element-wise mutable subtraction on one or more numerical arrays.
@@ -1002,7 +1005,7 @@
     (reduce (fn [r mi] (and r (e= m1 mi))) (e= m1 m2) more)))
 
 (defn e==
-  "Returns true if all array elements are numerically equal (using ==). Throws an error if any elements
+  "Returns true if all array elements are numerically equal. Throws an error if any elements
    of the arrays being compared are not numerical values."
   ([m1]
     true)
