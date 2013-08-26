@@ -20,9 +20,9 @@ Key objectives:
 
  - Provide a clear, standard API / abstraction for matrix and vector maths in Clojure
  - Enable plugable support for different underlying matrix library implementations
- - Provide a general purpose n-dimensional array implementation (NumPy style NDArray)
+ - Provide a general purpose n-dimensional array implementation (NDArray)
  - Provide a foundation layer for other projects (e.g. Incanter)
- - Maintain high performance wherever possible
+ - Maintain high performance throughout
 
 ### Status
 
@@ -58,6 +58,11 @@ For documentation and further examples see the Wiki:
 ### Contributing
 
 All contributions / ideas welcome!
+
+There are a number of proposed enhancements listed as GitHub issues: these are a good place to start if you wish to contribute
+to core.matrix:
+
+ - https://github.com/mikera/matrix-api/issues?state=open
 
 If you wish to contribute code, please ensure you have a **Clojure Contributors Agreement** signed and on file. For more information see:
 
