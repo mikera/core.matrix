@@ -489,6 +489,10 @@
 
 ;; ============================================================
 ;; Generic values and functions
+;;
+;; These protocols should be extended by implementations that use non-standard numerical operations
+;; (e.g. complex numbers) and therefore require different values and operations for the standard
+;; ones in Java / clojure.core
 
 (defprotocol PGenericValues
   "Protocol for returning the generic/default values of a matrix implementation"
