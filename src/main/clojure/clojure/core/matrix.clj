@@ -300,13 +300,13 @@
       (== (mp/dimension-count m 0) (mp/dimension-count m 1)))))
 
 (defn row-matrix?
-  "Returns true if a matrix is a row-matrix (i.e. has exactly one row)"
+  "Returns true if a matrix is a row-matrix (i.e. is 2D and has exactly one row)"
   ([m]
     (and (== (mp/dimensionality m) 2)
          (== 1 (mp/dimension-count m 0)))))
 
 (defn column-matrix?
-  "Returns true if a matrix is a column-matrix (i.e. has exactly one column)"
+  "Returns true if a matrix is a column-matrix (i.e. is 2D and has has exactly one column)"
   ([m]
     (and (== (mp/dimensionality m) 2)
          (== 1 (mp/dimension-count m 1)))))
@@ -314,7 +314,7 @@
 (defn shape
   "Returns the shape of a matrix, i.e. the dimension sizes for all dimensions.
 
-   The result will be a Clojure vector containing only integer values, with a count
+   The result will be a vector containing only integer index values, with a count
    equal to the dimensionality of the array."
   ([m]
     (vec (mp/get-shape m))))
@@ -354,10 +354,10 @@
 
 (defn to-double-array
    "Returns a double array containing the values of a numerical array m in row-major order.
-    If want-copy is true, will guarantee a new double array (defensive copy).
-    If want-copy is false, will return the internal array used by m, or nil if not supported
+    If want-copy? is true, will guarantee a new double array (defensive copy).
+    If want-copy? is false, will return the internal array used by m, or nil if not supported
     by the implementation.
-    If want-copy is not sepcified, will return either a copy or the internal array"
+    If want-copy? is not sepcified, will return either a copy or the internal array"
    ([m]
      (mp/to-double-array m))
    ([m want-copy?]
@@ -370,7 +370,7 @@
 ;; matrix access
 
 (defn mget
-  "Gets a scalar value from a matrix at a specified position. Supports any number of matrix dimensions."
+  "Gets a scalar value from an array at the specified position. Supports any number of dimensions."
   ([m]
     (mp/get-0d m))
   ([m x]
@@ -381,7 +381,7 @@
     (mp/get-nd m (cons x (cons y more)))))
 
 (defn mset
-  "Sets a scalar value in a matrix at a specified position, returning a new matrix and leaving the
+  "Sets a scalar value in an array at the specified position, returning a new matrix and leaving the
    original unchanged."
   ([m v] 
     (mp/set-0d m v))
@@ -393,7 +393,7 @@
     (mp/set-nd m (cons x (cons y (cons z (butlast more)))) (last more))))
 
 (defn mset!
-  "Sets a scalar value in a matrix at a specified position. Supports any number of matrix dimensions.
+  "Sets a scalar value in an array at the specified position. Supports any number of dimensions.
    Will throw an exception if the matrix is not mutable.
    Returns the modified matrix (it is guaranteed to return the same instance)"
   ([m v]
@@ -733,7 +733,8 @@
     (mp/matrix-add! a b)
     a)
   ([a b & more]
-    (reduce mp/matrix-add! (mp/matrix-add! a b) more)
+    (mp/matrix-add! a b)
+    (doseq [m more] (mp/matrix-add! a m))
     a))
 
 (defn sub!
@@ -744,7 +745,9 @@
     (mp/matrix-sub! a b)
     a)
   ([a b & more]
-    (reduce sub! (sub! a b) more)))
+    (mp/matrix-sub! a b)
+    (doseq [m more] (mp/matrix-sub! a m))
+    a))
 
 (defn scale
   "Scales a numerical array by one or more scalar factors.
