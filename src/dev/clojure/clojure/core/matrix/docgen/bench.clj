@@ -9,95 +9,163 @@
             [clojure.core.matrix.implementations :as mi]
             [clojure.core.matrix.docgen.common :as c]))
 
+;; # Constants
+
 (def repo-url "https://github.com/mikera/matrix-api")
 (def src-path "src/main/clojure")
 
-(def conf {:tobench [:vectorz :ndarray]
-           :reference :vectorz
-           :fast-bench true})
+(def array-types
+  (array-map
+   :vectorz
+   {:name "vectorz"
+    :constructor #(m/array :vectorz %)}
+   :ndarray
+   {:name "ndarray"
+    :constructor #(m/array :ndarray %)}
+   :ndarray-double
+   {:name "ndarray-double"
+    :constructor #(m/array :ndarray-double %)}
+   :vecs
+   {:name "persistent vectors"
+    :constructor identity}))
+
+;; # Utils
+
+(defn rand-vec
+  ([n] (rand-vec n 1000 identity))
+  ([n max] (rand-vec n max identity))
+  ([n max caster]
+     (->> #(rand-int max)
+          repeatedly (map caster) (take n) vec)))
 
 (defn rand-mtx
   ([n] (rand-mtx n 1000 identity))
+  ([n max] (rand-mtx n max identity))
   ([n max caster]
      (letfn [(rand-row [] (->> #(rand-int max)
                                repeatedly (map caster) (take n) vec))]
        (->> rand-row repeatedly (take n) vec))))
 
-(def tests
-  (array-map
-   :vectorz {:name "vectorz"
-             :constructor #(m/array :vectorz %)
-             :counts [5 50 500 1000]}
-   :vecs {:name "persistent vectors"
-          :constructor identity
-          :counts [5 50]}
-   :ndarray {:name "ndarray"
-             :constructor #(m/array :ndarray %)
-             :counts [5 50]}
-   :ndarray-double {:name "ndarray-double"
-                    :constructor #(m/array :ndarray-double %)
-                    :counts [5 50 500 1000]}))
+(defn enumerated [xs]
+  (map vector (range (count xs)) xs))
 
-(def array-types
-  (array-map
-   :vectorz {:name "vectorz"
-             :constructor #(m/array :vectorz %)}
-   :ndarray {:name "ndarray"
-             :constructor #(m/array :ndarray %)}
-   :ndarray-double {:name "ndarray-double"
-                    :constructor #(m/array :ndarray-double %)}
-   :vecs {:name "persistent vectors"
-          :constructor identity}))
+(defn format-elapsed [t]
+  (if (< t Double/POSITIVE_INFINITY)
+    (let [[factor unit] (cr/scale-time t)]
+      (format "%2.2f %s" (* factor t) unit))
+    "t/o"))
 
-(def tests
-  {:matrix-multiply
-   {:varying "matrix sizes"
-    :vectorz
-    {:s [(rand-mtx 5) (rand-mtx 5)]
-     :m [(rand-mtx 50) (rand-mtx 50)]
-     :l [(rand-mtx 500) (rand-mtx 500)]}
-    :vecs
-    {:s [(rand-mtx 5) (rand-mtx 5)]
-     :m [(rand-mtx 50) (rand-mtx 50)]}
-    :ndarray
-    {:s [(rand-mtx 5) (rand-mtx 5)]
-     :m [(rand-mtx 50) (rand-mtx 50)]}
-    :ndarray-double
-    {:s [(rand-mtx 5) (rand-mtx 5)]
-     :m [(rand-mtx 50) (rand-mtx 50)]
-     :l [(rand-mtx 500) (rand-mtx 500)]}}
+;; # State
 
-   :clone
-   {:varying "2d matrix sizes"
-    :vectorz
-    {:s [(rand-mtx 5)]
-     :m [(rand-mtx 50)]
-     :l [(rand-mtx 500)]}
-    :vecs
-    {:s [(rand-mtx 5)]
-     :m [(rand-mtx 50)]
-     :l [(rand-mtx 500)]}
-    :ndarray
-    {:s [(rand-mtx 5)]
-     :m [(rand-mtx 50)]
-     :l [(rand-mtx 500)]}
-    :ndarray-double
-    {:s [(rand-mtx 5)]
-     :m [(rand-mtx 50)]
-     :l [(rand-mtx 500)]}}})
-
+(def benches (atom {}))
 (defonce bench-results (atom {}))
 
-(defn mmultiply-bench []
-  (doseq [[_ {:keys [name constructor counts]}] tests]
-    (println (str name ":"))
-    (doseq [n counts]
-      (let [[ma mb] (->> #(rand-mtx n)
-                         repeatedly (map constructor) (take 2))]
-        (binding [cr/*final-gc-problem-threshold* 0.5]
-          (->> (cr/quick-benchmark (mp/matrix-multiply ma mb) {})
-               :mean
-               (cr/report-point-estimate (str "n=" n ":"))))))))
+;; # Benchmarks
+
+(defn defbench [method varying to-convert
+                & bench-pairs]
+  (let [bench-sets (->> bench-pairs
+                        (partition 2)
+                        (mapcat (fn [[k v :as pair]]
+                                  (if (keyword? k)
+                                    [pair]
+                                    (map vector k (repeat v)))))
+                        (map vec))]
+    (swap! benches assoc method
+           (assoc (into {} bench-sets)
+             :varying varying
+             :to-convert to-convert))))
+
+(defbench :matrix-multiply
+  "matrix sizes"
+  #{0 1}
+  [:vectorz :ndarray-double]
+  {:s [(rand-mtx 5)   (rand-mtx 5)]
+   :m [(rand-mtx 50)  (rand-mtx 50)]
+   :l [(rand-mtx 500) (rand-mtx 500)]}
+  [:vecs :ndarray]
+  {:s [(rand-mtx 5)  (rand-mtx 5)]
+   :m [(rand-mtx 50) (rand-mtx 50)]})
+
+(defbench :clone
+  "2d matrix sizes"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)]
+   :m [(rand-mtx 50)]
+   :l [(rand-mtx 500)]})
+
+(defbench :get-1d
+  "1d vector size"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-vec 5)     (rand-int 5)]
+   :m [(rand-vec 500)   (rand-int 500)]
+   :l [(rand-vec 50000) (rand-int 5000)]})
+
+(defbench :get-2d
+  "2d matrix size"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   (rand-int 5)   (rand-int 5)]
+   :m [(rand-mtx 50)  (rand-int 50)  (rand-int 50)]
+   :l [(rand-mtx 500) (rand-int 500) (rand-int 500)]})
+
+(defbench :get-nd
+  "2d matrix size"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   [(rand-int 5)   (rand-int 5)]]
+   :m [(rand-mtx 50)  [(rand-int 50)  (rand-int 50)]]
+   :l [(rand-mtx 500) [(rand-int 500) (rand-int 500)]]})
+
+(defbench :set-1d
+  "1d vector size"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-vec 5)     (rand-int 5)    (rand-int 1000)]
+   :m [(rand-vec 500)   (rand-int 500)  (rand-int 1000)]
+   :l [(rand-vec 50000) (rand-int 5000) (rand-int 1000)]})
+
+(defbench :set-2d
+  "2d matrix size"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   (rand-int 5)   (rand-int 5)   (rand-int 1000)]
+   :m [(rand-mtx 50)  (rand-int 50)  (rand-int 50)  (rand-int 1000)]
+   :l [(rand-mtx 500) (rand-int 500) (rand-int 500) (rand-int 1000)]})
+
+(defbench :set-nd
+  "2d matrix size"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   [(rand-int 5)   (rand-int 5)]   (rand-int 1000)]
+   :m [(rand-mtx 50)  [(rand-int 50)  (rand-int 50)]  (rand-int 1000)]
+   :l [(rand-mtx 500) [(rand-int 500) (rand-int 500)] (rand-int 1000)]})
+
+(defbench :set-1d!
+  "1d vector size"
+  #{0}
+  [:vectorz :ndarray :ndarray-double]
+  {:s [(rand-vec 5)     (rand-int 5)    (rand-int 1000)]
+   :m [(rand-vec 500)   (rand-int 500)  (rand-int 1000)]
+   :l [(rand-vec 50000) (rand-int 5000) (rand-int 1000)]})
+
+(defbench :set-2d!
+  "2d matrix size"
+  #{0}
+  [:vectorz :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   (rand-int 5)   (rand-int 5)   (rand-int 1000)]
+   :m [(rand-mtx 50)  (rand-int 50)  (rand-int 50)  (rand-int 1000)]
+   :l [(rand-mtx 500) (rand-int 500) (rand-int 500) (rand-int 1000)]})
+
+(defbench :set-nd!
+  "2d matrix size"
+  #{0}
+  [:vectorz :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   [(rand-int 5)   (rand-int 5)]   (rand-int 1000)]
+   :m [(rand-mtx 50)  [(rand-int 50)  (rand-int 50)]  (rand-int 1000)]
+   :l [(rand-mtx 500) [(rand-int 500) (rand-int 500)] (rand-int 1000)]})
 
 (defn render-header
   [git-hash]
@@ -106,27 +174,6 @@
          [:a {:href (str repo-url "/blob/" git-hash)}
           git-hash]]
         [:small "Hint: hover on method name to see an additional information"]]))
-
-(defn enumerated [xs]
-  (map vector (range (count xs)) xs))
-
-(defn make-bench [f-name array-type bench]
-  (binding [cr/*final-gc-problem-threshold* 0.5]
-    (let [f (resolve (symbol (str "mp/" f-name)))
-          constructor (-> array-types array-type :constructor)
-          arg-sets (for [[size args] bench]
-                     [size (map constructor args)])]
-      (into {} (for [[size args] arg-sets]
-                 [size #_0.0001
-                  (->> (cr/quick-benchmark (apply f args) {})
-                       :mean
-                       first)])))))
-
-(defn format-elapsed [t]
-  (if (< t Double/POSITIVE_INFINITY)
-    (let [[factor unit] (cr/scale-time t)]
-      (format "%2.2f %s" (* factor t) unit))
-    "t/o"))
 
 ;; TODO: output quantiles/variance
 (defn render-bench-results [bench-res]
@@ -189,14 +236,33 @@
      [:script {:type "text/javascript"}
       "$('#benchtable').stickyTableHeaders();"]]]))
 
+(defn make-bench [f-name array-type to-convert bench]
+  (binding [cr/*final-gc-problem-threshold* 0.5]
+    (let [f (resolve (symbol (str "mp/" f-name)))
+          constructor (-> array-types array-type :constructor)
+          arg-sets (for [[size args] bench]
+                     [size (map (fn [[i arg]]
+                                  (if (to-convert i)
+                                    (constructor arg)
+                                    arg))
+                                (enumerated args))])]
+      (into {} (for [[size args] arg-sets]
+                 [size (->> (cr/quick-benchmark (apply f args) {})
+                            :mean
+                            first)])))))
+
 (defn perform-bench []
-  (for [proto (c/extract-protocols)]
-    (for [[_ {f-name :name}] (:sigs proto)
+  (doseq [proto (c/extract-protocols)]
+    (doseq [[_ {f-name :name}] (:sigs proto)
           :let [f-name-kw (keyword f-name)]]
-      (for [[a-type a-info] array-types]
-        (when-let [bench (-> tests f-name-kw a-type)]
+      (doseq [[a-type a-info] array-types]
+        (when-let [bench (-> @benches f-name-kw a-type)]
           (swap! bench-results assoc-in [f-name-kw a-type]
-                 (make-bench f-name a-type bench)))))))
+                 (make-bench f-name
+                             a-type
+                             (-> @benches f-name-kw :to-convert)
+                             bench))))))
+  :ok)
 
 (defn dump-bench-results [fname]
   (binding [*print-dup* true]
