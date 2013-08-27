@@ -6,7 +6,8 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as generic])
   (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.utils :as utils :refer [error]]))
+  (:require [clojure.core.matrix.utils :as utils :refer [error]])
+  (:require [clojure.core.matrix.docgen.common :as dc]))
 
 ;; ====================================
 ;; COMPLIANCE TESTING
@@ -314,6 +315,27 @@
     (is (not (equals (coerce m (array [1]))
                      (coerce m (array 1)))))))
 
+(defn method-exists? [method im args]
+  (try
+    (apply method im (rest args))
+    true
+    (catch AbstractMethodError e false)
+    (catch Exception e true)))
+
+(defn test-methods-existence [m]
+  (let [im-name (mp/implementation-key m)]
+    (if (#{:nd-wrapper
+           :slice-wrapper
+           :scalar-wrapper} im-name)
+      true
+      (doseq [proto (dc/extract-protocols)]
+        (doseq [[_ {:keys [name arglists]}] (:sigs proto)
+                :let [method (ns-resolve 'clojure.core.matrix.protocols
+                                         name)]]
+          (is (method-exists? method m (first arglists))
+              (str "check method " name
+                   " of implementation " im-name)))))))
+
 ;; =======================================
 ;; array interop tests
 
@@ -568,6 +590,7 @@
       (test-assumptions-for-all-sizes im)
       (test-coerce-via-vectors im)
       (test-equality im)
+      (test-methods-existence im)
       (when (supports-dimensionality? im 2)
         (matrix-tests-2d im))
       (when (supports-dimensionality? im 1)
