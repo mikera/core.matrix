@@ -55,7 +55,7 @@
 ;; ===========================================
 ;; General implementation tests
 
-(defn test-impl-scalar-array 
+(defn test-impl-scalar-array
   [im]
   (let [sa (new-scalar-array im)]
     (is (array? sa))
@@ -307,6 +307,12 @@
         (is (= (ecount m) (ecount vm)))
         (is (= (eseq m) (eseq (emap identity m))))))))
 
+(defn test-equality [m]
+  (testing "proper work of equality check"
+    (is (equals (coerce m (array [1]))
+                (coerce m (array [1]))))
+    (is (not (equals (coerce m (array [1]))
+                     (coerce m (array 1)))))))
 
 ;; =======================================
 ;; array interop tests
