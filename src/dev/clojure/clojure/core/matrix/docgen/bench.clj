@@ -306,6 +306,7 @@
             :let [f-name-kw (keyword f-name)]]
       (doseq [[a-type a-info] array-types]
         (when-let [bench (-> @benches f-name-kw a-type)]
+          (println "benchmarking" f-name "on" (name a-type))
           (swap! bench-results assoc-in [f-name-kw a-type]
                  (make-bench f-name
                              a-type
@@ -313,18 +314,22 @@
                              bench))))))
   :ok)
 
-(defn dump-bench-results [fname]
-  (binding [*print-dup* true]
-    (->> @bench-results
-         pr-str
-         (spit fname))))
+(defn dump-bench-results
+  ([] (dump-bench-results "bench.dump"))
+  ([fname]
+     (binding [*print-dup* true]
+       (->> @bench-results
+            pr-str
+            (spit fname)))))
 
-(defn load-bench-results [fname]
-  (->> fname
-       slurp
-       read-string
-       (reset! bench-results))
-  :ok)
+(defn load-bench-results
+  ([] (load-bench-results "bench.dump"))
+  ([fname]
+     (->> fname
+          slurp
+          read-string
+          (reset! bench-results))
+     :ok))
 
 (defn generate []
   (let [git-hash (c/get-git-hash)
