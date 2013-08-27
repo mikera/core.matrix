@@ -27,8 +27,10 @@
     (meta-info [m]
       {:doc "Core.matrix implementation enabling a map with appropriate
              metadata to be used as a core.matrix implementation."})
-    (new-vector [m length] (with-shape {} [length]))
-    (new-matrix [m rows columns] (with-shape {} [rows columns]))
+    (new-vector [m length] 
+      (vary-meta (with-shape {} [length]) assoc :default-value 0.0))
+    (new-matrix [m rows columns] 
+      (vary-meta (with-shape {} [rows columns]) assoc :default-value 0.0))
     (new-matrix-nd [m dims]
       (with-shape {} dims))
     (construct-matrix [m data]
