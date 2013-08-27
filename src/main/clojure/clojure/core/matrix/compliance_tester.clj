@@ -567,6 +567,7 @@
       (test-implementation im)
       (test-assumptions-for-all-sizes im)
       (test-coerce-via-vectors im)
+      (test-equality im)
       (when (supports-dimensionality? im 2)
         (matrix-tests-2d im))
       (when (supports-dimensionality? im 1)
