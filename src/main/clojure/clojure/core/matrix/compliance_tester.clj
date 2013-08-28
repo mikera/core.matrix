@@ -412,7 +412,7 @@
   
 (defn test-numeric-instance [m]
   (is (numerical? m))
- ;  (test-generic-numerical-assumptions m)
+ ; (test-generic-numerical-assumptions m)
   (numeric-scalar-tests m)
   (misc-numeric-tests m)
   (test-numeric-matrix-predicates m))
