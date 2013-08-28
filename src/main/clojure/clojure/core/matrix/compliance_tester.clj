@@ -401,7 +401,6 @@
   (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m))))))
 
 (defn test-numeric-matrix-predicates [m]
-  (prn "m ist " m)
   (when (and (matrix? m) (= 2 (dimensionality m)))
     (is (zero-matrix? (new-matrix m 10 10)))
     (is (identity-matrix? (identity-matrix m 5)))
