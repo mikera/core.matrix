@@ -551,6 +551,18 @@
       (double-array (mp/element-seq m)))
     (as-double-array [m] nil)) 
 
+;; row operations
+(extend-protocol mp/PRowOperations
+  java.lang.Object
+    (swap-rows [X i j]
+      ())
+  java.lang.Object
+    (multiply-row [X i k]
+      ())
+  java.lang.Object
+    (add-row [X i j k]
+      ()))
+
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
   java.lang.Number

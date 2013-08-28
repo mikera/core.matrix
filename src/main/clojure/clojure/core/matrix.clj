@@ -818,7 +818,7 @@
 (defn multiply-row
   "Multiply row i by constant k"
   [X i k]
-  (mp/multiply-rows X i k))
+  (mp/multiply-row X i k))
 
 (defn add-row
   "Add a row j times constant k to a row i and replace i"

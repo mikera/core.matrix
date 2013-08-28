@@ -274,6 +274,18 @@
     (pre-scale [m a]
       (mapmatrix (partial * a) m)))
 
+(extend-protocol mp/PRowOperations
+  clojure.lang.IPersistentVector
+    (swap-rows [X i j]
+      (assoc X j (X i) i (X j)))
+    clojure.lang.IPersistentVector
+    (multiply-row [X i k]
+      (require 'clojure.core.matrix)
+      (assoc X i (clojure.core.matrix/e* k (X i))))
+    clojure.lang.IPersistentVector
+    (add-row [X i j k]
+      (assoc X i (+ X i) (* k (X j)))))
+
 ;; helper functin to build generic maths operations
 (defn build-maths-function
   ([[name func]]
