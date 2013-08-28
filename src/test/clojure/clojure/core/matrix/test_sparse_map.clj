@@ -10,6 +10,9 @@
   [data]
   (matrix :persistent-map data))
 
+(deftest test-new
+  (is (equals [0] (new-vector :persistent-map 1))))
+
 (deftest test-sparse-map-construct
   (let [m (sm [[1 2] [3 4]])]
     (is (== 2 (dimensionality m)))

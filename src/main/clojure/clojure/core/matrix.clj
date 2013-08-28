@@ -37,7 +37,7 @@
 (declare current-implementation)
 (declare implementation-check)
 (declare current-implementation-object)
-(def ^:dynamic *matrix-implementation* :persistent-vector)
+(def ^:dynamic *matrix-implementation* imp/DEFAULT-IMPLEMENTATION)
 
 (defn matrix
   "Constructs a matrix from the given data.

@@ -93,12 +93,12 @@
 
 (extend-protocol mp/PZeroDimensionConstruction
   nil
-    (new-scalar-array 
+    (new-scalar-array
       ([m] 0.0)
       ([m value]
         (wrap/wrap-scalar value)))
   Object
-    (new-scalar-array 
+    (new-scalar-array
       ([m] (wrap/wrap-scalar 0.0))
       ([m value] (wrap/wrap-scalar value))))
 
@@ -121,10 +121,10 @@
 
 (extend-protocol mp/PZeroDimensionSet
   nil
-    (set-0d [m value] 
+    (set-0d [m value]
       (wrap/wrap-scalar value))
   Object
-    (set-0d [m value] 
+    (set-0d [m value]
       (mp/new-scalar-array m value)))
 
 (extend-protocol mp/PIndexedSetting
@@ -607,16 +607,18 @@
       (nil? b))
   java.lang.Number
     (matrix-equals [a b]
-      (cond 
-        (number? b) (== a b) 
+      (cond
+        (number? b) (== a b)
         (== 0 (mp/dimensionality b)) (== a (mp/get-0d b))
         :else false))
   java.lang.Object
     (matrix-equals [a b]
-      (let [[a b] (mp/broadcast-compatible a b)]
+      (if (= (seq (mp/get-shape a))
+             (seq (mp/get-shape b)))
         (if (== 0 (mp/dimensionality a))
           (== (mp/get-0d a) (mp/get-0d b))
-          (not (some false? (map == (mp/element-seq a) (mp/element-seq b))))))))
+          (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
+        false)))
 
 (extend-protocol mp/PDoubleArrayOutput
   java.lang.Number
