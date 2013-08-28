@@ -457,6 +457,20 @@
   "Protocol to support element-wise squaring of a numerical array."
   (square [m]))
 
+;; ==================================
+;; Elementary Row Operation Protocols
+;;
+
+(defprotocol PRowOperations
+  "Protocol for elementary row operations"
+  (swap-rows [X i j]
+    "Returns a new matrix with rows i and j swapped")
+  (multiply-row [X i k]
+    "Returns a new matrix with row i multiplied by k")
+  (add-row [X i j k]
+    "Returns a new matrix with row i added to row j times k"))
+
+
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
 (eval
