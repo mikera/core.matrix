@@ -225,7 +225,7 @@
     (mp/broadcast (mp/coerce-param m a) (mp/get-shape m))))
 
 (defn clone
-  "Constructs a clone of the matrix, using the same implementation. This function is intended to
+  "Constructs a (shallow) clone of the matrix, using the same implementation. This function is intended to
    allow safe defensive copying of matrices / vectors.
 
    Guarantees that:
@@ -243,7 +243,7 @@
   ([m]
     (mp/convert-to-nested-vectors m)))
 
-(defn scalar 
+(defn scalar
   "Coerces m to a scalar value. Result is guaranteed not to be an array.
    Will throw an exception if m is not zero-dimensional."
   ([m]
@@ -285,7 +285,7 @@
     (mp/element-type m)))
 
 (defn dimensionality
-  "Returns the dimensionality of an array. The dimensionality is equal to 
+  "Returns the dimensionality of an array. The dimensionality is equal to
    the number of dimensions in the array's shape."
   ([m]
     (mp/dimensionality m)))
@@ -361,7 +361,7 @@
 (defn numerical?
   "Returns true if the matrix is a valid numerical matrix (i.e. supports numerical core.matrix operations)."
   ([m]
-    (mp/numerical? m))) 
+    (mp/numerical? m)))
 
 ;; =======================================
 ;; Conversions
@@ -397,7 +397,7 @@
 (defn mset
   "Sets a scalar value in an array at the specified position, returning a new matrix and leaving the
    original unchanged."
-  ([m v] 
+  ([m v]
     (mp/set-0d m v))
   ([m x v]
     (mp/set-1d m x v))
@@ -470,7 +470,7 @@
    Slicing a 1D vector will return a scalar.
 
    Slicing on the first dimension (dimension 0) is likely to perform better
-   for many array implementations, and is therefore the default if no 
+   for many array implementations, and is therefore the default if no
    dimension is specified."
   ([m index]
     (mp/get-slice m 0 index))
@@ -496,18 +496,18 @@
     (slices m 1)))
 
 (defn main-diagonal
-  "Returns the main diagonal of a matrix or general array, as a vector. 
-   The main diagonal of a general array is defined as those elements where the all the 
+  "Returns the main diagonal of a matrix or general array, as a vector.
+   The main diagonal of a general array is defined as those elements where the all the
    indexes are equal, i.e. the index is of the form [i i ... i]"
   ([m]
     (mp/main-diagonal m)))
 
-(defn diagonal 
+(defn diagonal
   "Returns the specified diagonal of a 2D matrix as a vector.
    If k>0, returns a diagonal above the main diagonal.
    If k<0, returns a diagonal below the main diagonal.
    Works on both square and rectangular matrices."
-  ([m] 
+  ([m]
     (mp/main-diagonal [m]))
   ([m k]
     (TODO)))
@@ -534,7 +534,7 @@
     (TODO)))
 
 (defn as-vector
-  "Creates a view of an array as a single flattened vector. 
+  "Creates a view of an array as a single flattened vector.
    Returns nil if this is not supported by the implementation."
   ([m]
     (mp/as-vector m)))
@@ -592,7 +592,7 @@
 ;; matrix comparisons
 
 (defn equals
-  "Returns true if two arrays are numerically equal. 
+  "Returns true if two arrays are numerically equal.
 
    Will return false for arrays of different shapes.
 
@@ -723,7 +723,7 @@
     (mp/add-scaled-product m a b factor)))
 
 (defn add-scaled-product!
-  "Adds the product of two numerical arrays scaled by a given factor to the first array. 
+  "Adds the product of two numerical arrays scaled by a given factor to the first array.
    Returns the mutated array."
   ([m a b factor]
     (mp/add-scaled-product! m a b factor)
@@ -891,9 +891,9 @@
      (mp/length-squared m)))
 
 (defn pow
-  "Raises every element of a numerical matrix by the given exponent. 
+  "Raises every element of a numerical matrix by the given exponent.
 
-   Note that behaviour for large exponents may depend on the underlying implementation: 
+   Note that behaviour for large exponents may depend on the underlying implementation:
    for example double-based matrices may overflow to Double/POSITIVE_INFINITY."
   ([m]
     m)
@@ -994,9 +994,9 @@
 
 (defn emap
   "Element-wise map over all elements of one or more arrays.
-   
-   f must return a result compatible with the element-type of the array m   
-   
+
+   f must return a result compatible with the element-type of the array m
+
    Returns a new array of the same element-type and shape as the array m."
   ([f m]
     (mp/element-map m f))
@@ -1034,7 +1034,7 @@
 (defn emap!
   "Element-wise map of a function f over all elements of one or more arrays.
 
-   f must return a result compatible with the element-type of the array m   
+   f must return a result compatible with the element-type of the array m
 
    Performs in-place modification of the first array argument."
   ([f m]

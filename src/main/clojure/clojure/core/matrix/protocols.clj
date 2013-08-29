@@ -96,7 +96,7 @@
 
 (defprotocol PMatrixCloning
   "Protocol for cloning a matrix value. The new clone must be mutable if the original
-   matrix is mutable, i.e. mutating the clone must not affect the original."
+   matrix is mutable, i.e. mutating the clone must not affect the original. The copy should be shallow, if applicable."
   (clone [m] "Returns a clone of an array. Must be a new independent (non-view)
               instance if the array is mutable."))
 
@@ -136,8 +136,8 @@
   (mutable-matrix [m]))
 
 (defprotocol PZeroDimensionConstruction
-  (new-scalar-array 
-    [m] 
+  (new-scalar-array
+    [m]
     [m value]
     "Construct a new zero-dimensional array with the specified scalar value (zero if not specified)"))
 
@@ -295,7 +295,7 @@
   (add-product! [m a b]))
 
 (defprotocol PAddScaledProduct
-  "Protocol for add-product operation. 
+  "Protocol for add-product operation.
    Intended to implement a fast version for result = m + a * b * factor"
   (add-scaled-product [m a b factor]))
 
