@@ -555,19 +555,13 @@
 (extend-protocol mp/PRowOperations
   java.lang.Object
     (swap-rows [X i j]
-      (let [A (construct-mutable-matrix X)
-            imp (clojure.core.matrix.implementations/get-implementation-key X)]
-        (mp/construct-matrix (clojure.core.matrix.implementations/get-canonical-object imp) (assoc A j (A i) i (A j)))))
+      (mp/swap-rows (mp/coerce-param [] X) i j))
   java.lang.Object
     (multiply-row [X i k]
-      (let [A (construct-mutable-matrix X)
-            imp (clojure.core.matrix.implementations/get-implementation-key X)]
-        (mp/construct-matrix (clojure.core.matrix.implementations/get-canonical-object imp) (assoc A i (e* k (X i))))))
+      (mp/multiply-row (mp/coerce-param [] X) i k))
   java.lang.Object
     (add-row [X i j k]
-      (let [A (construct-mutable-matrix X)
-            imp (clojure.core.matrix.implementations/get-implementation-key X)]
-        (mp/construct-matrix (clojure.core.matrix.implementations/get-canonical-object imp) (assoc X i (+ (X i) (* k (X j))))))))
+      (mp/add-row (mp/coerce-param [] X) i j k)))
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
