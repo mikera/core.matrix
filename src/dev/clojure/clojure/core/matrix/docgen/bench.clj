@@ -32,6 +32,7 @@
 
 ;; # Utils
 
+;; TODO: remove enumerated usage, use map-indexed instead
 (defn enumerated [xs]
   (map vector (range (count xs)) xs))
 
@@ -165,20 +166,34 @@
      [:script {:type "text/javascript"}
       "$('#benchtable').stickyTableHeaders();"]]]))
 
+(declare ^:dynamic dyn-args)
+
 (defn make-bench [f-name array-type to-convert bench]
-  (binding [cr/*final-gc-problem-threshold* 0.5]
-    (let [f (resolve (symbol (str "mp/" f-name)))
-          constructor (-> array-types array-type :constructor)
-          arg-sets (for [[size args] bench]
-                     [size (map (fn [[i arg]]
-                                  (if (to-convert i)
-                                    (constructor arg)
-                                    arg))
-                                (enumerated args))])]
-      (into {} (for [[size args] arg-sets]
-                 [size (->> (cr/quick-benchmark (apply f args) {})
-                            :mean
-                            first)])))))
+  (letfn [(args-prepare [constructor args]
+            (map (fn [[i arg]] (if (to-convert i) (constructor arg) arg))
+                 (enumerated args)))
+          (construct-bench-call [f args-name args]
+            (let [arg-names (map (fn [_] (gensym)) args)
+                  arg-vals (map (fn [i] `(nth ~args-name ~i))
+                                (range (count args)))
+                  arg-pairs (interleave arg-names arg-vals)]
+              `(let [~@arg-pairs]
+                 (cr/quick-benchmark (~f ~@arg-names) {}))))]
+    (binding [cr/*final-gc-problem-threshold* 0.5]
+      (let [f (ns-resolve 'clojure.core.matrix.protocols f-name)
+            constructor (-> array-types array-type :constructor)
+            arg-sets (for [[size args] bench]
+                       [size ])]
+        (into {} (for [[size args-raw] bench
+                       :let [args (args-prepare constructor args-raw)
+                             bench-call (construct-bench-call f 'dyn-args args)]]
+                   [size (->> (binding [dyn-args args] (eval bench-call))
+                              :mean
+                              first)]))
+        #_(into {} (for [[size args] arg-sets]
+                   [size (->> (cr/quick-benchmark (apply f args) {})
+                              :mean
+                              first)]))))))
 
 (defn perform-bench []
   (doseq [proto (c/extract-protocols)]
