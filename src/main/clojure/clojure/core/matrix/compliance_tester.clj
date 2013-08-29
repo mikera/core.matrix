@@ -445,6 +445,18 @@
   (instance-test (coerce im ['a 'b]))
   (instance-test (coerce im [[[[[["foo"]]]]]])))
 
+;; =====================================
+;; Row Operations Tests
+;;
+;; General Tests for row operations
+
+;(defn test-row-operations
+;  [im]
+;  (is (= (matrix [0 2]) (swap-rows (matrix [2 0]) 0 1)))
+;  (is (= (matrix [0 2 4]) (multiply-row (matrix [0 1 2]) 0 2)))
+;  (is (= (matrix [[3 3] [1 1]]) (add-row (matrix [[1 1] [1 1]]) 0 1 2)))
+;)
+
 ;; ======================================
 ;; Main compliance test method
 ;;

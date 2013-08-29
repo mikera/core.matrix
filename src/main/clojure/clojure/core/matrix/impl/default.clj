@@ -549,19 +549,25 @@
   java.lang.Object
     (to-double-array [m]
       (double-array (mp/element-seq m)))
-    (as-double-array [m] nil)) 
+    (as-double-array [m] nil))
 
 ;; row operations
 (extend-protocol mp/PRowOperations
   java.lang.Object
     (swap-rows [X i j]
-      ())
+      (let [A (construct-mutable-matrix X)
+            imp (clojure.core.matrix.implementations/get-implementation-key X)]
+        (mp/construct-matrix (clojure.core.matrix.implementations/get-canonical-object imp) (assoc A j (A i) i (A j)))))
   java.lang.Object
     (multiply-row [X i k]
-      ())
+      (let [A (construct-mutable-matrix X)
+            imp (clojure.core.matrix.implementations/get-implementation-key X)]
+        (mp/construct-matrix (clojure.core.matrix.implementations/get-canonical-object imp) (assoc A i (e* k (X i))))))
   java.lang.Object
     (add-row [X i j k]
-      ()))
+      (let [A (construct-mutable-matrix X)
+            imp (clojure.core.matrix.implementations/get-implementation-key X)]
+        (mp/construct-matrix (clojure.core.matrix.implementations/get-canonical-object imp) (assoc X i (+ (X i) (* k (X j))))))))
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations

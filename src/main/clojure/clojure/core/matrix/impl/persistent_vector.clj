@@ -278,13 +278,10 @@
   clojure.lang.IPersistentVector
     (swap-rows [X i j]
       (assoc X j (X i) i (X j)))
-    clojure.lang.IPersistentVector
     (multiply-row [X i k]
-      (require 'clojure.core.matrix)
-      (assoc X i (clojure.core.matrix/e* k (X i))))
-    clojure.lang.IPersistentVector
+      (assoc X i (mp/matrix-multiply (X i) k)))
     (add-row [X i j k]
-      (assoc X i (+ X i) (* k (X j)))))
+      (assoc X i (mp/matrix-add (X i) (mp/matrix-multiply (X j) k)))))
 
 ;; helper functin to build generic maths operations
 (defn build-maths-function
