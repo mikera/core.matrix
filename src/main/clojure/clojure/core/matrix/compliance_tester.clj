@@ -481,4 +481,5 @@
       (test-array-interop im)
       (test-numeric-functions im)
       (test-dimensionality im)
+      (test-row-operations im)
       (test-new-matrices im))))
