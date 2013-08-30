@@ -502,7 +502,6 @@ of indexes and strides"
   ;; TODO: make it work for rectangular matrices
   ;; TODO: clarify docstring about rectangulra matrices
   ;; TODO: clarify docstring about higher dimensions
-  ;; TODO: rewrite + * as * inc
   mp/PMatrixSubComponents
     (main-diagonal [m]
       (iae-when-not (and (== ndims 2) (== (aget shape 0)
@@ -510,21 +509,84 @@ of indexes and strides"
         "main-diagonal is applicable only for square matrices")
       (let [new-ndims (int 1)
             new-shape (int-array 1 (aget shape 0))
-            new-strides (int-array 1 (+ (* (aget shape 0)
-                                           (aget strides 1))
-                                        (aget strides 1)))]
+            new-strides (int-array 1 (* (aget shape 0)
+                                        (inc (aget strides 1))))]
         (reshape-restride#t m new-ndims new-shape new-strides offset)))
 
   ;; mp/PAssignment
   ;;   (assign! [m source])
   ;;   (assign-array! [m arr] [m arr start length])
 
+  ;; TODO: will not work for stride != 1
   mp/PMutableFill
     (fill! [m v]
       (let [end (+ offset (areduce shape i s (int 1)
                                    (* s (aget shape i))))]
         (c-for [i offset (< i end) (inc i)]
           (aset data i (type-cast# v)))))
+
+  ;; may be not applicable to non-double?
+  ;; mp/PDoubleArrayOutput
+  ;; (to-double-array [m])
+  ;; (as-double-array [m])
+
+
+  ;; Macro API:
+  ;; #_(loop-over [a b] true
+  ;;              (if (== a-el b-el) (continue true) (break false)))
+  ;; #_(loop-over [a b c] nil
+  ;;              (aset c c-idx (+ (aget a a-idx) (aget b b-idx)))
+  ;;              (continue nil))
+
+  ;; TODO: make it work faster for higher dims
+  mp/PMatrixEquality
+    (matrix-equals [a b]
+      (if (= (type b) typename#)
+         ;; Fast path, types are same
+         (let [^typename# b b
+               ^ints shape-b (.shape b)
+               ^array-tag# data-b (.data b)
+               ^ints strides-b (.strides b)
+               offset-b (.offset b)]
+           (if (not (java.util.Arrays/equals shape shape-b))
+             false
+             (case ndims
+               0 (== (aget data 0) (aget data-b 0))
+               1 (let [step-a (aget strides 0)
+                       step-b (aget strides-b 0)
+                       end (+ offset (* (aget shape 0) step-a))]
+                   (loop [i-a offset
+                          i-b offset-b]
+                     (if (< i-a end)
+                       (if (== (aget data i-a) (aget data-b i-b))
+                         (recur (+ i-a step-a) (+ i-b step-b))
+                         false)
+                       true)))
+               2 (let [nrows (aget shape 0)
+                       ncols (aget shape 1)
+                       step-col-a (aget strides 1)
+                       step-row-a (- (aget strides 0)
+                                     (* step-col-a ncols))
+                       step-col-b (aget strides-b 1)
+                       step-row-b (- (aget strides 0)
+                                     (* step-col-b ncols))
+                       end (+ offset (+ (* nrows step-row-a)
+                                        (* ncols step-col-a)))]
+                   (loop [i-a offset
+                          i-b offset-b
+                          row-a 0
+                          col-a 0]
+                     (if (< i-a end)
+                       (if (== (aget data i-a) (aget data-b i-b))
+                         (if (< col-a ncols)
+                           (recur (+ i-a step-col-a) (+ i-b step-col-b)
+                                  row-a (inc col-a))
+                           (recur (+ i-a step-row-a) (+ i-b step-row-b)
+                                  (inc row-a) 0))
+                         false)
+                       true))))))
+         (mp/matrix-equals a (mp/coerce-param a b))))
+
 
   mp/PElementCount
     (element-count [m]
