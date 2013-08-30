@@ -276,12 +276,12 @@
 
 (extend-protocol mp/PRowOperations
   clojure.lang.IPersistentVector
-    (swap-rows [X i j]
-      (assoc X j (X i) i (X j)))
-    (multiply-row [X i k]
-      (assoc X i (mp/matrix-multiply (X i) k)))
-    (add-row [X i j k]
-      (assoc X i (mp/matrix-add (X i) (mp/matrix-multiply (X j) k)))))
+    (swap-rows [m i j]
+      (assoc m j (m i) i (m j)))
+    (multiply-row [m i k]
+      (assoc m i (mp/matrix-multiply (m i) k)))
+    (add-row [m i j k]
+      (assoc m i (mp/matrix-add (m i) (mp/matrix-multiply (m j) k)))))
 
 ;; helper functin to build generic maths operations
 (defn build-maths-function

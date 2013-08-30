@@ -821,18 +821,18 @@
 
 (defn swap-rows
   "Swap row i with row j"
-  [X i j]
-  (mp/swap-rows X i j))
+  [m i j]
+  (mp/swap-rows m i j))
 
 (defn multiply-row
   "Multiply row i by constant k"
-  [X i k]
-  (mp/multiply-row X i k))
+  [m i k]
+  (mp/multiply-row m i k))
 
 (defn add-row
   "Add a row j times constant k to a row i and replace i"
-  [X i j k]
-  (mp/add-row X i j k))
+  [m i j k]
+  (mp/add-row m i j k))
 
 ;; ===================================
 ;; Linear algebra algorithms

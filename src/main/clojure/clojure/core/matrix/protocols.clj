@@ -415,11 +415,11 @@
 
 (defprotocol PRowOperations
   "Protocol for elementary row operations"
-  (swap-rows [X i j]
+  (swap-rows [m i j]
     "Returns a new matrix with rows i and j swapped")
-  (multiply-row [X i k]
+  (multiply-row [m i k]
     "Returns a new matrix with row i multiplied by k")
-  (add-row [X i j k]
+  (add-row [m i j k]
     "Returns a new matrix with row i added to row j times k"))
 
 

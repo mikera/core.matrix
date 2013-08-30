@@ -554,14 +554,14 @@
 ;; row operations
 (extend-protocol mp/PRowOperations
   java.lang.Object
-    (swap-rows [X i j]
-      (mp/swap-rows (mp/coerce-param [] X) i j))
+    (swap-rows [m i j]
+      (mp/swap-rows (mp/coerce-param [] m) i j))
   java.lang.Object
-    (multiply-row [X i k]
-      (mp/multiply-row (mp/coerce-param [] X) i k))
+    (multiply-row [m i k]
+      (mp/multiply-row (mp/coerce-param [] m) i k))
   java.lang.Object
-    (add-row [X i j k]
-      (mp/add-row (mp/coerce-param [] X) i j k)))
+    (add-row [m i j k]
+      (mp/add-row (mp/coerce-param [] m) i j k)))
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
