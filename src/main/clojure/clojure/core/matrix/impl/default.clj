@@ -556,10 +556,8 @@
   java.lang.Object
     (swap-rows [m i j]
       (mp/swap-rows (mp/coerce-param [] m) i j))
-  java.lang.Object
     (multiply-row [m i k]
       (mp/multiply-row (mp/coerce-param [] m) i k))
-  java.lang.Object
     (add-row [m i j k]
       (mp/add-row (mp/coerce-param [] m) i j k)))
 
