@@ -587,6 +587,69 @@ of indexes and strides"
                        true))))))
          (mp/matrix-equals a (mp/coerce-param a b))))
 
+  ;; TODO: optimize on smaller arrays
+  ;; TODO: optimize vector-matrix and matrix-vector
+  ;; TODO: optimize when second argument is different
+  ;; TODO: replace messy striding code with macroses
+  ;; TODO: replace stride multiplication with addition
+  ;; (one can use explicit addition of stride instead of (inc i)
+  ;; TODO: implement transposition of argument for faster access
+  ;; TODO: be ready to normalize arguments if they are not in row-major
+  ;; TODO: check bit.ly/16ECque for inspiration
+  ;; TODO: for objects implement zeroing of target array
+  ;; TODO: optimize element-multiply
+  ;; For algorithms see [4]
+
+  mp/PMatrixMultiply
+   (matrix-multiply [m a]
+     (let [mdims ndims
+           adims (int (mp/dimensionality a))]
+       (cond
+        (== adims 0) (mp/scale m a)
+        (and (== mdims 1) (== adims 2))
+        (let [[arows acols] (mp/get-shape a)]
+          (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
+                      [arows]))
+        (and (== mdims 2) (== adims 1))
+        (let [[mrows mcols] (mp/get-shape m)]
+          (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
+                      [mcols]))
+        (and (== mdims 2) (== adims 2))
+        (let [a (if (= (type m) (type a)) a
+                    (mp/coerce-param m a))]
+          (let [mrows (aget shape (int 0))
+                mcols (aget shape (int 1))
+                arows (aget (int-array (.shape ^typename# a)) (int 0))
+                acols (aget (int-array (.shape ^typename# a)) (int 1))
+                ^typename# new-m (mp/new-matrix m mrows acols)
+                ^ints nm-strides (.strides new-m)
+                ^array-tag# nm-data (.data new-m)
+                ^ints a-strides (int-array (.strides ^typename# a))
+                ^array-tag# a-data (.data ^typename# a)
+                a-offset (int (.offset ^typename# a))]
+            (do
+              (c-for [i (int 0) (< i mrows) (inc i)
+                      k (int 0) (< k mcols) (inc k)]
+                     (let [t (aget data
+                                   (+ (+ (* (aget strides (int 0)) i)
+                                         (* (aget strides (int 1)) k))
+                                      offset))]
+                       (c-for [j (int 0) (< j acols) (inc j)]
+                              (let [nm-idx (+ (* (aget nm-strides (int 0)) i)
+                                              (* (aget nm-strides (int 1)) j))]
+                                (aset nm-data nm-idx
+                                      (+ (aget nm-data nm-idx)
+                                         (* t
+                                            (aget a-data
+                                                  (+ (+ (* (aget a-strides (int 0)) k)
+                                                        (* (aget a-strides (int 1)) j))
+                                                     a-offset)))))))))
+              new-m))))))
+   (element-multiply [m a]
+     (if (number? a)
+       (mp/scale m a)
+       (let [[m a] (mp/broadcast-compatible m a)]
+         (mp/element-map m clojure.core/* a))))
 
   mp/PElementCount
     (element-count [m]
@@ -602,72 +665,6 @@ of indexes and strides"
   ;;       (reshape-restride#t m ndims new-shape new-strides offset)))
 
     )
-
-;; TODO: optimize on smaller arrays
-;; TODO: optimize vector-matrix and matrix-vector
-;; TODO: optimize when second argument is different
-;; TODO: replace messy striding code with macroses
-;; TODO: replace stride multiplication with addition
-;; (one can use explicit addition of stride instead of (inc i)
-;; TODO: implement transposition of argument for faster access
-;; TODO: be ready to normalize arguments if they are not in row-major
-;; TODO: check bit.ly/16ECque for inspiration
-;; TODO: for objects implement zeroing of target array
-;; TODO: optimize element-multiply
-;; For algorithms see [4]
-
-(extend-types-magic
- [:double :float]
- mp/PMatrixMultiply
- (matrix-multiply [m a]
-   (let [mdims ndims
-         adims (int (mp/dimensionality a))]
-     (cond
-      (== adims 0) (mp/scale m a)
-      (and (== mdims 1) (== adims 2))
-      (let [[arows acols] (mp/get-shape a)]
-        (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
-                    [arows]))
-      (and (== mdims 2) (== adims 1))
-      (let [[mrows mcols] (mp/get-shape m)]
-        (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
-                    [mcols]))
-      (and (== mdims 2) (== adims 2))
-      (let [a (if (= (type m) (type a)) a
-                  (mp/coerce-param m a))]
-        (let [mrows (aget shape (int 0))
-              mcols (aget shape (int 1))
-              arows (aget (int-array (.shape ^typename# a)) (int 0))
-              acols (aget (int-array (.shape ^typename# a)) (int 1))
-              ^typename# new-m (mp/new-matrix m mrows acols)
-              ^ints nm-strides (.strides new-m)
-              ^array-tag# nm-data (.data new-m)
-              ^ints a-strides (int-array (.strides ^typename# a))
-              ^array-tag# a-data (.data ^typename# a)
-              a-offset (int (.offset ^typename# a))]
-          (do
-            (c-for [i (int 0) (< i mrows) (inc i)
-                    k (int 0) (< k mcols) (inc k)]
-              (let [t (aget data
-                            (+ (+ (* (aget strides (int 0)) i)
-                                  (* (aget strides (int 1)) k))
-                               offset))]
-                (c-for [j (int 0) (< j acols) (inc j)]
-                  (let [nm-idx (+ (* (aget nm-strides (int 0)) i)
-                                  (* (aget nm-strides (int 1)) j))]
-                    (aset nm-data nm-idx
-                          (+ (aget nm-data nm-idx)
-                             (* t
-                                (aget a-data
-                                      (+ (+ (* (aget a-strides (int 0)) k)
-                                            (* (aget a-strides (int 1)) j))
-                                         a-offset)))))))))
-            new-m))))))
- (element-multiply [m a]
-   (if (number? a)
-     (mp/scale m a)
-     (let [[m a] (mp/broadcast-compatible m a)]
-       (mp/element-map m clojure.core/* a)))))
 
 (spit-code-magic)
 
