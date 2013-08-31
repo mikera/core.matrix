@@ -451,8 +451,8 @@
  (defn test-row-operations
    [im]
      (is (e== [0 2] (swap-rows (matrix im [2 0]) 0 1)))
-     (is (e== [2 4 6] (multiply-row (matrix im [1 2 3]) 0 2)))
-     (is (e== [[3 3] [1 1]] (add-row (matrix im [[1 1] [1 1]]) 0 1 2))))
+     (is (e== [2 2 3] (multiply-row (matrix im [1 2 3]) 0 2)))
+     (is (e== [3 1] (add-row (matrix im [1 1]) 0 1 2))))
 
 ;; ======================================
 ;; Main compliance test method
