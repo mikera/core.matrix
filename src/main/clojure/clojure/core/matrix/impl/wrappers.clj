@@ -17,16 +17,18 @@
 (deftype ScalarWrapper [^{:volatile-mutable true} value]
   java.lang.Object
     (toString [m] (str value))
-       
+
   mp/PImplementation
-    (implementation-key [m] 
+    (implementation-key [m]
       :scalar-wrapper)
     ;; we delegate to persistent-vector implementation for new matrices.
-    (new-vector [m length] 
+    (meta-info [m]
+      {:doc "Wraps a single scalar as a mutable 0-D array"})
+    (new-vector [m length]
       (mp/new-vector [] length))
-    (new-matrix [m rows columns] 
+    (new-matrix [m rows columns]
       (mp/new-matrix [] rows columns))
-    (new-matrix-nd [m dims] 
+    (new-matrix-nd [m dims]
       (mp/new-matrix-nd [] dims))
     (construct-matrix [m data]
       (if (== 0 (mp/dimensionality data))
@@ -34,9 +36,9 @@
           (ScalarWrapper. data)
           (ScalarWrapper. (mp/get-0d data)))
         (mp/clone data)))
-    (supports-dimensionality? [m dims] 
+    (supports-dimensionality? [m dims]
       (== dims 0))
-    
+
   mp/PDimensionInfo
     (dimensionality [m]
       0)
@@ -48,7 +50,7 @@
       false)
     (dimension-count [m dimension-number]
       (error "Can't get dimension-count of ScalarWrapper: no dimensions exist"))
-   
+
   mp/PIndexedAccess
     (get-1d [m row]
       (error "Can't get-1d on ScalarWrapper."))
@@ -58,29 +60,29 @@
       (if (seq indexes)
         (error "Can't get-1d on ScalarWrapper.")
         value))
-    
+
   mp/PIndexedSetting
     (set-1d [m x v]
       (error "Can't do 1D set on 0D array"))
     (set-2d [m x y v]
       (error "Can't do 2D set on 0D array"))
     (set-nd [m indexes v]
-      (if (not (seq indexes)) 
+      (if (not (seq indexes))
         (ScalarWrapper. v)
         (error "Can't set on 0D array with dimensionality: " (count indexes))))
     (is-mutable? [m] true)
-    
-  ;; in nested vector format, we don't want the wrapper....  
+
+  ;; in nested vector format, we don't want the wrapper....
   mp/PConversion
     (convert-to-nested-vectors [m]
       value)
-    
+
   mp/PZeroDimensionAccess
     (get-0d [m]
       value)
     (set-0d! [m v]
       (set! value v))
-    
+
   mp/PMatrixCloning
     (clone [m] (ScalarWrapper. value)))
 
@@ -93,22 +95,24 @@
   clojure.lang.Seqable
     (seq [m]
       (mp/get-major-slice-seq m))
-  
+
   mp/PImplementation
-    (implementation-key [m] 
+    (implementation-key [m]
       :slice-wrapper)
     ;; we delegate to persistent-vector implementation for new matrices.
-    (new-vector [m length] 
+    (meta-info [m]
+      {:doc "Wraps a row-major slice of an array"})
+    (new-vector [m length]
       (mp/new-vector [] length))
-    (new-matrix [m rows columns] 
+    (new-matrix [m rows columns]
       (mp/new-matrix [] rows columns))
-    (new-matrix-nd [m dims] 
+    (new-matrix-nd [m dims]
       (mp/new-matrix-nd [] dims))
     (construct-matrix [m data]
       (mp/construct-matrix [] data))
-    (supports-dimensionality? [m dims] 
+    (supports-dimensionality? [m dims]
       true)
-    
+
   mp/PDimensionInfo
     (dimensionality [m]
       (dec (mp/dimensionality array)))
@@ -122,7 +126,7 @@
       (if (< dimension-number 0)
         (error "Can't access negative dimension!")
         (mp/dimension-count array (inc dimension-number))))
-   
+
   mp/PIndexedAccess
     (get-1d [m row]
       (mp/get-2d array slice row))
@@ -130,16 +134,16 @@
       (mp/get-nd array [slice row column]))
     (get-nd [m indexes]
       (mp/get-nd array (cons slice indexes)))
-    
+
   mp/PZeroDimensionAccess
     (get-0d [m]
       (mp/get-1d array slice))
     (set-0d! [m value]
       (mp/set-1d array slice value))
-    
+
   mp/PConversion
     (convert-to-nested-vectors [m]
-      (if (mp/is-vector? array) 
+      (if (mp/is-vector? array)
         (mp/get-1d array slice)
         (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))))
 
@@ -158,7 +162,7 @@
         m))
     (is-mutable? [m]
       (mp/is-mutable? array))
-    
+
   mp/PIndexedSettingMutable
     (set-1d! [m row v]
       (mp/set-2d! array slice row v))
@@ -166,10 +170,10 @@
       (mp/set-nd! array [slice row column] v))
     (set-nd! [m indexes v]
       (mp/set-nd! array (cons slice indexes) v))
-    
+
   mp/PMatrixCloning
     (clone [m] (wrap-slice (mp/clone array) slice))
-    
+
   java.lang.Object
     (toString [m] (str (mp/persistent-vector-coerce m))))
 
@@ -185,7 +189,7 @@
   (let [isym (gensym "i")]
     `(let [~isym ~i
            tdim# (aget ~'dim-map ~isym)]
-       (when (>= tdim# 0) 
+       (when (>= tdim# 0)
          (aset ~ix tdim# (aget ~(vary-meta `(aget ~'index-maps ~isym) assoc :tag 'longs) ~val))))))
 
 (deftype NDWrapper
@@ -197,23 +201,25 @@
    ]
   clojure.lang.Seqable
     (seq [m]
-      (mp/get-major-slice-seq m)) 
-     
+      (mp/get-major-slice-seq m))
+
   mp/PImplementation
-    (implementation-key [m] 
+    (implementation-key [m]
       :nd-wrapper)
     ;; we delegate to persistent-vector implementation for new matrices.
-    (new-vector [m length] 
+    (meta-info [m]
+      {:doc "Wraps an N-dimensional subset or broadcast of an array"})
+    (new-vector [m length]
       (mp/new-vector [] length))
-    (new-matrix [m rows columns] 
+    (new-matrix [m rows columns]
       (mp/new-matrix [] rows columns))
-    (new-matrix-nd [m dims] 
+    (new-matrix-nd [m dims]
       (mp/new-matrix-nd [] dims))
     (construct-matrix [m data]
       (mp/construct-matrix [] data))
-    (supports-dimensionality? [m dims] 
+    (supports-dimensionality? [m dims]
       true)
-    
+
   mp/PIndexedSetting
     (set-1d [m x v]
       (TODO))
@@ -221,8 +227,8 @@
       (TODO))
     (set-nd [m indexes v]
       (TODO))
-    (is-mutable? [m] (mp/is-mutable? array)) 
-    
+    (is-mutable? [m] (mp/is-mutable? array))
+
   mp/PSubVector
     (subvector [m start length]
       (when (not= 1 (alength shape)) (error "Can't take subvector: wrong dimensionality = " (alength shape)))
@@ -241,8 +247,8 @@
           (long-array-of length)
           dim-map
           (object-array-of new-index-map)
-          source-position))) 
-    
+          source-position)))
+
   mp/PDimensionInfo
     (dimensionality [m]
       (alength shape))
@@ -254,13 +260,13 @@
       (== 1 (alength shape)))
     (dimension-count [m dimension-number]
       (aget shape (int dimension-number)))
-    
+
   mp/PZeroDimensionAccess
     (get-0d [m]
       (mp/get-nd array source-position))
     (set-0d! [m value]
       (mp/set-nd array source-position value))
-    
+
   mp/PIndexedAccess
     (get-1d [m row]
       (let [ix (copy-long-array source-position)
@@ -278,13 +284,13 @@
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
         (mp/get-nd array ix)))
-    
-    
+
+
   java.lang.Object
     (toString [m]
       (str (mp/persistent-vector-coerce m))))
 
-(defn wrap-slice 
+(defn wrap-slice
   "Creates a view of a major slice of an array."
   ([m slice]
     (let [slice (long slice)]
@@ -292,16 +298,16 @@
       ;; (assert (> (mp/dimension-count m 0) slice -1))
       (SliceWrapper. m slice))))
 
-(defn wrap-nd 
+(defn wrap-nd
   "Wraps an array in a NDWrapper view. Useful for taking submatrices, subviews etc."
   ([m]
-	  (let [shp (long-array (mp/get-shape m))
-	        dims (alength shp)]
-	    (NDWrapper. m 
-	              shp
-	              (long-range dims)
-	              (object-array (map #(long-range (mp/dimension-count m %)) (range dims)))
-	              (long-array (repeat dims 0))))))
+      (let [shp (long-array (mp/get-shape m))
+            dims (alength shp)]
+        (NDWrapper. m
+                  shp
+                  (long-range dims)
+                  (object-array (map #(long-range (mp/dimension-count m %)) (range dims)))
+                  (long-array (repeat dims 0))))))
 
 (defn wrap-submatrix
   [m dim-ranges]
@@ -310,12 +316,12 @@
         _ (if-not (== dims (count dim-ranges)) (error "submatrix ranges do not match matrix dimensionality"))
         dim-ranges (mapv (fn [a cnt] (if a (vec a) [0 cnt])) dim-ranges shp)
         new-shape (long-array (map (fn [[start len]] len) dim-ranges))]
-    (NDWrapper. 
+    (NDWrapper.
       m
       new-shape
       (long-array (range (count shp)))
-      (object-array 
-        (map (fn [[start len]] (long-array (range start (+ start len)))) 
+      (object-array
+        (map (fn [[start len]] (long-array (range start (+ start len))))
              dim-ranges))
       (long-array (repeat dims 0)))))
 
@@ -334,32 +340,36 @@
       m
       tshape
       dim-map
-      (object-array 
+      (object-array
         (for [i (range tdims)]
           (let [arr (long-array (aget tshape i))
                 mdim (- i (- tdims mdims))]
             (when (>= mdim 0)
               (let [mdc (aget mshape mdim)
-                    tdc (aget tshape i)] 
-                (cond 
+                    tdc (aget tshape i)]
+                (cond
                   (== mdc 1) nil
                   (== mdc tdc) (dotimes [i mdc] (aset arr i i))
-                  :else (error "Can't broadcast shape " (seq mshape) 
+                  :else (error "Can't broadcast shape " (seq mshape)
                                " to target shape " (seq tshape)))))
             arr)))
       (long-array mdims))))
 
-(defn wrap-scalar 
+(defn wrap-scalar
   "Wraps a scalar value into a mutable 0D array."
   ([m]
-	  (cond 
-	    (mp/is-scalar? m)
-	      (ScalarWrapper. m)
-	    :else 
-	      (ScalarWrapper. (mp/get-0d m)))))
+      (cond
+        (mp/is-scalar? m)
+          (ScalarWrapper. m)
+        :else
+          (ScalarWrapper. (mp/get-0d m)))))
 
 (imp/register-implementation (ScalarWrapper. 13))
 
-(imp/register-implementation (NDWrapper. nil nil nil nil nil))
+(imp/register-implementation (NDWrapper. [1]
+                                         (long-array 0)
+                                         (long-array 0)
+                                         (object-array 0)
+                                         (long-array [0])))
 
 (imp/register-implementation (wrap-slice [1 2] 0))

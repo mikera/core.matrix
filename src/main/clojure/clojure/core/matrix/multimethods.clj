@@ -26,7 +26,7 @@
 (derive ::matrix-2x2 ::square-matrix)
 
 ;; specialised 3d matrices
-(derive ::matrix-rotation-3d ::matrix-3x3) 
+(derive ::matrix-rotation-3d ::matrix-3x3)
 
 
 

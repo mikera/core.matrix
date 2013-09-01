@@ -9,12 +9,19 @@
 ;; Mathematical operators defined for matrices and vectors as applicable
 
 (defn *
-  "Matrix multiply operator. Uses the inner product for multiplication."
+  "Matrix multiply operator. Uses elementwise multiplication."
   ([a] a)
   ([a b]
     (m/mul a b))
   ([a b & more]
     (reduce m/mul (m/mul a b) more)))
+
+;; TODO: remove the ^:dynamic once figured out way to stop "not declared dynamic" warning
+(defn ^:dynamic **
+  "Matrix exponent operator. Raises every element in matrix a to the given exponent.
+   Uses clojure.core.matrix/pow."
+  ([a exponent]
+    (m/pow a exponent)))
 
 (defn +
   "Matrix addition operator"
@@ -28,7 +35,7 @@
 
 (defn -
   "Matrix subtraction operator"
-  ([a] a)
+  ([a] (m/negate a))
   ([a b]
     (if (and (number? a) (number? b))
       (clojure.core/- a b)
@@ -38,7 +45,7 @@
 
 (defn /
   "Element-wise matrix division."
-  ([a] a)
+  ([a] (m/div a)) ;; this computes the reciprocal
   ([a b] (m/div a b))
   ([a b & more] (reduce m/div (m/div a b) more)))
 
@@ -47,4 +54,4 @@
   ([] true)
   ([a] true)
   ([a b] (m/equals a b))
-  ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more))) 
+  ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more)))

@@ -1,4 +1,4 @@
-(defproject net.mikera/core.matrix "0.7.2"
+(defproject net.mikera/core.matrix "0.9.0"
   :url "https://github.com/mikera/matrix-api"
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -8,4 +8,9 @@
   :dependencies [[org.clojure/clojure "1.4.0"]]
   :profiles {:dev {:dependencies [[com.google.caliper/caliper "0.5-rc1"]
                                   [net.mikera/cljunit "0.2.0"]
-                                  [criterium/criterium "0.4.1"]]}})
+                                  [criterium/criterium "0.4.1"]
+                                  [hiccup "1.0.3"]
+                                  [net.mikera/vectorz-clj "0.13.2"]
+                                  [reiddraper/simple-check "0.2.1"]]
+                   :source-paths ["src/main/clojure" "src/dev/clojure"]
+                   :jvm-opts ^:replace []}})
