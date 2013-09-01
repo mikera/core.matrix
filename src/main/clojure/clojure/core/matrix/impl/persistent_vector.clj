@@ -284,6 +284,15 @@
       (let [a (mp/get-0d a)]
         (mapmatrix (partial * a) m))))
 
+(extend-protocol mp/PRowOperations
+  clojure.lang.IPersistentVector
+    (swap-rows [m i j]
+      (assoc m j (m i) i (m j)))
+    (multiply-row [m i k]
+      (assoc m i (mp/matrix-multiply (m i) k)))
+    (add-row [m i j k]
+      (assoc m i (mp/matrix-add (m i) (mp/matrix-multiply (m j) k)))))
+
 ;; helper functin to build generic maths operations
 (defn build-maths-function
   ([[name func]]
