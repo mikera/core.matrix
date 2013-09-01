@@ -915,6 +915,25 @@
                 ~'m))) mops/maths-ops))
        )
 
+;; ==================================
+;; Elementary row operations
+;;
+
+(defn swap-rows
+  "Swap row i with row j"
+  [m i j]
+  (mp/swap-rows m i j))
+
+(defn multiply-row
+  "Multiply row i by constant k"
+  [m i k]
+  (mp/multiply-row m i k))
+
+(defn add-row
+  "Add a row j times constant k to a row i and replace i"
+  [m i j k]
+  (mp/add-row m i j k))
+
 ;; ===================================
 ;; Linear algebra algorithms
 ;;
@@ -1124,3 +1143,4 @@
   ([m]
     (alter-var-root (var clojure.core.matrix/*matrix-implementation*)
                     (fn [_] (imp/get-implementation-key m)))))
+

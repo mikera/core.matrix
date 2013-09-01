@@ -141,6 +141,18 @@
   (testing "nested sequences"
     (is (= [[1 2] [3 4]] (coerce [] '((1 2) (3 4)))))))
 
+(deftest test-row-operations
+    (testing "vector row swap"
+      (is (= (matrix [0 2]) (swap-rows (matrix [2 0]) 0 1)))
+      (is (= (matrix [0 2]) (swap-rows (matrix [2 0]) 1 0))))
+    (testing "matrix row swap"
+      (is (= (matrix [[0 2] [2 0]]) (swap-rows (matrix [[2 0] [0 2]]) 0 1)))
+      (is (= (matrix [[0 2] [2 0] [1 1]]) (swap-rows (matrix [[1 1] [2 0] [0 2]]) 0 2))))
+    (testing "multiply row i by constant k"
+      (is (= (matrix [[0 2 4]]) (multiply-row (matrix [[0 1 2]]) 0 2))))
+    (testing "add row j to i and replace i with the result"
+      (is (= (matrix [[3 3] [1 1]]) (add-row (matrix [[1 1] [1 1]]) 0 1 2)))))
+
 ;; run complicance tests
 
 (deftest instance-tests
