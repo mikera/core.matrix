@@ -541,7 +541,7 @@ of indexes and strides"
   ;; TODO: make it work faster for higher dims
   mp/PMatrixEquality
     (matrix-equals [a b]
-      (if (= (type b) typename#)
+      (if (instance? typename# b)
          ;; Fast path, types are same
          (let [^typename# b b
                ^ints shape-b (.shape b)
