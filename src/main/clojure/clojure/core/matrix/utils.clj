@@ -31,12 +31,16 @@
 (defmacro TODO
   ([] `(error "TODO: not yet implemented")))
 
+(defmacro iae
+  "Throws IllegalArgumentException with provided string"
+  [exception-str]
+  `(throw (IllegalArgumentException. ~exception-str)))
+
 (defmacro iae-when-not
   "Throws an IllegalArgumentException when the predicate is not satisfied"
   [pred? exception-str]
   `(when-not ~pred?
-     (throw (IllegalArgumentException.
-             ~exception-str))))
+     (iae ~exception-str)))
 
 (defn valid-shape?
   "returns true if the given object is a valid core.matrix array shape."

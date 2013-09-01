@@ -103,6 +103,41 @@ of indexes and strides"
 
 (defmacro id-macro [x] x)
 
+(defn unroll-predicate
+  [pred xs]
+  (case (count xs)
+    0 true
+    1 true
+    2 `(~pred ~(first xs) ~(second xs))
+    `(and (~pred ~(first xs) ~(second xs))
+          ~(unroll-predicate pred (rest xs)))))
+
+;; TODO: use binding to ensure that it's inside magic
+;; TODO: more docs here
+(defmacro loop-over
+  "Helper macro for iterating over NDArray (or NDArrays) in efficient manner.
+   Assumes that it's inside `with-magic` and all operands are of the same
+   type (current 'magic' type) and shape; striding schemes can be different.
+   Matrices argument should be a list of locals"
+  [matrices init & body]
+  (let [field (fn [m-name field-name]
+                (symbol (str m-name "-" field-name)))
+        typed-field (fn [m-name field-name type-name]
+                      (with-meta (field m-name field-name) {:tag type-name}))
+        bindings (mapcat (fn [m]
+                           `[~(with-meta m {:tag 'typename#}) ~m
+                             ~(typed-field m 'shape 'ints) (.shape ~m)
+                             ~(typed-field m 'data 'array-tag#) (.data ~m)
+                             ~(typed-field m 'strides 'ints) (.strides ~m)
+                             ~(field m 'offset) (.offset ~m)
+                             ~(field m 'ndims) (.ndims ~m)])
+                         matrices)]
+    `(let [~@bindings]
+       (if-not ~(unroll-predicate 'java.util.Arrays/equals
+                                  (map #(field % 'shape) matrices))
+         (iae "loop-over can iterate only over matrices of equal shape")
+         ~@body))))
+
 (init-magic
  {:object {:regname :ndarray
            :fn-suffix nil
@@ -364,7 +399,7 @@ of indexes and strides"
 
 ;; ## Mandatory protocols for mutable matrix implementations
 ;;
-;; In this section, protocols that help to work with mutable matrixes are
+;; In this section, protocols that help to work with mutable matrices are
 ;; defined. It is worth noting that in the previous section, namely
 ;; PIndexedSetting protocol implementation, we used mutative operations,
 ;; therefore this section is required for previous section to work.
@@ -533,14 +568,16 @@ of indexes and strides"
 
   ;; Macro API:
   ;; #_(loop-over [a b] true
-  ;;              (if (== a-el b-el) (continue true) (break false)))
+  ;;     (if (== a-el b-el) (continue true) (break false)))
   ;; #_(loop-over [a b c] nil
-  ;;              (aset c c-idx (+ (aget a a-idx) (aget b b-idx)))
-  ;;              (continue nil))
+  ;;     (aset c c-idx (+ (aget a a-idx) (aget b b-idx)))
+  ;;     (continue nil))
 
-  ;; TODO: make it work faster for higher dims
+  ;; TODO: make it work for higher dims
   mp/PMatrixEquality
     (matrix-equals [a b]
+      #_(loop-over [a b] nil
+        (prn *magic-replaces* (vec a-strides) (vec b-strides) (meta a)))
       (if (instance? typename# b)
          ;; Fast path, types are same
          (let [^typename# b b
