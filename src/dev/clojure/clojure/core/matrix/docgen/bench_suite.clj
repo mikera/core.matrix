@@ -23,7 +23,7 @@
 
 ;; # Benchmarks
 
-(defn defbench [method varying to-convert
+(defn defbench-fun [method varying to-convert
                 & bench-pairs]
   (let [bench-sets (->> bench-pairs
                         (partition 2)
@@ -37,16 +37,74 @@
              :varying varying
              :to-convert to-convert))))
 
-(defbench :matrix-multiply
+(defmacro defbench [method varying to-convert & bench-pairs]
+  (let [lazy-bench-pairs (->> bench-pairs
+                              (partition 2)
+                              (mapcat (fn [[k v]] [k `(delay ~v)]))
+                              (concat))]
+    `(defbench-fun ~method ~varying ~to-convert ~@lazy-bench-pairs)))
+
+(defbench :construct-matrix
   "2d matrix sizes (5, 50, 500)"
-  #{0 1}
-  [:vectorz :ndarray-double]
-  {:s [(rand-mtx 5)   (rand-mtx 5)]
-   :m [(rand-mtx 50)  (rand-mtx 50)]
-   :l [(rand-mtx 500) (rand-mtx 500)]}
-  [:vecs :ndarray]
-  {:s [(rand-mtx 5)  (rand-mtx 5)]
-   :m [(rand-mtx 50) (rand-mtx 50)]})
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 1) (rand-mtx 5)]
+   :m [(rand-mtx 1) (rand-mtx 50)]
+   :l [(rand-mtx 1) (rand-mtx 500)]})
+
+(defbench :new-vector
+  "size of constructed vector (5, 500, 500000)"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 1) 5]
+   :m [(rand-mtx 1) 500]
+   :l [(rand-mtx 1) 500000]})
+
+(defbench :new-matrix
+  "size of constructed matrix (5, 50, 500)"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 1) 5   5]
+   :m [(rand-mtx 1) 50  50]
+   :l [(rand-mtx 1) 500 500]})
+
+(defbench :new-matrix-nd
+  "size of constructed 3d array (3, 20, 100)"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 1) [3   3   3]]
+   :m [(rand-mtx 1) [20  20  20]]
+   :l [(rand-mtx 1) [100 100 100]]})
+
+(defbench :dimensionality
+  "nothing"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 3)]})
+
+(defbench :get-shape
+  "nothing"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 3)]})
+
+(defbench :is-scalar?
+  "nothing"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 3)]})
+
+(defbench :is-vector?
+  "nothing"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 3)]})
+
+(defbench :dimension-count
+  "nothing"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 3) 1]})
 
 (defbench :clone
   "2d matrix sizes (5, 50, 500)"
@@ -151,7 +209,7 @@
 (defbench :set-0d!
   "nothing"
   #{0}
-  [:vectorz :ndarray :ndarray-double]
+  [:ndarray :ndarray-double]
   {:s [42 13]})
 
 (defbench :set-0d
@@ -168,7 +226,7 @@
    :m [(rand-mtx 1) 50]
    :l [(rand-mtx 1) 500]})
 
-(defbench :identity-matrix
+(defbench :diagonal-matrix
   "size of requested matrix (5, 50, 500)"
   #{0}
   [:vectorz :vecs :ndarray :ndarray-double]
@@ -211,10 +269,13 @@
 (defbench :reshape
   "size of matrix that is reshaped to vector (5, 50, 500)"
   #{0}
-  [:vectorz :vecs :ndarray :ndarray-double]
-  {:s [(rand-mtx 5)   (* 5 5)]
-   :m [(rand-mtx 50)  (* 50 50)]
-   :l [(rand-mtx 500) (* 500 500)]})
+  [:vectorz]
+  {:s [(rand-mtx 5)   [(* 5 5)]]
+   :m [(rand-mtx 50)  [(* 50 50)]]
+   :l [(rand-mtx 500) [(* 500 500)]]}
+  [:vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   [(* 5 5)]]
+   :m [(rand-mtx 50)  [(* 50 50)]]})
 
 (defbench :get-row
   "size of matrix that is sliced (5, 50, 500)"
@@ -288,4 +349,244 @@
    :m [(rand-mtx 50)]
    :l [(rand-mtx 500)]})
 
-(def noop nil)
+(defbench :assign!
+  "size of matrix (5, 50, 500)"
+  #{0}
+  [:vectorz :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)    (rand-vec 5)]
+   :m [(rand-mtx 50)   (rand-vec 50)]
+   :l [(rand-mtx 500)  (rand-vec 500)]})
+
+(defbench :fill!
+  "size of matrix (5, 50, 500)"
+  #{0}
+  [:vectorz :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)    42]
+   :m [(rand-mtx 50)   42]
+   :l [(rand-mtx 500)  42]})
+
+(defbench :matrix-equals
+  "size of matrix (5, 50, 500)"
+  #{0 1}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s (let [m (rand-mtx 5)]   [m m])
+   :m (let [m (rand-mtx 50)]  [m m])
+   :l (let [m (rand-mtx 500)] [m m])})
+
+(defbench :matrix-multiply
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1}
+  [:vectorz :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   (rand-mtx 5)]
+   :m [(rand-mtx 50)  (rand-mtx 50)]
+   :l [(rand-mtx 500) (rand-mtx 500)]}
+  [:vecs]
+  {:s [(rand-mtx 5)  (rand-mtx 5)]
+   :m [(rand-mtx 50) (rand-mtx 50)]})
+
+(defbench :element-multiply
+  "size of matrix (5, 50, 500)"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)    2]
+   :m [(rand-mtx 50)   2]
+   :l [(rand-mtx 500)  2]})
+
+(defbench :inner-product
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1}
+  [:vectorz]
+  {:s [(rand-mtx 5)   (rand-mtx 5)]
+   :m [(rand-mtx 50)  (rand-mtx 50)]
+   :l [(rand-mtx 500) (rand-mtx 500)]}
+  [:vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  (rand-mtx 5)]
+   :m [(rand-mtx 50) (rand-mtx 50)]})
+
+(defbench :outer-product
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  (rand-mtx 5)]})
+
+(defbench :add-product
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1 2}
+  [:vectorz]
+  {:s [(rand-mtx 5)   (rand-mtx 5)   (rand-mtx 5)]
+   :m [(rand-mtx 50)  (rand-mtx 50)  (rand-mtx 50)]
+   :l [(rand-mtx 500) (rand-mtx 500) (rand-mtx 500)]}
+  [:vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  (rand-mtx 5)  (rand-mtx 5)]
+   :m [(rand-mtx 50) (rand-mtx 50) (rand-mtx 50)]})
+
+(defbench :add-product!
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1 2}
+  [:vectorz]
+  {:s [(rand-mtx 5)   (rand-mtx 5)   (rand-mtx 5)]
+   :m [(rand-mtx 50)  (rand-mtx 50)  (rand-mtx 50)]
+   :l [(rand-mtx 500) (rand-mtx 500) (rand-mtx 500)]}
+  [:ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  (rand-mtx 5)  (rand-mtx 5)]
+   :m [(rand-mtx 50) (rand-mtx 50) (rand-mtx 50)]})
+
+(defbench :add-scaled-product
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1 2}
+  [:vectorz]
+  {:s [(rand-mtx 5)   (rand-mtx 5)   (rand-mtx 5)   42]
+   :m [(rand-mtx 50)  (rand-mtx 50)  (rand-mtx 50)  42]
+   :l [(rand-mtx 500) (rand-mtx 500) (rand-mtx 500) 42]}
+  [:vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  (rand-mtx 5)  (rand-mtx 5)  42]
+   :m [(rand-mtx 50) (rand-mtx 50) (rand-mtx 50) 42]})
+
+(defbench :add-scaled-product!
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1 2}
+  [:vectorz]
+  {:s [(rand-mtx 5)   (rand-mtx 5)   (rand-mtx 5)   42]
+   :m [(rand-mtx 50)  (rand-mtx 50)  (rand-mtx 50)  42]
+   :l [(rand-mtx 500) (rand-mtx 500) (rand-mtx 500) 42]}
+  [:ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  (rand-mtx 5)  (rand-mtx 5)  42]
+   :m [(rand-mtx 50) (rand-mtx 50) (rand-mtx 50) 42]})
+
+(defbench :add-scaled
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1}
+  [:vectorz]
+  {:s [(rand-mtx 5)   (rand-mtx 5)   42]
+   :m [(rand-mtx 50)  (rand-mtx 50)  42]
+   :l [(rand-mtx 500) (rand-mtx 500) 42]}
+  [:vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  (rand-mtx 5)  42]
+   :m [(rand-mtx 50) (rand-mtx 50) 42]})
+
+(defbench :add-scaled!
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1}
+  [:vectorz]
+  {:s [(rand-mtx 5)   (rand-mtx 5)   42]
+   :m [(rand-mtx 50)  (rand-mtx 50)  42]
+   :l [(rand-mtx 500) (rand-mtx 500) 42]}
+  [:ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  (rand-mtx 5)  42]
+   :m [(rand-mtx 50) (rand-mtx 50) 42]})
+
+(defbench :element-divide
+  "2d matrix sizes (5, 50, 500)"
+  #{0}
+  [:vectorz]
+  {:s [(rand-mtx 5)   42]
+   :m [(rand-mtx 50)  42]
+   :l [(rand-mtx 500) 42]}
+  [:vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  42]
+   :m [(rand-mtx 50) 42]})
+
+(defbench :matrix-multiply!
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1}
+  [:vectorz]
+  {:s [(rand-mtx 5)   (rand-mtx 5)]
+   :m [(rand-mtx 50)  (rand-mtx 50)]
+   :l [(rand-mtx 500) (rand-mtx 500)]}
+  [:ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  (rand-mtx 5)]
+   :m [(rand-mtx 50) (rand-mtx 50)]})
+
+(defbench :element-multiply!
+  "size of matrix (5, 50, 500)"
+  #{0}
+  [:vectorz]
+  {:s [(rand-mtx 5)    2]
+   :m [(rand-mtx 50)   2]
+   :l [(rand-mtx 500)  2]}
+  [:ndarray-double]
+  {:s [(rand-mtx 5)    2]
+   :m [(rand-mtx 50)   2]})
+
+(defbench :scale
+  "2d matrix sizes (5, 50, 500)"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   42]
+   :m [(rand-mtx 50)  42]
+   :l [(rand-mtx 500) 42]})
+
+(defbench :pre-scale
+  "2d matrix sizes (5, 50, 500)"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   42]
+   :m [(rand-mtx 50)  42]
+   :l [(rand-mtx 500) 42]})
+
+(defbench :scale!
+  "2d matrix sizes (5, 50, 500)"
+  #{0}
+  [:vectorz :ndarray-double]
+  {:s [(rand-mtx 5)   42]
+   :m [(rand-mtx 50)  42]
+   :l [(rand-mtx 500) 42]})
+
+(defbench :pre-scale!
+  "2d matrix sizes (5, 50, 500)"
+  #{0}
+  [:vectorz :ndarray-double]
+  {:s [(rand-mtx 5)   42]
+   :m [(rand-mtx 50)  42]
+   :l [(rand-mtx 500) 42]})
+
+(defbench :matrix-add
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   (rand-mtx 5)]
+   :m [(rand-mtx 50)  (rand-mtx 50)]
+   :l [(rand-mtx 500) (rand-mtx 500)]})
+
+(defbench :matrix-sub
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   (rand-mtx 5)]
+   :m [(rand-mtx 50)  (rand-mtx 50)]
+   :l [(rand-mtx 500) (rand-mtx 500)]})
+
+(defbench :matrix-add!
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1}
+  [:vectorz :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)   (rand-mtx 5)]
+   :m [(rand-mtx 50)  (rand-mtx 50)]
+   :l [(rand-mtx 500) (rand-mtx 500)]})
+
+(defbench :matrix-sub!
+  "2d matrix sizes (5, 50, 500)"
+  #{0 1}
+  [:vectorz]
+  {:s [(rand-mtx 5)   (rand-mtx 5)]
+   :m [(rand-mtx 50)  (rand-mtx 50)]
+   :l [(rand-mtx 500) (rand-mtx 500)]}
+  [:ndarray :ndarray-double]
+  {:s [(rand-mtx 5)  (rand-mtx 5)]
+   :m [(rand-mtx 50) (rand-mtx 50)]})
+
+(defbench :transpose
+  "2d matrix sizes (5, 50, 500)"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)]
+   :m [(rand-mtx 50)]
+   :l [(rand-mtx 500)]})
+
+(defbench :numerical?
+  "2d matrix sizes (5, 50, 500)"
+  #{0}
+  [:vectorz :vecs :ndarray :ndarray-double]
+  {:s [(rand-mtx 5)]
+   :m [(rand-mtx 50)]
+   :l [(rand-mtx 500)]})

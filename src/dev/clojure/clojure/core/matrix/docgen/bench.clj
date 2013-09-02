@@ -187,11 +187,8 @@
         (into {} (for [[size args-raw] bench
                        :let [args (args-prepare constructor args-raw)
                              bench-call (construct-bench-call f 'dyn-args args)]]
-                   [size (->> (binding [dyn-args args] (eval bench-call))
-                              :mean
-                              first)]))
-        #_(into {} (for [[size args] arg-sets]
-                   [size (->> (cr/quick-benchmark (apply f args) {})
+                   [size (->> (binding [dyn-args args]
+                                (eval bench-call))
                               :mean
                               first)]))))))
 
@@ -201,12 +198,13 @@
             :let [f-name-kw (keyword f-name)]]
       (doseq [[a-type a-info] array-types]
         (when-let [bench (-> @benches f-name-kw a-type)]
-          (println "benchmarking" f-name "on" (name a-type))
-          (swap! bench-results assoc-in [f-name-kw a-type]
-                 (make-bench f-name
-                             a-type
-                             (-> @benches f-name-kw :to-convert)
-                             bench))))))
+          (when-not (-> @bench-results f-name-kw a-type)
+            (println "benchmarking" f-name "on" (name a-type))
+            (swap! bench-results assoc-in [f-name-kw a-type]
+                   (make-bench f-name
+                               a-type
+                               (-> @benches f-name-kw :to-convert)
+                               (force bench))))))))
   :ok)
 
 (defn dump-bench-results
