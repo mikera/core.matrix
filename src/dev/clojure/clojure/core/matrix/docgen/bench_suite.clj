@@ -189,7 +189,7 @@
 (defbench :mutable-matrix
   "2d matrix size (5, 50, 500)"
   #{0}
-  [:vectorz :vecs :ndarray :ndarray-double]
+  [:vectorz :ndarray :ndarray-double]
   {:s [(rand-mtx 5)]
    :m [(rand-mtx 50)]
    :l [(rand-mtx 500)]})
