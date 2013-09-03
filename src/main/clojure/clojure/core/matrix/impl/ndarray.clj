@@ -114,29 +114,71 @@ of indexes and strides"
 
 ;; TODO: use binding to ensure that it's inside magic
 ;; TODO: more docs here
+;; TODO: row&column are same for all matrices!
+;; TODO: introduce macro for current element retrieval
+;; TODO: there is no way to introduce primitive accumulator now, it should
+;;       be possible to use "magic vars" there
 (defmacro loop-over
   "Helper macro for iterating over NDArray (or NDArrays) in efficient manner.
    Assumes that it's inside `with-magic` and all operands are of the same
    type (current 'magic' type) and shape; striding schemes can be different.
-   Matrices argument should be a list of locals"
-  [matrices init & body]
-  (let [field (fn [m-name field-name]
+   Matrices argument should be a list of locals. Anaphoric arguments that
+   can be used in a body given that [a, b] are provided: a-shape, b-shape,
+   a-data, b-data, a-strides, b-strides, a-offset, b-offset, a-ndims, b-ndims,
+   a-idx (current index into a-data), a-i and b-i (if a and b are vectors;
+   indexes inside vectors represented by a and b), a-row, b-row, a-col, b-col
+   (if a and b are matrices); for higher dimensions only a-idx and b-idx will
+   be available; a-step b-step"
+  [matrices init body]
+  (let [suffixed (fn [m-name field-name]
                 (symbol (str m-name "-" field-name)))
         typed-field (fn [m-name field-name type-name]
-                      (with-meta (field m-name field-name) {:tag type-name}))
+                      (with-meta (suffixed m-name field-name) {:tag type-name}))
         bindings (mapcat (fn [m]
                            `[~(with-meta m {:tag 'typename#}) ~m
                              ~(typed-field m 'shape 'ints) (.shape ~m)
                              ~(typed-field m 'data 'array-tag#) (.data ~m)
                              ~(typed-field m 'strides 'ints) (.strides ~m)
-                             ~(field m 'offset) (.offset ~m)
-                             ~(field m 'ndims) (.ndims ~m)])
+                             ~(suffixed m 'offset) (.offset ~m)
+                             ~(suffixed m 'ndims) (.ndims ~m)])
                          matrices)]
     `(let [~@bindings]
        (if-not ~(unroll-predicate 'java.util.Arrays/equals
-                                  (map #(field % 'shape) matrices))
+                                  (map #(suffixed % 'shape) matrices))
          (iae "loop-over can iterate only over matrices of equal shape")
-         ~@body))))
+         (case ~(suffixed (first matrices) 'ndims)
+           0 (TODO)
+           1 (let [~@(mapcat (fn [m] [(suffixed m 'step)
+                                      `(aget ~(suffixed m 'strides) 0)])
+                             matrices)
+                   end# (+ ~(suffixed (first matrices) 'offset)
+                           (* (aget ~(suffixed (first matrices) 'shape) 0)
+                              ~(suffixed (first matrices) 'step)))]
+               (loop [~@(mapcat (fn [m] [(suffixed m 'idx)
+                                         (suffixed m 'offset)])
+                                matrices)
+                      ~'acc ~init]
+                 (if (< ~(suffixed (first matrices) 'idx) end#)
+                   ~(clojure.walk/prewalk
+                     (fn [form]
+                       (if (seq? form)
+                         (if-let [op (first form)]
+                           (case op
+                             break (second form)
+                             continue
+                             `(recur ~@(mapcat
+                                        (fn [m] [`(+ ~(suffixed m 'idx)
+                                                     ~(suffixed m 'step))])
+                                        matrices)
+                                     ~(second form))
+                             form)
+                           form)
+                         form))
+                     body)
+                   ~'acc)))
+           2 (TODO)
+           (TODO))
+         #_~@body))))
 
 (init-magic
  {:object {:regname :ndarray
@@ -576,8 +618,10 @@ of indexes and strides"
   ;; TODO: make it work for higher dims
   mp/PMatrixEquality
     (matrix-equals [a b]
-      #_(loop-over [a b] nil
-        (prn *magic-replaces* (vec a-strides) (vec b-strides) (meta a)))
+      #_(prn
+       (loop-over
+        [a b] (int 0)
+        (continue (+ acc (* (aget a-data a-idx) (aget b-data b-idx))))))
       (if (instance? typename# b)
          ;; Fast path, types are same
          (let [^typename# b b
