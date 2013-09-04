@@ -118,7 +118,7 @@ of indexes and strides"
 ;; TODO: introduce macro for current element retrieval
 ;; TODO: there is no way to introduce primitive accumulator now, it should
 ;;       be possible to use "magic vars" there
-(defmacro loop-over
+#_(defmacro loop-over
   "Helper macro for iterating over NDArray (or NDArrays) in efficient manner.
    Assumes that it's inside `with-magic` and all operands are of the same
    type (current 'magic' type) and shape; striding schemes can be different.
@@ -711,20 +711,20 @@ of indexes and strides"
             (do
               (c-for [i (int 0) (< i mrows) (inc i)
                       k (int 0) (< k mcols) (inc k)]
-                     (let [t (aget data
-                                   (+ (+ (* (aget strides (int 0)) i)
-                                         (* (aget strides (int 1)) k))
-                                      offset))]
-                       (c-for [j (int 0) (< j acols) (inc j)]
-                              (let [nm-idx (+ (* (aget nm-strides (int 0)) i)
-                                              (* (aget nm-strides (int 1)) j))]
-                                (aset nm-data nm-idx
-                                      (+ (aget nm-data nm-idx)
-                                         (* t
-                                            (aget a-data
-                                                  (+ (+ (* (aget a-strides (int 0)) k)
-                                                        (* (aget a-strides (int 1)) j))
-                                                     a-offset)))))))))
+                (let [t (aget data
+                              (+ (+ (* (aget strides (int 0)) i)
+                                    (* (aget strides (int 1)) k))
+                                 offset))]
+                  (c-for [j (int 0) (< j acols) (inc j)]
+                    (let [nm-idx (+ (* (aget nm-strides (int 0)) i)
+                                    (* (aget nm-strides (int 1)) j))]
+                      (aset nm-data nm-idx
+                            (+ (aget nm-data nm-idx)
+                               (* t
+                                  (aget a-data
+                                        (+ (+ (* (aget a-strides (int 0)) k)
+                                              (* (aget a-strides (int 1)) j))
+                                           a-offset)))))))))
               new-m))))))
    (element-multiply [m a]
      (if (number? a)

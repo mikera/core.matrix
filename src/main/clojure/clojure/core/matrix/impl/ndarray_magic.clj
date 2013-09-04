@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.impl.ndarray-magic
+  (:use clojure.tools.macro)
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
   (:use clojure.core.matrix.impl.ndarray-magic)
@@ -96,3 +97,39 @@
      ~@(map (fn [t] `(imp/register-implementation
                       (~(add-fn-suffix t 'empty-ndarray) [1])))
             (keys type-table-magic))))
+
+(def spec-map
+  {:int {:type 'ints}})
+
+(defmacro specialize [type & body]
+  `(symbol-macrolet [~'type$ ~(-> spec-map type :type)]
+     ~(w/postwalk
+       (fn [form]
+         (if-let [tag (-> form meta :tag)]
+           (if (= tag 'type$)
+             (with-meta form {:tag (-> spec-map type :type)})
+             form)
+           form))
+       (mexpand-all `(do ~@body)))))
+
+(defmacro caster [x]
+  `(~'type$ ~x))
+
+(defmacro looper [& body]
+  `(macrolet [(~'continue [x#] `(prn "continue" ~x#))
+              (~'break [x#] `(prn "break" ~x#))]
+      ~@body))
+
+(specialize :int
+ (defn test-getter [x]
+   (let [^type$ x x]
+     (prn "my type" type$)
+     (caster x)
+     (looper (if (> (aget x 0) 1) (continue 3) (break 4)))
+     (aget x 0)))
+
+ (defn test-setter [x]
+   (let [^type$ x x]
+     (prn "my type" type$)
+     (caster x)
+     (aset x 0 13))))
