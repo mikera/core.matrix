@@ -511,6 +511,16 @@
     [m f init]
     "Reduces with the function f over all elements of m."))
 
+
+(defprotocol PMatrixPredicates
+  "Protocol for matrix predicates like identity-matrix? or zero-matrix?"
+  (identity-matrix?
+    [m]
+    "returns true if the matrix m is an identity-matrix")
+  (zero-matrix?
+    [m]
+    "returns true if all the elements of matrix m are zeros"))
+
 ;; ============================================================
 ;; Generic values and functions
 ;;

@@ -958,6 +958,34 @@
                  (assoc zs i (nth diagonal-values i))))]
         (mp/coerce-param m dm))))
 
+(extend-protocol mp/PMatrixPredicates
+  java.lang.Object
+  (identity-matrix? [m]
+    (let [rc (mp/dimension-count m 0)
+          cc (mp/dimension-count m 1)]
+      (if (== rc cc)
+        (loop [i (long 0)]
+          (if (< i rc)
+            (if (loop [j (long 0)]
+                  (if (< j cc)
+                    (let [elem (mp/get-2d m i j)]
+                      (if (nil? elem)
+                        false
+                        (if (== i j)
+                          (if (== elem 1) (recur (inc j)) false)
+                          (if (== elem 0) (recur (inc j)) false))))
+                    true))
+              (recur (inc i))
+              false)
+            true))
+        false)))
+  (zero-matrix? [m]
+    (every? #(and (not (nil? %)) (zero? %)) (mp/element-seq m)))
+  nil
+  (identity-matrix? [m] false)
+  (zero-matrix? [m] false))
+                  
+
 ;; =======================================================
 ;; default multimethod implementations
 

@@ -278,6 +278,16 @@
   [m]
   (== 0 (mp/dimensionality m)))
 
+(defn identity-matrix?
+  "Returns true if the parameter is an identity-matrix"
+  [m]
+  (mp/identity-matrix? m))
+
+(defn zero-matrix?
+  "Returns true if all the elements of the parameter are zeros"
+  [m]
+  (mp/zero-matrix? m))
+
 (defn element-type
   "Returns the class of elements that can be in the array. For example, a numerical array may return
    the class java.lang.Double."
