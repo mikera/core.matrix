@@ -400,11 +400,22 @@
   (is (equals (esum m) (ereduce + m)))
   (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m))))))
 
+(defn test-numeric-matrix-predicates [m]
+  (when (and (matrix? m) (= 2 (dimensionality m)))
+    (is (zero-matrix? (new-matrix m 10 10)))
+    (is (identity-matrix? (identity-matrix m 5)))
+    (is (not (identity-matrix? (array m [[2 0][0 1]]))))
+    (is (not (zero-matrix? (array m [[0 0][0 1]]))))
+    (is (identity-matrix? (array m [[1.0 0.0][0.0 1.0]])))
+    (is (zero-matrix? (array m [[0.0]])))
+    (is (not (identity-matrix? (array m [[1.0 0.0]]))))))
+  
 (defn test-numeric-instance [m]
   (is (numerical? m))
-;  (test-generic-numerical-assumptions m)
+ ; (test-generic-numerical-assumptions m)
   (numeric-scalar-tests m)
-  (misc-numeric-tests m))
+  (misc-numeric-tests m)
+  (test-numeric-matrix-predicates m))
 
 ;; ========================================
 ;; 1D vector tests
