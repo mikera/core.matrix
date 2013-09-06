@@ -2,7 +2,6 @@
   (:use clojure.tools.macro)
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
-  (:use clojure.core.matrix.impl.ndarray-magic)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.multimethods :as mm])
@@ -15,85 +14,168 @@
   (def deftypes-magic (atom {}))
   (def defns-magic (atom {})))
 
-(defn form-replaces [extra-parts t]
-  (->> (merge (type-table-magic t) (extra-parts t))
-       (map (juxt #(-> % key name (str "#") symbol) val))
-       (into {})))
+(defn magic-symbol [sym]
+  (symbol (str "$" sym "$")))
 
-;; TODO: document symbol replacement and #t fn-suffix addition
+(defn replace-meta [smap form]
+  (if-let [m (meta form)]
+    (let [new-meta (w/postwalk-replace smap m)]
+      (with-meta form new-meta))
+    form))
 
-(defn add-fn-suffix [t s]
-  (if-let [suffix (->> t type-table-magic :fn-suffix)]
-    (->> suffix name (str s "-") symbol)
-    (symbol s)))
+(defn replace-with-meta [smap form]
+  (if-let [new-form (get smap form)]
+    (if-let [m (meta form)]
+      (replace-meta smap (with-meta new-form m))
+      new-form)
+    form))
 
-(defn handle-symbol [t replaces s]
-  (let [new-s (or (replaces s)
-                  (if (.endsWith (name s) "#t")
-                    (->> s name (drop-last 2) (apply str) (add-fn-suffix t))
-                    s))]
-    (if-let [m (meta s)]
-      (with-meta new-s
-        (w/postwalk-replace replaces m))
-      new-s)))
+(defn add-sym-suffix
+  "Adds a suffix to symbol; returns an original symbol if suffix is nil"
+  [sym suffix]
+  (if suffix
+    (symbol (str sym "-" suffix))
+    sym))
 
-;; TODO: fix this dirty hack (!)
-(defn handle-forms [t replaces form]
-  (w/postwalk
-   (fn [x] (if (symbol? x) (handle-symbol t replaces x)
-               ;; this is dirty
-               (if (and (list? x) (#{'loop-over} (first x)))
-                 (handle-forms t replaces (macroexpand-1 x))
-                 x)))
-   form))
+(defn rename-suffixed
+  "If provided form is a symbol of the form `$foo$t`, returns it as
+   foo-SUFFIX, preserving metadata; if it's not, returns an original form"
+  [form suffix]
+  (if (symbol? form)
+    (if-let [[_ sym-str] #_(re-find #"\$(\w+)\$t$" (str form))
+             (re-find #"\$(\w+)-suffixed\$$" (str form))]
+      (with-meta (add-sym-suffix (symbol sym-str) suffix) (meta form))
+      form)
+    form))
 
-(defn handle-defn-form [t replaces [_ fn-name & _ :as form]]
-  (let [new-fn-name (add-fn-suffix t fn-name)
-        new-replaces (assoc replaces fn-name new-fn-name)]
-    (w/postwalk
-     (fn [x]
-       (if (symbol? x) (handle-symbol t new-replaces x)
-                 x))
-     [new-fn-name form])))
+(defn expand-deftypes [form]
+  (if (seq? form)
+    (case (first form)
+      deftype form #_(macroexpand-1 form)
+      form)
+    form))
 
-(defmacro with-magic
-  ([types form] `(with-magic ~types {} ~form))
-  ([types extra-parts form]
-     (doseq [t types
-             :let [replaces (form-replaces extra-parts t)]]
-       (when-not (type-table-magic t)
-         (throw (IllegalArgumentException.
-                 (str "there is no type " (name t) " in init-magic"))))
-       (case (first form)
-         deftype (swap! deftypes-magic assoc t
-                        (handle-forms t replaces form))
-         defn (swap! defns-magic conj
-                     (handle-defn-form t replaces form))
-         :else (throw (IllegalArgumentException.
-                       "only deftype and defn are supported in with-magic"))))
-     :ok))
+(defmacro specialize [type & body]
+  (let [symbol-bindings (->> (for [[k v] (get type-table-magic type)]
+                               [(magic-symbol (name k)) v])
+                             (apply concat))
+        symbol-map (apply hash-map symbol-bindings)
+        suffix (-> type-table-magic type :fn-suffix)]
+    ;; Here we need to process meta before AND after macro-expansion
+    ;; because some macroses (like defn) take some of their arguments
+    ;; and put them in metadata (defn stores arguments in :arglists
+    ;; metadata), so we are dealing with metadata of metadata. To
+    ;; avoid this, it's easier to fix metadata before macroexpansion
+    ;; too; there are still cases when this hack will not work, though
+    `(symbol-macrolet [~@symbol-bindings]
+                      #_[]
+       ~@(->> body
+              (w/postwalk #(rename-suffixed % suffix))
+              (w/postwalk (partial replace-meta symbol-map))
+              (w/postwalk (partial replace-with-meta symbol-map))
+              (w/prewalk expand-deftypes)
+              #_(mexpand-all)
+              #_(w/postwalk #(rename-suffixed % suffix))
+              #_(w/postwalk (partial replace-meta symbol-map))))))
 
-(defmacro extend-types [types & forms]
-  (let [[extra-parts forms] (if (map? (first forms))
-                              [(first forms) (rest forms)]
-                              [{} forms])]
-    (doseq [t types
-            :let [replaces (form-replaces extra-parts t)]]
-       (when-not (type-table-magic t)
-         (throw (IllegalArgumentException.
-                 (str "there is no type " (name t) " in init-magic"))))
-       (swap! deftypes-magic update-in [t] concat
-              (handle-forms t replaces forms)))
-    :ok))
+(defmacro with-magic [types form]
+  (doseq [type types]
+    (iae-when-not (get type-table-magic type)
+      (str "there is no type " (name type) " in init-magic"))
+    (case (first form)
+      deftype (swap! deftypes-magic conj
+                     [type form])
+      defn (let [name (second form) ; (defn foobar <- second ...)
+                 suffix (-> type-table-magic type :fn-suffix)
+                 name-suffixed (rename-suffixed name suffix)]
+             (swap! defns-magic conj
+                    [[type name-suffixed] form]))
+      (iae "only deftype and defn are supported in with-magic")))
+  :ok)
 
-;; TODO: it's possible to carry over line numbers manually through macro
-;; expansion like this: `(-> &form meta :line)` in with-magic macro and
-;; `(with-meta obj {:line (int line-num})` here
-(defmacro spit-code []
-  `(do
-     ~@(map #(list 'declare %) (keys @defns-magic))
-     ~@(vals @deftypes-magic)
-     ~@(vals @defns-magic)
-     ~@(map (fn [t] `(imp/register-implementation
-                      (~(add-fn-suffix t 'empty-ndarray) [1])))
-            (keys type-table-magic))))
+(defmacro extend-types-magic [types & forms]
+  (doseq [type types]
+    (iae-when-not (get type-table-magic type)
+      (str "there is no type " (name type) " in init-magic"))
+    (swap! deftypes-magic update-in [type] concat forms))
+  :ok)
+
+(defmacro spit-code-magic []
+  (let [declares (for [[_ name-suffixed] (keys @defns-magic)]
+                   `(declare ~name-suffixed))
+        deftypes (for [[type deftype-form] @deftypes-magic]
+                   `(specialize ~type ~deftype-form))
+        defns (for [[[type _] defn-form] @defns-magic]
+                `(specialize ~type ~defn-form))
+        regs (for [type (keys type-table-magic)]
+               `(specialize ~type
+                  (imp/register-implementation (~'$empty-ndarray$t [1]))))]
+    `(do
+       ~@declares
+       ~@deftypes
+       ~@defns
+       ;;~@regs
+
+       )))
+
+;; (init-magic
+;;  {:object {:regname :ndarray
+;;            :fn-suffix nil
+;;            :typename 'NDArray
+;;            :array-tag 'objects
+;;            :array-cast 'object-array
+;;            :type-cast 'identity
+;;            :type-object java.lang.Object}
+;;   :long {:regname :ndarray-long
+;;          :fn-suffix 'long
+;;          :typename 'NDArrayLong
+;;          :array-tag 'longs
+;;          :array-cast 'long-array
+;;          :type-cast 'long
+;;          :type-object Long/TYPE}
+;;   :float {:regname :ndarray-float
+;;           :fn-suffix 'float
+;;           :typename 'NDArrayFloat
+;;           :array-tag 'floats
+;;           :array-cast 'float-array
+;;           :type-cast 'float
+;;           :type-object Float/TYPE}
+;;   :double {:regname :ndarray-double
+;;            :fn-suffix 'double
+;;            :typename 'NDArrayDouble
+;;            :array-tag 'doubles
+;;            :array-cast 'double-array
+;;            :type-cast 'double
+;;            :type-object Double/TYPE}})
+
+;; (with-magic [:long :object] (defn $foo-suffixed$ [^$array-tag$ x] (aget x 0)))
+;; (spit-code-magic)
+
+;; (defmacro caster [x]
+;;   `(~'$type$ ~x))
+
+;; (defmacro looper [& body]
+;;   `(macrolet [(~'continue [x#] `(prn "continue" ~x#))
+;;               (~'break [x#] `(prn "break" ~x#))]
+;;      ~@body))
+
+;; (specialize :int
+;;  (defn test-getter [x]
+;;    (let [^$type$ x x]
+;;      (prn "my type" $type$)
+;;      (caster x)
+;;      (looper (if (> (aget x 0) 1) (continue 3) (break 4)))
+;;      (aget x 0)))
+
+;;  (defn test-setter [x]
+;;    (let [^$type$ x x]
+;;      (prn "my type" $type$)
+;;      (caster x)
+;;      (aset x 0 13))))
+
+;; Local Variables:
+;; eval: (put-clojure-indent 'c-for 'defun)
+;; eval: (put-clojure-indent 'iae-when-not 'defun)
+;; eval: (put-clojure-indent 'macrolet 1)
+;; eval: (put-clojure-indent 'symbol-macrolet 1)
+;; End:

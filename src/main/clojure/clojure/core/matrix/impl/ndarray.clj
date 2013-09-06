@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.impl.ndarray
+  (:use clojure.tools.macro)
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
@@ -269,8 +270,8 @@ of indexes and strides"
 
 (magic/with-magic
   [:long :float :double :object]
-  (deftype typename#
-      [^array-tag# data
+  (deftype $typename$
+      [^$array-tag$ data
        ^int ndims
        ^ints shape
        ^ints strides
@@ -284,6 +285,7 @@ of indexes and strides"
 ;; Here, we provide an optional argument so user can choose to use
 ;; Fortran-like data layout.
 
+#_(do
 (magic/with-magic
   [:long :float :double :object]
   (defn empty-ndarray
@@ -826,10 +828,18 @@ of indexes and strides"
 
     )
 
-(magic/spit-code)
+
+)
+#_(magic/spit-code)
 
 ;; ## Links
 ;; [1]: http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
 ;; [2]: http://scipy-lectures.github.io/advanced/advanced_numpy/
 ;; [3]: http://clj-me.cgrand.net/2009/08/06/what-warn-on-reflection-doesnt-tell-you-about-arrays/
 ;; [4]: http://penguin.ewu.edu/~trolfe/MatMult/MatOpt.html
+
+;; Local Variables:
+;; eval: (put-clojure-indent 'c-for 'defun)
+;; eval: (put-clojure-indent 'iae-when-not 'defun)
+
+;; End:
