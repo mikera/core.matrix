@@ -35,6 +35,11 @@
 			<version>1.4.0</version>
 		</dependency>
 		<dependency>
+			<groupId>org.clojure</groupId>
+			<artifactId>tools.macro</artifactId>
+			<version>0.1.2</version>
+		</dependency>
+		<dependency>
 			<groupId>hiccup</groupId>
 			<artifactId>hiccup</artifactId>
 			<version>1.0.4</version>
