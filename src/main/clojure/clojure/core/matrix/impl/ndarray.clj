@@ -665,7 +665,35 @@ of indexes and strides"
                            (recur (+ i-a step-row-a) (+ i-b step-row-b)
                                   (inc row-a) 0))
                          false)
-                       true))))))
+                       true)))
+               ;; N-dimensional case
+               (let [end (+ offset
+                            (areduce shape i s (int 0)
+                                     (+ s (* (aget shape i)
+                                             (aget strides i)))))]
+                 (loop [idxs (int-array ndims)]
+                   (if (== (aget data
+                                 (areduce strides i s offset
+                                          (+ s (* (aget idxs i)
+                                                  (aget strides i)))))
+                           (aget data-b
+                                 (areduce strides-b i s offset-b
+                                          (+ s (* (aget idxs i)
+                                                  (aget strides-b i))))))
+                     (do
+                       ;; update indexes
+                       (if (loop [dim (int (dec ndims))]
+                             (if (>= dim 0)
+                               (if (< (aget idxs dim) (dec (aget shape dim)))
+                                 (do (aset idxs dim (inc (aget idxs dim)))
+                                     true)
+                                 (do (aset idxs dim (int 0))
+                                     (recur (dec dim))))
+                               false))
+                         (recur idxs)
+                         true))
+                     false)
+                   )))))
          (mp/matrix-equals a (mp/coerce-param a b))))
 
   ;; TODO: optimize on smaller arrays
