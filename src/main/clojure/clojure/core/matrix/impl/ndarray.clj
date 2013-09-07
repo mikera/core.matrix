@@ -420,7 +420,7 @@ of indexes and strides"
     ;; TODO: check if this check is really needed
       (iae-when-not (= 1 (.ndims m))
         "can't use get-1d on non-vector")
-      (aget data (+ offset x)))
+      (aget data (+ offset (* (aget strides 0) x))))
     (get-2d [m x y]
       (iae-when-not (= 2 (.ndims m))
         "can't use get-2d on non-matrix")
@@ -720,7 +720,6 @@ of indexes and strides"
   ;; TODO: implement transposition of argument for faster access
   ;; TODO: be ready to normalize arguments if they are not in row-major
   ;; TODO: check bit.ly/16ECque for inspiration
-  ;; TODO: for objects implement zeroing of target array
   ;; TODO: optimize element-multiply
   ;; For algorithms see [4]
 
@@ -780,13 +779,11 @@ of indexes and strides"
       (areduce shape i s (int 1)
                (* s (aget shape i))))
 
-  ;; mp/PTranspose
-  ;;   (transpose [m]
-  ;;     (iae-when-not (<= ndims 2)
-  ;;       "transpose is applicable only for dimensions lower than 2")
-  ;;     (let [new-shape (areverse shape)
-  ;;           new-strides (areverse strides)]
-  ;;       (reshape-restride#t m ndims new-shape new-strides offset)))
+  mp/PTranspose
+    (transpose [m]
+      (let [new-shape (areverse shape)
+            new-strides (areverse strides)]
+        (reshape-restride#t m ndims new-shape new-strides offset)))
 
     )
 

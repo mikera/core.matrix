@@ -98,7 +98,9 @@
 (deftest test-transpose
   (let [m (new-array :ndarray [5 6 7])]
     (is (= [5 6 7] (seq (shape m))))
-    (is (= [7 6 5] (seq (shape (transpose m)))))))
+    (is (= [7 6 5] (seq (shape (transpose m))))))
+  (let [m (matrix :ndarray [[1 2] [3 4]])]
+    (is (equals [[1 3] [2 4]] (transpose m)))))
 
 (defn get-primitive-ndarrays []
   [(empty-ndarray-double [3 3])
@@ -109,6 +111,14 @@
   (is (nil? (gen/default-value :ndarray)))
   (is (= 0.0 (gen/default-value :ndarray-double)))
   (is (= 0 (gen/default-value :ndarray-long))))
+
+(deftest regressions
+  (is (= 3 (-> [[1 2] [3 4]]
+               array
+               transpose
+               slices
+               first
+               (mget 1)))))
 
 (deftest ndarray-test
   (ct/test-ndarray-implementation (empty-ndarray [3 3])))
