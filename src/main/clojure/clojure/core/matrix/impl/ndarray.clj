@@ -45,6 +45,7 @@
 ;; strides = (s_1, s_2, \dots, s_N)
 ;; s_j = d_{j+1} d_{j+2} \dots d_N
 ;; (see [2])
+;; TODO: this should be faster
 
 (defn c-strides [shape]
   (conj (->> shape
@@ -100,6 +101,19 @@ of indexes and strides"
               (+ (* (aget ~idxs i#) (aget ~strides i#))
                  res#))
      ~offset))
+
+(defmacro aget-2d
+  [data strides offset i j]
+  `(aget ~data
+        (+ (+ (* (aget ~strides (int 0)) ~i)
+              (* (aget ~strides (int 1)) ~j))
+           ~offset)))
+
+(defmacro aadd-2d [data strides offset i j increment]
+  `(let [idx# (+ (+ (* (aget ~strides (int 0)) ~i)
+                    (* (aget ~strides (int 1)) ~j))
+                 ~offset)]
+     (aset ~data idx# (+ (aget ~data idx#) ~increment))))
 
 (defmacro id-macro [x] x)
 
@@ -622,79 +636,80 @@ of indexes and strides"
        (loop-over
         [a b] (int 0)
         (continue (+ acc (* (aget a-data a-idx) (aget b-data b-idx))))))
-      (if (instance? typename# b)
-         ;; Fast path, types are same
-         (let [^typename# b b
-               ^ints shape-b (.shape b)
-               ^array-tag# data-b (.data b)
-               ^ints strides-b (.strides b)
-               offset-b (.offset b)]
-           (if (not (java.util.Arrays/equals shape shape-b))
-             false
-             (case ndims
-               0 (== (aget data 0) (aget data-b 0))
-               1 (let [step-a (aget strides 0)
-                       step-b (aget strides-b 0)
-                       end (+ offset (* (aget shape 0) step-a))]
-                   (loop [i-a offset
-                          i-b offset-b]
-                     (if (< i-a end)
-                       (if (== (aget data i-a) (aget data-b i-b))
-                         (recur (+ i-a step-a) (+ i-b step-b))
-                         false)
-                       true)))
-               2 (let [nrows (aget shape 0)
-                       ncols (aget shape 1)
-                       step-col-a (aget strides 1)
-                       step-row-a (- (aget strides 0)
-                                     (* step-col-a ncols))
-                       step-col-b (aget strides-b 1)
-                       step-row-b (- (aget strides 0)
-                                     (* step-col-b ncols))
-                       end (+ offset (+ (* nrows step-row-a)
-                                        (* ncols step-col-a)))]
-                   (loop [i-a offset
-                          i-b offset-b
-                          row-a 0
-                          col-a 0]
-                     (if (< i-a end)
-                       (if (== (aget data i-a) (aget data-b i-b))
-                         (if (< col-a ncols)
-                           (recur (+ i-a step-col-a) (+ i-b step-col-b)
-                                  row-a (inc col-a))
-                           (recur (+ i-a step-row-a) (+ i-b step-row-b)
-                                  (inc row-a) 0))
-                         false)
-                       true)))
-               ;; N-dimensional case
-               (let [end (+ offset
-                            (areduce shape i s (int 0)
-                                     (+ s (* (aget shape i)
-                                             (aget strides i)))))]
-                 (loop [idxs (int-array ndims)]
-                   (if (== (aget data
-                                 (areduce strides i s offset
-                                          (+ s (* (aget idxs i)
-                                                  (aget strides i)))))
-                           (aget data-b
-                                 (areduce strides-b i s offset-b
-                                          (+ s (* (aget idxs i)
-                                                  (aget strides-b i))))))
-                     (do
-                       ;; update indexes
-                       (if (loop [dim (int (dec ndims))]
-                             (if (>= dim 0)
-                               (if (< (aget idxs dim) (dec (aget shape dim)))
-                                 (do (aset idxs dim (inc (aget idxs dim)))
-                                     true)
-                                 (do (aset idxs dim (int 0))
-                                     (recur (dec dim))))
-                               false))
-                         (recur idxs)
-                         true))
-                     false)
-                   )))))
-         (mp/matrix-equals a (mp/coerce-param a b))))
+      (if (identical? a b)
+        true
+        (if-not (instance? typename# b)
+          ;; Coerce second argument to first one
+          (mp/matrix-equals a (mp/coerce-param a b))
+          ;; Fast path, types are same
+          (let [^typename# b b
+                ^ints shape-b (.shape b)
+                ^array-tag# data-b (.data b)
+                ^ints strides-b (.strides b)
+                offset-b (.offset b)]
+            (if (not (java.util.Arrays/equals shape shape-b))
+              false
+              (case ndims
+                0 (== (aget data 0) (aget data-b 0))
+                1 (let [step-a (aget strides 0)
+                        step-b (aget strides-b 0)
+                        end (+ offset (* (aget shape 0) step-a))]
+                    (loop [i-a offset
+                           i-b offset-b]
+                      (if (< i-a end)
+                        (if (== (aget data i-a) (aget data-b i-b))
+                          (recur (+ i-a step-a) (+ i-b step-b))
+                          false)
+                        true)))
+                2 (let [nrows (aget shape 0)
+                        ncols (aget shape 1)
+                        step-col-a (aget strides 1)
+                        step-row-a (- (aget strides 0)
+                                      (* step-col-a ncols))
+                        step-col-b (aget strides-b 1)
+                        step-row-b (- (aget strides 0)
+                                      (* step-col-b ncols))
+                        end (+ offset (+ (* nrows step-row-a)
+                                         (* ncols step-col-a)))]
+                    (loop [i-a offset
+                           i-b offset-b
+                           row-a 0
+                           col-a 0]
+                      (if (< i-a end)
+                        (if (== (aget data i-a) (aget data-b i-b))
+                          (if (< col-a ncols)
+                            (recur (+ i-a step-col-a) (+ i-b step-col-b)
+                                   row-a (inc col-a))
+                            (recur (+ i-a step-row-a) (+ i-b step-row-b)
+                                   (inc row-a) 0))
+                          false)
+                        true)))
+                ;; N-dimensional case
+                (let [end (+ offset
+                             (areduce shape i s (int 0)
+                                      (+ s (* (aget shape i)
+                                              (aget strides i)))))]
+                  (loop [idxs (int-array ndims)]
+                    (if (== (aget data
+                                  (areduce strides i s offset
+                                           (+ s (* (aget idxs i)
+                                                   (aget strides i)))))
+                            (aget data-b
+                                  (areduce strides-b i s offset-b
+                                           (+ s (* (aget idxs i)
+                                                   (aget strides-b i))))))
+                      (if (loop [dim (int (dec ndims))]
+                            (if (>= dim 0)
+                              (if (< (aget idxs dim) (dec (aget shape dim)))
+                                (do (aset idxs dim (inc (aget idxs dim)))
+                                    true)
+                                (do (aset idxs dim (int 0))
+                                    (recur (dec dim))))
+                              false))
+                        (recur idxs)
+                        true)
+                      false)
+                    ))))))))
 
   ;; TODO: optimize on smaller arrays
   ;; TODO: optimize vector-matrix and matrix-vector
@@ -710,51 +725,51 @@ of indexes and strides"
   ;; For algorithms see [4]
 
   mp/PMatrixMultiply
-   (matrix-multiply [m a]
-     (let [mdims ndims
-           adims (int (mp/dimensionality a))]
-       (cond
-        (== adims 0) (mp/scale m a)
-        (and (== mdims 1) (== adims 2))
-        (let [[arows acols] (mp/get-shape a)]
-          (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
-                      [arows]))
-        (and (== mdims 2) (== adims 1))
-        (let [[mrows mcols] (mp/get-shape m)]
-          (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
-                      [mcols]))
-        (and (== mdims 2) (== adims 2))
-        (let [a (if (= (type m) (type a)) a
-                    (mp/coerce-param m a))]
-          (let [mrows (aget shape (int 0))
-                mcols (aget shape (int 1))
-                arows (aget (int-array (.shape ^typename# a)) (int 0))
-                acols (aget (int-array (.shape ^typename# a)) (int 1))
-                ^typename# new-m (mp/new-matrix m mrows acols)
-                ^ints nm-strides (.strides new-m)
-                ^array-tag# nm-data (.data new-m)
-                ^ints a-strides (int-array (.strides ^typename# a))
-                ^array-tag# a-data (.data ^typename# a)
-                a-offset (int (.offset ^typename# a))]
-            (do
-              (c-for [i (int 0) (< i mrows) (inc i)
-                      k (int 0) (< k mcols) (inc k)]
-                (let [t (aget data
-                              (+ (+ (* (aget strides (int 0)) i)
-                                    (* (aget strides (int 1)) k))
-                                 offset))]
-                  (c-for [j (int 0) (< j acols) (inc j)]
-                    (let [nm-idx (+ (* (aget nm-strides (int 0)) i)
-                                    (* (aget nm-strides (int 1)) j))]
-                      (aset nm-data nm-idx
-                            (+ (aget nm-data nm-idx)
-                               (* t
-                                  (aget a-data
-                                        (+ (+ (* (aget a-strides (int 0)) k)
-                                              (* (aget a-strides (int 1)) j))
-                                           a-offset)))))))))
-              new-m))))))
+   (matrix-multiply [a b]
+     (if-not (instance? typename# b)
+       ;; Coerce second argument to first one
+       (mp/matrix-multiply a (mp/coerce-param a b))
+       ;; Fast path, types are same
+       (let [^typename# b b
+             a-ndims ndims
+             b-ndims (.ndims b)
+             ^ints b-shape (.shape b)]
+         (cond
+          (== b-ndims 0) (mp/scale a b)
+          (and (== a-ndims 1) (== b-ndims 2))
+          (let [b-rows (aget b-shape (int 0))]
+            (mp/reshape (mp/matrix-multiply (mp/reshape a [1 b-rows]) b)
+                        [b-rows]))
+          (and (== a-ndims 2) (== b-ndims 1))
+          (let [a-cols (aget shape (int 1))]
+            (mp/reshape (mp/matrix-multiply a (mp/reshape b [a-cols 1]))
+                        [a-cols]))
+          (and (== a-ndims 2) (== b-ndims 2))
+          (let [a-rows (aget shape (int 0))
+                a-cols (aget shape (int 1))
+                ^array-tag# a-data data
+                ^ints a-strides strides
+                a-offset offset
+                b-rows (aget b-shape (int 0))
+                b-cols (aget b-shape (int 1))
+                ^array-tag# b-data (.data b)
+                ^ints b-strides (.strides b)
+                b-offset (.offset a)
+                ^typename# c (empty-ndarray-zeroed#t [a-rows b-cols])
+                ^array-tag# c-data (.data c)
+                ^ints c-strides (.strides c)]
+            (do (iae-when-not (== a-cols b-rows)
+                  (str "dimension mismatch: "
+                       [a-rows a-cols] "x" [b-rows b-cols]))
+                (c-for [i (int 0) (< i a-rows) (inc i)
+                        k (int 0) (< k a-cols) (inc k)]
+                  (let [t (aget-2d a-data a-strides a-offset i k)]
+                    (c-for [j (int 0) (< j b-cols) (inc j)]
+                      (aadd-2d c-data c-strides (int 0) i j
+                               (* t (aget-2d b-data b-strides b-offset k j))))))
+                c))))))
    (element-multiply [m a]
+     ;; TODO: this should be rewritten using loop-over
      (if (number? a)
        (mp/scale m a)
        (let [[m a] (mp/broadcast-compatible m a)]
