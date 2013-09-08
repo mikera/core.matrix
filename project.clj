@@ -1,3 +1,6 @@
+;; This project.clj is provided as a convenience for Leiningen users
+;; The official core.matrix project configuration is in the pom.xml
+
 (defproject net.mikera/core.matrix "0.10.0"
   :url "https://github.com/mikera/matrix-api"
   :license {:name "Eclipse Public License (EPL)"
