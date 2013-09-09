@@ -398,7 +398,14 @@
   (is (equals (add 0.0 m) (mul 1 m)))
   (is (equals (emul m m) (square m)))
   (is (equals (esum m) (ereduce + m)))
-  (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m))))))
+  (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m)))))
+  (let [v (->> #(rand 1000.0) repeatedly (take 50) vec normalise array)
+        i (identity-matrix 50)
+        m (sub i (emul 2.0 (outer-product v v)))]
+    (is (equals m (transpose m) 1.0E-12))
+    (if-not (= (current-implementation) :persistent-vector)
+      (is (equals m (inverse m) 1.0E-12)))
+    (is (equals (mmul m m) i 1.0E-12))))
 
 (defn test-numeric-matrix-predicates [m]
   (when (and (matrix? m) (= 2 (dimensionality m)))
