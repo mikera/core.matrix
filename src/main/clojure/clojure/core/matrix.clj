@@ -320,7 +320,7 @@
   "Returns true if matrix is square (i.e. a 2D array with same number of rows and columns)"
   ([m]
     (and
-      (== 2 (mp/dimensionality m))
+      (== 2 (long (mp/dimensionality m)))
       (== (mp/dimension-count m 0) (mp/dimension-count m 1)))))
 
 (defn row-matrix?
@@ -377,14 +377,14 @@
 ;; Conversions
 
 (defn to-double-array
-   "Returns a double array containing the values of a numerical array m in row-major order.
+   "Returns a Java double[] array containing the values of a numerical array m in row-major order.
     If want-copy? is true, will guarantee a new double array (defensive copy).
     If want-copy? is false, will return the internal array used by m, or nil if not supported
     by the implementation.
     If want-copy? is not sepcified, will return either a copy or the internal array"
-   ([m]
+   (^doubles [m]
      (mp/to-double-array m))
-   ([m want-copy?]
+   (^doubles [m want-copy?]
      (let [arr (mp/as-double-array m)]
        (if want-copy?
          (if arr (copy-double-array arr) (mp/to-double-array m))
@@ -488,10 +488,23 @@
     (mp/get-slice m dimension index)))
 
 (defn slices
-  "Gets a sequence of slices of a matrix. If dimension is supplied, slices along a given dimension,
-   otherwise slices along the first dimension."
+  "Gets a sequence of slices of an array. If dimension is supplied, slices along a given dimension,
+   otherwise slices along the first dimension.
+
+   Returns a sequence of scalar values if the array is 1-dimensional."
   ([m]
     (mp/get-major-slice-seq m))
+  ([m dimension]
+    (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
+
+(defn slice-views
+  "Gets a sequence of views of the slices of an array. If dimension is supplied, slices along a given dimension,
+   otherwise slices along the first dimension. If the matrix implementation supports mutable views, these views
+   can be used to mutate portions of the original array.
+
+   Returns a sequence of 0-dimensional scalar arrays if the array is 1-dimensional."
+  ([m]
+    (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0))))
   ([m dimension]
     (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
 

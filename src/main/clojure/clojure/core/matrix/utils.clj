@@ -1,6 +1,6 @@
 (ns clojure.core.matrix.utils)
 
-;; these are copies of methods from the library
+;; Some of these are copies of methods from the library
 ;;   https://github.com/mikera/clojure-utils
 ;;
 ;; duplicated here to avoid an extra dependency
