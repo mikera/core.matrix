@@ -502,11 +502,15 @@
    otherwise slices along the first dimension. If the matrix implementation supports mutable views, these views
    can be used to mutate portions of the original array.
 
-   Returns a sequence of 0-dimensional scalar arrays if the array is 1-dimensional."
+   The key difference betwen 'slices' and 'slice-views' is that 'slice-views' will always return views, including 
+   for the 0-dimensional case. Hence it will return a sequence of 0-dimensional scalar arrays if 
+   the array is 1-dimensional."
   ([m]
     (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0))))
   ([m dimension]
-    (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
+    (if (== 0 dimension)
+      (slice-views m)
+      (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
 
 (defn rows
   "Gets the rows of a matrix, as a sequence"
