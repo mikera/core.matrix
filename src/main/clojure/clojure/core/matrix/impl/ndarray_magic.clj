@@ -43,7 +43,7 @@
   [form suffix]
   (if (symbol? form)
     (if-let [[_ sym-str] #_(re-find #"\$(\w+)\$t$" (str form))
-             (re-find #"\$(\w+)-suffixed\$$" (str form))]
+             (re-find #"\$(.+)\.suffixed\$$" (str form))]
       (with-meta (add-sym-suffix (symbol sym-str) suffix) (meta form))
       form)
     form))
@@ -68,12 +68,11 @@
     ;; avoid this, it's easier to fix metadata before macroexpansion
     ;; too; there are still cases when this hack will not work, though
     `(symbol-macrolet [~@symbol-bindings]
-                      #_[]
        ~@(->> body
               (w/postwalk #(rename-suffixed % suffix))
               (w/postwalk (partial replace-meta symbol-map))
               (w/postwalk (partial replace-with-meta symbol-map))
-              (w/prewalk expand-deftypes)
+              #_(w/prewalk expand-deftypes)
               #_(mexpand-all)
               #_(w/postwalk #(rename-suffixed % suffix))
               #_(w/postwalk (partial replace-meta symbol-map))))))

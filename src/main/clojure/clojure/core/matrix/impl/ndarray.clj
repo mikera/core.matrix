@@ -269,7 +269,8 @@ of indexes and strides"
            :type-object Double/TYPE}})
 
 (magic/with-magic
-  [:long :float :double :object]
+  #_[:long :float :double :object]
+  [:double]
   (deftype $typename$
       [^$array-tag$ data
        ^int ndims
@@ -284,11 +285,10 @@ of indexes and strides"
 ;; Constructing of an empty NDArray with given shape is fairly easy.
 ;; Here, we provide an optional argument so user can choose to use
 ;; Fortran-like data layout.
-
-#_(do
 (magic/with-magic
-  [:long :float :double :object]
-  (defn empty-ndarray
+  #_[:long :float :double :object]
+  [:double]
+  (defn $empty-ndarray.suffixed$
     "Returns an empty NDArray of given shape"
     [shape & {:keys [order] :or {order :c}}]
     (let [shape (int-array shape)
@@ -297,10 +297,18 @@ of indexes and strides"
                     :c (int-array (c-strides shape))
                     :f (int-array (f-strides shape)))
           len (reduce * shape)
-          data (array-cast# len)
+          data ($array-cast$ len)
           offset 0]
-      (new typename# data ndims shape strides offset))))
+      (new $typename$ data ndims shape strides offset))))
 
+(extend-types-magic
+ #_[:long :float :double :object]
+ [:double]
+ java.lang.Object
+   (toString [m]
+     (str (mp/persistent-vector-coerce m))))
+
+#_(do
 (magic/with-magic
   [:long :float :double]
   (defn empty-ndarray-zeroed

@@ -9,7 +9,7 @@
   :java-source-paths ["src/test/java"]
   :test-paths ["src/test/clojure" "src/test/java"]
   :dependencies [[org.clojure/clojure "1.4.0"]
-                 [org.clojure/tools.macro "0.1.2"]]
+                 [org.clojure/tools.macro "0.1.4"]]
   :profiles {:dev {:dependencies [[com.google.caliper/caliper "0.5-rc1"]
                                   [net.mikera/cljunit "0.2.0"]
                                   [criterium/criterium "0.4.1"]
