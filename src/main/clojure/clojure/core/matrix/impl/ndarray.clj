@@ -1,7 +1,7 @@
 (ns clojure.core.matrix.impl.ndarray
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
-  (:use clojure.core.matrix.impl.ndarray-magic)
+  (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.multimethods :as mm])
@@ -96,11 +96,21 @@
 (defmacro get-strided-idx
   "Returns an index inside of a strided array given a primitive long arrays
 of indexes and strides"
-  [idxs strides offset]
+  [strides offset idxs]
   `(+ (areduce ~idxs i# res# (int 0)
               (+ (* (aget ~idxs i#) (aget ~strides i#))
                  res#))
      ~offset))
+
+(defmacro aget-nd
+  [data strides offset idxs]
+  `(let [idx# (get-strided-idx ~strides ~offset ~idxs)]
+     (aget ~data idx#)))
+
+(defmacro aset-nd
+  [data strides offset idxs x]
+  `(let [idx# (get-strided-idx ~strides ~offset ~idxs)]
+     (aset ~data idx# ~x)))
 
 (defmacro aget-2d
   [data strides offset i j]
@@ -126,6 +136,8 @@ of indexes and strides"
     `(and (~pred ~(first xs) ~(second xs))
           ~(unroll-predicate pred (rest xs)))))
 
+
+
 ;; TODO: use binding to ensure that it's inside magic
 ;; TODO: more docs here
 ;; TODO: row&column are same for all matrices!
@@ -139,15 +151,16 @@ of indexes and strides"
    Matrices argument should be a list of locals. Anaphoric arguments that
    can be used in a body given that [a, b] are provided: a-shape, b-shape,
    a-data, b-data, a-strides, b-strides, a-offset, b-offset, a-ndims, b-ndims,
-   a-idx (current index into a-data), a-i and b-i (if a and b are vectors;
-   indexes inside vectors represented by a and b), a-row, b-row, a-col, b-col
-   (if a and b are matrices); for higher dimensions only a-idx and b-idx will
-   be available; a-step b-step"
-  [matrices init body]
+   a-idx (current index into a-data), loop-i (if a and b are vectors;
+   indexes inside vectors represented by a and b), loop-row, loop-col
+   (if a and b are matrices); for higher dimensions loop-idxs will
+   be available; a-step b-step; loop-acc"
+  [[m1 & _ :as matrices] init body]
   (let [suffixed (fn [m-name field-name]
                 (symbol (str m-name "-" field-name)))
         typed-field (fn [m-name field-name type-name]
-                      (with-meta (suffixed m-name field-name) {:tag type-name}))
+                      (with-meta (suffixed m-name field-name)
+                        {:tag type-name}))
         bindings (mapcat (fn [m]
                            `[~(with-meta m {:tag 'typename#}) ~m
                              ~(typed-field m 'shape 'ints) (.shape ~m)
@@ -155,46 +168,76 @@ of indexes and strides"
                              ~(typed-field m 'strides 'ints) (.strides ~m)
                              ~(suffixed m 'offset) (.offset ~m)
                              ~(suffixed m 'ndims) (.ndims ~m)])
+                         matrices)
+        steps-1d (mapcat (fn [m] [(suffixed m 'step)
+                                  `(aget ~(suffixed m 'strides) 0)])
+                         matrices)
+        loop-init-1d (mapcat (fn [m] [(suffixed m 'idx)
+                                      (suffixed m 'offset)])
+                             matrices)
+        loop-step-1d (mapcat
+                      (fn [m] [`(+ ~(suffixed m 'idx)
+                                   ~(suffixed m 'step))])
+                      matrices)
+        body-1d (clojure.walk/prewalk
+                 (fn [form]
+                   (if (and (seq? form) (= (count form) 2))
+                     (let [[op arg] form]
+                       (case op
+                         break arg
+                         continue `(recur ~@loop-step-1d (inc ~'loop-i) ~arg)
+                         form))
+                     form))
+                 body)
+        steps-2d (mapcat (fn [m] [(suffixed m 'step-col)
+                                  `(aget ~(suffixed m 'strides) 1)
+                                  (suffixed m 'step-row)
+                                  `(- (aget ~(suffixed m 'strides) 0)
+                                      (* (aget ~(suffixed m 'strides) 1)
+                                         (aget ~(suffixed m 'shape) 1)))])
                          matrices)]
     `(let [~@bindings]
        (if-not ~(unroll-predicate 'java.util.Arrays/equals
                                   (map #(suffixed % 'shape) matrices))
          (iae "loop-over can iterate only over matrices of equal shape")
-         (case ~(suffixed (first matrices) 'ndims)
+         (case ~(suffixed m1 'ndims)
            0 (TODO)
-           1 (let [~@(mapcat (fn [m] [(suffixed m 'step)
-                                      `(aget ~(suffixed m 'strides) 0)])
-                             matrices)
-                   end# (+ ~(suffixed (first matrices) 'offset)
-                           (* (aget ~(suffixed (first matrices) 'shape) 0)
-                              ~(suffixed (first matrices) 'step)))]
-               (loop [~@(mapcat (fn [m] [(suffixed m 'idx)
-                                         (suffixed m 'offset)])
-                                matrices)
-                      ~'acc ~init]
-                 (if (< ~(suffixed (first matrices) 'idx) end#)
-                   ~(clojure.walk/prewalk
-                     (fn [form]
-                       (if (seq? form)
-                         (if-let [op (first form)]
-                           (case op
-                             break (second form)
-                             continue
-                             `(recur ~@(mapcat
-                                        (fn [m] [`(+ ~(suffixed m 'idx)
-                                                     ~(suffixed m 'step))])
-                                        matrices)
-                                     ~(second form))
-                             form)
-                           form)
-                         form))
-                     body)
-                   ~'acc)))
-           2 (TODO)
-           (TODO))
-         #_~@body))))
+           1 (let [~@steps-1d
+                   end# (+ ~(suffixed m1 'offset)
+                           (* (aget ~(suffixed m1 'shape) 0)
+                              ~(suffixed m1 'step)))]
+               (loop [~@loop-init-1d
+                      ~'loop-i 0
+                      ~'loop-acc ~init]
+                 (if (< ~(suffixed m1 'idx) end#)
+                   ~body-1d
+                   ~'loop-acc)))
+           2 (let [~@steps-2d
+                   nrows# (aget ~(suffixed m1 'shape) 0)
+                   ncols# (aget ~(suffixed m1 'shape) 1)
+                   end# (+ ~(suffixed m1 'offset)
+                           (+ (* nrows# ~(suffixed m1 'step-row))
+                              (* ncols# ~(suffixed m1 'step-col))))]
+               (loop [;; !
+                      i-a offset
+                      i-b offset-b
 
-(init-magic
+                      ~'loop-row 0
+                      ~'loop-col 0]
+                 (if (< i-a end#)
+                   (if (== (aget data i-a) (aget data-b i-b))
+                     (if (< ~'loop-col ncols#)
+                       (recur (+ i-a step-col-a) (+ i-b step-col-b)
+                              ~'loop-row (inc ~'loop-col))
+                       (recur (+ i-a step-row-a) (+ i-b step-row-b)
+                              (inc ~'loop-row) 0))
+                     false)
+                   true)))
+           ;;N-dimensional case
+           (TODO)
+           )))))
+
+(magic/init
  {:object {:regname :ndarray
            :fn-suffix nil
            :typename 'NDArray
@@ -224,7 +267,7 @@ of indexes and strides"
            :type-cast 'double
            :type-object Double/TYPE}})
 
-(with-magic
+(magic/with-magic
   [:long :float :double :object]
   (deftype typename#
       [^array-tag# data
@@ -241,7 +284,7 @@ of indexes and strides"
 ;; Here, we provide an optional argument so user can choose to use
 ;; Fortran-like data layout.
 
-(with-magic
+(magic/with-magic
   [:long :float :double :object]
   (defn empty-ndarray
     "Returns an empty NDArray of given shape"
@@ -256,7 +299,7 @@ of indexes and strides"
           offset 0]
       (new typename# data ndims shape strides offset))))
 
-(with-magic
+(magic/with-magic
   [:long :float :double]
   (defn empty-ndarray-zeroed
     "Returns an empty NDArray of given shape, guaranteed to be zeroed"
@@ -271,7 +314,7 @@ of indexes and strides"
           offset 0]
       (new typename# data ndims shape strides offset))))
 
-(with-magic
+(magic/with-magic
   [:object]
   (defn empty-ndarray-zeroed
     "Returns an empty NDArray of given shape, guaranteed to be zeroed"
@@ -295,7 +338,7 @@ of indexes and strides"
 
 ;; TODO: consider removal of mp/assign! here
 
-(with-magic
+(magic/with-magic
   [:long :float :double :object]
   (defn ndarray
     "Returns NDArray with given data, preserving shape of the data"
@@ -309,7 +352,7 @@ of indexes and strides"
 ;; TODO: not sure that strides don't matter
 ;; TODO: check offset larger than array
 
-(with-magic
+(magic/with-magic
   [:long :float :double :object]
   (defn arbitrary-slice
     [^typename# m dim idx]
@@ -326,7 +369,7 @@ of indexes and strides"
           new-offset (+ offset (* idx (aget strides dim)))]
       (new typename# data new-ndims new-shape new-strides new-offset))))
 
-(with-magic
+(magic/with-magic
   [:long :float :double :object]
   (defn row-major-slice
     [^typename# m idx]
@@ -334,7 +377,7 @@ of indexes and strides"
 
 ;; TODO: this should be a macro, transpose takes way too much time because
 ;;       of this function (64ns just for restriding)
-(with-magic
+(magic/with-magic
   [:long :float :double :object]
   (defn reshape-restride
     [^typename# m new-ndims ^ints new-shape ^ints new-strides new-offset]
@@ -354,7 +397,7 @@ of indexes and strides"
 ;; TODO: test for seq
 ;; TODO: test for .toString
 
-(with-magic
+(magic/with-magic
   [:long :float :double :object]
   (defn row-major-seq [^typename# m]
     (iae-when-not (> (.ndims m) 0)
@@ -362,7 +405,7 @@ of indexes and strides"
     (let [^ints shape (.shape m)]
       (map (partial row-major-slice#t m) (range (aget shape 0))))))
 
-(with-magic
+(magic/with-magic
   [:long :float :double :object]
   (defn row-major-seq-no0d
     "like row-major-seq but drops NDArray's wrapping on 0d-slices"
@@ -371,7 +414,7 @@ of indexes and strides"
       (map mp/get-0d (row-major-seq#t m))
       (row-major-seq#t m))))
 
-(extend-types-magic
+(magic/extend-types
   [:long :float :double :object]
   java.lang.Object
     (toString [m]
@@ -435,9 +478,8 @@ of indexes and strides"
     (get-nd [m indexes]
       (iae-when-not (= (count indexes) ndims)
         "index count should match dimensionality")
-      (let [idxs (int-array indexes)
-            idx (get-strided-idx idxs strides offset)]
-        (aget data idx)))
+      (let [idxs (int-array indexes)]
+        (aget-nd data strides offset idxs)))
 
 ;; PIndexedSetting is for non-mutative update of a matrix. Here we emulate
 ;; "non-mutative" setting by making a mutable copy and mutating it.
@@ -483,9 +525,8 @@ of indexes and strides"
       (when-not (= (count indexes) ndims)
         (throw (IllegalArgumentException.
                 "index count should match dimensionality")))
-      (let [idxs (int-array indexes)
-            idx (get-strided-idx idxs strides offset)]
-        (aset data idx (type-cast# v))))
+      (let [idxs (int-array indexes)]
+        (aset-nd data strides offset idxs (type-cast# v))))
 
 ;; PMatrixCloning requires only "clone" method, which is used to clone
 ;; mutable matrix. The mutation of clone must not affect the original.
@@ -638,8 +679,8 @@ of indexes and strides"
     (matrix-equals [a b]
       #_(prn
        (loop-over
-        [a b] (int 0)
-        (continue (+ acc (* (aget a-data a-idx) (aget b-data b-idx))))))
+        [a b] (type-cast# 0)
+        (continue (+ loop-acc (* (aget a-data a-idx) (aget b-data b-idx))))))
       (if (identical? a b)
         true
         (if-not (instance? typename# b)
@@ -694,14 +735,8 @@ of indexes and strides"
                                       (+ s (* (aget shape i)
                                               (aget strides i)))))]
                   (loop [idxs (int-array ndims)]
-                    (if (== (aget data
-                                  (areduce strides i s offset
-                                           (+ s (* (aget idxs i)
-                                                   (aget strides i)))))
-                            (aget data-b
-                                  (areduce strides-b i s offset-b
-                                           (+ s (* (aget idxs i)
-                                                   (aget strides-b i))))))
+                    (if (== (aget-nd data strides offset idxs)
+                            (aget-nd data-b strides-b offset-b idxs))
                       (if (loop [dim (int (dec ndims))]
                             (if (>= dim 0)
                               (if (< (aget idxs dim) (dec (aget shape dim)))
@@ -791,7 +826,7 @@ of indexes and strides"
 
     )
 
-(spit-code-magic)
+(magic/spit-code)
 
 ;; ## Links
 ;; [1]: http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html

@@ -10,7 +10,7 @@
 
 (set! *warn-on-reflection* true)
 
-(defn init-magic [types]
+(defn init [types]
   (def type-table-magic types)
   (def deftypes-magic (atom {}))
   (def defns-magic (atom {})))
@@ -42,7 +42,7 @@
   (w/postwalk
    (fn [x] (if (symbol? x) (handle-symbol t replaces x)
                ;; this is dirty
-               (if (and (list? x) (= 'loop-over (first x)))
+               (if (and (list? x) (#{'loop-over} (first x)))
                  (handle-forms t replaces (macroexpand-1 x))
                  x)))
    form))
@@ -73,7 +73,7 @@
                        "only deftype and defn are supported in with-magic"))))
      :ok))
 
-(defmacro extend-types-magic [types & forms]
+(defmacro extend-types [types & forms]
   (let [[extra-parts forms] (if (map? (first forms))
                               [(first forms) (rest forms)]
                               [{} forms])]
@@ -89,7 +89,7 @@
 ;; TODO: it's possible to carry over line numbers manually through macro
 ;; expansion like this: `(-> &form meta :line)` in with-magic macro and
 ;; `(with-meta obj {:line (int line-num})` here
-(defmacro spit-code-magic []
+(defmacro spit-code []
   `(do
      ~@(map #(list 'declare %) (keys @defns-magic))
      ~@(vals @deftypes-magic)
@@ -97,39 +97,3 @@
      ~@(map (fn [t] `(imp/register-implementation
                       (~(add-fn-suffix t 'empty-ndarray) [1])))
             (keys type-table-magic))))
-
-(def spec-map
-  {:int {:type 'ints}})
-
-(defmacro specialize [type & body]
-  `(symbol-macrolet [~'type$ ~(-> spec-map type :type)]
-     ~(w/postwalk
-       (fn [form]
-         (if-let [tag (-> form meta :tag)]
-           (if (= tag 'type$)
-             (with-meta form {:tag (-> spec-map type :type)})
-             form)
-           form))
-       (mexpand-all `(do ~@body)))))
-
-(defmacro caster [x]
-  `(~'type$ ~x))
-
-(defmacro looper [& body]
-  `(macrolet [(~'continue [x#] `(prn "continue" ~x#))
-              (~'break [x#] `(prn "break" ~x#))]
-      ~@body))
-
-(specialize :int
- (defn test-getter [x]
-   (let [^type$ x x]
-     (prn "my type" type$)
-     (caster x)
-     (looper (if (> (aget x 0) 1) (continue 3) (break 4)))
-     (aget x 0)))
-
- (defn test-setter [x]
-   (let [^type$ x x]
-     (prn "my type" type$)
-     (caster x)
-     (aset x 0 13))))
