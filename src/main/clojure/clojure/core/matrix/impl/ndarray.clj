@@ -293,6 +293,8 @@ of indexes and strides"
 ;; can't really use this definition until we define an implementation for
 ;; protocol PIndexedSettingMutable because of mp/assign! use.
 
+;; TODO: consider removal of mp/assign! here
+
 (with-magic
   [:long :float :double :object]
   (defn ndarray
@@ -330,6 +332,8 @@ of indexes and strides"
     [^typename# m idx]
     (arbitrary-slice#t m 0 idx)))
 
+;; TODO: this should be a macro, transpose takes way too much time because
+;;       of this function (64ns just for restriding)
 (with-magic
   [:long :float :double :object]
   (defn reshape-restride
@@ -774,16 +778,16 @@ of indexes and strides"
        (let [[m a] (mp/broadcast-compatible m a)]
          (mp/element-map m clojure.core/* a))))
 
-  mp/PElementCount
-    (element-count [m]
-      (areduce shape i s (int 1)
-               (* s (aget shape i))))
-
   mp/PTranspose
     (transpose [m]
       (let [new-shape (areverse shape)
             new-strides (areverse strides)]
         (reshape-restride#t m ndims new-shape new-strides offset)))
+
+  mp/PElementCount
+    (element-count [m]
+      (areduce shape i s (int 1)
+               (* s (aget shape i))))
 
     )
 
