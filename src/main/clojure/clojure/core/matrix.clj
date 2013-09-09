@@ -346,7 +346,7 @@
 (defn mutable?
   "Returns true if the matrix is mutable, i.e. supports setting of values"
   ([m]
-    (and (satisfies? mp/PIndexedSetting m) (mp/is-mutable? m))))
+    (mp/is-mutable? m)))
 
 (defn conforming?
   "Returns true if two arrays have a conforming shape. Two arrays are conforming if there
