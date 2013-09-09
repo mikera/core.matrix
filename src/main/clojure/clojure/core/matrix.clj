@@ -686,14 +686,20 @@
     a))
 
 (defn transform
-  "Transforms a given vector with a matrix, returning a new vector."
-  ([m v]
-    (mp/vector-transform m v)))
+  "Transforms a given vector with a transformation, returning a new vector.
+
+   The transformation may be a 2D matrix, but other types of transformation are also supported
+   e.g. affine transformations."
+  ([t v]
+    (mp/vector-transform t v)))
 
 (defn transform!
-  "Transforms a given vector in place. Returns the transformed vector."
-  ([m v]
-    (mp/vector-transform! m v)
+  "Transforms a given vector in place. Returns the transformed vector. 
+
+   The transformation must map an n-dimensional vector to another n-dimensional vector, i.e.
+   if it is a 2D matrix then it must have shape [n x n]."
+  ([t v]
+    (mp/vector-transform! t v)
     v))
 
 (defn add
