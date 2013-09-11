@@ -269,8 +269,7 @@ of indexes and strides"
            :type-object Double/TYPE}})
 
 (magic/with-magic
-  #_[:long :float :double :object]
-  [:double]
+  [:long :float :double :object]
   (deftype $typename$
       [^$array-tag$ data
        ^int ndims
@@ -286,9 +285,8 @@ of indexes and strides"
 ;; Here, we provide an optional argument so user can choose to use
 ;; Fortran-like data layout.
 (magic/with-magic
-  #_[:long :float :double :object]
-  [:double]
-  (defn $empty-ndarray.suffixed$
+  [:long :float :double :object]
+  (defn $empty-ndarray.s$
     "Returns an empty NDArray of given shape"
     [shape & {:keys [order] :or {order :c}}]
     (let [shape (int-array shape)
@@ -301,17 +299,9 @@ of indexes and strides"
           offset 0]
       (new $typename$ data ndims shape strides offset))))
 
-(extend-types-magic
- #_[:long :float :double :object]
- [:double]
- java.lang.Object
-   (toString [m]
-     (str (mp/persistent-vector-coerce m))))
-
-#_(do
 (magic/with-magic
   [:long :float :double]
-  (defn empty-ndarray-zeroed
+  (defn $empty-ndarray-zeroed.s$
     "Returns an empty NDArray of given shape, guaranteed to be zeroed"
     [shape & {:keys [order] :or {order :c}}]
     (let [shape (int-array shape)
@@ -320,13 +310,13 @@ of indexes and strides"
                     :c (int-array (c-strides shape))
                     :f (int-array (f-strides shape)))
           len (reduce * shape)
-          data (array-cast# len)
+          data ($array-cast$ len)
           offset 0]
-      (new typename# data ndims shape strides offset))))
+      (new $typename$ data ndims shape strides offset))))
 
 (magic/with-magic
   [:object]
-  (defn empty-ndarray-zeroed
+  (defn $empty-ndarray-zeroed.s$
     "Returns an empty NDArray of given shape, guaranteed to be zeroed"
     [shape & {:keys [order] :or {order :c}}]
     (let [shape (int-array shape)
@@ -335,9 +325,9 @@ of indexes and strides"
                     :c (int-array (c-strides shape))
                     :f (int-array (f-strides shape)))
           len (reduce * shape)
-          data (array-cast# len)
+          data ($array-cast$ len)
           offset 0
-          m (new typename# data ndims shape strides offset)]
+          m (new $typename$ data ndims shape strides offset)]
       (java.util.Arrays/fill ^objects data
                              (cast java.lang.Object 0.0))
       m)))
@@ -350,10 +340,10 @@ of indexes and strides"
 
 (magic/with-magic
   [:long :float :double :object]
-  (defn ndarray
+  (defn $ndarray.s$
     "Returns NDArray with given data, preserving shape of the data"
     [data]
-    (let [mtx (empty-ndarray#t (mp/get-shape data))]
+    (let [mtx ($empty-ndarray.s$ (mp/get-shape data))]
       (mp/assign! mtx data)
       mtx)))
 
@@ -364,11 +354,11 @@ of indexes and strides"
 
 (magic/with-magic
   [:long :float :double :object]
-  (defn arbitrary-slice
-    [^typename# m dim idx]
+  (defn $arbitrary-slice.s$
+    [^$typename$ m dim idx]
     (iae-when-not (> (.ndims m) 0)
       (str "can't get slices on [" (.ndims m) "]-dimensional object"))
-    (let [^array-tag# data (.data m)
+    (let [^$array-tag$ data (.data m)
           ndims (.ndims m)
           ^ints shape (.shape m)
           ^ints strides (.strides m)
@@ -377,24 +367,24 @@ of indexes and strides"
           new-shape (abutnth dim shape)
           new-strides (abutnth dim strides)
           new-offset (+ offset (* idx (aget strides dim)))]
-      (new typename# data new-ndims new-shape new-strides new-offset))))
+      (new $typename$ data new-ndims new-shape new-strides new-offset))))
 
 (magic/with-magic
   [:long :float :double :object]
-  (defn row-major-slice
-    [^typename# m idx]
-    (arbitrary-slice#t m 0 idx)))
+  (defn $row-major-slice.s$
+    [^$typename$ m idx]
+    ($arbitrary-slice.s$ m 0 idx)))
 
 ;; TODO: this should be a macro, transpose takes way too much time because
 ;;       of this function (64ns just for restriding)
 (magic/with-magic
   [:long :float :double :object]
-  (defn reshape-restride
-    [^typename# m new-ndims ^ints new-shape ^ints new-strides new-offset]
-    (let [^array-tag# data (.data m)
+  (defn $reshape-restride.s$
+    [^$typename$ m new-ndims ^ints new-shape ^ints new-strides new-offset]
+    (let [^$array-tag$ data (.data m)
           new-ndims (int new-ndims)
           new-offset (int new-offset)]
-      (new typename# data new-ndims new-shape new-strides new-offset))))
+      (new $typename$ data new-ndims new-shape new-strides new-offset))))
 
 ;; ## Seqable
 ;;
@@ -409,20 +399,21 @@ of indexes and strides"
 
 (magic/with-magic
   [:long :float :double :object]
-  (defn row-major-seq [^typename# m]
+  (defn $row-major-seq.s$
+    [^$typename$ m]
     (iae-when-not (> (.ndims m) 0)
       (str "can't get slices on [" (.ndims m) "]-dimensional object"))
     (let [^ints shape (.shape m)]
-      (map (partial row-major-slice#t m) (range (aget shape 0))))))
+      (map (partial $row-major-slice.s$ m) (range (aget shape 0))))))
 
 (magic/with-magic
   [:long :float :double :object]
-  (defn row-major-seq-no0d
+  (defn $row-major-seq-no0d.s$
     "like row-major-seq but drops NDArray's wrapping on 0d-slices"
-    [^typename# m]
+    [^$typename$ m]
     (if (== (.ndims m) 1)
-      (map mp/get-0d (row-major-seq#t m))
-      (row-major-seq#t m))))
+      (map mp/get-0d ($row-major-seq.s$ m))
+      ($row-major-seq.s$ m))))
 
 (magic/extend-types
   [:long :float :double :object]
@@ -432,7 +423,7 @@ of indexes and strides"
 
   clojure.lang.Seqable
     (seq [m]
-      (row-major-seq-no0d#t m))
+      ($row-major-seq-no0d.s$ m))
 
   clojure.lang.Sequential
 
@@ -444,17 +435,17 @@ of indexes and strides"
 ;; metadata and matrix construction.
 
   mp/PImplementation
-    (implementation-key [m] regname#)
+    (implementation-key [m] $regname$)
     (meta-info [m]
       {:doc "An implementation of strided N-Dimensional array"})
     (new-vector [m length]
-      (empty-ndarray-zeroed#t [length]))
+      ($empty-ndarray-zeroed.s$ [length]))
     (new-matrix [m rows columns]
-      (empty-ndarray-zeroed#t [rows columns]))
+      ($empty-ndarray-zeroed.s$ [rows columns]))
     (new-matrix-nd [m shape]
-      (empty-ndarray#t shape))
+      ($empty-ndarray.s$ shape))
     (construct-matrix [m data]
-      (ndarray#t data))
+      ($ndarray.s$ data))
     (supports-dimensionality? [m dims]
       true)
 
@@ -478,6 +469,7 @@ of indexes and strides"
       (iae-when-not (= 1 (.ndims m))
         "can't use get-1d on non-vector")
       (aget data (+ offset (* (aget strides 0) x))))
+    ;; TODO: use aget-2d here
     (get-2d [m x y]
       (iae-when-not (= 2 (.ndims m))
         "can't use get-2d on non-matrix")
@@ -523,20 +515,21 @@ of indexes and strides"
     (set-1d! [m x v]
       (when-not (== 1 ndims)
         (throw (IllegalArgumentException. "can't use set-1d! on non-vector")))
-      (aset data (+ offset x) (type-cast# v)))
+      (aset data (+ offset x) ($type-cast$ v)))
     (set-2d! [m x y v]
       (when-not (== 2 ndims)
         (throw (IllegalArgumentException. "can't use set-2d! on non-matrix")))
+      ;; TODO: use aset-2d here
       (let [idx (+ (* (aget strides 0) (int x))
                    (* (aget strides 1) (int y))
                    offset)]
-        (aset data idx (type-cast# v))))
+        (aset data idx ($type-cast$ v))))
     (set-nd! [m indexes v]
       (when-not (= (count indexes) ndims)
         (throw (IllegalArgumentException.
                 "index count should match dimensionality")))
       (let [idxs (int-array indexes)]
-        (aset-nd data strides offset idxs (type-cast# v))))
+        (aset-nd data strides offset idxs ($type-cast$ v))))
 
 ;; PMatrixCloning requires only "clone" method, which is used to clone
 ;; mutable matrix. The mutation of clone must not affect the original.
@@ -549,7 +542,7 @@ of indexes and strides"
       (let [data-new (aclone data)
             shape-new (aclone shape)
             strides-new (aclone strides)]
-        (new typename# data-new ndims shape-new strides-new offset)))
+        (new $typename$ data-new ndims shape-new strides-new offset)))
 
 ;; ## Optional protocols
 ;;
@@ -572,15 +565,15 @@ of indexes and strides"
              (mp/get-major-slice-seq m))))
 
   mp/PTypeInfo
-    (element-type [m] type-object#)
+    (element-type [m] $type-object$)
 
   mp/PMutableMatrixConstruction
     (mutable-matrix [m] (mp/clone m))
 
   mp/PZeroDimensionAccess
     (get-0d [m] (aget data offset))
-    (set-0d! [m v] (aset data offset (type-cast# v)))
-
+    (set-0d! [m v] (aset data offset ($type-cast$ v)))
+#_(do
   mp/PSpecialisedConstructors
     (identity-matrix [m n]
       (let [^typename# new-m (empty-ndarray#t [n n])
@@ -833,12 +826,11 @@ of indexes and strides"
     (element-count [m]
       (areduce shape i s (int 1)
                (* s (aget shape i))))
-
+)
     )
 
 
-)
-#_(magic/spit-code)
+(magic/spit-code)
 
 ;; ## Links
 ;; [1]: http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html

@@ -42,8 +42,7 @@
    foo-SUFFIX, preserving metadata; if it's not, returns an original form"
   [form suffix]
   (if (symbol? form)
-    (if-let [[_ sym-str] #_(re-find #"\$(\w+)\$t$" (str form))
-             (re-find #"\$(.+)\.suffixed\$$" (str form))]
+    (if-let [[_ sym-str] (re-find #"\$(.+)\.s\$$" (str form))]
       (with-meta (add-sym-suffix (symbol sym-str) suffix) (meta form))
       form)
     form))
@@ -82,8 +81,8 @@
     (iae-when-not (get type-table-magic type)
       (str "there is no type " (name type) " in init-magic"))
     (case (first form)
-      deftype (swap! deftypes-magic conj
-                     [type form])
+      deftype (do (swap! deftypes-magic conj
+                         [type form]))
       defn (let [name (second form) ; (defn foobar <- second ...)
                  suffix (-> type-table-magic type :fn-suffix)
                  name-suffixed (rename-suffixed name suffix)]
@@ -92,14 +91,14 @@
       (iae "only deftype and defn are supported in with-magic")))
   :ok)
 
-(defmacro extend-types-magic [types & forms]
+(defmacro extend-types [types & forms]
   (doseq [type types]
     (iae-when-not (get type-table-magic type)
       (str "there is no type " (name type) " in init-magic"))
     (swap! deftypes-magic update-in [type] concat forms))
   :ok)
 
-(defmacro spit-code-magic []
+(defmacro spit-code []
   (let [declares (for [[_ name-suffixed] (keys @defns-magic)]
                    `(declare ~name-suffixed))
         deftypes (for [[type deftype-form] @deftypes-magic]
@@ -108,12 +107,12 @@
                 `(specialize ~type ~defn-form))
         regs (for [type (keys type-table-magic)]
                `(specialize ~type
-                  (imp/register-implementation (~'$empty-ndarray$t [1]))))]
+                  (imp/register-implementation (~'$empty-ndarray.s$ [1]))))]
     `(do
        ~@declares
        ~@deftypes
        ~@defns
-       ;;~@regs
+       ~@regs
 
        )))
 
