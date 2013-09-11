@@ -386,6 +386,11 @@ of indexes and strides"
           new-offset (int new-offset)]
       (new $typename$ data new-ndims new-shape new-strides new-offset))))
 
+(defmacro reshape-restride-macro
+  [m new-ndims new-shape new-strides new-offset]
+  `(let [^$array-tag$ data# (.data ~m)]
+     (new ~'$typename$ data# ~new-ndims ~new-shape ~new-strides ~new-offset)))
+
 ;; ## Seqable
 ;;
 ;; In general there is huge chunk of default-ish stuff that can be used here
@@ -650,7 +655,9 @@ of indexes and strides"
             new-shape (int-array 1 (aget shape 0))
             new-strides (int-array 1 (* (aget shape 0)
                                         (inc (aget strides 1))))]
-        ($reshape-restride.s$ m new-ndims new-shape new-strides offset)))
+        #_($reshape-restride.s$ m new-ndims new-shape new-strides offset)
+        (reshape-restride-macro m new-ndims new-shape new-strides offset)
+        ))
 
   ;; mp/PAssignment
   ;;   (assign! [m source])

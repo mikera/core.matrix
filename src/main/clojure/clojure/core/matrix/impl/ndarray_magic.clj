@@ -72,9 +72,9 @@
               (w/postwalk (partial replace-meta symbol-map))
               (w/postwalk (partial replace-with-meta symbol-map))
               #_(w/prewalk expand-deftypes)
-              #_(mexpand-all)
-              #_(w/postwalk #(rename-suffixed % suffix))
-              #_(w/postwalk (partial replace-meta symbol-map))))))
+              (mexpand-all)
+              (w/postwalk #(rename-suffixed % suffix))
+              (w/postwalk (partial replace-meta symbol-map))))))
 
 (defmacro with-magic [types form]
   (doseq [type types]
