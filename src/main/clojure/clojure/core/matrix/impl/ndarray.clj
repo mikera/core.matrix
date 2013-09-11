@@ -165,7 +165,7 @@ of indexes and strides"
         bindings (mapcat (fn [m]
                            `[~(with-meta m {:tag 'typename#}) ~m
                              ~(typed-field m 'shape 'ints) (.shape ~m)
-                             ~(typed-field m 'data 'array-tag#) (.data ~m)
+                             ~(typed-field m 'data '$array-tag$) (.data ~m)
                              ~(typed-field m 'strides 'ints) (.strides ~m)
                              ~(suffixed m 'offset) (.offset ~m)
                              ~(suffixed m 'ndims) (.ndims ~m)])
@@ -573,28 +573,28 @@ of indexes and strides"
   mp/PZeroDimensionAccess
     (get-0d [m] (aget data offset))
     (set-0d! [m v] (aset data offset ($type-cast$ v)))
-#_(do
+
   mp/PSpecialisedConstructors
     (identity-matrix [m n]
-      (let [^typename# new-m (empty-ndarray#t [n n])
-            ^array-tag# new-m-data (.data new-m)]
-        (when (= type-object# java.lang.Object)
+      (let [^$typename$ new-m ($empty-ndarray.s$ [n n])
+            ^$array-tag$ new-m-data (.data new-m)]
+        (when (= $type-object$ java.lang.Object)
           (c-for [i (int 0) (< i (* n n)) (inc i)]
-            (aset new-m-data i (type-cast# 0))))
+            (aset new-m-data i ($type-cast$ 0))))
         (c-for [i (int 0) (< i n) (inc i)]
-          (aset new-m-data (+ i (* i n)) (type-cast# 1)))
+          (aset new-m-data (+ i (* i n)) ($type-cast$ 1)))
         new-m))
     (diagonal-matrix [m diag]
-      (let [prim-diag (array-cast# diag)
+      (let [prim-diag ($array-cast$ diag)
             n (alength prim-diag)
-            ^typename# new-m (empty-ndarray#t [n n])
-            ^array-tag# new-m-data (.data new-m)]
-        (when (= type-object# java.lang.Object)
+            ^$typename$ new-m ($empty-ndarray.s$ [n n])
+            ^$array-tag$ new-m-data (.data new-m)]
+        (when (= $type-object$ java.lang.Object)
           (c-for [i (int 0) (< i (* n n)) (inc i)]
-            (aset new-m-data i (type-cast# 0))))
+            (aset new-m-data i ($type-cast$ 0))))
         (c-for [i (int 0) (< i n) (inc i)]
           (aset new-m-data (int (+ i (* i n)))
-                (type-cast# (aget prim-diag i))))
+                ($type-cast$ (aget prim-diag i))))
         new-m))
 
   ;; mp/PCoercion
@@ -610,15 +610,15 @@ of indexes and strides"
     (get-row [m i]
       (iae-when-not (== ndims 2)
         "get-row is applicable only for matrices")
-      (row-major-slice#t m i))
+      ($row-major-slice.s$ m i))
     (get-column [m i]
       (iae-when-not (== ndims 2)
         "get-column is applicable only for matrices")
-      (arbitrary-slice#t m 1 i))
+      ($arbitrary-slice.s$ m 1 i))
     (get-major-slice [m i]
-      (row-major-slice#t m i))
+      ($row-major-slice.s$ m i))
     (get-slice [m dimension i]
-      (arbitrary-slice#t m dimension i))
+      ($arbitrary-slice.s$ m dimension i))
 
   mp/PSubVector
     (subvector [m start length]
@@ -626,10 +626,10 @@ of indexes and strides"
         "subvector is applicable only for vectors")
       (let [new-shape (int-array 1 (int length))
             new-offset (+ offset (* (aget strides 0) start))]
-        (reshape-restride#t m ndims new-shape strides new-offset)))
+        ($reshape-restride.s$ m ndims new-shape strides new-offset)))
 
   mp/PSliceView
-   (get-major-slice-view [m i] (row-major-slice#t m i))
+   (get-major-slice-view [m i] ($row-major-slice.s$ m i))
 
   mp/PSliceSeq
     (get-major-slice-seq [m] (seq m))
@@ -650,7 +650,7 @@ of indexes and strides"
             new-shape (int-array 1 (aget shape 0))
             new-strides (int-array 1 (* (aget shape 0)
                                         (inc (aget strides 1))))]
-        (reshape-restride#t m new-ndims new-shape new-strides offset)))
+        ($reshape-restride.s$ m new-ndims new-shape new-strides offset)))
 
   ;; mp/PAssignment
   ;;   (assign! [m source])
@@ -662,7 +662,7 @@ of indexes and strides"
       (let [end (+ offset (areduce shape i s (int 1)
                                    (* s (aget shape i))))]
         (c-for [i offset (< i end) (inc i)]
-          (aset data i (type-cast# v)))))
+          (aset data i ($type-cast$ v)))))
 
   ;; may be not applicable to non-double?
   ;; mp/PDoubleArrayOutput
@@ -682,17 +682,17 @@ of indexes and strides"
     (matrix-equals [a b]
       #_(prn
        (loop-over
-        [a b] (type-cast# 0)
+        [a b] ($type-cast$ 0)
         (continue (+ loop-acc (* (aget a-data a-idx) (aget b-data b-idx))))))
       (if (identical? a b)
         true
-        (if-not (instance? typename# b)
+        (if-not (instance? $typename$ b)
           ;; Coerce second argument to first one
           (mp/matrix-equals a (mp/coerce-param a b))
           ;; Fast path, types are same
-          (let [^typename# b b
+          (let [^$typename$ b b
                 ^ints shape-b (.shape b)
-                ^array-tag# data-b (.data b)
+                ^$array-tag$ data-b (.data b)
                 ^ints strides-b (.strides b)
                 offset-b (.offset b)]
             (if (not (java.util.Arrays/equals shape shape-b))
@@ -767,11 +767,11 @@ of indexes and strides"
 
   mp/PMatrixMultiply
    (matrix-multiply [a b]
-     (if-not (instance? typename# b)
+     (if-not (instance? $typename$ b)
        ;; Coerce second argument to first one
        (mp/matrix-multiply a (mp/coerce-param a b))
        ;; Fast path, types are same
-       (let [^typename# b b
+       (let [^$typename$ b b
              a-ndims ndims
              b-ndims (.ndims b)
              ^ints b-shape (.shape b)]
@@ -788,16 +788,16 @@ of indexes and strides"
           (and (== a-ndims 2) (== b-ndims 2))
           (let [a-rows (aget shape (int 0))
                 a-cols (aget shape (int 1))
-                ^array-tag# a-data data
+                ^$array-tag$ a-data data
                 ^ints a-strides strides
                 a-offset offset
                 b-rows (aget b-shape (int 0))
                 b-cols (aget b-shape (int 1))
-                ^array-tag# b-data (.data b)
+                ^$array-tag$ b-data (.data b)
                 ^ints b-strides (.strides b)
                 b-offset (.offset a)
-                ^typename# c (empty-ndarray-zeroed#t [a-rows b-cols])
-                ^array-tag# c-data (.data c)
+                ^$typename$ c ($empty-ndarray-zeroed.s$ [a-rows b-cols])
+                ^$array-tag$ c-data (.data c)
                 ^ints c-strides (.strides c)]
             (do (iae-when-not (== a-cols b-rows)
                   (str "dimension mismatch: "
@@ -820,15 +820,13 @@ of indexes and strides"
     (transpose [m]
       (let [new-shape (areverse shape)
             new-strides (areverse strides)]
-        (reshape-restride#t m ndims new-shape new-strides offset)))
+        ($reshape-restride.s$ m ndims new-shape new-strides offset)))
 
   mp/PElementCount
     (element-count [m]
       (areduce shape i s (int 1)
                (* s (aget shape i))))
 )
-    )
-
 
 (magic/spit-code)
 
