@@ -23,7 +23,7 @@
 
 ;; TODO: remove this as soon as simple-check is updated
 (defn gen-vector
-  "Create a generator whose elements are chosen from `gen`. The count of the
+  "Create a generator whose elements are chosen from `gen`. The size of the
   vector will be bounded by the `size` generator parameter."
   [gen num-elements]
   [:gen (fn [rand-seed size]
@@ -105,3 +105,14 @@
            #_(proper-array? vec-mtx)
            (= arr-shape (shape vec-arr))
            (= arr-shape (shape arr))))))
+
+(defspec householder-matrix-props num-tests
+  (prop/for-all [;; shrinking of keywords is broken in current simple-check
+                 ;; impl (gen/elements [:vectorz])
+                 v (gen-vector gen/int 5)]
+    (let [v (->> v (array :vectorz) normalise)
+          i (array :vectorz (identity-matrix 5))
+          m (sub i (emul 2.0 (outer-product v v)))]
+      (is (equals m (transpose m) 1.0E-12))
+      (is (equals m (inverse m) 1.0E-12))
+      (is (equals (mmul m m) i 1.0E-12)))))

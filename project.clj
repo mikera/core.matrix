@@ -15,6 +15,6 @@
                                   [criterium/criterium "0.4.1"]
                                   [hiccup "1.0.3"]
                                   [net.mikera/vectorz-clj "0.13.2"]
-                                  [reiddraper/simple-check "0.2.1"]]
+                                  [reiddraper/simple-check "0.3.0"]]
                    :source-paths ["src/main/clojure" "src/dev/clojure"]
                    :jvm-opts ^:replace []}})
