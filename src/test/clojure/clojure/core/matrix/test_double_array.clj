@@ -39,6 +39,12 @@
   (testing "slices"
     (let [da (double-array [1 2 3])
           fs (first (slices da))]
+      (is (scalar? fs))
+      (is (== 0 (dimensionality fs)))
+      (is (not (array? fs)))))
+  (testing "slice-views"
+    (let [da (double-array [1 2 3])
+          fs (first (slice-views da))]
       (is (not (scalar? fs)))
       (is (== 0 (dimensionality fs)))
       (is (array? fs))))

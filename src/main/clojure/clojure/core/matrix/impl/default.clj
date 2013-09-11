@@ -728,7 +728,9 @@
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
-      (clojure.core.matrix.impl.wrappers/wrap-slice m i))
+      (if-not (mp/is-vector? m)
+        (clojure.core.matrix.impl.wrappers/wrap-slice m i)
+        (mp/get-1d m i)))
     (get-slice [m dimension i]
       (mp/get-slice (mp/coerce-param [] m) dimension i)))
 
@@ -984,7 +986,7 @@
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false))
-                  
+
 
 ;; =======================================================
 ;; default multimethod implementations

@@ -70,7 +70,7 @@
          (compute-matrix :persistent-vector [2 2] str))))
 
 (deftest test-shape-errors
-  (is (error? (add [1] [2 3]))))
+  (is (error? (add [0 1] [2 3 4]))))
 
 (deftest test-mutable-matrix-fill
   (let [m [1 2 3]
@@ -97,7 +97,7 @@
 
 (deftest test-pow
   (is (== 8 (pow 2 3)))
-  (is (== 8 (clojure.core.matrix.operators/** 2 3))) 
+  (is (== 8 (clojure.core.matrix.operators/** 2 3)))
   )
 
 (deftest test-slices

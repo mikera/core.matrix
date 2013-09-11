@@ -285,7 +285,6 @@
           (set-source-index ix i (nth indexes i)))
         (mp/get-nd array ix)))
 
-
   java.lang.Object
     (toString [m]
       (str (mp/persistent-vector-coerce m))))
@@ -293,10 +292,10 @@
 (defn wrap-slice
   "Creates a view of a major slice of an array."
   ([m slice]
-    (let [slice (long slice)]
-      ;; (assert (> (mp/dimensionality m) 0))
-      ;; (assert (> (mp/dimension-count m 0) slice -1))
-      (SliceWrapper. m slice))))
+     (let [slice (long slice)]
+       ;; (assert (> (mp/dimensionality m) 0))
+       ;; (assert (> (mp/dimension-count m 0) slice -1))
+       (SliceWrapper. m slice))))
 
 (defn wrap-nd
   "Wraps an array in a NDWrapper view. Useful for taking submatrices, subviews etc."
