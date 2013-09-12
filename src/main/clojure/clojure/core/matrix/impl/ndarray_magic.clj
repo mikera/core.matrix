@@ -97,3 +97,6 @@
      ~@(map (fn [t] `(imp/register-implementation
                       (~(add-fn-suffix t 'empty-ndarray) [1])))
             (keys type-table-magic))))
+
+(defmacro specialize [type & body]
+  `(do ~@(handle-forms type (form-replaces {} type) body)))

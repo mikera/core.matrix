@@ -136,15 +136,12 @@ of indexes and strides"
     `(and (~pred ~(first xs) ~(second xs))
           ~(unroll-predicate pred (rest xs)))))
 
-
-
 ;; TODO: use binding to ensure that it's inside magic
 ;; TODO: more docs here
-;; TODO: row&column are same for all matrices!
 ;; TODO: introduce macro for current element retrieval
 ;; TODO: there is no way to introduce primitive accumulator now, it should
 ;;       be possible to use "magic vars" there
-#_(defmacro loop-over
+(defmacro loop-over
   "Helper macro for iterating over NDArray (or NDArrays) in efficient manner.
    Assumes that it's inside `with-magic` and all operands are of the same
    type (current 'magic' type) and shape; striding schemes can be different.
@@ -170,7 +167,7 @@ of indexes and strides"
                              ~(suffixed m 'ndims) (.ndims ~m)])
                          matrices)
         steps-1d (mapcat (fn [m] [(suffixed m 'step)
-                                  `(aget ~(suffixed m 'strides) 0)])
+                                  `(aget ~(suffixed m 'strides) (int 0))])
                          matrices)
         loop-init-1d (mapcat (fn [m] [(suffixed m 'idx)
                                       (suffixed m 'offset)])
@@ -194,8 +191,34 @@ of indexes and strides"
                                   (suffixed m 'step-row)
                                   `(- (aget ~(suffixed m 'strides) 0)
                                       (* (aget ~(suffixed m 'strides) 1)
-                                         (aget ~(suffixed m 'shape) 1)))])
-                         matrices)]
+                                         (dec (aget ~(suffixed m 'shape) 1))))])
+                         matrices)
+        loop-init-2d (mapcat (fn [m] [(suffixed m 'idx)
+                                      (suffixed m 'offset)])
+                             matrices)
+        body-2d (clojure.walk/prewalk
+                 (fn [form]
+                   (if (and (seq? form) (= (count form) 2))
+                     (let [[op arg] form]
+                       (case op
+                         break arg
+                         continue
+                         `(if (< ~'loop-col (dec ~'loop-ncols))
+                            (recur ~@(map (fn [m] `(+ ~(suffixed m 'idx)
+                                                      ~(suffixed m 'step-col)))
+                                          matrices)
+                                   ~'loop-row
+                                   (inc ~'loop-col)
+                                   ~arg)
+                            (recur ~@(map (fn [m] `(+ ~(suffixed m 'idx)
+                                                      ~(suffixed m 'step-row)))
+                                          matrices)
+                                   (inc ~'loop-row)
+                                   0
+                                   ~arg))
+                         form))
+                     form))
+                 body)]
     `(let [~@bindings]
        (if-not ~(unroll-predicate 'java.util.Arrays/equals
                                   (map #(suffixed % 'shape) matrices))
@@ -204,7 +227,7 @@ of indexes and strides"
            0 (TODO)
            1 (let [~@steps-1d
                    end# (+ ~(suffixed m1 'offset)
-                           (* (aget ~(suffixed m1 'shape) 0)
+                           (* (aget ~(suffixed m1 'shape) (int 0))
                               ~(suffixed m1 'step)))]
                (loop [~@loop-init-1d
                       ~'loop-i 0
@@ -213,29 +236,32 @@ of indexes and strides"
                    ~body-1d
                    ~'loop-acc)))
            2 (let [~@steps-2d
-                   nrows# (aget ~(suffixed m1 'shape) 0)
-                   ncols# (aget ~(suffixed m1 'shape) 1)
-                   end# (+ ~(suffixed m1 'offset)
-                           (+ (* nrows# ~(suffixed m1 'step-row))
-                              (* ncols# ~(suffixed m1 'step-col))))]
-               (loop [;; !
-                      i-a offset
-                      i-b offset-b
-
+                   ~'loop-nrows (aget ~(suffixed m1 'shape) 0)
+                   ~'loop-ncols (aget ~(suffixed m1 'shape) 1)]
+               (loop [~@loop-init-2d
                       ~'loop-row 0
-                      ~'loop-col 0]
-                 (if (< i-a end#)
-                   (if (== (aget data i-a) (aget data-b i-b))
-                     (if (< ~'loop-col ncols#)
-                       (recur (+ i-a step-col-a) (+ i-b step-col-b)
-                              ~'loop-row (inc ~'loop-col))
-                       (recur (+ i-a step-row-a) (+ i-b step-row-b)
-                              (inc ~'loop-row) 0))
-                     false)
-                   true)))
+                      ~'loop-col 0
+                      ~'loop-acc ~init]
+                 (if (and (< ~'loop-col ~'loop-ncols)
+                          (< ~'loop-row ~'loop-nrows))
+                   ~body-2d
+                   ~'loop-acc)))
            ;;N-dimensional case
-           (TODO)
-           )))))
+           (TODO))))))
+
+#_(defn foo [a b]
+  (magic/specialize :double
+    (loop-over [a b] (type-cast# 0)
+      (continue (aset a-data a-idx
+                      (+ (aget a-data a-idx) (aget b-data b-idx)))))))
+
+#_(defn bar [a b]
+  (let [c (empty-ndarray-zeroed-double [5 5])]
+    (magic/specialize :double
+      (loop-over [a b c] nil
+        (continue (aset c-data c-idx
+                        (* (aget a-data a-idx) (aget b-data b-idx))))))
+    c))
 
 (magic/init
  {:object {:regname :ndarray
@@ -833,3 +859,10 @@ of indexes and strides"
 ;; [2]: http://scipy-lectures.github.io/advanced/advanced_numpy/
 ;; [3]: http://clj-me.cgrand.net/2009/08/06/what-warn-on-reflection-doesnt-tell-you-about-arrays/
 ;; [4]: http://penguin.ewu.edu/~trolfe/MatMult/MatOpt.html
+
+;; Local Variables:
+;; eval: (put-clojure-indent 'c-for 'defun)
+;; eval: (put-clojure-indent 'iae-when-not 'defun)
+;; eval: (put-clojure-indent 'specialize 'defun)
+;; eval: (put-clojure-indent 'loop-over 'defun)
+;; End:
