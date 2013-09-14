@@ -682,31 +682,26 @@
                             k (int 0) (< k a-cols) (inc k)]
                       (let [t (aget-2d a-data a-strides a-offset i k)]
                         (c-for [j (int 0) (< j b-cols) (inc j)]
-                          (aadd-2d c-data c-strides (int 0) i j
+                          (aadd-2d c-data c-strides c-offset i j
                                    (* t (aget-2d b-data b-strides b-offset k j))))))
                     c))))))))
-   (element-multiply [m a]
-     ;; TODO: this should be rewritten using loop-over
-     (if (number? a)
-       (mp/scale m a)
-       (let [[m a] (mp/broadcast-compatible m a)]
-         (mp/element-map m clojure.core/* a))))
-   #_(element-multiply [a b]
-     (if (number? b)
-       (mp/scale a b)
-       (if-not (instance? typename# b)
+   (element-multiply [a b]
+     (if-not (instance? typename# b)
+       (if (number? b)
+         (mp/scale a b)
          ;; Coerce second argument to first one
-         (mp/element-multiply a (mp/coerce-param a b))
-         ;; Fast path, types are same
-         (expose-ndarrays [a b]
-           (if-not (java.util.Arrays/equals a-shape b-shape)
-             (mp/element-multiply a (mp/broadcast-like a b))
-             (let [c (empty-ndarray-zeroed#t a-shape)]
-               (loop-over [a b c] nil
-                 (continue
-                  (aset c-data c-idx (* (aget a-data a-idx)
-                                        (aget b-data b-idx)))))
-               c))))))
+         (mp/element-multiply a (mp/coerce-param a b)))
+       ;; Fast path, types are same
+       (expose-ndarrays [a b]
+         (if-not (java.util.Arrays/equals a-shape b-shape)
+           (let [[a b] (mp/broadcast-compatible a b)]
+                (mp/element-multiply a b))
+           (let [c (empty-ndarray-zeroed#t a-shape)]
+             (loop-over [a b c]
+               (aset c-data c-idx
+                     (* (aget a-data a-idx)
+                        (aget b-data b-idx))))
+             c)))))
 
   ;; mp/PMatrixProducts
 
@@ -731,7 +726,7 @@
                           k (int 0) (< k a-cols) (inc k)]
                     (let [t (aget-2d a-data a-strides a-offset i k)]
                       (c-for [j (int 0) (< j b-cols) (inc j)]
-                        (aadd-2d c-data c-strides (int 0) i j
+                        (aadd-2d c-data c-strides c-offset i j
                                  (* t (aget-2d b-data b-strides b-offset k j))))))
                   c))))))
 
@@ -745,8 +740,32 @@
                                                     (ints (.shape a)))
                            (java.util.Arrays/equals (ints (.shape a))
                                                     (ints (.shape b))))
-          "add-product operates on arrays of equal shape")
-        (let [^typename# c m]
+          "add-product! operates on arrays of equal shape")
+        (expose-ndarrays [a b m]
+          (let [a-rows (aget a-shape (int 0))
+                a-cols (aget a-shape (int 1))
+                b-rows (aget b-shape (int 0))
+                b-cols (aget b-shape (int 1))]
+            (do (c-for [i (int 0) (< i a-rows) (inc i)
+                        k (int 0) (< k a-cols) (inc k)]
+                  (let [t (aget-2d a-data a-strides a-offset i k)]
+                    (c-for [j (int 0) (< j b-cols) (inc j)]
+                      (aadd-2d m-data m-strides m-offset i j
+                               (* t (aget-2d b-data b-strides b-offset k j))))))
+                m)))))
+
+  mp/PAddScaledProduct
+    (add-scaled-product [m a b factor]
+      (let [^typename# a (if (instance? typename# a) a
+                             (mp/coerce-param m a))
+            ^typename# b (if (instance? typename# b) b
+                             (mp/coerce-param m b))]
+        (iae-when-not (and (java.util.Arrays/equals (ints (.shape m))
+                                                    (ints (.shape a)))
+                           (java.util.Arrays/equals (ints (.shape a))
+                                                    (ints (.shape b))))
+          "add-scaled-product operates on arrays of equal shape")
+        (let [^typename# c (mp/clone m)]
           (expose-ndarrays [a b c]
             (let [a-rows (aget a-shape (int 0))
                   a-cols (aget a-shape (int 1))
@@ -754,13 +773,115 @@
                   b-cols (aget b-shape (int 1))]
               (do (c-for [i (int 0) (< i a-rows) (inc i)
                           k (int 0) (< k a-cols) (inc k)]
-                    (let [t (aget-2d a-data a-strides a-offset i k)]
+                    (let [t (* (type-cast# factor)
+                               (aget-2d a-data a-strides a-offset i k))]
                       (c-for [j (int 0) (< j b-cols) (inc j)]
                         (aadd-2d c-data c-strides (int 0) i j
                                  (* t (aget-2d b-data b-strides b-offset k j))))))
                   c))))))
 
-    mp/PTranspose
+  mp/PAddScaledProductMutable
+    (add-scaled-product! [m a b factor]
+      (let [^typename# a (if (instance? typename# a) a
+                             (mp/coerce-param m a))
+            ^typename# b (if (instance? typename# b) b
+                             (mp/coerce-param m b))]
+        (iae-when-not (and (java.util.Arrays/equals (ints (.shape m))
+                                                    (ints (.shape a)))
+                           (java.util.Arrays/equals (ints (.shape a))
+                                                    (ints (.shape b))))
+          "add-scaled-product! operates on arrays of equal shape")
+        (expose-ndarrays [a b m]
+          (let [a-rows (aget a-shape (int 0))
+                a-cols (aget a-shape (int 1))
+                b-rows (aget b-shape (int 0))
+                b-cols (aget b-shape (int 1))]
+            (do (c-for [i (int 0) (< i a-rows) (inc i)
+                        k (int 0) (< k a-cols) (inc k)]
+                  (let [t (* (type-cast# factor)
+                             (aget-2d a-data a-strides a-offset i k))]
+                    (c-for [j (int 0) (< j b-cols) (inc j)]
+                      (aadd-2d m-data m-strides (int 0) i j
+                               (* t (aget-2d b-data b-strides b-offset k j))))))
+                m)))))
+
+  mp/PAddScaled
+    (add-scaled [m a factor]
+      (let [^typename# a (if (instance? typename# a) a
+                             (mp/coerce-param m a))]
+        (iae-when-not (java.util.Arrays/equals (ints (.shape m))
+                                               (ints (.shape a)))
+          "add-scaled operates on arrays of equal shape")
+        (let [^typename# b (mp/clone m)]
+          (loop-over [a b]
+            (aset b-data b-idx (* (type-cast# factor)
+                                  (aget a-data a-idx))))
+          b)))
+
+  mp/PAddScaledMutable
+    (add-scaled! [m a factor]
+      (let [^typename# a (if (instance? typename# a) a
+                             (mp/coerce-param m a))]
+        (iae-when-not (java.util.Arrays/equals (ints (.shape m))
+                                               (ints (.shape a)))
+          "add-scaled operates on arrays of equal shape")
+        (loop-over [m a]
+          (aset m-data m-idx (* (type-cast# factor)
+                                (aget a-data a-idx))))
+        m))
+
+  mp/PMatrixDivide
+    (element-divide [m factor]
+       (let [a (mp/clone m)]
+         (loop-over [a]
+           (aset a-data a-idx (type-cast#
+                               (/ (aget a-data a-idx)
+                                  (type-cast# factor)))))
+         a))
+    (element-divide [m]
+      (let [a (mp/clone m)]
+        (loop-over [a]
+          (aset a-data a-idx (type-cast#
+                              (/ (type-cast# 1)
+                                 (aget a-data a-idx)))))
+       a))
+
+  ;; PMatrixMultiplyMutable
+
+  ;; PVectorTransform
+
+  mp/PMatrixScaling
+    (scale [m factor]
+      (let [a (mp/clone m)]
+        (loop-over [a]
+          (aset a-data a-idx (type-cast#
+                              (* (aget a-data a-idx)
+                                 (type-cast# factor)))))
+        a))
+    (pre-scale [m factor]
+      (let [a (mp/clone m)]
+        (loop-over [a]
+          (aset a-data a-idx (type-cast#
+                              (* (type-cast# factor)
+                                 (aget a-data a-idx)))))
+        a))
+
+  ;; TODO: waits for loop-over-nd
+  ;; mp/PMatrixMutableScaling
+  ;;   (scale! [m factor]
+  ;;     (loop-over [m]
+  ;;       (aset m-data m-idx (type-cast#
+  ;;                           (* (aget m-data m-idx)
+  ;;                              (type-cast# factor)))))
+  ;;     m)
+  ;;   (pre-scale! [m factor]
+  ;;     (loop-over [m]
+  ;;       (aset m-data m-idx (type-cast#
+  ;;                           (* (type-cast# factor)
+  ;;                              (aget m-data m-idx)))))
+  ;;     m)
+
+  mp/PTranspose
     (transpose [m]
       (let [new-shape (areverse shape)
             new-strides (areverse strides)]

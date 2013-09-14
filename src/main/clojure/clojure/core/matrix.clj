@@ -1,6 +1,6 @@
 (ns clojure.core.matrix
   (:use [clojure.core.matrix.utils])
-  (:require [clojure.core.matrix.impl default double-array ndarray persistent-vector wrappers sparse-map])
+  (:require [clojure.core.matrix.impl ndarray default double-array ndarray persistent-vector wrappers sparse-map])
   (:require [clojure.core.matrix.impl sequence]) ;; TODO: figure out if we want this?
   (:require [clojure.core.matrix.multimethods :as mm])
   (:require [clojure.core.matrix.protocols :as mp])
@@ -502,8 +502,8 @@
    otherwise slices along the first dimension. If the matrix implementation supports mutable views, these views
    can be used to mutate portions of the original array.
 
-   The key difference betwen 'slices' and 'slice-views' is that 'slice-views' will always return views, including 
-   for the 0-dimensional case. Hence it will return a sequence of 0-dimensional scalar arrays if 
+   The key difference betwen 'slices' and 'slice-views' is that 'slice-views' will always return views, including
+   for the 0-dimensional case. Hence it will return a sequence of 0-dimensional scalar arrays if
    the array is 1-dimensional."
   ([m]
     (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0))))
@@ -711,7 +711,7 @@
     (mp/vector-transform t v)))
 
 (defn transform!
-  "Transforms a given vector in place. Returns the transformed vector. 
+  "Transforms a given vector in place. Returns the transformed vector.
 
    The transformation must map an n-dimensional vector to another n-dimensional vector, i.e.
    if it is a 2D matrix then it must have shape [n x n]."
@@ -1176,4 +1176,3 @@
   ([m]
     (alter-var-root (var clojure.core.matrix/*matrix-implementation*)
                     (fn [_] (imp/get-implementation-key m)))))
-

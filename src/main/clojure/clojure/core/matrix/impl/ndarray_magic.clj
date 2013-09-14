@@ -49,8 +49,10 @@
                      "loop-over-0d-internal"
                      "loop-over-1d"
                      "loop-over-1d-internal"
+                     "loop-over-1d-internal-new"
                      "loop-over-2d"
                      "loop-over-2d-internal"
+                     "loop-over-2d-internal-new"
                      "loop-over-nd"
                      "loop-over-nd-internal"
                      "expose-ndarrays"}

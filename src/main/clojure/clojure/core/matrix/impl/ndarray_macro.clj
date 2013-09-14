@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.impl.ndarray-macro
+  (:require [clojure.pprint])
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
@@ -35,6 +36,14 @@ of indexes and strides"
         (+ (+ (* (aget ~strides (int 0)) ~i)
               (* (aget ~strides (int 1)) ~j))
            ~offset)))
+
+(defmacro aset-2d
+  [data strides offset i j x]
+  `(aset ~data
+         (+ (+ (* (aget ~strides (int 0)) ~i)
+               (* (aget ~strides (int 1)) ~j))
+            ~offset)
+         ~x))
 
 (defmacro aadd-2d [data strides offset i j increment]
   `(let [idx# (+ (+ (* (aget ~strides (int 0)) ~i)
@@ -83,139 +92,48 @@ of indexes and strides"
        form))
    body))
 
-(defmacro loop-over-1d
-  [[m1 & _ :as matrices] init body]
-  `(expose-ndarrays [~@matrices]
-     (if-not ~(unroll-predicate 'java.util.Arrays/equals
-                                (map #(m-field % 'shape) matrices))
-       (iae "loop-over can iterate only over matrices of equal shape")
-       (loop-over-1d-internal [~@matrices ~init ~body]))))
+(defmacro loop-over-0d-internal
+  [[m1 & _ :as matrices] body]
+  (let [idxs (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
+                     matrices)]
+    `(let [~@idxs]
+       ~body)))
 
 (defmacro loop-over-1d-internal
-  [[m1 & _ :as matrices] init body]
-  (let [steps-1d (mapcat (fn [m] [(m-field m 'step)
-                                  `(aget ~(m-field m 'strides) (int 0))])
+  [[m1 & _ :as matrices] body]
+  (let [init (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
                          matrices)
-        loop-init-1d (mapcat (fn [m] [(m-field m 'idx)
-                                      (m-field m 'offset)])
-                             matrices)
-        loop-step-1d (mapcat
-                      (fn [m] [`(+ ~(m-field m 'idx)
-                                   ~(m-field m 'step))])
-                      matrices)
-        break-arg identity
-        continue-arg (fn [arg] `(recur ~@loop-step-1d (inc ~'loop-i) ~arg))
-        body-1d (loop-body-replace body break-arg continue-arg)]
-    `(let [~@steps-1d
-           end# (+ ~(m-field m1 'offset)
-                   (* (aget ~(m-field m1 'shape) (int 0))
-                      ~(m-field m1 'step)))]
-       (loop [~@loop-init-1d
-              ~'loop-i 0
-              ~'loop-acc ~init]
-         (if (< ~(m-field m1 'idx) end#)
-           ~body-1d
-           ~'loop-acc)))))
+        recur (for [m matrices]
+                    `(+ ~(m-field m 'idx) (aget ~(m-field m 'strides) 0)))]
+    `(loop [~'loop-i (int 0)
+            ~@init]
+       (when (< ~'loop-i (aget ~(m-field m1 'shape) 0))
+         ~body
+         (recur (inc ~'loop-i)
+                ~@recur)))))
 
-(defmacro loop-over-2d
-  [[m1 & _ :as matrices] init body]
-  `(expose-ndarrays [~@matrices]
-     (if-not ~(unroll-predicate 'java.util.Arrays/equals
-                                (map #(m-field % 'shape) matrices))
-       (iae "loop-over can iterate only over matrices of equal shape")
-       (loop-over-2d-internal [~@matrices] ~init ~body))))
-
-#_(defmacro loop-over-2d-internal
-  [[m1 & _ :as matrices] init body]
-  (let [steps (mapcat (fn [m] [(m-field m 'step-col)
-                               `(aget ~(m-field m 'strides) 1)
-                               (m-field m 'step-row)
-                               `(- (aget ~(m-field m 'strides) 0)
-                                   (* (aget ~(m-field m 'strides) 1)
-                                      (dec (aget ~(m-field m 'shape) 1))))])
-                      matrices)
-        loop-init (mapcat (fn [m] [(m-field m 'idx)
-                                      (m-field m 'offset)])
-                             matrices)
-        break-arg identity
-        continue-arg (fn [arg]
-                       (let [make-step-col
-                             (map (fn [m] `(+ ~(m-field m 'idx)
-                                              ~(m-field m 'step-col)))
-                                  matrices)
-                             make-step-row
-                             (map (fn [m] `(+ ~(m-field m 'idx)
-                                              ~(m-field m 'step-row)))
-                                  matrices)]
-                         `(if (< ~'loop-col (dec ~'loop-ncols))
-                            (recur ~@make-step-col
-                                   ~'loop-row
-                                   (inc ~'loop-col)
-                                   ~arg
-                                   (inc ~'i))
-                            (recur ~@make-step-row
-                                   (inc ~'loop-row)
-                                   0
-                                   ~arg
-                                   (inc ~'i)))))
-        body (loop-body-replace body break-arg continue-arg)]
-    `(let [~@steps
-           ~'loop-nrows (aget ~(m-field m1 'shape) 0)
-           ~'loop-ncols (aget ~(m-field m1 'shape) 1)]
-       (loop [~@loop-init
-              ~'loop-row 0
-              ~'loop-col 0
-              ~'loop-acc ~init
-              ~'i 0]
-         (if (< ~'i 250) #_(and (< ~'loop-col ~'loop-ncols)
-                       (< ~'loop-row ~'loop-nrows))
-           ~body
-           ~'loop-acc)))))
-
-;; TODO: this should be faster
+;; NOTE: this can be generalized to 3D, too
 (defmacro loop-over-2d-internal
-  [[m1 & _ :as matrices] init body]
-  (let [steps (mapcat (fn [m] [(m-field m 'step-col)
-                               `(aget ~(m-field m 'strides) 1)
-                               (m-field m 'step-row)
-                               `(- (aget ~(m-field m 'strides) 0)
-                                   (* (aget ~(m-field m 'strides) 1)
-                                      (dec (aget ~(m-field m 'shape) 1))))])
-                      matrices)
-        loop-init (mapcat (fn [m] [(m-field m 'idx)
-                                      (m-field m 'offset)])
-                             matrices)
-        break-arg identity
-        continue-arg (fn [arg]
-                       (let [make-step-col
-                             (map (fn [m] `(+ ~(m-field m 'idx)
-                                              ~(m-field m 'step-col)))
-                                  matrices)
-                             make-step-row
-                             (map (fn [m] `(+ ~(m-field m 'idx)
-                                              ~(m-field m 'step-row)))
-                                  matrices)]
-                         `(if (< ~'loop-col (dec ~'loop-ncols))
-                            (recur ~@make-step-col
-                                   ~'loop-row
-                                   (inc ~'loop-col)
-                                   ~arg)
-                            (recur ~@make-step-row
-                                   (inc ~'loop-row)
-                                   0
-                                   ~arg))))
-        body (loop-body-replace body break-arg continue-arg)]
-    `(let [~@steps
-           ~'loop-nrows (aget ~(m-field m1 'shape) 0)
-           ~'loop-ncols (aget ~(m-field m1 'shape) 1)]
-       (loop [~@loop-init
-              ~'loop-row 0
-              ~'loop-col 0
-              ~'loop-acc ~init]
-         (if (and (< ~'loop-col ~'loop-ncols)
-                       (< ~'loop-row ~'loop-nrows))
-           ~body
-           ~'loop-acc)))))
+  [[m1 & _ :as matrices] body]
+  (let [row-init (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
+                         matrices)
+        col-init (mapcat (fn [m] [(m-field m 'idx) (m-field m 'idx)])
+                         matrices)
+        row-recur (for [m matrices]
+                    `(+ ~(m-field m 'idx) (aget ~(m-field m 'strides) 0)))
+        col-recur (for [m matrices]
+                    `(+ ~(m-field m 'idx) (aget ~(m-field m 'strides) 1)))]
+    `(loop [~'loop-row (int 0)
+            ~@row-init]
+       (when (< ~'loop-row (aget ~(m-field m1 'shape) 0))
+         (loop [~'loop-col (int 0)
+                ~@col-init]
+           (when (< ~'loop-col (aget ~(m-field m1 'shape) 1))
+             ~body
+             (recur (inc ~'loop-col)
+                    ~@col-recur)))
+         (recur (inc ~'loop-row)
+                ~@row-recur)))))
 
 ;; TODO: use binding to ensure that it's inside magic
 ;; TODO: more docs here
@@ -231,14 +149,40 @@ of indexes and strides"
    indexes inside vectors represented by a and b), loop-row, loop-col
    (if a and b are matrices); for higher dimensions loop-idxs will
    be available; a-step b-step; loop-acc"
-  [[m1 & _ :as matrices] init body]
+  [[m1 & _ :as matrices] body]
   `(expose-ndarrays [~@matrices]
      (if-not ~(unroll-predicate 'java.util.Arrays/equals
                                 (map #(m-field % 'shape) matrices))
        (iae "loop-over can iterate only over matrices of equal shape")
        (case ~(m-field m1 'ndims)
-         0 (TODO)
-         1 (loop-over-1d-internal [~@matrices] ~init ~body)
-         2 (loop-over-2d-internal [~@matrices] ~init ~body)
+         0 (loop-over-0d-internal [~@matrices] ~body)
+         1 (loop-over-1d-internal [~@matrices] ~body)
+         2 (loop-over-2d-internal [~@matrices] ~body)
          ;;N-dimensional case
          (TODO)))))
+
+#_(loop [loop-row (int 0)
+                        a-idx a-offset
+                        b-idx b-offset
+                        c-idx c-offset
+                        acc nil]
+                   (if (< loop-row a-rows)
+                     (recur (inc loop-row)
+                            (+ a-idx (aget a-strides 0))
+                            (+ b-idx (aget b-strides 0))
+                            (+ c-idx (aget c-strides 0))
+                            (loop [loop-col (int 0)
+                                   a-idx a-idx
+                                   b-idx b-idx
+                                   c-idx c-idx
+                                   acc acc]
+                              (if (< loop-col a-cols)
+                                (recur (inc loop-col)
+                                       (+ a-idx (aget c-strides 1))
+                                       (+ b-idx (aget c-strides 1))
+                                       (+ c-idx (aget c-strides 1))
+                                       (aset c-data c-idx
+                                             (* (aget a-data a-idx)
+                                                (aget b-data b-idx))))
+                                acc)))
+                     acc))
