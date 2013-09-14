@@ -696,10 +696,10 @@
          (if-not (java.util.Arrays/equals a-shape b-shape)
            (let [[a b] (mp/broadcast-compatible a b)]
                 (mp/element-multiply a b))
-           (let [c (empty-ndarray-zeroed#t a-shape)]
-             (loop-over [a b c]
+           (let [c (mp/clone a)]
+             (loop-over [b c]
                (aset c-data c-idx
-                     (* (aget a-data a-idx)
+                     (* (aget c-data c-idx)
                         (aget b-data b-idx))))
              c)))))
 
@@ -867,19 +867,67 @@
         a))
 
   ;; TODO: waits for loop-over-nd
-  ;; mp/PMatrixMutableScaling
-  ;;   (scale! [m factor]
-  ;;     (loop-over [m]
-  ;;       (aset m-data m-idx (type-cast#
-  ;;                           (* (aget m-data m-idx)
-  ;;                              (type-cast# factor)))))
-  ;;     m)
-  ;;   (pre-scale! [m factor]
-  ;;     (loop-over [m]
-  ;;       (aset m-data m-idx (type-cast#
-  ;;                           (* (type-cast# factor)
-  ;;                              (aget m-data m-idx)))))
-  ;;     m)
+  mp/PMatrixMutableScaling
+    (scale! [m factor]
+      (loop-over [m]
+        (aset m-data m-idx (type-cast#
+                            (* (aget m-data m-idx)
+                               (type-cast# factor)))))
+      m)
+    (pre-scale! [m factor]
+      (loop-over [m]
+        (aset m-data m-idx (type-cast#
+                            (* (type-cast# factor)
+                               (aget m-data m-idx)))))
+      m)
+
+  mp/PMatrixAdd
+    (matrix-add [m a]
+      (let [^typename# a (if (instance? typename# a) a
+                             (mp/coerce-param m a))]
+        (if-not (java.util.Arrays/equals (ints (.shape m)) (ints (.shape a)))
+          (let [[m a] (mp/broadcast-compatible m a)]
+            (mp/matrix-add m a))
+          (let [b (mp/clone m)]
+            (loop-over [a b]
+              (aset b-data b-idx (+ (aget b-data b-idx)
+                                    (aget a-data a-idx))))
+            b))))
+    (matrix-sub [m a]
+      (let [^typename# a (if (instance? typename# a) a
+                             (mp/coerce-param m a))]
+        (if-not (java.util.Arrays/equals (ints (.shape m)) (ints (.shape a)))
+          (let [[m a] (mp/broadcast-compatible m a)]
+            (mp/matrix-add m a))
+          (let [b (mp/clone m)]
+            (loop-over [a b]
+              (aset b-data b-idx (- (aget b-data b-idx)
+                                    (aget a-data a-idx))))
+            b))))
+
+  mp/PMatrixAddMutable
+    (matrix-add! [m a]
+      (let [^typename# a (if (instance? typename# a) a
+                             (mp/coerce-param m a))]
+        (if-not (java.util.Arrays/equals (ints (.shape m)) (ints (.shape a)))
+          (let [[m a] (mp/broadcast-compatible m a)]
+            (mp/matrix-add m a))
+          (do
+            (loop-over [a m]
+              (aset m-data m-idx (+ (aget m-data m-idx)
+                                    (aget a-data a-idx))))
+            m))))
+    (matrix-sub! [m a]
+      (let [^typename# a (if (instance? typename# a) a
+                             (mp/coerce-param m a))]
+        (if-not (java.util.Arrays/equals (ints (.shape m)) (ints (.shape a)))
+          (let [[m a] (mp/broadcast-compatible m a)]
+            (mp/matrix-add m a))
+          (do
+            (loop-over [a m]
+              (aset m-data m-idx (- (aget m-data m-idx)
+                                    (aget a-data a-idx))))
+            m))))
 
   mp/PTranspose
     (transpose [m]

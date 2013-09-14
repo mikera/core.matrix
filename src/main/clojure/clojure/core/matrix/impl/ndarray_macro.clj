@@ -135,6 +135,32 @@ of indexes and strides"
          (recur (inc ~'loop-row)
                 ~@row-recur)))))
 
+;; TODO: this can be done faster by adding strides in inner loop instead
+;;       of calculating index with get-strided-idx
+(defmacro loop-over-nd-internal
+  [[m1 & _ :as matrices] body]
+  (let [m-idxs (mapcat (fn [m] (let [m-strides (m-field m 'strides)
+                                     m-offset (m-field m 'offset)]
+                                 [(m-field m 'idx)
+                                  `(get-strided-idx ~m-strides ~m-offset
+                                                    ~'loop-idxs)]))
+                       matrices)
+        m1-ndims (m-field m1 'ndims)
+        m1-shape (m-field m1 'shape)]
+    `(loop [~'loop-idxs (int-array ~m1-ndims)]
+       (let [~@m-idxs]
+         ~body)
+       (when (loop [dim# (int (dec ~m1-ndims))]
+               (if (>= dim# 0)
+                 (if (< (aget ~'loop-idxs dim#) (dec (aget ~m1-shape dim#)))
+                   (do (aset ~'loop-idxs dim#
+                             (inc (aget ~'loop-idxs dim#)))
+                       true)
+                   (do (aset ~'loop-idxs dim# (int 0))
+                       (recur (dec dim#))))
+                 false))
+         (recur ~'loop-idxs)))))
+
 ;; TODO: use binding to ensure that it's inside magic
 ;; TODO: more docs here
 ;; TODO: introduce macro for current element retrieval
@@ -158,31 +184,31 @@ of indexes and strides"
          0 (loop-over-0d-internal [~@matrices] ~body)
          1 (loop-over-1d-internal [~@matrices] ~body)
          2 (loop-over-2d-internal [~@matrices] ~body)
-         ;;N-dimensional case
-         (TODO)))))
+         (loop-over-nd-internal [~@matrices] ~body)))))
 
-#_(loop [loop-row (int 0)
-                        a-idx a-offset
-                        b-idx b-offset
-                        c-idx c-offset
-                        acc nil]
-                   (if (< loop-row a-rows)
-                     (recur (inc loop-row)
-                            (+ a-idx (aget a-strides 0))
-                            (+ b-idx (aget b-strides 0))
-                            (+ c-idx (aget c-strides 0))
-                            (loop [loop-col (int 0)
-                                   a-idx a-idx
-                                   b-idx b-idx
-                                   c-idx c-idx
-                                   acc acc]
-                              (if (< loop-col a-cols)
-                                (recur (inc loop-col)
-                                       (+ a-idx (aget c-strides 1))
-                                       (+ b-idx (aget c-strides 1))
-                                       (+ c-idx (aget c-strides 1))
-                                       (aset c-data c-idx
-                                             (* (aget a-data a-idx)
-                                                (aget b-data b-idx))))
-                                acc)))
-                     acc))
+;; loop-over with accumulator
+;; (loop [loop-row (int 0)
+;;        a-idx a-offset
+;;        b-idx b-offset
+;;        c-idx c-offset
+;;        acc nil]
+;;   (if (< loop-row a-rows)
+;;     (recur (inc loop-row)
+;;            (+ a-idx (aget a-strides 0))
+;;            (+ b-idx (aget b-strides 0))
+;;            (+ c-idx (aget c-strides 0))
+;;            (loop [loop-col (int 0)
+;;                   a-idx a-idx
+;;                   b-idx b-idx
+;;                   c-idx c-idx
+;;                   acc acc]
+;;              (if (< loop-col a-cols)
+;;                (recur (inc loop-col)
+;;                       (+ a-idx (aget c-strides 1))
+;;                       (+ b-idx (aget c-strides 1))
+;;                       (+ c-idx (aget c-strides 1))
+;;                       (aset c-data c-idx
+;;                             (* (aget a-data a-idx)
+;;                                (aget b-data b-idx))))
+;;                acc)))
+;;     acc))
