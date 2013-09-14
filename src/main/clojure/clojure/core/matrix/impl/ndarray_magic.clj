@@ -39,12 +39,24 @@
 
 ;; TODO: fix this dirty hack (!)
 (defn handle-forms [t replaces form]
-  (w/postwalk
-   (fn [x] (if (symbol? x) (handle-symbol t replaces x)
-               ;; this is dirty
-               (if (and (list? x) (#{'loop-over} (first x)))
-                 (handle-forms t replaces (macroexpand-1 x))
-                 x)))
+  (w/prewalk
+   (fn [x]
+     (if (symbol? x) (handle-symbol t replaces x)
+         ;; this is dirty
+         (if (and (seq? x) (symbol? (first x))
+                  (#{"loop-over"
+                     "loop-over-0d"
+                     "loop-over-0d-internal"
+                     "loop-over-1d"
+                     "loop-over-1d-internal"
+                     "loop-over-2d"
+                     "loop-over-2d-internal"
+                     "loop-over-nd"
+                     "loop-over-nd-internal"
+                     "expose-ndarrays"}
+                   (name (first x))))
+           (handle-forms t replaces (macroexpand-1 x))
+           x)))
    form))
 
 (defn handle-defn-form [t replaces [_ fn-name & _ :as form]]
