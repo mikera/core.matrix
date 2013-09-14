@@ -5,6 +5,7 @@
   (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
+  (:require [clojure.core.matrix.impl.mathsops :as mops])
   (:require [clojure.core.matrix.multimethods :as mm])
   (:refer-clojure :exclude [vector?]))
 
@@ -929,18 +930,89 @@
                                     (aget a-data a-idx))))
             m))))
 
+  ;; mp/PSubMatrix
+  ;; mp/PComputeMatrix
+
   mp/PTranspose
     (transpose [m]
       (let [new-shape (areverse shape)
             new-strides (areverse strides)]
         (reshape-restride#t m ndims new-shape new-strides offset)))
 
+  ;; mp/PNumerical ;; similar to matrix-equals, needs longjump
+  ;; mp/PVectorOps ;; needs fold-over
+  ;; mp/PVectorCross
+  ;; mp/PVectorDistance
+  ;; mp/PVectorView ;; needs "packed" flag to be efficient
+  ;; mp/PVectorisable ;; similar to PVectorView
+  ;; mp/PMutableVectorOps ;; needs fold-over
+  ;; mp/PMatrixOps
+
+  mp/PNegation
+    (negate [m]
+      (let [a (mp/clone m)]
+        (loop-over [a]
+          (aset a-data a-idx (* -1 (aget a-data a-idx))))
+        a))
+
+  ;; mp/PMatrixRank
+  ;; mp/PSummable ;; needs fold-over
+
+  mp/PExponent
+    (element-pow [m exp]
+      (let [a (mp/clone m)]
+        (loop-over [a]
+          (aset a-data a-idx (type-cast# (Math/pow (aget a-data a-idx)
+                                                   exp))))
+        a))
+
+  mp/PSquare
+    (square [m]
+      (let [a (mp/clone m)]
+        (loop-over [a]
+          (aset a-data a-idx (* (aget a-data a-idx)
+                                (aget a-data a-idx))))
+        a))
+
+  ;; mp/PRowOperations ;; use mutable views
+
+  ;; PMathsFunctions/PMathsFunctionsMutable are evaled below
+
   mp/PElementCount
     (element-count [m]
       (areduce shape i s (int 1)
                (* s (aget shape i))))
 
+  ;; PFunctionalOperators
+  ;; PMatrixPredicates ;; needs long-jump
+  ;; PGenericValues
+  ;; PGenericOperations
+
     )
+
+(eval
+  `(magic/extend-types
+    [:long :float :double :object]
+    mp/PMathsFunctions
+    ~@(map
+       (fn [[name func]]
+         `(~name [~'m]
+             (let [~'a (mp/clone ~'m)]
+               (loop-over [~'a]
+                 (aset ~'a-data ~'a-idx
+                       (~'type-cast# (~func (double (aget ~'a-data ~'a-idx))))))
+               ~'a)))
+       mops/maths-ops)
+
+    mp/PMathsFunctionsMutable
+    ~@(map
+       (fn [[name func]]
+         `(~(symbol (str name "!")) [~'m]
+             (loop-over [~'m]
+               (aset ~'m-data ~'m-idx
+                     (~'type-cast# (~func (double (aget ~'m-data ~'m-idx))))))
+             ~'m))
+       mops/maths-ops)))
 
 (magic/spit-code)
 
