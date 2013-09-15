@@ -49,13 +49,16 @@
                      "loop-over-0d-internal"
                      "loop-over-1d"
                      "loop-over-1d-internal"
-                     "loop-over-1d-internal-new"
                      "loop-over-2d"
                      "loop-over-2d-internal"
-                     "loop-over-2d-internal-new"
                      "loop-over-nd"
                      "loop-over-nd-internal"
-                     "expose-ndarrays"}
+                     "expose-ndarrays"
+                     "fold-over"
+                     "fold-over-0d-internal"
+                     "fold-over-1d-internal"
+                     "fold-over-2d-internal"
+                     "fold-over-nd-internal"}
                    (name (first x))))
            (handle-forms t replaces (macroexpand-1 x))
            x)))

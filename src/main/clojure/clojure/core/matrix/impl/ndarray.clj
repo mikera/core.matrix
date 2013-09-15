@@ -771,10 +771,11 @@
             (let [a-rows (aget a-shape (int 0))
                   a-cols (aget a-shape (int 1))
                   b-rows (aget b-shape (int 0))
-                  b-cols (aget b-shape (int 1))]
+                  b-cols (aget b-shape (int 1))
+                  factor (type-cast# factor)]
               (do (c-for [i (int 0) (< i a-rows) (inc i)
                           k (int 0) (< k a-cols) (inc k)]
-                    (let [t (* (type-cast# factor)
+                    (let [t (* factor
                                (aget-2d a-data a-strides a-offset i k))]
                       (c-for [j (int 0) (< j b-cols) (inc j)]
                         (aadd-2d c-data c-strides (int 0) i j
@@ -796,10 +797,11 @@
           (let [a-rows (aget a-shape (int 0))
                 a-cols (aget a-shape (int 1))
                 b-rows (aget b-shape (int 0))
-                b-cols (aget b-shape (int 1))]
+                b-cols (aget b-shape (int 1))
+                factor (type-cast# factor)]
             (do (c-for [i (int 0) (< i a-rows) (inc i)
                         k (int 0) (< k a-cols) (inc k)]
-                  (let [t (* (type-cast# factor)
+                  (let [t (* factor
                              (aget-2d a-data a-strides a-offset i k))]
                     (c-for [j (int 0) (< j b-cols) (inc j)]
                       (aadd-2d m-data m-strides (int 0) i j
@@ -956,7 +958,11 @@
         a))
 
   ;; mp/PMatrixRank
-  ;; mp/PSummable ;; needs fold-over
+
+  mp/PSummable
+    (element-sum [m]
+      (fold-over [m] (type-cast# 0)
+                 (+ loop-acc (aget m-data m-idx))))
 
   mp/PExponent
     (element-pow [m exp]

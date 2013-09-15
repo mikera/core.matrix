@@ -80,18 +80,6 @@ of indexes and strides"
     `(and (~pred ~(first xs) ~(second xs))
           ~(unroll-predicate pred (rest xs)))))
 
-(defn loop-body-replace [body break-arg continue-arg]
-  (clojure.walk/prewalk
-   (fn [form]
-     (if (and (seq? form) (= (count form) 2))
-       (let [[op arg] form]
-         (case op
-           break (break-arg arg)
-           continue (continue-arg arg)
-           form))
-       form))
-   body))
-
 (defmacro loop-over-0d-internal
   [[m1 & _ :as matrices] body]
   (let [idxs (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
@@ -187,28 +175,57 @@ of indexes and strides"
          (loop-over-nd-internal [~@matrices] ~body)))))
 
 ;; loop-over with accumulator
-;; (loop [loop-row (int 0)
-;;        a-idx a-offset
-;;        b-idx b-offset
-;;        c-idx c-offset
-;;        acc nil]
-;;   (if (< loop-row a-rows)
-;;     (recur (inc loop-row)
-;;            (+ a-idx (aget a-strides 0))
-;;            (+ b-idx (aget b-strides 0))
-;;            (+ c-idx (aget c-strides 0))
-;;            (loop [loop-col (int 0)
-;;                   a-idx a-idx
-;;                   b-idx b-idx
-;;                   c-idx c-idx
-;;                   acc acc]
-;;              (if (< loop-col a-cols)
-;;                (recur (inc loop-col)
-;;                       (+ a-idx (aget c-strides 1))
-;;                       (+ b-idx (aget c-strides 1))
-;;                       (+ c-idx (aget c-strides 1))
-;;                       (aset c-data c-idx
-;;                             (* (aget a-data a-idx)
-;;                                (aget b-data b-idx))))
-;;                acc)))
-;;     acc))
+(defmacro fold-over-1d-internal
+  [[m1 & _ :as matrices] init body]
+  (let [loop-init (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
+                     matrices)
+        loop-recur (for [m matrices]
+                `(+ ~(m-field m 'idx) (aget ~(m-field m 'strides) 0)))]
+    `(loop [~'loop-i (int 0)
+            ~'loop-acc ~init
+            ~@loop-init]
+       (if (< ~'loop-i (aget ~(m-field m1 'shape) 0))
+         (recur (inc ~'loop-i)
+                ~body
+                ~@loop-recur)
+         ~'loop-acc))))
+
+(defmacro fold-over-2d-internal
+  [[m1 & _ :as matrices] init body]
+  (let [row-init (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
+                         matrices)
+        col-init (mapcat (fn [m] [(m-field m 'idx) (m-field m 'idx)])
+                         matrices)
+        row-recur (for [m matrices]
+                    `(+ ~(m-field m 'idx) (aget ~(m-field m 'strides) 0)))
+        col-recur (for [m matrices]
+                    `(+ ~(m-field m 'idx) (aget ~(m-field m 'strides) 1)))]
+    `(loop [~'loop-row (int 0)
+            ~@row-init
+            ~'loop-acc ~init]
+       (if (< ~'loop-row (aget ~(m-field m1 'shape) 0))
+         (recur (inc ~'loop-row)
+                ~@row-recur
+                (~'type-cast#
+                 (loop [~'loop-col (int 0)
+                        ~@col-init
+                        ~'loop-acc ~'loop-acc]
+                   (if (< ~'loop-col (aget ~(m-field m1 'shape) 1))
+                     (recur (inc ~'loop-col)
+                            ~@col-recur
+                            (~'type-cast# ~body))
+                     ~'loop-acc))))
+         ~'loop-acc))))
+
+(defmacro fold-over
+  [[m1 & _ :as matrices] init body]
+  `(expose-ndarrays [~@matrices]
+     (if-not ~(unroll-predicate 'java.util.Arrays/equals
+                                (map #(m-field % 'shape) matrices))
+       (iae "fold-over can iterate only over matrices of equal shape")
+       (case ~(m-field m1 'ndims)
+         0 (TODO) #_(fold-over-0d-internal [~@matrices] ~body)
+         1 (fold-over-1d-internal [~@matrices] ~init ~body)
+         2 (fold-over-2d-internal [~@matrices] ~init ~body)
+         (TODO)
+         #_(fold-over-nd-internal [~@matrices] ~body)))))
