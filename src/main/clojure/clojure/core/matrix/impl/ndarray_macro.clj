@@ -182,7 +182,7 @@ of indexes and strides"
         loop-recur (for [m matrices]
                 `(+ ~(m-field m 'idx) (aget ~(m-field m 'strides) 0)))]
     `(loop [~'loop-i (int 0)
-            ~'loop-acc ~init
+            ~'loop-acc (~'type-cast# ~init)
             ~@loop-init]
        (if (< ~'loop-i (aget ~(m-field m1 'shape) 0))
          (recur (inc ~'loop-i)
@@ -202,7 +202,7 @@ of indexes and strides"
                     `(+ ~(m-field m 'idx) (aget ~(m-field m 'strides) 1)))]
     `(loop [~'loop-row (int 0)
             ~@row-init
-            ~'loop-acc ~init]
+            ~'loop-acc (~'type-cast# ~init)]
        (if (< ~'loop-row (aget ~(m-field m1 'shape) 0))
          (recur (inc ~'loop-row)
                 ~@row-recur

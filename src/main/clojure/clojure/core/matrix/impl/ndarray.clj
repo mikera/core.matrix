@@ -144,7 +144,7 @@
   (deftype typename#
       [^array-tag# data
        ^int ndims
-       ^ints shape
+       ^ints shape ;; this is compiled to type Object, so ints should be casted
        ^ints strides
        ^int offset]))
 
@@ -961,7 +961,7 @@
 
   mp/PSummable
     (element-sum [m]
-      (fold-over [m] (type-cast# 0)
+      (fold-over [m] 0
                  (+ loop-acc (aget m-data m-idx))))
 
   mp/PExponent
