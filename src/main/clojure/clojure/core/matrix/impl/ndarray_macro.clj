@@ -11,6 +11,13 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
+(defn m-field [m-name field-name]
+  (symbol (str m-name "-" field-name)))
+
+(defn m-typed-field [m-name field-name type-name]
+  (with-meta (m-field m-name field-name)
+    {:tag type-name}))
+
 (defmacro get-strided-idx
   "Returns an index inside of a strided array given a primitive long arrays
 of indexes and strides"
@@ -37,6 +44,13 @@ of indexes and strides"
               (* (aget ~strides (int 1)) ~j))
            ~offset)))
 
+(defmacro aget-2d*
+  [m i j]
+  `(aget ~(m-field m 'data)
+         (+ (+ (* (aget ~(m-field m 'strides) (int 0)) ~i)
+               (* (aget ~(m-field m 'strides) (int 1)) ~j))
+            ~(m-field m 'offset))))
+
 (defmacro aset-2d
   [data strides offset i j x]
   `(aset ~data
@@ -45,18 +59,19 @@ of indexes and strides"
             ~offset)
          ~x))
 
+(defmacro aset-2d*
+  [m i j x]
+  `(aset ~(m-field m 'data)
+         (+ (+ (* (aget ~(m-field m 'strides) (int 0)) ~i)
+               (* (aget ~(m-field m 'strides) (int 1)) ~j))
+            ~(m-field m 'offset))
+         ~x))
+
 (defmacro aadd-2d [data strides offset i j increment]
   `(let [idx# (+ (+ (* (aget ~strides (int 0)) ~i)
                     (* (aget ~strides (int 1)) ~j))
                  ~offset)]
      (aset ~data idx# (+ (aget ~data idx#) ~increment))))
-
-(defn m-field [m-name field-name]
-  (symbol (str m-name "-" field-name)))
-
-(defn m-typed-field [m-name field-name type-name]
-  (with-meta (m-field m-name field-name)
-    {:tag type-name}))
 
 (defmacro expose-ndarrays
   [matrices & body]

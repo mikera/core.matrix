@@ -286,6 +286,61 @@
       (map mp/get-0d (row-major-seq#t m))
       (row-major-seq#t m))))
 
+(magic/with-magic
+  [:double]
+  (defn lu-decompose!
+    [^typename# m]
+    (expose-ndarrays [m]
+      (iae-when-not (== m-ndims 2)
+        "lu-decompose can operate only on matrices")
+      (iae-when-not (== (aget m-shape 0) (aget m-shape 1))
+        "lu-decompose can operate only on square matrices")
+      (let [n (aget m-shape 0)
+            ;; permutations array
+            permutations (int-array n)
+            ;; 0d array for storing sign of permutations
+            sign (double-array [1.0])]
+        ;; initialize permuation vector, A_i = i
+        (c-for [i (int 0) (< i n) (inc i)]
+          (aset permutations i i))
+        ;; for all columns
+        (c-for [col (int 0) (< col n) (inc col)]
+          (let [max-row
+                (loop [row (int 0)
+                       max-row (int 0)
+                       max (Math/abs (aget-2d* m 0 col))]
+                  (if (< row n)
+                    (let [current
+                          (Math/abs (aget-2d* m row col))]
+                      (if (< max current)
+                        (recur (inc row) row current)
+                        (recur (inc row) max-row max)))
+                    (do
+                      (iae-when-not (not (== max 0))
+                        "lu-decompose can't decompose singular matrix")
+                      max-row)))
+                pivot (aget-2d* m max-row col)]
+            ;; when maximum element is not on diagonal, swap rows, update
+            ;; permutations and permutation counter
+            (when (not (== max-row col))
+              (c-for [i (int 0) (< i n) (inc i)]
+                (let [t (aget-2d* m max-row i)]
+                  (aset-2d* m max-row i (aget-2d* m col i))
+                  (aset-2d* m col i t)))
+              (let [t (aget permutations max-row)]
+                #_(prn max-row col (vec permutations))
+                (aset permutations max-row col)
+                (aset permutations col t))
+              (aset sign 0 (* -1 (aget sign 0))))
+            (c-for [row (inc col) (< row n) (inc row)]
+              (let [scaled (/ (aget-2d* m row col) pivot)]
+                (aset-2d* m row col scaled)
+                (c-for [k (inc col) (< k n) (inc k)]
+                  (aset-2d* m row k (- (aget-2d* m row k)
+                                       (* (aget-2d* m col k)
+                                          scaled))))))))
+        [m (vec permutations) (vec sign)]))))
+
 (magic/extend-types
   [:long :float :double :object]
   java.lang.Object

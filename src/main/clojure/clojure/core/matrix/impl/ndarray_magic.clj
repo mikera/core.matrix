@@ -67,10 +67,11 @@
 (defn handle-defn-form [t replaces [_ fn-name & _ :as form]]
   (let [new-fn-name (add-fn-suffix t fn-name)
         new-replaces (assoc replaces fn-name new-fn-name)]
-    (w/postwalk
+    (handle-forms t new-replaces [new-fn-name form])
+    #_(w/postwalk
      (fn [x]
        (if (symbol? x) (handle-symbol t new-replaces x)
-                 x))
+           x))
      [new-fn-name form])))
 
 (defmacro with-magic
