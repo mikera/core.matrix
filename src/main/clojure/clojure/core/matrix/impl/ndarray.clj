@@ -289,6 +289,13 @@
 (magic/with-magic
   [:double]
   (defn lu-decompose!
+    "LU-decomposition of a matrix into P A = L U. Saves L and U into
+     the input matrix as follows: L is a lower triangular part of it,
+     with diagonal omitted (they are all equal to 1); U is an upper
+     triangular part. P returned as a permutation vector.
+     This function is translated from GNU linear algebra library, namely
+     gsl_linalg_LU_decomp (see, for example,
+     https://github.com/vitaut/gsl/blob/master/linalg/lu.c"
     [^typename# m]
     (expose-ndarrays [m]
       (iae-when-not (== m-ndims 2)
@@ -297,48 +304,42 @@
         "lu-decompose can operate only on square matrices")
       (let [n (aget m-shape 0)
             ;; permutations array
-            permutations (int-array n)
+            permutations (int-array (range n))
             ;; 0d array for storing sign of permutations
             sign (double-array [1.0])]
-        ;; initialize permuation vector, A_i = i
-        (c-for [i (int 0) (< i n) (inc i)]
-          (aset permutations i i))
         ;; for all columns
-        (c-for [col (int 0) (< col n) (inc col)]
-          (let [max-row
-                (loop [row (int 0)
-                       max-row (int 0)
-                       max (Math/abs (aget-2d* m 0 col))]
-                  (if (< row n)
-                    (let [current
-                          (Math/abs (aget-2d* m row col))]
+        (c-for [j (int 0) (< j (dec n)) (inc j)]
+          (let [i-pivot
+                (loop [i (inc j)
+                       max-i j
+                       max (Math/abs (aget-2d* m j j))]
+                  (if (< i n)
+                    (let [current (Math/abs (aget-2d* m i j))]
                       (if (< max current)
-                        (recur (inc row) row current)
-                        (recur (inc row) max-row max)))
-                    (do
-                      (iae-when-not (not (== max 0))
-                        "lu-decompose can't decompose singular matrix")
-                      max-row)))
-                pivot (aget-2d* m max-row col)]
+                        (recur (inc i) i current)
+                        (recur (inc i) max-i max)))
+                    (do (iae-when-not (not (== max 0))
+                          "lu-decompose can't decompose singular matrix")
+                        max-i)))
+                pivot (aget-2d* m i-pivot j)]
             ;; when maximum element is not on diagonal, swap rows, update
             ;; permutations and permutation counter
-            (when (not (== max-row col))
-              (c-for [i (int 0) (< i n) (inc i)]
-                (let [t (aget-2d* m max-row i)]
-                  (aset-2d* m max-row i (aget-2d* m col i))
-                  (aset-2d* m col i t)))
-              (let [t (aget permutations max-row)]
-                #_(prn max-row col (vec permutations))
-                (aset permutations max-row col)
-                (aset permutations col t))
+            (when (not (== i-pivot j))
+              (c-for [k (int 0) (< k n) (inc k)]
+                (let [swap (aget-2d* m i-pivot k)]
+                  (aset-2d* m i-pivot k (aget-2d* m j k))
+                  (aset-2d* m j k swap)))
+              (let [swap (aget permutations i-pivot)]
+                (aset permutations i-pivot j)
+                (aset permutations j swap))
               (aset sign 0 (* -1 (aget sign 0))))
-            (c-for [row (inc col) (< row n) (inc row)]
-              (let [scaled (/ (aget-2d* m row col) pivot)]
-                (aset-2d* m row col scaled)
-                (c-for [k (inc col) (< k n) (inc k)]
-                  (aset-2d* m row k (- (aget-2d* m row k)
-                                       (* (aget-2d* m col k)
-                                          scaled))))))))
+            (c-for [i (inc j) (< i n) (inc i)]
+              (let [scaled (/ (aget-2d* m i j) pivot)]
+                (aset-2d* m i j scaled)
+                (c-for [k (inc j) (< k n) (inc k)]
+                  (aset-2d* m i k (- (aget-2d* m i k)
+                                     (* (aget-2d* m j k)
+                                        scaled))))))))
         [m (vec permutations) (vec sign)]))))
 
 (magic/extend-types
