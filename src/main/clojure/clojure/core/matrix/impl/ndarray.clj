@@ -286,6 +286,7 @@
       (map mp/get-0d (row-major-seq#t m))
       (row-major-seq#t m))))
 
+;; NOTE: to extend this to :object, clojure.math.numeric-tower is needed
 (magic/with-magic
   [:double]
   (defn lu-decompose!
@@ -295,18 +296,16 @@
      triangular part. P returned as a permutation vector.
      This function is translated from GNU linear algebra library, namely
      gsl_linalg_LU_decomp (see, for example,
-     https://github.com/vitaut/gsl/blob/master/linalg/lu.c"
+     https://github.com/vitaut/gsl/blob/master/linalg/lu.c)"
     [^typename# m]
     (expose-ndarrays [m]
       (iae-when-not (== m-ndims 2)
-        "lu-decompose can operate only on matrices")
+        "lu-decompose! can operate only on matrices")
       (iae-when-not (== (aget m-shape 0) (aget m-shape 1))
-        "lu-decompose can operate only on square matrices")
+        "lu-decompose! can operate only on square matrices")
       (let [n (aget m-shape 0)
             ;; permutations array
-            permutations (int-array (range n))
-            ;; 0d array for storing sign of permutations
-            sign (double-array [1.0])]
+            permutations (int-array (range n))]
         ;; for all columns
         (c-for [j (int 0) (< j (dec n)) (inc j)]
           (let [i-pivot
@@ -331,8 +330,7 @@
                   (aset-2d* m j k swap)))
               (let [swap (aget permutations i-pivot)]
                 (aset permutations i-pivot j)
-                (aset permutations j swap))
-              (aset sign 0 (* -1 (aget sign 0))))
+                (aset permutations j swap)))
             (c-for [i (inc j) (< i n) (inc i)]
               (let [scaled (/ (aget-2d* m i j) pivot)]
                 (aset-2d* m i j scaled)
@@ -340,7 +338,69 @@
                   (aset-2d* m i k (- (aget-2d* m i k)
                                      (* (aget-2d* m j k)
                                         scaled))))))))
-        [m (vec permutations) (vec sign)]))))
+        permutations))))
+
+(magic/with-magic
+  [:double]
+  (defn lu-solve!
+    "Solves a system of linear equations Ax = b using LU-decomposition.
+     lu should be a decomposition of A in a form produced by lu-decompose!,
+     permutations should be a primitive int vector of permutations (as from
+     lu-decompose!), x should be a primitive vector of right hand sides. After
+     an execution of this function x will be replaced with solution vector."
+    [^typename# lu ^ints permutations ^array-tag# x]
+    (expose-ndarrays [lu]
+      (iae-when-not (== lu-ndims 2)
+        "lu-solve! can operate only on matrices")
+      (iae-when-not (== (aget lu-shape 0) (aget lu-shape 1))
+        "lu-solve! can operate only on square matrices")
+      (let [n (aget lu-shape 0)]
+        ;; Solving Ly = b using forward substitution
+        (c-for [i (int 0) (< i n) (inc i)]
+          (loop [j (int 0)
+                 s (aget x i)]
+            (if (< j i)
+              (recur (inc j) (- s (* (aget-2d* lu i j)
+                                     (aget x j))))
+              (aset x i s))))
+        ;; Solving Ux = y using backward substitution
+        (aset x (dec n) (/ (aget x (dec n))
+                               (aget-2d* lu (dec n) (dec n))))
+        (c-for [i (- n 2) (>= i 0) (dec i)]
+          (loop [j (inc i)
+                 s (aget x i)]
+            (if (< j n)
+              (recur (inc j) (- s (* (aget-2d* lu i j)
+                                     (aget x j))))
+              (aset x i (/ s (aget-2d* lu i i))))))
+        nil))))
+
+(magic/with-magic
+  [:double]
+  (defn invert
+    "Inverts given matrix. Returns new one"
+    [^typename# m]
+    (expose-ndarrays [m]
+      (iae-when-not (== m-ndims 2)
+        "invert can operate only on matrices")
+      (iae-when-not (== (aget m-shape 0) (aget m-shape 1))
+        "invert can operate only on square matrices")
+      (let [n (aget m-shape 0)
+            ^array-tag# x (array-cast# n)
+            ^typename# lu (mp/clone m)
+            ^typename# m-inverted (empty-ndarray#t [n n])
+            ^ints permutations (lu-decompose!#t lu)] ; lu-decompose! mutates lu
+        (expose-ndarrays [m-inverted]
+          (c-for [i (int 0) (< i n) (inc i)]
+            (c-for [j (int 0) (< j n) (inc j)]
+              (if (== (aget permutations j) i)
+                (aset x j (type-cast# 1))
+                (aset x j (type-cast# 0))))
+            (lu-solve!#t lu permutations x)
+            (prn (vec x))
+            (c-for [j (int 0) (< j n) (inc j)]
+              (aset-2d* m-inverted j i (aget x j)))))
+        m-inverted))))
 
 (magic/extend-types
   [:long :float :double :object]

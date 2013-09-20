@@ -37,6 +37,27 @@ of indexes and strides"
   `(let [idx# (get-strided-idx ~strides ~offset ~idxs)]
      (aset ~data idx# ~x)))
 
+(defmacro aget-1d
+  [data strides offset i]
+  `(aget ~data (+ (* (aget ~strides (int 0)) ~i)
+                  ~offset)))
+
+(defmacro aget-1d*
+  [m i]
+  `(aget-1d ~(m-field m 'data) ~(m-field m 'strides) ~(m-field m 'offset)
+            ~i))
+
+(defmacro aset-1d
+  [data strides offset i x]
+  `(aset ~data (+ (* (aget ~strides (int 0)) ~i)
+                  ~offset)
+         ~x))
+
+(defmacro aset-1d*
+  [m i x]
+  `(aset-1d ~(m-field m 'data) ~(m-field m 'strides) ~(m-field m 'offset)
+            ~i ~x))
+
 (defmacro aget-2d
   [data strides offset i j]
   `(aget ~data
@@ -46,10 +67,8 @@ of indexes and strides"
 
 (defmacro aget-2d*
   [m i j]
-  `(aget ~(m-field m 'data)
-         (+ (+ (* (aget ~(m-field m 'strides) (int 0)) ~i)
-               (* (aget ~(m-field m 'strides) (int 1)) ~j))
-            ~(m-field m 'offset))))
+  `(aget-2d ~(m-field m 'data) ~(m-field m 'strides) ~(m-field m 'offset)
+            ~i ~j))
 
 (defmacro aset-2d
   [data strides offset i j x]
@@ -61,11 +80,8 @@ of indexes and strides"
 
 (defmacro aset-2d*
   [m i j x]
-  `(aset ~(m-field m 'data)
-         (+ (+ (* (aget ~(m-field m 'strides) (int 0)) ~i)
-               (* (aget ~(m-field m 'strides) (int 1)) ~j))
-            ~(m-field m 'offset))
-         ~x))
+  `(aset-2d ~(m-field m 'data) ~(m-field m 'strides) ~(m-field m 'offset)
+            ~i ~j ~x))
 
 (defmacro aadd-2d [data strides offset i j increment]
   `(let [idx# (+ (+ (* (aget ~strides (int 0)) ~i)
