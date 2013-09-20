@@ -397,7 +397,6 @@
                 (aset x j (type-cast# 1))
                 (aset x j (type-cast# 0))))
             (lu-solve!#t lu permutations x)
-            (prn (vec x))
             (c-for [j (int 0) (< j n) (inc j)]
               (aset-2d* m-inverted j i (aget x j)))))
         m-inverted))))
