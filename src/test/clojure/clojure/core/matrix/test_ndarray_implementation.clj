@@ -6,7 +6,35 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as gen])
   (:require clojure.core.matrix.impl.persistent-vector)
+  (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
+  (:require [clojure.core.matrix.impl.ndarray-macro :as macro])
   (:use clojure.core.matrix.impl.ndarray))
+
+(defn magic1 [a b]
+  (let [c (mp/clone a)]
+    (magic/specialize :double
+      (macro/loop-over [b c]
+        (let [x (aget c-data c-idx)
+              y (aget b-data b-idx)]
+          (aset c-data c-idx
+                (Math/sqrt
+                 (+ 1 (+ (* 0.5 (Math/sin x))
+                         (* 0.5 (Math/cos y)))))))))
+    c))
+
+(deftest magic-specialize-test
+  (let [n 3
+        t (->> (* n n)
+               range
+               (partition n)
+               (map vec)
+               vec)
+        a (ndarray-double t)
+        b (ndarray-double t)
+        m (magic1 a b)
+        x (mget m 2 2)
+        diff (Math/abs (- x 1.19))]
+    (is (< diff 0.01))))
 
 (deftest c-strides-test
   (are [strides shape] (= strides (c-strides shape))

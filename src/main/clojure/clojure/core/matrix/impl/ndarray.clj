@@ -98,15 +98,15 @@
 #_(defn foo [a b]
   (magic/specialize :double
     (loop-over [a b] (type-cast# 0)
-      (continue (aset a-data a-idx
-                      (+ (aget a-data a-idx) (aget b-data b-idx)))))))
+      (aset a-data a-idx
+            (+ (aget a-data a-idx) (aget b-data b-idx))))))
 
 #_(defn bar [a b]
   (let [c b #_(empty-ndarray-zeroed-double [5 5])]
     (magic/specialize :double
       (loop-over [a b c] nil
-        (continue (aset c-data c-idx
-                        (* (aget a-data a-idx) (aget b-data b-idx))))))
+        (aset c-data c-idx
+              (* (aget a-data a-idx) (aget b-data b-idx)))))
     c))
 
 (magic/init

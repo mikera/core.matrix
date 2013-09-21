@@ -117,4 +117,9 @@
             (keys type-table-magic))))
 
 (defmacro specialize [type & body]
-  `(do ~@(handle-forms type (form-replaces {} type) body)))
+  (let [replaces (form-replaces {} type)
+        replaces (assoc replaces
+                   'typename#
+                   (symbol (str "clojure.core.matrix.impl.ndarray."
+                                (get replaces 'typename#))))]
+    `(do ~@(handle-forms type replaces body))))
