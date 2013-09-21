@@ -1190,14 +1190,3 @@
 ;; [2]: http://scipy-lectures.github.io/advanced/advanced_numpy/
 ;; [3]: http://clj-me.cgrand.net/2009/08/06/what-warn-on-reflection-doesnt-tell-you-about-arrays/
 ;; [4]: http://penguin.ewu.edu/~trolfe/MatMult/MatOpt.html
-
-;; Local Variables:
-;; eval: (put-clojure-indent 'c-for 'defun)
-;; eval: (put-clojure-indent 'iae-when-not 'defun)
-;; eval: (put-clojure-indent 'specialize 'defun)
-;; eval: (put-clojure-indent 'loop-over 'defun)
-;; eval: (put-clojure-indent 'loop-over-1d 'defun)
-;; eval: (put-clojure-indent 'loop-over-2d 'defun)
-;; eval: (put-clojure-indent 'loop-over-nd 'defun)
-;; eval: (put-clojure-indent 'expose-ndarrays 'defun)
-;; End:
