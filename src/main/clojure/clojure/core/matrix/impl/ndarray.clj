@@ -660,8 +660,8 @@
         "main-diagonal is applicable only for square matrices")
       (let [new-ndims (int 1)
             new-shape (int-array 1 (aget shape 0))
-            new-strides (int-array 1 (* (aget shape 0)
-                                        (inc (aget strides 1))))]
+            new-strides (int-array 1 (* (inc (aget shape 0))
+                                        (aget strides 1)))]
         (reshape-restride#t m new-ndims new-shape new-strides offset)))
 
   ;; mp/PAssignment
@@ -1091,7 +1091,6 @@
   ;; mp/PVectorView ;; needs "packed" flag to be efficient
   ;; mp/PVectorisable ;; similar to PVectorView
   ;; mp/PMutableVectorOps ;; needs fold-over
-  ;; mp/PMatrixOps
 
   mp/PNegation
     (negate [m]
@@ -1136,8 +1135,7 @@
   ;; PMatrixPredicates ;; needs long-jump
   ;; PGenericValues
   ;; PGenericOperations
-
-    )
+  )
 
 (eval
   `(magic/extend-types
@@ -1162,6 +1160,28 @@
                      (~'type-cast# (~func (double (aget ~'m-data ~'m-idx))))))
              ~'m))
        mops/maths-ops)))
+
+(magic/extend-types
+  [:double]
+  mp/PMatrixOps
+    (trace [m]
+      (iae-when-not (== ndims 2)
+        "trace operates only on matrices")
+      (iae-when-not (== (aget shape 0) (aget shape 1))
+        "trace operates only on square matrices")
+      (mp/element-sum (mp/main-diagonal m)))
+    (determinant [m]
+      (iae-when-not (== ndims 2)
+        "determinant operates only on matrices")
+      (iae-when-not (== (aget shape 0) (aget shape 1))
+        "determinant operates only on square matrices")
+      (determinant#t m))
+    (inverse [m]
+      (iae-when-not (== ndims 2)
+        "inverse operates only on matrices")
+      (iae-when-not (== (aget shape 0) (aget shape 1))
+        "inverse operates only on square matrices")
+      (invert#t m)))
 
 (magic/spit-code)
 

@@ -526,7 +526,9 @@
         I-squared (diagonal-matrix im [1 4 9])]
     (is (equals [1 4 9] (mmul I [1 2 3])))
     (is (equals I-squared (mmul I I)))
-    (is (equals I (transpose I)))))
+    (is (equals I (transpose I))))
+  (let [m (matrix im [[1 2 3] [4 5 6] [7 8 9]])]
+    (is (equals [1 5 9] (main-diagonal m)))))
 
 (defn test-row-column-matrices [im]
   (let [rm (row-matrix im [1 2 3])]

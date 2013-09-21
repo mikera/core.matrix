@@ -318,7 +318,16 @@
         (loop [i 0 res 0.0]
           (if (>= i dims)
             res
-            (recur (inc i) (+ res (double (mp/get-2d m i i)))))))))
+            (recur (inc i) (+ res (double (mp/get-2d m i i))))))))
+    (determinant [m]
+      (->> m
+           (mp/coerce-param (imp/get-canonical-object :ndarray-double))
+           (mp/determinant)))
+    (inverse [m]
+      (->> m
+           (mp/coerce-param (imp/get-canonical-object :ndarray-double))
+           (mp/inverse)
+           (mp/coerce-param m))))
 
 (extend-protocol mp/PTranspose
   java.lang.Number
@@ -984,7 +993,7 @@
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false))
-                  
+
 
 ;; =======================================================
 ;; default multimethod implementations
