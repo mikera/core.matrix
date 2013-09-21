@@ -293,7 +293,10 @@
     "LU-decomposition of a matrix into P A = L U. Saves L and U into
      the input matrix as follows: L is a lower triangular part of it,
      with diagonal omitted (they are all equal to 1); U is an upper
-     triangular part. P returned as a permutation vector.
+     triangular part. P returned as a primitive int permutation array.
+     Returns a vector of two values: first is integer (-1)^n, where n is
+     a number of permutations, and second is a primitive int permutations
+     array.
      This function is translated from GNU linear algebra library, namely
      gsl_linalg_LU_decomp (see, for example,
      https://github.com/vitaut/gsl/blob/master/linalg/lu.c)"
@@ -305,7 +308,9 @@
         "lu-decompose! can operate only on square matrices")
       (let [n (aget m-shape 0)
             ;; permutations array
-            permutations (int-array (range n))]
+            permutations (int-array (range n))
+            ;; sign of determinant
+            sign (int-array [1])]
         ;; for all columns
         (c-for [j (int 0) (< j (dec n)) (inc j)]
           (let [i-pivot
@@ -330,7 +335,8 @@
                   (aset-2d* m j k swap)))
               (let [swap (aget permutations i-pivot)]
                 (aset permutations i-pivot j)
-                (aset permutations j swap)))
+                (aset permutations j swap))
+              (aset sign 0 (* -1 (aget sign 0))))
             (c-for [i (inc j) (< i n) (inc i)]
               (let [scaled (/ (aget-2d* m i j) pivot)]
                 (aset-2d* m i j scaled)
@@ -338,7 +344,7 @@
                   (aset-2d* m i k (- (aget-2d* m i k)
                                      (* (aget-2d* m j k)
                                         scaled))))))))
-        permutations))))
+        [(aget sign 0) permutations]))))
 
 (magic/with-magic
   [:double]
@@ -389,7 +395,8 @@
             ^array-tag# x (array-cast# n)
             ^typename# lu (mp/clone m)
             ^typename# m-inverted (empty-ndarray#t [n n])
-            ^ints permutations (lu-decompose!#t lu)] ; lu-decompose! mutates lu
+            lu-output (lu-decompose!#t lu) ; lu-decompose! mutates lu
+            ^ints permutations (second lu-output)]
         (expose-ndarrays [m-inverted]
           (c-for [i (int 0) (< i n) (inc i)]
             (c-for [j (int 0) (< j n) (inc j)]
@@ -400,6 +407,27 @@
             (c-for [j (int 0) (< j n) (inc j)]
               (aset-2d* m-inverted j i (aget x j)))))
         m-inverted))))
+
+(magic/with-magic
+  [:double]
+  (defn determinant
+    "Inverts given matrix. Returns new one"
+    [^typename# m]
+    (expose-ndarrays [m]
+      (iae-when-not (== m-ndims 2)
+        "invert can operate only on matrices")
+      (iae-when-not (== (aget m-shape 0) (aget m-shape 1))
+        "invert can operate only on square matrices")
+      (let [n (aget m-shape 0)
+            ^typename# lu (mp/clone m)
+            lu-output (lu-decompose!#t lu) ; lu-decompose! mutates lu
+            sign (first lu-output)]
+        (expose-ndarrays [lu]
+          (loop [i (int 0)
+                 det (type-cast# sign)]
+            (if (< i n)
+              (recur (inc i) (* det (aget-2d* lu i i)))
+              det)))))))
 
 (magic/extend-types
   [:long :float :double :object]
