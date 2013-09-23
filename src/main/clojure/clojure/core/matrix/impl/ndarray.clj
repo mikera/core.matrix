@@ -15,6 +15,7 @@
 ;; **NOTE**: this file was generated as follows:
 ;;
 ;;     lein marg -d . -f ndarray.html -n "NDArray for core.matrix" \
+;;         -D "git version: `git log --pretty=format:'%H' -n 1`" \
 ;;         src/main/clojure/clojure/core/matrix/impl/ndarray.clj \
 ;;         src/main/clojure/clojure/core/matrix/impl/ndarray_magic.clj \
 ;;         src/main/clojure/clojure/core/matrix/impl/ndarray_macro.clj
