@@ -37,7 +37,7 @@
    substitutions to it"
   [type replaces sym]
   (let [new-sym (or (replaces sym)
-                    (if (.endsWith (name s) "#t")
+                    (if (.endsWith (name sym) "#t")
                       (->> sym name (drop-last 2) (apply str)
                            (add-fn-suffix type))
                       sym))]
