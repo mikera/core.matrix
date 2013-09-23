@@ -74,7 +74,7 @@
 ;;
 ;; * `expose-ndarrays` is an anaphoric macro that takes a list of names of
 ;;   NDArrays and provides properly hinted bindings for NDArray fields. For
-;;   examplem `(expose-ndarrays [a b])` will bind names `a-shape`, `b-shape`,
+;;   example, `(expose-ndarrays [a b])` will bind names `a-shape`, `b-shape`,
 ;;   `a-offset` and so on in it's body. Some macros like `get-2d*` assume
 ;;   that they are used inside `expose-ndarray`.
 ;; * `loop-over` is an anaphoric macro to loop over provided list of
@@ -175,7 +175,7 @@
   (deftype typename#
       [^array-tag# data
        ^int ndims
-       ^ints shape ;; this is compiled to type Object, so ints should be casted
+       ^ints shape ;; this is compiled to type Object, WAT
        ^ints strides
        ^int offset]))
 
@@ -313,11 +313,11 @@
 (magic/with-magic
   [:double]
   (defn lu-decompose!
-    "LU-decomposition of a matrix into \\(P A = L U\\). Saves L and U into
+    "LU-decomposition of a matrix into P A = L U. Saves L and U into
      the input matrix as follows: L is a lower triangular part of it,
      with diagonal omitted (they are all equal to 1); U is an upper
      triangular part. P returned as a primitive int permutation array.
-     Returns a vector of two values: first is integer \\((-1)^n\\), where n is
+     Returns a vector of two values: first is integer (-1)^n, where n is
      a number of permutations, and second is a primitive int permutations
      array.
      This function is translated from GNU linear algebra library, namely
