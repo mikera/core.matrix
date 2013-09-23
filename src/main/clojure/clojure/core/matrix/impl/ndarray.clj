@@ -14,7 +14,7 @@
 
 ;; **NOTE**: this file was generated as follows:
 ;;
-;;     lein marg -d docs -f ndarray.html -n "NDArray for core.matrix" \
+;;     lein marg -d . -f ndarray.html -n "NDArray for core.matrix" \
 ;;         src/main/clojure/clojure/core/matrix/impl/ndarray.clj \
 ;;         src/main/clojure/clojure/core/matrix/impl/ndarray_magic.clj \
 ;;         src/main/clojure/clojure/core/matrix/impl/ndarray_macro.clj
@@ -93,6 +93,11 @@
 ;;   iteration. Here is an example of `fold-over`:
 ;;
 ;;   `(fold-over [m] 0 (+ loop-acc (aget m-data m-idx)))`
+;;
+;; `loop-over` and `fold-over` can be used from outside of NDArray,
+;; providing a very efficient way to perform complex element-wise operations.
+;; To do specialization in this case, use  `magic/specialize`. An example
+;; can be found on `test-ndarray-implementation` namespace.
 ;;
 ;; ## Default striding schemes
 ;;

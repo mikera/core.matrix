@@ -138,7 +138,6 @@ of indexes and strides"
          (recur (inc ~'loop-i)
                 ~@recur)))))
 
-;; NOTE: this can be generalized to 3D, too
 (defmacro loop-over-2d-internal
   [[m1 & _ :as matrices] body]
   (let [row-init (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
@@ -161,8 +160,6 @@ of indexes and strides"
          (recur (inc ~'loop-row)
                 ~@row-recur)))))
 
-;; TODO: this can be done faster by adding strides in inner loop instead
-;;       of calculating index with get-strided-idx
 (defmacro loop-over-nd-internal
   [[m1 & _ :as matrices] body]
   (let [m-idxs (mapcat (fn [m] (let [m-strides (m-field m 'strides)
@@ -187,9 +184,6 @@ of indexes and strides"
                  false))
          (recur ~'loop-idxs)))))
 
-;; TODO: use binding to ensure that it's inside magic
-;; TODO: more docs here
-;; TODO: introduce macro for current element retrieval
 (defmacro loop-over
   "Helper macro for iterating over NDArray (or NDArrays) in efficient manner.
    Assumes that it's inside `with-magic` and all operands are of the same
@@ -262,8 +256,7 @@ of indexes and strides"
                                 (map #(m-field % 'shape) matrices))
        (iae "fold-over can iterate only over matrices of equal shape")
        (case ~(m-field m1 'ndims)
-         0 (TODO) #_(fold-over-0d-internal [~@matrices] ~body)
+         0 (TODO)
          1 (fold-over-1d-internal [~@matrices] ~init ~body)
          2 (fold-over-2d-internal [~@matrices] ~init ~body)
-         (TODO)
-         #_(fold-over-nd-internal [~@matrices] ~body)))))
+         (TODO)))))
