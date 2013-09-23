@@ -12,7 +12,6 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
-;; TODO: abstract Java-related stuff so it can be ported to JS
 ;; TODO: check explicit throwing of out-of-bounds exceptions everywhere
 
 ;; ## Intro
@@ -84,8 +83,6 @@
 ;; ## Helper functions
 ;;
 ;; In this section we define a couple of useful functions.
-;; TODO: check if NDWrapper can reuse some of this; refactor to
-;; utils.clj?
 ;;
 ;; First of them is a function to find an index inside of strided array.
 ;; General formula for finding an element of given index inside of a
@@ -94,20 +91,6 @@
 ;; offset = \sum_{i=0}^{N-1} s_i n_i
 ;; (see [1])
 ;; TODO: unroll this for common dimensions
-
-#_(defn foo [a b]
-  (magic/specialize :double
-    (loop-over [a b] (type-cast# 0)
-      (aset a-data a-idx
-            (+ (aget a-data a-idx) (aget b-data b-idx))))))
-
-#_(defn bar [a b]
-  (let [c b #_(empty-ndarray-zeroed-double [5 5])]
-    (magic/specialize :double
-      (loop-over [a b c] nil
-        (aset c-data c-idx
-              (* (aget a-data a-idx) (aget b-data b-idx)))))
-    c))
 
 (magic/init
  {:object {:regname :ndarray
@@ -219,7 +202,6 @@
       (mp/assign! mtx data)
       mtx)))
 
-;; TODO: this destructuring should really be a macro
 ;; TODO: doc
 ;; TODO: not sure that strides don't matter
 ;; TODO: check offset larger than array
@@ -266,8 +248,6 @@
 ;; but it looks horribly inefficient, so let's build a lazy seq here.
 ;; NOTE: an actual implementations is now in the deftype itself, because
 ;; Seqable is not a real protocol
-;; TODO: test for seq
-;; TODO: test for .toString
 
 (magic/with-magic
   [:long :float :double :object]
@@ -475,7 +455,6 @@
 
 ;; PIndexedAccess protocol defines a bunch of functions to allow
 ;; (surprisingly) indexed access into matrix.
-;; TODO: is it possible to avoid using this ugly type hints (also see [3])?
 
   mp/PIndexedAccess
     (get-1d [m x]
@@ -543,18 +522,14 @@
       (let [idxs (int-array indexes)]
         (aset-nd data strides offset idxs (type-cast# v))))
 
-;; PMatrixCloning requires only "clone" method, which is used to clone
-;; mutable matrix. The mutation of clone must not affect the original.
-;; TODO: an open question is whether we need to normalize memory layout here
-;; (forcing data to conform C-order, for example) or not
-;; TODO: move this constructor to constructors section
+;; TODO: document normalizing
 
   mp/PMatrixCloning
     (clone [m]
-      (let [data-new (aclone data)
-            shape-new (aclone shape)
-            strides-new (aclone strides)]
-        (new typename# data-new ndims shape-new strides-new offset)))
+      (let [a (empty-ndarray#t (.shape m))]
+        (loop-over [m a]
+          (aset a-data a-idx (aget m-data m-idx)))
+        a))
 
 ;; ## Optional protocols
 ;;
@@ -1188,5 +1163,4 @@
 ;; ## Links
 ;; [1]: http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
 ;; [2]: http://scipy-lectures.github.io/advanced/advanced_numpy/
-;; [3]: http://clj-me.cgrand.net/2009/08/06/what-warn-on-reflection-doesnt-tell-you-about-arrays/
 ;; [4]: http://penguin.ewu.edu/~trolfe/MatMult/MatOpt.html
