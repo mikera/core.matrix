@@ -18,6 +18,13 @@
   (with-meta (m-field m-name field-name)
     {:tag type-name}))
 
+;; A function to find an index inside of strided array.
+;; General formula for finding an element of given index inside of a
+;; strided array is
+;; $$index = (n\_1, n\_2, \dots d\_N)$$
+;; $$offset = \sum\_{i=0}^{N-1} s\_i n\_i$$
+;; (see [1])
+
 (defmacro get-strided-idx
   "Returns an index inside of a strided array given a primitive long arrays
 of indexes and strides"

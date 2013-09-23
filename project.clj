@@ -8,8 +8,8 @@
   :source-paths ["src/main/clojure"]
   :java-source-paths ["src/test/java"]
   :test-paths ["src/test/clojure" "src/test/java"]
-  :dependencies [[org.clojure/clojure "1.4.0"]
-                 [org.clojure/tools.macro "0.1.2"]]
+  :dependencies [[org.clojure/clojure "1.4.0"]]
+  :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
   :profiles {:dev {:dependencies [[com.google.caliper/caliper "0.5-rc1"]
                                   [net.mikera/cljunit "0.2.0"]
                                   [criterium/criterium "0.4.1"]

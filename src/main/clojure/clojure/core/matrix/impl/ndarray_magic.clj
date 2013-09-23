@@ -1,5 +1,4 @@
 (ns clojure.core.matrix.impl.ndarray-magic
-  (:use clojure.tools.macro)
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
   (:use clojure.core.matrix.impl.ndarray-magic)

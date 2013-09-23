@@ -37,18 +37,11 @@
     (is (< diff 0.01))))
 
 (deftest c-strides-test
-  (are [strides shape] (= strides (c-strides shape))
+  (are [strides shape] (= strides (vec (c-strides shape)))
        [1]        [3]
        [2 1]      [3 2]
        [6 2 1]    [4 3 2]
        [24 6 2 1] [5 4 3 2]))
-
-(deftest f-strides-test
-  (are [strides shape] (= strides (f-strides shape))
-       [1]         [3]
-       [1 3]       [3 2]
-       [1 4 12]    [4 3 2]
-       [1 5 20 60] [5 4 3 2]))
 
 (deftest empty-ndarray-test
   (let [a (empty-ndarray [3 2])]

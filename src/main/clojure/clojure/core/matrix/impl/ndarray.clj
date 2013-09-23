@@ -12,85 +12,59 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
-;; TODO: check explicit throwing of out-of-bounds exceptions everywhere
+;; **NOTE**: this file was generated as follows:
+;;
+;;     lein marg -d docs -f ndarray.html -n "NDArray for core.matrix" \
+;;         src/main/clojure/clojure/core/matrix/impl/ndarray.clj \
+;;         src/main/clojure/clojure/core/matrix/impl/ndarray_magic.clj \
+;;         src/main/clojure/clojure/core/matrix/impl/ndarray_macro.clj
+;;
+;; [py1]: http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
+;; [py2]: http://scipy-lectures.github.io/advanced/advanced_numpy/
+;; [mult]: http://penguin.ewu.edu/~trolfe/MatMult/MatOpt.html
+;; [lu]: https://github.com/vitaut/gsl/blob/master/linalg/lu.c "GNU Linear Algebra LU-decomposition routines"
+
 
 ;; ## Intro
 ;;
 ;; This is an implementation of strided N-Dimensional array (or NDArray
-;; for short). The underlying structure is similar to NumPy's [1] [2]
-;; Default striding scheme is row-major, as in C. It can be changed
-;; explicitly or by using some operations.
+;; for short). The underlying structure is similar to NumPy's [[py1]],
+;; [[py2]].
 ;;
-;; TODO: elaborate on strides and stride-modifying operations
-
-;; ## The structure
+;; Default striding scheme is row-major, as in C. It's efficient on most
+;; modern processors. However, some functions (like `main-diagonal`) return
+;; "views" into original array with different striding scheme and this can
+;; affect performance of expensive functions like matrix multiplication.
+;; To avoid this penalty please use `clone` before the application, because
+;; `clone` always packs data in memory.
 ;;
-;; This type is identical to NumPy's. Strides are stored explicitly;
-;; this allows to perform some operations like transposition or
-;; broadcasting to be done on "strides" field alone, avoiding touching
-;; the data itself.
-;; In future, other memory layouts can be considered, such as Morton order.
-;; TODO: try Morton order
-;; TODO: consider moving offset field to View instead of NDArray itself
-;; I think that "offset" field should belong to a special "view" type,
-;; because this way we can easily see when matrix refers to a bigger
-;; memory chunk then it can.
-
-;; TODO: doc this declare
-
 ;; ## Default striding schemes
 ;;
 ;; When we are using C-like striding (row-major ordering), the formula for
-;; strides is as follows:
-;; shape = (d_1, d_2, \dots, d_N)
-;; strides = (s_1, s_2, \dots, s_N)
-;; s_j = d_{j+1} d_{j+2} \dots d_N
-;; (see [2])
-;; TODO: this should be faster
+;; strides is as follows (see [[py2]]):
+;;
+;; $$shape = (d\_1, d\_2, \dots, d\_N)$$
+;; $$strides = (s\_1, s\_2, \dots, s\_N)$$
+;; $$s_j = d\_{j+1} d\_{j+2} \dots d\_N$$
 
 (defn c-strides [shape]
-  (conj (->> shape
-             reverse
-             (reductions *)
-             reverse
-             rest
-             vec) 1))
+  (let [shape-ints (int-array shape)
+        n (alength shape-ints)]
+    (if-not (> n 0)
+      (int-array [1])
+      (let [strides (int-array n)]
+        (aset strides (dec n) (int 1))
+        (c-for [i (int (- n 2)) (>= i 0) (dec i)]
+          (aset strides i (* (aget strides (inc i))
+                             (aget shape-ints (inc i)))))
+        strides))))
 
 ;; We can easily check for correctness here using NumPy:
-;; ```python
-;; np.empty([4, 3, 2], dtype=np.int8, order="c").strides # (6, 2, 1)
-;; ```
-;; An actual test can be found in test_ndarray_implementation.clj.
-
-;; When we are using Fortran-like striding (column-major ordering),
-;; the formula for strides is different:
-;; s_j = d_1 d_2 \dots d_{j-1}
-
-(defn f-strides [shape]
-  (->> shape
-       (reductions *)
-       butlast
-       (cons 1)
-       vec))
-
-;; Again, it's easy to use NumPy to verify this implementation:
-;; ```python
-;; np.empty([4, 3, 2], dtype=np.int8, order="f").strides # (1, 4, 12)
-;; ```
-;; And again, an actual test can be found in test_ndarray_implementation.clj.
-
-
-;; ## Helper functions
 ;;
-;; In this section we define a couple of useful functions.
+;;     np.empty([4, 3, 2], dtype=np.int8, order="c").strides
+;;     # (6, 2, 1)
 ;;
-;; First of them is a function to find an index inside of strided array.
-;; General formula for finding an element of given index inside of a
-;; strided array is
-;; index = (n_1, n_2, \dots d_N)
-;; offset = \sum_{i=0}^{N-1} s_i n_i
-;; (see [1])
-;; TODO: unroll this for common dimensions
+;; An actual test can be found in namespace test-ndarray-implementation.
 
 (magic/init
  {:object {:regname :ndarray
@@ -122,6 +96,13 @@
            :type-cast 'double
            :type-object Double/TYPE}})
 
+;; ## The structure
+;;
+;; The structure is identical to NumPy's. Strides are stored explicitly;
+;; this allows to perform some operations like transposition or
+;; broadcasting to be done on "strides" field alone, avoiding touching
+;; the data itself.
+
 (magic/with-magic
   [:long :float :double :object]
   (deftype typename#
@@ -146,9 +127,7 @@
     [shape & {:keys [order] :or {order :c}}]
     (let [shape (int-array shape)
           ndims (count shape)
-          strides (case order
-                    :c (int-array (c-strides shape))
-                    :f (int-array (f-strides shape)))
+          strides (c-strides shape)
           len (reduce * shape)
           data (array-cast# len)
           offset 0]
@@ -158,12 +137,10 @@
   [:long :float :double]
   (defn empty-ndarray-zeroed
     "Returns an empty NDArray of given shape, guaranteed to be zeroed"
-    [shape & {:keys [order] :or {order :c}}]
+    [shape]
     (let [shape (int-array shape)
           ndims (count shape)
-          strides (case order
-                    :c (int-array (c-strides shape))
-                    :f (int-array (f-strides shape)))
+          strides (c-strides shape)
           len (reduce * shape)
           data (array-cast# len)
           offset 0]
@@ -176,9 +153,7 @@
     [shape & {:keys [order] :or {order :c}}]
     (let [shape (int-array shape)
           ndims (count shape)
-          strides (case order
-                    :c (int-array (c-strides shape))
-                    :f (int-array (f-strides shape)))
+          strides (c-strides shape)
           len (reduce * shape)
           data (array-cast# len)
           offset 0
@@ -191,8 +166,6 @@
 ;; can't really use this definition until we define an implementation for
 ;; protocol PIndexedSettingMutable because of mp/assign! use.
 
-;; TODO: consider removal of mp/assign! here
-
 (magic/with-magic
   [:long :float :double :object]
   (defn ndarray
@@ -201,10 +174,6 @@
     (let [mtx (empty-ndarray#t (mp/get-shape data))]
       (mp/assign! mtx data)
       mtx)))
-
-;; TODO: doc
-;; TODO: not sure that strides don't matter
-;; TODO: check offset larger than array
 
 (magic/with-magic
   [:long :float :double :object]
@@ -221,6 +190,8 @@
           new-shape (abutnth dim shape)
           new-strides (abutnth dim strides)
           new-offset (+ offset (* idx (aget strides dim)))]
+      (iae-when-not (< new-offset (alength data))
+        "new offset is larger than the array itself")
       (new typename# data new-ndims new-shape new-strides new-offset))))
 
 (magic/with-magic
@@ -278,8 +249,7 @@
      a number of permutations, and second is a primitive int permutations
      array.
      This function is translated from GNU linear algebra library, namely
-     gsl_linalg_LU_decomp (see, for example,
-     https://github.com/vitaut/gsl/blob/master/linalg/lu.c)"
+     `gsl_linalg_LU_decomp` (see [lu] for example)"
     [^typename# m]
     (expose-ndarrays [m]
       (iae-when-not (== m-ndims 2)
@@ -640,8 +610,6 @@
         (reshape-restride#t m new-ndims new-shape new-strides offset)))
 
   ;; mp/PAssignment
-  ;;   (assign! [m source])
-  ;;   (assign-array! [m arr] [m arr start length])
 
   ;; TODO: will not work for stride != 1
   mp/PMutableFill
@@ -653,16 +621,6 @@
 
   ;; may be not applicable to non-double?
   ;; mp/PDoubleArrayOutput
-  ;; (to-double-array [m])
-  ;; (as-double-array [m])
-
-
-  ;; Macro API:
-  ;; #_(loop-over [a b] true
-  ;;     (if (== a-el b-el) (continue true) (break false)))
-  ;; #_(loop-over [a b c] nil
-  ;;     (aset c c-idx (+ (aget a a-idx) (aget b b-idx)))
-  ;;     (continue nil))
 
   ;; mp/PMatrixEquality
   ;;   (matrix-equals [a b]
@@ -680,10 +638,6 @@
 
   mp/PMatrixEquality
     (matrix-equals [a b]
-      #_(prn
-       (loop-over
-        [a b] (type-cast# 0)
-        (continue (+ loop-acc (* (aget a-data a-idx) (aget b-data b-idx))))))
       (if (identical? a b)
         true
         (if-not (instance? typename# b)
@@ -754,15 +708,11 @@
                     ))))))))
 
   ;; TODO: optimize on smaller arrays
-  ;; TODO: optimize vector-matrix and matrix-vector
-  ;; TODO: optimize when second argument is different
-  ;; TODO: replace messy striding code with macroses
   ;; TODO: replace stride multiplication with addition
   ;; (one can use explicit addition of stride instead of (inc i)
   ;; TODO: implement transposition of argument for faster access
   ;; TODO: be ready to normalize arguments if they are not in row-major
   ;; TODO: check bit.ly/16ECque for inspiration
-  ;; TODO: optimize element-multiply
   ;; For algorithms see [4]
 
   mp/PMatrixMultiply
@@ -1159,8 +1109,3 @@
       (invert#t m)))
 
 (magic/spit-code)
-
-;; ## Links
-;; [1]: http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html
-;; [2]: http://scipy-lectures.github.io/advanced/advanced_numpy/
-;; [4]: http://penguin.ewu.edu/~trolfe/MatMult/MatOpt.html
