@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta name="description" /><style type="text/css">/**
+<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta content="git version: e5287e87397a6cb7962bc28a1f236c806d8c0548" name="description" /><style type="text/css">/**
  * SyntaxHighlighter
  * http://alexgorbatchev.com/SyntaxHighlighter
  *
@@ -3028,7 +3028,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>NDArray for core.matrix -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">NDArray for core.matrix</h1><h2 class="project-version">0.10.0</h2><br />
+</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>NDArray for core.matrix -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">NDArray for core.matrix</h1><h2 class="project-version">0.10.0</h2><br /><p>git version: e5287e87397a6cb7962bc28a1f236c806d8c0548</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#clojure.core.matrix.impl.ndarray">clojure.core.matrix.impl.ndarray</a></li><li><a href="#clojure.core.matrix.impl.ndarray-magic">clojure.core.matrix.impl.ndarray-magic</a></li><li><a href="#clojure.core.matrix.impl.ndarray-macro">clojure.core.matrix.impl.ndarray-macro</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clojure.core.matrix.impl.ndarray" name="clojure.core.matrix.impl.ndarray"><h1 class="project-name">clojure.core.matrix.impl.ndarray</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns clojure.core.matrix.impl.ndarray
   (:require [clojure.walk :as w])
@@ -3044,6 +3044,7 @@ net.brehaut.ClojureTools = (function (SH) {
 (set! *unchecked-math* true)</pre></td></tr><tr><td class="docs"><p><strong>NOTE</strong>: this file was generated as follows:</p>
 
 <pre><code>lein marg -d . -f ndarray.html -n "NDArray for core.matrix" \
+    -D "git version: `git log --pretty=format:'%H' -n 1`" \
     src/main/clojure/clojure/core/matrix/impl/ndarray.clj \
     src/main/clojure/clojure/core/matrix/impl/ndarray_magic.clj \
     src/main/clojure/clojure/core/matrix/impl/ndarray_macro.clj
@@ -3098,7 +3099,7 @@ in a lot of the code here:</p>
 <ul>
 <li><code>expose-ndarrays</code> is an anaphoric macro that takes a list of names of
 NDArrays and provides properly hinted bindings for NDArray fields. For
-examplem <code>(expose-ndarrays [a b])</code> will bind names <code>a-shape</code>, <code>b-shape</code>,
+example, <code>(expose-ndarrays [a b])</code> will bind names <code>a-shape</code>, <code>b-shape</code>,
 <code>a-offset</code> and so on in it's body. Some macros like <code>get-2d*</code> assume
 that they are used inside <code>expose-ndarray</code>.</li>
 <li><p><code>loop-over</code> is an anaphoric macro to loop over provided list of
@@ -3196,7 +3197,7 @@ the data itself.</p>
   (deftype typename#
       [^array-tag# data
        ^int ndims
-       ^ints shape ;; this is compiled to type Object, so ints should be casted
+       ^ints shape ;; this is compiled to type Object, WAT
        ^ints strides
        ^int offset]))</pre></td></tr><tr><td class="docs"><h2>Constructors</h2>
 
@@ -3309,11 +3310,11 @@ functions use mutatation heavily to avoid an extra allocation, so use with
 caution.</p>
 
 <p><em>NOTE</em>: to extend this to :object, clojure.math.numeric-tower is needed</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>LU-decomposition of a matrix into (P A = L U). Saves L and U into
+</td><td class="codes"></td></tr><tr><td class="docs"><p>LU-decomposition of a matrix into P A = L U. Saves L and U into
      the input matrix as follows: L is a lower triangular part of it,
      with diagonal omitted (they are all equal to 1); U is an upper
      triangular part. P returned as a primitive int permutation array.
-     Returns a vector of two values: first is integer ((-1)^n), where n is
+     Returns a vector of two values: first is integer (-1)^n, where n is
      a number of permutations, and second is a primitive int permutations
      array.
      This function is translated from GNU linear algebra library, namely
@@ -3322,16 +3323,6 @@ caution.</p>
 </td><td class="codes"><pre class="brush: clojure">(magic/with-magic
   [:double]
   (defn lu-decompose!
-    &quot;LU-decomposition of a matrix into \\(P A = L U\\). Saves L and U into
-     the input matrix as follows: L is a lower triangular part of it,
-     with diagonal omitted (they are all equal to 1); U is an upper
-     triangular part. P returned as a primitive int permutation array.
-     Returns a vector of two values: first is integer \\((-1)^n\\), where n is
-     a number of permutations, and second is a primitive int permutations
-     array.
-     This function is translated from GNU linear algebra library, namely
-     `gsl_linalg_LU_decomp` (see [[lu]] for example). Python translation that
-     was used to implement this can be found at [[lupy]].&quot;
     [^typename# m]
     (expose-ndarrays [m]
       (iae-when-not (== m-ndims 2)
@@ -4194,7 +4185,7 @@ we simply generate code that uses <code>loop-over</code>.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn handle-symbol
   [type replaces sym]
   (let [new-sym (or (replaces sym)
-                    (if (.endsWith (name s) &quot;#t&quot;)
+                    (if (.endsWith (name sym) &quot;#t&quot;)
                       (-&gt;&gt; sym name (drop-last 2) (apply str)
                            (add-fn-suffix type))
                       sym))]
@@ -4300,7 +4291,10 @@ we simply generate code that uses <code>loop-over</code>.</p>
   (:require [clojure.core.matrix.multimethods :as mm])
   (:refer-clojure :exclude [vector?]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(set! *warn-on-reflection* true)
-(set! *unchecked-math* true)</pre></td></tr><tr><td class="docs">
+(set! *unchecked-math* true)</pre></td></tr><tr><td class="docs"><h2>Helpers</h2>
+
+<p>This functions will be used everywhere in this file to generate symbols.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn m-field [m-name field-name]
   (symbol (str m-name &quot;-&quot; field-name)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn m-typed-field [m-name field-name type-name]
@@ -4310,7 +4304,7 @@ General formula for finding an element of given index inside of a
 strided array is
 $$index = (n_1, n_2, \dots d_N)$$
 $$offset = \sum_{i=0}^{N-1} s_i n_i$$
-(see [1])</p>
+(see [<a href="http://scipy-lectures.github.io/advanced/advanced_numpy/">py2</a>])</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Returns an index inside of a strided array given a primitive long arrays
 of indexes and strides</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro get-strided-idx
@@ -4318,58 +4312,71 @@ of indexes and strides</p>
   `(+ (areduce ~idxs i# res# (int 0)
               (+ (* (aget ~idxs i#) (aget ~strides i#))
                  res#))
-     ~offset))</pre></td></tr><tr><td class="docs">
+     ~offset))</pre></td></tr><tr><td class="docs"><h2>Getters and setters</h2>
+
+<p>Functions with names with * at the end assume that they are used inside
+<code>expose-ndarrays</code>.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Like aget, but for n-dimensional NDArray</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro aget-nd
   [data strides offset idxs]
   `(let [idx# (get-strided-idx ~strides ~offset ~idxs)]
-     (aget ~data idx#)))</pre></td></tr><tr><td class="docs">
+     (aget ~data idx#)))</pre></td></tr><tr><td class="docs"><p>Like aset, but for n-dimensional NDArray</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro aset-nd
   [data strides offset idxs x]
   `(let [idx# (get-strided-idx ~strides ~offset ~idxs)]
-     (aset ~data idx# ~x)))</pre></td></tr><tr><td class="docs">
+     (aset ~data idx# ~x)))</pre></td></tr><tr><td class="docs"><p>Like aget, but for 1-dimensional NDArray</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro aget-1d
   [data strides offset i]
   `(aget ~data (+ (* (aget ~strides (int 0)) ~i)
-                  ~offset)))</pre></td></tr><tr><td class="docs">
+                  ~offset)))</pre></td></tr><tr><td class="docs"><p>Like aget, but for 1-dimensional NDArray. Assumes that it's inside
+   <code>expose-ndarrays</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro aget-1d*
   [m i]
   `(aget-1d ~(m-field m 'data) ~(m-field m 'strides) ~(m-field m 'offset)
-            ~i))</pre></td></tr><tr><td class="docs">
+            ~i))</pre></td></tr><tr><td class="docs"><p>Like aset, but for 1-dimensional NDArray</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro aset-1d
   [data strides offset i x]
   `(aset ~data (+ (* (aget ~strides (int 0)) ~i)
                   ~offset)
-         ~x))</pre></td></tr><tr><td class="docs">
+         ~x))</pre></td></tr><tr><td class="docs"><p>Like aset, but for 1-dimensional NDArray. Assumes that it's inside
+   <code>expose-ndarrays</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro aset-1d*
   [m i x]
   `(aset-1d ~(m-field m 'data) ~(m-field m 'strides) ~(m-field m 'offset)
-            ~i ~x))</pre></td></tr><tr><td class="docs">
+            ~i ~x))</pre></td></tr><tr><td class="docs"><p>Like aget, but for 2-dimensional NDArray</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro aget-2d
   [data strides offset i j]
   `(aget ~data
         (+ (+ (* (aget ~strides (int 0)) ~i)
               (* (aget ~strides (int 1)) ~j))
-           ~offset)))</pre></td></tr><tr><td class="docs">
+           ~offset)))</pre></td></tr><tr><td class="docs"><p>Like aget, but for 2-dimensional NDArray. Assumes that it's inside
+   <code>expose-ndarrays</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro aget-2d*
   [m i j]
   `(aget-2d ~(m-field m 'data) ~(m-field m 'strides) ~(m-field m 'offset)
-            ~i ~j))</pre></td></tr><tr><td class="docs">
+            ~i ~j))</pre></td></tr><tr><td class="docs"><p>Like aset, but for 2-dimensional NDArray</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro aset-2d
   [data strides offset i j x]
   `(aset ~data
          (+ (+ (* (aget ~strides (int 0)) ~i)
                (* (aget ~strides (int 1)) ~j))
             ~offset)
-         ~x))</pre></td></tr><tr><td class="docs">
+         ~x))</pre></td></tr><tr><td class="docs"><p>Like aset, but for 2-dimensional NDArray. Assumes that it's inside
+   <code>expose-ndarrays</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro aset-2d*
   [m i j x]
   `(aset-2d ~(m-field m 'data) ~(m-field m 'strides) ~(m-field m 'offset)
-            ~i ~j ~x))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro aadd-2d [data strides offset i j increment]
+            ~i ~j ~x))</pre></td></tr><tr><td class="docs"><p>Increments value inside NDArray by a given amount</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro aadd-2d
+  [data strides offset i j increment]
   `(let [idx# (+ (+ (* (aget ~strides (int 0)) ~i)
                     (* (aget ~strides (int 1)) ~j))
                  ~offset)]
-     (aset ~data idx# (+ (aget ~data idx#) ~increment))))</pre></td></tr><tr><td class="docs">
+     (aset ~data idx# (+ (aget ~data idx#) ~increment))))</pre></td></tr><tr><td class="docs"><h2>Generally useful stuff</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>An anaphoric macro that takes a list of names of NDArrays and provides
+   properly hinted bindings for NDArray fields. For example,
+   <code>(expose-ndarrays [a b])</code> will bind names <code>a-shape</code>, <code>b-shape</code>, <code>a-offset</code>
+   and so on in it's body</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro expose-ndarrays
   [matrices &amp; body]
   (let [fields-gen (fn [m]
@@ -4381,7 +4388,9 @@ of indexes and strides</p>
                        ~(m-field m 'ndims) (.ndims ~m)])
         bindings (mapcat fields-gen matrices)]
     `(let [~@bindings]
-       ~@body)))</pre></td></tr><tr><td class="docs">
+       ~@body)))</pre></td></tr><tr><td class="docs"><p>Generates code for unrolling a binary predicate over a list of provided
+   symbols. For example, <code>(unroll-predicate 'pred ['a 'b 'c])</code> will return
+   <code>'(and (pred a b) (pred b c))</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defn unroll-predicate
   [pred xs]
   (case (count xs)
@@ -4389,7 +4398,12 @@ of indexes and strides</p>
     1 true
     2 `(~pred ~(first xs) ~(second xs))
     `(and (~pred ~(first xs) ~(second xs))
-          ~(unroll-predicate pred (rest xs)))))</pre></td></tr><tr><td class="docs">
+          ~(unroll-predicate pred (rest xs)))))</pre></td></tr><tr><td class="docs"><h2>loop-over and it's internals</h2>
+
+<p>This is a bunch of special cases for loop-over. Most of the time it will
+be used over 1d or 2d arrays, so it makes sense to provided special faster
+code for this cases.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro loop-over-0d-internal
   [[m1 &amp; _ :as matrices] body]
   (let [idxs (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
@@ -4428,7 +4442,9 @@ of indexes and strides</p>
              (recur (inc ~'loop-col)
                     ~@col-recur)))
          (recur (inc ~'loop-row)
-                ~@row-recur)))))</pre></td></tr><tr><td class="docs">
+                ~@row-recur)))))</pre></td></tr><tr><td class="docs"><p>In general case we iterate over n-dimensional array using a primitive int
+array of current indices into NDArray.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro loop-over-nd-internal
   [[m1 &amp; _ :as matrices] body]
   (let [m-idxs (mapcat (fn [m] (let [m-strides (m-field m 'strides)
@@ -4457,10 +4473,7 @@ of indexes and strides</p>
    Matrices argument should be a list of locals. Anaphoric arguments that
    can be used in a body given that [a, b] are provided: a-shape, b-shape,
    a-data, b-data, a-strides, b-strides, a-offset, b-offset, a-ndims, b-ndims,
-   a-idx (current index into a-data), loop-i (if a and b are vectors;
-   indexes inside vectors represented by a and b), loop-row, loop-col
-   (if a and b are matrices); for higher dimensions loop-idxs will
-   be available; a-step b-step; loop-acc</p>
+   a-idx, b-idx (current indeces into a and b)</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro loop-over
   [[m1 &amp; _ :as matrices] body]
   `(expose-ndarrays [~@matrices]
@@ -4471,7 +4484,12 @@ of indexes and strides</p>
          0 (loop-over-0d-internal [~@matrices] ~body)
          1 (loop-over-1d-internal [~@matrices] ~body)
          2 (loop-over-2d-internal [~@matrices] ~body)
-         (loop-over-nd-internal [~@matrices] ~body)))))</pre></td></tr><tr><td class="docs"><p>loop-over with accumulator</p>
+         (loop-over-nd-internal [~@matrices] ~body)))))</pre></td></tr><tr><td class="docs"><h2>fold-over and it's internals</h2>
+
+<p>fold-over is similar to loop-over, but allows to pass an accumulator
+through the loop. In some tests it's substantially slower (1-3x) than
+loop-over, I don't know why.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro fold-over-1d-internal
   [[m1 &amp; _ :as matrices] init body]
   (let [loop-init (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
@@ -4511,7 +4529,15 @@ of indexes and strides</p>
                             ~@col-recur
                             (~'type-cast# ~body))
                      ~'loop-acc))))
-         ~'loop-acc))))</pre></td></tr><tr><td class="docs">
+         ~'loop-acc))))</pre></td></tr><tr><td class="docs"><p>Helper macro for iterating over NDArray (or NDArrays) in efficient manner
+   using an accumulator. Assumes that it's inside <code>with-magic</code> and all
+   operands are of the same type (current 'magic' type) and shape; striding
+   schemes can be different. Matrices argument should be a list of locals.
+   Anaphoric arguments that can be used in a body given that [a, b] are
+   provided: a-shape, b-shape, a-data, b-data, a-strides, b-strides, a-offset,
+   b-offset, a-ndims, b-ndims,  a-idx, b-idx (current indeces into a and b),
+   loop-acc (current value of accumulator). The passed body should return a
+   new value of accumulator; it will be casted to current 'magic' type</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro fold-over
   [[m1 &amp; _ :as matrices] init body]
   `(expose-ndarrays [~@matrices]
