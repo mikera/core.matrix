@@ -32,16 +32,18 @@
       (array? m) (reduce * 1 (mp/get-shape m))
       :else (count m))))
 
+;; TODO: make smarter for different numeric types
 (defn construct-mutable-matrix
   "Constructs a mutable matrix with the given data."
   ([m]
     (let [dims (mp/dimensionality m)
-          type (mp/element-type m)]
+          type (mp/element-type m)
+          double? (or (= Double/TYPE type))]
       (cond
-        (and (== dims 1) (= Double/TYPE type))
+        (and (== dims 1) double?)
           (clojure.core.matrix.impl.double-array/construct-double-array m)
-        (and (== dims 1) (every? #(instance? Double %) (mp/element-seq m)))
-          (double-array (mp/element-seq m))
+        double?
+          (mp/coerce-param (imp/get-canonical-object :ndarray-double) m)
         :else
           (mp/coerce-param (imp/get-canonical-object :ndarray) m)))))
 
