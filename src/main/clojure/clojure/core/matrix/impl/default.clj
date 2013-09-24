@@ -1,7 +1,6 @@
 (ns clojure.core.matrix.impl.default
   (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.impl.double-array])
-  (:require [clojure.core.matrix.impl.ndarray])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.impl.wrappers :as wrap])
   (:require [clojure.core.matrix.multimethods :as mm])
@@ -44,7 +43,7 @@
         (and (== dims 1) (every? #(instance? Double %) (mp/element-seq m)))
           (double-array (mp/element-seq m))
         :else
-          (clojure.core.matrix.impl.ndarray/ndarray m)))))
+          (mp/coerce-param (imp/get-canonical-object :ndarray) m)))))
 
 ;; ============================================================
 ;; Default implementations

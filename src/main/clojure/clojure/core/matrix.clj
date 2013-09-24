@@ -1,6 +1,6 @@
 (ns clojure.core.matrix
   (:use [clojure.core.matrix.utils])
-  (:require [clojure.core.matrix.impl ndarray default double-array ndarray persistent-vector wrappers sparse-map])
+  (:require [clojure.core.matrix.impl default double-array persistent-vector wrappers])
   (:require [clojure.core.matrix.impl sequence]) ;; TODO: figure out if we want this?
   (:require [clojure.core.matrix.multimethods :as mm])
   (:require [clojure.core.matrix.protocols :as mp])
@@ -143,7 +143,7 @@
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/mutable-matrix data)
-        (clojure.core.matrix.impl.ndarray/ndarray data)))
+        (array :ndarray data))) ;; TODO: consider restricting to tighter NDArray type?
   ([data type]
     (mutable-matrix data) ;; TODO: support creation with specific element types
     ))
