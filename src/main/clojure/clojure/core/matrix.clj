@@ -1027,10 +1027,7 @@
 
    Equal to the product of the lenegths of each dimension in the array's shape."
   ([m]
-    (cond
-      (array? m) (reduce *' 1 (mp/get-shape m))
-      (scalar? m) 1
-      :else (count m))))
+    (mp/element-count m)))
 
 (defn eseq
   "Returns all elements of an array as a sequence in row-major order"

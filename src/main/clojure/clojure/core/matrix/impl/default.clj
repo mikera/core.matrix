@@ -92,6 +92,15 @@
         (error "Indexed get failed, not defined for:" (class m))
         (if (mp/is-scalar? m) m (mp/get-0d m)))))
 
+(extend-protocol mp/PArrayMetrics
+  nil
+    (nonzero-count [m] 1)
+  Number
+    (nonzero-count [m] (if (zero? m) 0 1))
+  java.lang.Object
+    (nonzero-count [m] 
+      (mp/element-reduce m (fn [cnt e] (if (zero? e) cnt (inc cnt))) 0)))
+
 (extend-protocol mp/PZeroDimensionConstruction
   nil
     (new-scalar-array

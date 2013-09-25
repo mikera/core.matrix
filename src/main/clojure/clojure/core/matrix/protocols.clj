@@ -128,6 +128,10 @@
    If a matrix is primitive-backed, it should return the appropriate primitive type e.g. Double/TYPE."
   (element-type [m]))
 
+(defprotocol PArrayMetrics
+  "Option protocol for quick determination of array matrics"
+  (nonzero-count [m]))
+
 (defprotocol PMutableMatrixConstruction
   "Protocol for creating a mutable copy of a matrix. If implemented, must return either a fully mutable
    copy of the given matrix, or nil if not possible.
