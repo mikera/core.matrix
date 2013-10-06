@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.docgen.implementations
   (:require [clojure.string :as s]
             [hiccup.page :as h]
+            [clojure.core.matrix.utils :as utils]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as mi]
             [clojure.core.matrix.docgen.common :as c]))
@@ -72,7 +73,7 @@
 (defn generate
   []
   (let [impl-objs (c/get-impl-objs)
-        protos (c/extract-implementations (c/extract-protocols) impl-objs)
+        protos (c/extract-implementations (utils/extract-protocols) impl-objs)
         git-hash (c/get-git-hash)
         header (render-header git-hash)
         table (render-table impl-objs protos git-hash)]

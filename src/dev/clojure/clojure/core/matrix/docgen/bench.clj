@@ -4,6 +4,7 @@
             [clojure.string :as s]
             [hiccup.page :as h]
             [clojure.core.matrix :as m]
+            [clojure.core.matrix.utils :as utils]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.multimethods :as mm]
@@ -193,7 +194,7 @@
                               first)]))))))
 
 (defn perform-bench []
-  (doseq [proto (c/extract-protocols)]
+  (doseq [proto (utils/extract-protocols)]
     (doseq [[_ {f-name :name}] (:sigs proto)
             :let [f-name-kw (keyword f-name)]]
       (doseq [[a-type a-info] array-types]
@@ -226,7 +227,7 @@
 
 (defn generate []
   (let [git-hash (c/get-git-hash)
-        protos (c/extract-protocols)
+        protos (utils/extract-protocols)
         header (render-header git-hash)
         table (render-table protos)]
     (render-page header table)))

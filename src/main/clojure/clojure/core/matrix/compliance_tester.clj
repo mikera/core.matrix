@@ -6,8 +6,7 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as generic])
   (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.utils :as utils :refer [error]])
-  (:require [clojure.core.matrix.docgen.common :as dc]))
+  (:require [clojure.core.matrix.utils :as utils :refer [error]]))
 
 ;; ====================================
 ;; COMPLIANCE TESTING
@@ -328,7 +327,7 @@
            :slice-wrapper
            :scalar-wrapper} im-name)
       true
-      (doseq [proto (dc/extract-protocols)]
+      (doseq [proto (utils/extract-protocols)]
         (doseq [[_ {:keys [name arglists]}] (:sigs proto)
                 :let [method (ns-resolve 'clojure.core.matrix.protocols
                                          name)]]

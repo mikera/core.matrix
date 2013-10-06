@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>core.matrix</artifactId>
 	<version>0.10.1-SNAPSHOT</version>
@@ -51,7 +52,7 @@
 			<version>0.14.0</version>
 			<scope>test</scope>
 		</dependency>
-   		<dependency>
+		<dependency>
 			<groupId>reiddraper</groupId>
 			<artifactId>simple-check</artifactId>
 			<version>0.4.1</version>
@@ -67,6 +68,28 @@
 	</licenses>
 
 	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.theoryinpractise</groupId>
+				<artifactId>clojure-maven-plugin</artifactId>
+				<version>1.3.17</version>
+				<configuration>
+					<sourceDirectories>
+						<sourceDirectory>src/main/clojure</sourceDirectory>
+					</sourceDirectories>
+					<testSourceDirectories>
+						<testSourceDirectory>src/test/clojure</testSourceDirectory>
+						<testSourceDirectory>src/dev/clojure</testSourceDirectory>
+					</testSourceDirectories>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
 		<resources>
 			<resource>
 				<directory>src/main/clojure</directory>
