@@ -137,28 +137,28 @@
 (magic/init
  {:object {:regname :ndarray
            :fn-suffix nil
-           :typename 'NDArray
+           :typename 'clojure.core.matrix.impl.ndarray.NDArray
            :array-tag 'objects
            :array-cast 'object-array
            :type-cast 'identity
            :type-object java.lang.Object}
   :long {:regname :ndarray-long
          :fn-suffix 'long
-         :typename 'NDArrayLong
+         :typename 'clojure.core.matrix.impl.ndarray.NDArrayLong
          :array-tag 'longs
          :array-cast 'long-array
          :type-cast 'long
          :type-object Long/TYPE}
   :float {:regname :ndarray-float
           :fn-suffix 'float
-          :typename 'NDArrayFloat
+          :typename 'clojure.core.matrix.impl.ndarray.NDArrayFloat
           :array-tag 'floats
           :array-cast 'float-array
           :type-cast 'float
           :type-object Float/TYPE}
   :double {:regname :ndarray-double
            :fn-suffix 'double
-           :typename 'NDArrayDouble
+           :typename 'clojure.core.matrix.impl.ndarray.NDArrayDouble
            :array-tag 'doubles
            :array-cast 'double-array
            :type-cast 'double
