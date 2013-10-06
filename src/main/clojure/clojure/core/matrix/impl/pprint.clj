@@ -25,7 +25,7 @@
   [[elem-head & elem-tail] [len-head & len-tail]] ;; the first element doesn't have a leading ws.
   (let [first-elem (str-elem elem-head len-head)
         body-elems (map str-elem elem-tail len-tail)]
-  (str "[" first-elem (apply str (map #(str " " %) body-elems)) "]")))
+  (str "[" first-elem " " (apply str body-elems) "]")))
 
 (defn- rprint
   "Recursively prints each element with a leading
