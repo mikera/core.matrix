@@ -26,7 +26,7 @@
 		<dependency>
 			<groupId>criterium</groupId>
 			<artifactId>criterium</artifactId>
-			<version>0.4.1</version>
+			<version>0.4.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>tools.macro</artifactId>
-			<version>0.1.2</version>
+			<version>0.1.5</version>
 		</dependency>
 		<dependency>
 			<groupId>hiccup</groupId>
@@ -54,7 +54,7 @@
    		<dependency>
 			<groupId>reiddraper</groupId>
 			<artifactId>simple-check</artifactId>
-			<version>0.2.1</version>
+			<version>0.4.1</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
