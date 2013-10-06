@@ -71,10 +71,15 @@
 			<resource>
 				<directory>src/main/clojure</directory>
 			</resource>
-			<resource>
-				<directory>src/dev/clojure</directory>
-			</resource>
 		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/clojure</directory>
+			</testResource>
+			<testResource>
+				<directory>src/dev/clojure</directory>
+			</testResource>
+		</testResources>
 	</build>
 
 	<repositories>
