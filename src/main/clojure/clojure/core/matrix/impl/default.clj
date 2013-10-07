@@ -791,7 +791,7 @@
   java.lang.Number
     (submatrix [m index-ranges]
       (if (seq index-ranges)
-        (error "Can't take partial submatrix of a scalr number")
+        (error "Can't take partial submatrix of a scalar number")
         m))
   java.lang.Object
     (submatrix [m index-ranges]
