@@ -28,7 +28,7 @@
    :parallel-colt :TODO
    :ejml :TODO
    :ujmp :TODO
-   :commons-math :TODO))
+   :commons-math 'apache-commons-matrix.core))
 
 ;; default implementation to use
 ;; should be included with clojure.core.matrix for easy of use
