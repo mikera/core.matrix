@@ -269,12 +269,9 @@
       (mp/assign! m value)))
 
 (extend-protocol mp/PMatrixCloning
-      java.lang.Cloneable
-        (clone [m]
-          (.invoke ^java.lang.reflect.Method (.getDeclaredMethod (class m) "clone" nil) m nil))
-      java.lang.Object
-        (clone [m]
-          (mp/coerce-param m (mp/coerce-param [] m))))
+   java.lang.Object
+     (clone [m]
+       (mp/coerce-param m (mp/coerce-param [] m))))
 
 (extend-protocol mp/PMutableMatrixConstruction
   nil

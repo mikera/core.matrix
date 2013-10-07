@@ -54,6 +54,7 @@
   "Returns true if two shapes are the same."
   ([sa sb]
     (cond
+      (identical? sa sb) true
       (= sa sb) true
       (not= (count sa) (count sb)) false
       (let [sa (seq sa)
