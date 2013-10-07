@@ -1,8 +1,8 @@
 core.matrix
 ===========
 
-N-dimensional Matrix / Vector maths API for Clojure. `core.matrix` allows you to write clean, functional code 
-with matrices as mathematical objects
+The central objective of `core.matrix` is to make matrix and array programming
+idiomatic, elegant and fast in Clojure.
 
 ```clojure
 (+ [[1 2]
@@ -11,18 +11,33 @@ with matrices as mathematical objects
 
 => [[4.0 2.0]
     [3.0 7.0]]
+    
+;; Note: nested Clojure vectors can be used as matrices
 ```
 
-The objective of `core.matrix` is to provide a common and idiomatic abstraction for matrix maths in Clojure,
-independent of underlying implementations. If it looks like a matrix, it works like a matrix. 
+Key goals of `core.matrix`:
 
-Key objectives:
-
- - Provide a clear, standard API / abstraction for matrix and vector maths in Clojure
+ - Provide a clear, standard API / abstraction for matrix and array programming in Clojure
  - Enable plugable support for different underlying matrix library implementations
  - Provide a general purpose n-dimensional array implementation (NDArray)
  - Provide a foundation layer for other projects (e.g. Incanter)
  - Maintain high performance throughout
+
+### Getting Started
+
+To use `core.matrix`, you can get the latest released version from Clojars:
+
+ - https://clojars.org/net.mikera/core.matrix
+
+For code examples see:
+
+ - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/clojure/core/matrix/examples.clj
+
+### Documentation
+
+For documentation and further examples see the Wiki:
+
+ - https://github.com/mikera/matrix-api/wiki
 
 ### Status
 
@@ -30,8 +45,9 @@ Key objectives:
 the standard Clojure data structures, multiple back end implementations exist that provide optimised
 matrix implementations. The most mature implementations are currently:
 
- - **vectorz-clj** : a fast pure-JVM matrix library for Clojure
- - **Clatrix** : native code matrix library using BLAS
+ - [**vectorz-clj**](https://github.com/mikera/vectorz-clj) : a fast pure-JVM matrix library for Clojure
+ - [**Clatrix**](https://github.com/tel/clatrix) : native code matrix library using BLAS
+ - **NDArray** : a general purpose pure Clojure N-dimensional array implementation, included as part of `core.matrix` itself
 
 However the API is still *subject to some changes* at present (at least up until release 1.0.0),
 so users should be prepared to deal with potential breaking changes when updating to future releases.
@@ -39,21 +55,6 @@ so users should be prepared to deal with potential breaking changes when updatin
 The plan is to become an official Clojure Contrib language extension once the API has been well tested. 
 
 [![Build Status](https://travis-ci.org/mikera/matrix-api.png?branch=master)](https://travis-ci.org/mikera/matrix-api)
-
-### Getting Started
-
-Get the latest version from Clojars:
-
- -  https://clojars.org/net.mikera/core.matrix
-
-For code examples see:
-
- - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/clojure/core/matrix/examples.clj
-
-For documentation and further examples see the Wiki:
-
- - https://github.com/mikera/matrix-api/wiki
-
 
 ### Contributing
 

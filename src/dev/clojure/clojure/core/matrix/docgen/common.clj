@@ -8,27 +8,6 @@
             [clojure.core.matrix.implementations :as mi]
             [criterium.core :as cr]))
 
-(defn protocol?
-  "Returns true if an argument is a protocol'"
-  [p]
-  (and (map? p)
-       (:on-interface p)
-       (.isInterface (:on-interface p))))
-
-(defn enhance-protocol-kv
-  "Transform MapEntry to just map with some additional fields"
-  [[name p]]
-  (let [m (->> @p :var meta)]
-    (assoc @p :line (:line m) :file (:file m) :name name)))
-
-(defn extract-protocols
-  "Extracts protocol info from clojure.core.matrix.protocols"
-  []
-  (->> (ns-publics 'clojure.core.matrix.protocols)
-       (filter (comp protocol? deref val))
-       (map enhance-protocol-kv)
-       (sort-by :line)))
-
 (defn get-impl-objs
   "Returns a list of available implementations' objects"
   []

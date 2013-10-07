@@ -69,7 +69,6 @@
   (is (= [["00" "01"] ["10" "11"]]
          (compute-matrix :persistent-vector [2 2] str))))
 
-;; TODO: need to fix and have proper errors!
 (deftest test-shape-errors
   (is (error? (add [1] [2 3]))))
 
@@ -92,13 +91,13 @@
     (is (= [[1 2] [3 4]] (coerce [1] [[1 2] [3 4]])))
     (is (= [[1 2] [3 4]] (coerce [1] '((1 2) (3 4))))))
   (testing "coerce to a number"
-  ;;   (is (= 1 (coerce 2 1))) TODO: what should happen here??
+     ;; (is (= 1 (coerce 2 1))) ;; TODO: what should happen here?
     )
   )
 
 (deftest test-pow
   (is (== 8 (pow 2 3)))
- ;; (is (== 8 (clojure.core.matrix.operators/** 2 3))) ;; TODO: why isn't this working???
+  (is (== 8 (clojure.core.matrix.operators/** 2 3))) 
   )
 
 (deftest test-slices

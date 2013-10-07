@@ -1,7 +1,6 @@
 (ns clojure.core.matrix.impl.default
   (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.impl.double-array])
-  (:require [clojure.core.matrix.impl.ndarray])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.impl.wrappers :as wrap])
   (:require [clojure.core.matrix.multimethods :as mm])
@@ -33,18 +32,20 @@
       (array? m) (reduce * 1 (mp/get-shape m))
       :else (count m))))
 
+;; TODO: make smarter for different numeric types
 (defn construct-mutable-matrix
   "Constructs a mutable matrix with the given data."
   ([m]
     (let [dims (mp/dimensionality m)
-          type (mp/element-type m)]
+          type (mp/element-type m)
+          double? (or (= Double/TYPE type))]
       (cond
-        (and (== dims 1) (= Double/TYPE type))
+        (and (== dims 1) double?)
           (clojure.core.matrix.impl.double-array/construct-double-array m)
-        (and (== dims 1) (every? #(instance? Double %) (mp/element-seq m)))
-          (double-array (mp/element-seq m))
+        double?
+          (mp/coerce-param (imp/get-canonical-object :ndarray-double) m)
         :else
-          (clojure.core.matrix.impl.ndarray/ndarray m)))))
+          (mp/coerce-param (imp/get-canonical-object :ndarray) m)))))
 
 ;; ============================================================
 ;; Default implementations
@@ -91,14 +92,23 @@
         (error "Indexed get failed, not defined for:" (class m))
         (if (mp/is-scalar? m) m (mp/get-0d m)))))
 
+(extend-protocol mp/PArrayMetrics
+  nil
+    (nonzero-count [m] 1)
+  Number
+    (nonzero-count [m] (if (zero? m) 0 1))
+  java.lang.Object
+    (nonzero-count [m] 
+      (mp/element-reduce m (fn [cnt e] (if (zero? e) cnt (inc cnt))) 0)))
+
 (extend-protocol mp/PZeroDimensionConstruction
   nil
-    (new-scalar-array 
+    (new-scalar-array
       ([m] 0.0)
       ([m value]
         (wrap/wrap-scalar value)))
   Object
-    (new-scalar-array 
+    (new-scalar-array
       ([m] (wrap/wrap-scalar 0.0))
       ([m value] (wrap/wrap-scalar value))))
 
@@ -121,10 +131,10 @@
 
 (extend-protocol mp/PZeroDimensionSet
   nil
-    (set-0d [m value] 
+    (set-0d [m value]
       (wrap/wrap-scalar value))
   Object
-    (set-0d [m value] 
+    (set-0d [m value]
       (mp/new-scalar-array m value)))
 
 (extend-protocol mp/PIndexedSetting
@@ -318,7 +328,16 @@
         (loop [i 0 res 0.0]
           (if (>= i dims)
             res
-            (recur (inc i) (+ res (double (mp/get-2d m i i)))))))))
+            (recur (inc i) (+ res (double (mp/get-2d m i i))))))))
+    (determinant [m]
+      (->> m
+           (mp/coerce-param (imp/get-canonical-object :ndarray-double))
+           (mp/determinant)))
+    (inverse [m]
+      (->> m
+           (mp/coerce-param (imp/get-canonical-object :ndarray-double))
+           (mp/inverse)
+           (mp/coerce-param m))))
 
 (extend-protocol mp/PTranspose
   java.lang.Number
@@ -607,16 +626,18 @@
       (nil? b))
   java.lang.Number
     (matrix-equals [a b]
-      (cond 
-        (number? b) (== a b) 
+      (cond
+        (number? b) (== a b)
         (== 0 (mp/dimensionality b)) (== a (mp/get-0d b))
         :else false))
   java.lang.Object
     (matrix-equals [a b]
-      (let [[a b] (mp/broadcast-compatible a b)]
+      (if (= (seq (mp/get-shape a))
+             (seq (mp/get-shape b)))
         (if (== 0 (mp/dimensionality a))
           (== (mp/get-0d a) (mp/get-0d b))
-          (not (some false? (map == (mp/element-seq a) (mp/element-seq b))))))))
+          (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
+        false)))
 
 (extend-protocol mp/PDoubleArrayOutput
   java.lang.Number
@@ -626,6 +647,16 @@
     (to-double-array [m]
       (double-array (mp/element-seq m)))
     (as-double-array [m] nil))
+
+;; row operations
+(extend-protocol mp/PRowOperations
+  java.lang.Object
+    (swap-rows [m i j]
+      (mp/swap-rows (mp/coerce-param [] m) i j))
+    (multiply-row [m i k]
+      (mp/multiply-row (mp/coerce-param [] m) i k))
+    (add-row [m i j k]
+      (mp/add-row (mp/coerce-param [] m) i j k)))
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
@@ -945,6 +976,34 @@
             dm (vec (for [i (range dims)]
                  (assoc zs i (nth diagonal-values i))))]
         (mp/coerce-param m dm))))
+
+(extend-protocol mp/PMatrixPredicates
+  java.lang.Object
+  (identity-matrix? [m]
+    (let [rc (mp/dimension-count m 0)
+          cc (mp/dimension-count m 1)]
+      (if (== rc cc)
+        (loop [i (long 0)]
+          (if (< i rc)
+            (if (loop [j (long 0)]
+                  (if (< j cc)
+                    (let [elem (mp/get-2d m i j)]
+                      (if (nil? elem)
+                        false
+                        (if (== i j)
+                          (if (== elem 1) (recur (inc j)) false)
+                          (if (== elem 0) (recur (inc j)) false))))
+                    true))
+              (recur (inc i))
+              false)
+            true))
+        false)))
+  (zero-matrix? [m]
+    (every? #(and (not (nil? %)) (zero? %)) (mp/element-seq m)))
+  nil
+  (identity-matrix? [m] false)
+  (zero-matrix? [m] false))
+
 
 ;; =======================================================
 ;; default multimethod implementations

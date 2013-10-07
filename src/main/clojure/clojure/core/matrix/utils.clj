@@ -1,6 +1,6 @@
 (ns clojure.core.matrix.utils)
 
-;; these are copies of methods from the library
+;; Some of these are copies of methods from the library
 ;;   https://github.com/mikera/clojure-utils
 ;;
 ;; duplicated here to avoid an extra dependency
@@ -31,12 +31,16 @@
 (defmacro TODO
   ([] `(error "TODO: not yet implemented")))
 
+(defmacro iae
+  "Throws IllegalArgumentException with provided string"
+  [exception-str]
+  `(throw (IllegalArgumentException. ~exception-str)))
+
 (defmacro iae-when-not
   "Throws an IllegalArgumentException when the predicate is not satisfied"
   [pred? exception-str]
   `(when-not ~pred?
-     (throw (IllegalArgumentException.
-             ~exception-str))))
+     (iae ~exception-str)))
 
 (defn valid-shape?
   "returns true if the given object is a valid core.matrix array shape."
@@ -208,3 +212,24 @@
          (aset new-xs# j# (aget new-xs# i#))
          (aset new-xs# i# t#)))
      new-xs#))
+
+(defn protocol?
+  "Returns true if an argument is a protocol'"
+  [p]
+  (and (map? p)
+       (:on-interface p)
+       (.isInterface ^Class (:on-interface p))))
+
+(defn enhance-protocol-kv
+  "Transform MapEntry to just map with some additional fields"
+  [[name p]]
+  (let [m (->> @p :var meta)]
+    (assoc @p :line (:line m) :file (:file m) :name name)))
+
+(defn extract-protocols
+  "Extracts protocol info from clojure.core.matrix.protocols"
+  []
+  (->> (ns-publics 'clojure.core.matrix.protocols)
+       (filter (comp protocol? deref val))
+       (map enhance-protocol-kv)
+       (sort-by :line)))

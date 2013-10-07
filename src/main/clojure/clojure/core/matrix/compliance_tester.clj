@@ -55,7 +55,7 @@
 ;; ===========================================
 ;; General implementation tests
 
-(defn test-impl-scalar-array 
+(defn test-impl-scalar-array
   [im]
   (let [sa (new-scalar-array im)]
     (is (array? sa))
@@ -307,6 +307,33 @@
         (is (= (ecount m) (ecount vm)))
         (is (= (eseq m) (eseq (emap identity m))))))))
 
+(defn test-equality [m]
+  (testing "proper work of equality check"
+    (is (equals (coerce m (array [1]))
+                (coerce m (array [1]))))
+    (is (not (equals (coerce m (array [1]))
+                     (coerce m (array 1)))))))
+
+(defn method-exists? [method im args]
+  (try
+    (apply method im (rest args))
+    true
+    (catch AbstractMethodError e false)
+    (catch Exception e true)))
+
+(defn test-methods-existence [m]
+  (let [im-name (mp/implementation-key m)]
+    (if (#{:nd-wrapper
+           :slice-wrapper
+           :scalar-wrapper} im-name)
+      true
+      (doseq [proto (utils/extract-protocols)]
+        (doseq [[_ {:keys [name arglists]}] (:sigs proto)
+                :let [method (ns-resolve 'clojure.core.matrix.protocols
+                                         name)]]
+          (is (method-exists? method m (first arglists))
+              (str "check method " name
+                   " of implementation " im-name)))))))
 
 ;; =======================================
 ;; array interop tests
@@ -370,13 +397,31 @@
   (is (equals (add 0.0 m) (mul 1 m)))
   (is (equals (emul m m) (square m)))
   (is (equals (esum m) (ereduce + m)))
-  (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m))))))
+  (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m)))))
+  (if (#{:vectorz} (current-implementation))
+    (let [v (->> #(rand 1000.0) repeatedly (take 5) vec normalise array)
+          i (identity-matrix 5)
+          m (sub i (emul 2.0 (outer-product v v)))]
+      (is (equals m (transpose m) 1.0E-12))
+      (is (equals m (inverse m) 1.0E-12))
+      (is (equals (mmul m m) i 1.0E-12)))))
+
+(defn test-numeric-matrix-predicates [m]
+  (when (and (matrix? m) (= 2 (dimensionality m)))
+    (is (zero-matrix? (new-matrix m 10 10)))
+    (is (identity-matrix? (identity-matrix m 5)))
+    (is (not (identity-matrix? (array m [[2 0][0 1]]))))
+    (is (not (zero-matrix? (array m [[0 0][0 1]]))))
+    (is (identity-matrix? (array m [[1.0 0.0][0.0 1.0]])))
+    (is (zero-matrix? (array m [[0.0]])))
+    (is (not (identity-matrix? (array m [[1.0 0.0]]))))))
 
 (defn test-numeric-instance [m]
   (is (numerical? m))
-;  (test-generic-numerical-assumptions m)
+ ; (test-generic-numerical-assumptions m)
   (numeric-scalar-tests m)
-  (misc-numeric-tests m))
+  (misc-numeric-tests m)
+  (test-numeric-matrix-predicates m))
 
 ;; ========================================
 ;; 1D vector tests
@@ -480,7 +525,9 @@
         I-squared (diagonal-matrix im [1 4 9])]
     (is (equals [1 4 9] (mmul I [1 2 3])))
     (is (equals I-squared (mmul I I)))
-    (is (equals I (transpose I)))))
+    (is (equals I (transpose I))))
+  (let [m (matrix im [[1 2 3] [4 5 6] [7 8 9]])]
+    (is (equals [1 5 9] (main-diagonal m)))))
 
 (defn test-row-column-matrices [im]
   (let [rm (row-matrix im [1 2 3])]
@@ -543,6 +590,15 @@
   (instance-test (coerce im ['a 'b]))
   (instance-test (coerce im [[[[[["foo"]]]]]])))
 
+;; =====================================
+;; Row Operations Tests
+
+ (defn test-row-operations
+   [im]
+     (is (e== [0 2] (swap-rows (matrix im [2 0]) 0 1)))
+     (is (e== [2 2 3] (multiply-row (matrix im [1 2 3]) 0 2)))
+     (is (e== [3 1] (add-row (matrix im [1 1]) 0 1 2))))
+
 ;; ======================================
 ;; Main compliance test method
 ;;
@@ -561,6 +617,8 @@
       (test-implementation im)
       (test-assumptions-for-all-sizes im)
       (test-coerce-via-vectors im)
+      (test-equality im)
+      (test-methods-existence im)
       (when (supports-dimensionality? im 2)
         (matrix-tests-2d im))
       (when (supports-dimensionality? im 1)
@@ -568,4 +626,5 @@
       (test-array-interop im)
       (test-numeric-functions im)
       (test-dimensionality im)
+      (test-row-operations im)
       (test-new-matrices im))))

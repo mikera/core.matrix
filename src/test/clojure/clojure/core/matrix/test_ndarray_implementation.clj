@@ -6,21 +6,42 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as gen])
   (:require clojure.core.matrix.impl.persistent-vector)
+  (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
+  (:require [clojure.core.matrix.impl.ndarray-macro :as macro])
   (:use clojure.core.matrix.impl.ndarray))
 
+(defn magic1 [a b]
+  (let [c (mp/clone a)]
+    (magic/specialize :double
+      (macro/loop-over [b c]
+        (let [x (aget c-data c-idx)
+              y (aget b-data b-idx)]
+          (aset c-data c-idx
+                (Math/sqrt
+                 (+ 1 (+ (* 0.5 (Math/sin x))
+                         (* 0.5 (Math/cos y)))))))))
+    c))
+
+(deftest magic-specialize-test
+  (let [n 3
+        t (->> (* n n)
+               range
+               (partition n)
+               (map vec)
+               vec)
+        a (ndarray-double t)
+        b (ndarray-double t)
+        m (magic1 a b)
+        x (mget m 2 2)
+        diff (Math/abs (- x 1.19))]
+    (is (< diff 0.01))))
+
 (deftest c-strides-test
-  (are [strides shape] (= strides (c-strides shape))
+  (are [strides shape] (= strides (vec (c-strides shape)))
        [1]        [3]
        [2 1]      [3 2]
        [6 2 1]    [4 3 2]
        [24 6 2 1] [5 4 3 2]))
-
-(deftest f-strides-test
-  (are [strides shape] (= strides (f-strides shape))
-       [1]         [3]
-       [1 3]       [3 2]
-       [1 4 12]    [4 3 2]
-       [1 5 20 60] [5 4 3 2]))
 
 (deftest empty-ndarray-test
   (let [a (empty-ndarray [3 2])]
@@ -98,7 +119,9 @@
 (deftest test-transpose
   (let [m (new-array :ndarray [5 6 7])]
     (is (= [5 6 7] (seq (shape m))))
-    (is (= [7 6 5] (seq (shape (transpose m)))))))
+    (is (= [7 6 5] (seq (shape (transpose m))))))
+  (let [m (matrix :ndarray [[1 2] [3 4]])]
+    (is (equals [[1 3] [2 4]] (transpose m)))))
 
 (defn get-primitive-ndarrays []
   [(empty-ndarray-double [3 3])
@@ -109,6 +132,14 @@
   (is (nil? (gen/default-value :ndarray)))
   (is (= 0.0 (gen/default-value :ndarray-double)))
   (is (= 0 (gen/default-value :ndarray-long))))
+
+(deftest regressions
+  (is (= 3 (-> [[1 2] [3 4]]
+               array
+               transpose
+               slices
+               first
+               (mget 1)))))
 
 (deftest ndarray-test
   (ct/test-ndarray-implementation (empty-ndarray [3 3])))
