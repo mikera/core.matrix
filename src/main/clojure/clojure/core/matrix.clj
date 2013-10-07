@@ -225,12 +225,16 @@
     (mp/broadcast (mp/coerce-param m a) (mp/get-shape m))))
 
 (defn clone
-  "Constructs a (shallow) clone of the matrix, using the same implementation. This function is intended to
-   allow safe defensive copying of matrices / vectors.
+  "Constructs a (shallow) clone of the matrix. This function is intended to
+   allow safe defensive copying of matrices / vectors. If the intent is to create a mutable clone of
+   some array data, it is recommended to use mutable-matrix instead.
 
    Guarantees that:
    1. Mutating the returned matrix will not modify any other matrix (defensive copy)
    2. The returned matrix will be fully mutable, if the implementation supports mutable matrices.
+
+   The clone may or may not be of the same implementation: implementations are encouraged to do so but
+   this is not mandatory.
 
    A matrix implementation which only provides immutable matrices may safely return the same matrix."
   ([m]
