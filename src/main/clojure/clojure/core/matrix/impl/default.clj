@@ -271,7 +271,7 @@
 (extend-protocol mp/PMatrixCloning
    java.lang.Object
      (clone [m]
-       (mp/coerce-param m (mp/coerce-param [] m))))
+       (mp/construct-matrix m m)))
 
 (extend-protocol mp/PMutableMatrixConstruction
   nil
