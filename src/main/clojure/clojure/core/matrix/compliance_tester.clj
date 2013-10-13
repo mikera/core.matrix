@@ -275,7 +275,9 @@
   (testing "Vector construction"
     (when (supports-dimensionality? im 1)
       (let [v (matrix im [1])]
-        (is (== 1.0 (mget v 0))))))
+        (is (== 1.0 (mget v 0))))
+      (let [a (new-array im [1])]
+        (is (= (mget a 0) (clojure.core.matrix.generic/default-value im))))))
   (testing "Matrix construction"
     (when (supports-dimensionality? im 2)
       (let [m (matrix im [[1 2] [3 4]])]
