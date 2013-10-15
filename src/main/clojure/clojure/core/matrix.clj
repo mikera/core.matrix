@@ -157,14 +157,15 @@
   "Constructs a 2D identity matrix with the given number of rows.
 
    Identity matrices constructed with this function may not be fully mutable because they may be
-   implemented with a specialised identity matrix type."
+   implemented with a specialised identity matrix type. Use (mutable (identity-matrix ...)) if you 
+   need to guarantee a mutable matrix."
   ([dims]
     (mp/identity-matrix (implementation-check) dims))
   ([implementation dims]
     (mp/identity-matrix (implementation-check implementation) dims)))
 
 (defn mutable
-  "Constructs a mutable copy of the given array.
+  "Constructs a mutable copy of the given array data.
 
    If the implementation does not support mutable matrices, will return a mutable array
    from another core.matrix implementation that supports either the same element type or a broader type."
@@ -188,7 +189,8 @@
   "Constructs a 2D diagonal matrix with the given numerical values on the main diagonal.
    All off-diagonal elements will be zero. diagonal-values may be a vector or any Clojure sequence of values.
 
-   Diagonal matrices constructed this way may use specialised storage formats, hence may not be fully mutable."
+   Diagonal matrices constructed this way may use specialised storage formats, hence may not be fully mutable.
+   Use (mutable (diagonal-matrix ...)) if you need to guarantee a mutable matrix."
   ([diagonal-values]
     (mp/diagonal-matrix (current-implementation-object) diagonal-values))
   ([implementation diagonal-values]
@@ -243,7 +245,7 @@
 
 (defn assign!
   "Assigns a new value to an array. Sets the values of the target elementwise, broadcasting where necessary.
-   Returns the mutated array."
+   Returns the mutated array. The new value may be either a scalar or a array of compatible (maybe smaller) shape."
   ([m a]
     (mp/assign! m a)
     m))
@@ -263,8 +265,8 @@
 
 (defn clone
   "Constructs a (shallow) clone of the matrix. This function is intended to
-   allow safe defensive copying of matrices / vectors. If the intent is to create a mutable clone of
-   some array data, it is recommended to use mutable-matrix instead.
+   allow safe defensive usage of matrices / vectors. If the intent is to create a mutable clone of
+   some array data, it is recommended to use mutable instead.
 
    Guarantees that:
    1. Mutating the returned matrix will not modify any other matrix (defensive copy)
@@ -278,7 +280,8 @@
     (mp/clone m)))
 
 (defn to-nested-vectors
-  "Converts an array to an idiomatic, immutable nested Clojure vector format.
+  "Converts an array to an idiomatic, immutable nested Clojure vector format. The bottom level of the 
+   nested vectors will contain the element values.
 
    The depth of nesting will be equal to the dimensionality of the array."
   ([m]
