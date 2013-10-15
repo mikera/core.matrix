@@ -320,6 +320,12 @@
   ([m dim]
     (mp/dimension-count m dim)))
 
+(defn slice-count
+  "Returns the number of slices in an array (array must be 1D or more). The array is sliced
+   in row-major order, i.e. this is the dimension count of the first dimension."
+  ([m]
+    (mp/dimension-count m 0)))
+
 (defn square?
   "Returns true if matrix is square (i.e. a 2D array with same number of rows and columns)"
   ([m]
