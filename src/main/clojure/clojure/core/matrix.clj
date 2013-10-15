@@ -649,6 +649,12 @@
     (mp/fill! m value)
     m))
 
+(defn fill
+  "Fills a matrix with a single scalar value. The scalar value must be compatible with the element-type
+   of the array. Returns a new array"
+  ([m value]
+    (assign m value)))
+
 ;; ======================================
 ;; matrix comparisons
 
