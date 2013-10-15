@@ -301,13 +301,13 @@
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
-    (get-shape [m] [])
+    (get-shape [m] nil)
     (dimension-count [m i] (error "java.lang.Number has zero dimensionality, cannot get dimension count"))
   java.lang.Object
     (dimensionality [m] 0)
-    (is-vector? [m] (== 1 (mp/dimensionality m)))
+    (is-vector? [m] false)
     (is-scalar? [m] true) ;; assume objects are scalars unless told otherwise
-    (get-shape [m] (for [i (range (mp/dimensionality m))] (mp/dimension-count m i)))
+    (get-shape [m] nil)
     (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
 
 

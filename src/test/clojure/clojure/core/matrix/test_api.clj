@@ -302,7 +302,7 @@
     (is (== 0 (dimensionality :foo)))
     (is (== 0 (dimensionality 'bar)))
     (is (== 1.0 (mget 1.0)))
-    (is (= [] (shape 1.0))))
+    (is (nil? (shape 1.0))))
   (testing "functional operations"
     (is (= 2.0 (emap inc 1.0)))
     (is (= 10.0 (emap + 4.0 6.0)))

@@ -103,7 +103,9 @@
              seq
              second
              mp/persistent-vector-coerce)
-         [3 4])))
+         [3 4]))
+  (is (= [1 2] (seq (array :ndarray [1 2]))))
+  )
 
 (deftest test-assign
   (let [m (empty-ndarray [2 2 2])

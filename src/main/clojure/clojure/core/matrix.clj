@@ -386,12 +386,16 @@
          (== 1 (mp/dimension-count m 1)))))
 
 (defn shape
-  "Returns the shape of a matrix, i.e. the dimension sizes for all dimensions.
+  "Returns the shape of an array, i.e. the dimension sizes for all dimensions.
 
    The result will be a vector containing only integer index values, with a count
-   equal to the dimensionality of the array."
+   equal to the dimensionality of the array.
+   
+   Returns nil the if object is not an array (i.e. is a scalar value)"
   ([m]
-    (vec (mp/get-shape m))))
+    (if-let [sh (mp/get-shape m)]
+      (vec sh)
+      nil)))
 
 (defn mutable?
   "Returns true if the matrix is mutable, i.e. supports setting of values"
