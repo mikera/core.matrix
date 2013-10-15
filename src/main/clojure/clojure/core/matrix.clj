@@ -154,14 +154,17 @@
     (mp/construct-matrix (implementation-check implementation) (map vector data))))
 
 (defn identity-matrix
-  "Constructs a 2D identity matrix with the given number of rows"
+  "Constructs a 2D identity matrix with the given number of rows.
+
+   Identity matrices constructed with this function may not be fully mutable because they may be
+   implemented with a specialised identity matrix type."
   ([dims]
     (mp/identity-matrix (implementation-check) dims))
   ([implementation dims]
     (mp/identity-matrix (implementation-check implementation) dims)))
 
-(defn mutable-matrix
-  "Constructs a mutable copy of the given matrix.
+(defn mutable
+  "Constructs a mutable copy of the given array.
 
    If the implementation does not support mutable matrices, will return a mutable array
    from another core.matrix implementation that supports either the same element type or a broader type."
@@ -169,13 +172,23 @@
     (or (mp/mutable-matrix data)
         (array :ndarray data))) ;; TODO: consider restricting to tighter NDArray type?
   ([data type]
-    (mutable-matrix data) ;; TODO: support creation with specific element types
+    (mutable data) ;; TODO: support creation with specific element types
     ))
+
+(defn ^{:deprecated true} mutable-matrix
+  "Constructs a mutable copy of the given matrix.
+
+   DEPRECATED: please use mutable instead"
+  ([data]
+    (mutable data))
+  ([data type]
+    (mutable data type)))
 
 (defn diagonal-matrix
   "Constructs a 2D diagonal matrix with the given numerical values on the main diagonal.
-   All off-diagonal elements will be zero.
-   diagonal-values may be a vector or any Clojure sequence of values."
+   All off-diagonal elements will be zero. diagonal-values may be a vector or any Clojure sequence of values.
+
+   Diagonal matrices constructed this way may use specialised storage formats, hence may not be fully mutable."
   ([diagonal-values]
     (mp/diagonal-matrix (current-implementation-object) diagonal-values))
   ([implementation diagonal-values]
@@ -651,7 +664,7 @@
 
 (defn fill
   "Fills a matrix with a single scalar value. The scalar value must be compatible with the element-type
-   of the array. Returns a new array"
+   of the array. Returns a new array."
   ([m value]
     (assign m value)))
 
