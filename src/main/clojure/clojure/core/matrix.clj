@@ -69,8 +69,16 @@
   ([implementation data]
     (mp/construct-matrix (implementation-check implementation) data)))
 
-(defn new-vector
+(defn zero-vector
   "Constructs a new zero-filled numerical vector with the given length.
+   If the implementation supports mutable vectors, then the new vector will be fully mutable."
+  ([length]
+    (mp/new-vector (implementation-check) length))
+  ([implementation length]
+    (mp/new-vector (implementation-check implementation) length)))
+
+(defn new-vector
+  "Constructs a new vector with the given length.
    New matrix will contain default values as defined by the implementation (usually null or zero).
    If the implementation supports mutable vectors, then the new vector will be fully mutable."
   ([length]
@@ -78,18 +86,34 @@
   ([implementation length]
     (mp/new-vector (implementation-check implementation) length)))
 
-(defn new-matrix
+(defn zero-matrix
   "Constructs a new zero-filled numerical matrix with the given dimensions.
-   New matrix will contain default values as defined by the implementation (usually null or zero).
    If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([rows columns]
     (mp/new-matrix (implementation-check) rows columns))
   ([implementation rows columns]
     (mp/new-matrix (implementation-check implementation) rows columns)))
 
+(defn new-matrix
+  "Constructs a new 2D array (matrix) with the given dimensions.
+   The new matrix will contain default values as defined by the implementation (usually null or zero).
+   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+  ([rows columns]
+    (mp/new-matrix (implementation-check) rows columns))
+  ([implementation rows columns]
+    (mp/new-matrix (implementation-check implementation) rows columns)))
+
+(defn zero-array
+  "Creates a new zero-filled numerical array with the given shape.
+   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+  ([shape]
+    (mp/new-matrix-nd (implementation-check) shape))
+  ([implementation shape]
+    (mp/new-matrix-nd (implementation-check implementation) shape)))
+
 (defn new-array
   "Creates a new array with the given shape.
-   New matrix will contain default values as defined by the implementation (usually null or zero).
+   New array will contain default values as defined by the implementation (usually null or zero).
    If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([shape]
     (mp/new-matrix-nd (implementation-check) shape))
@@ -220,7 +244,7 @@
 
 (defn assign
   "Assigns a value elementwise to a given matrix, broadcasting to fill the whole matrix as necessary.
-   Returns a new matrix, of the same shape and implementation type as the original."
+   Returns a new matrix, of the same shape as the original."
   ([m a]
     (mp/broadcast (mp/coerce-param m a) (mp/get-shape m))))
 
