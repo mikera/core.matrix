@@ -314,8 +314,8 @@
 (defn scalar?
   "Returns true if the parameter is a scalar value (i.e. acceptable as matrix element value).
    A 0-d array containing a scalar is *not* itself a scalar value."
-  ([m]
-    (mp/is-scalar? m)))
+  ([v]
+    (mp/is-scalar? v)))
 
 (defn zero-dimensional?
   "Returns true if the parameter has zero dimensions. i.e. it is a 0-d array or a scalar value."
@@ -563,12 +563,12 @@
       (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
 
 (defn rows
-  "Gets the rows of a matrix, as a sequence"
+  "Gets the rows of a matrix, as a sequence or vectors."
   ([m]
     (slices m)))
 
 (defn columns
-  "Gets the columns of a matrix, as a sequence"
+  "Gets the columns of a matrix, as a sequence of vectors."
   ([m]
     (slices m 1)))
 
