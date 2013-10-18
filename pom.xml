@@ -2,6 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>core.matrix</artifactId>
 	<version>0.11.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>net.mikera</groupId>
@@ -83,7 +84,15 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>clojure-compile-1</id>
 						<phase>compile</phase>
+						<configuration>
+							<namespaces>
+	    						<namespace>clojure.core.matrix.impl.ndarray</namespace>
+							</namespaces>
+	  						<copyDeclaredNamespaceOnly>false</copyDeclaredNamespaceOnly>
+						    <compileDeclaredNamespaceOnly>true</compileDeclaredNamespaceOnly>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
