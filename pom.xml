@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>core.matrix</artifactId>
 	<version>0.11.1-SNAPSHOT</version>
@@ -86,12 +87,15 @@
 					<execution>
 						<id>clojure-compile-1</id>
 						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
 						<configuration>
 							<namespaces>
-	    						<namespace>clojure.core.matrix.impl.ndarray</namespace>
+								<namespace>clojure.core.matrix.impl.ndarray</namespace>
 							</namespaces>
-	  						<copyDeclaredNamespaceOnly>false</copyDeclaredNamespaceOnly>
-						    <compileDeclaredNamespaceOnly>true</compileDeclaredNamespaceOnly>
+							<copyDeclaredNamespaceOnly>false</copyDeclaredNamespaceOnly>
+							<compileDeclaredNamespaceOnly>true</compileDeclaredNamespaceOnly>
 						</configuration>
 					</execution>
 				</executions>
@@ -111,6 +115,42 @@
 				<directory>src/dev/clojure</directory>
 			</testResource>
 		</testResources>
+		
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.theoryinpractise
+										</groupId>
+										<artifactId>
+											clojure-maven-plugin
+										</artifactId>
+										<versionRange>
+											[1.3.17,)
+										</versionRange>
+										<goals>
+											<goal>compile</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 	<repositories>
