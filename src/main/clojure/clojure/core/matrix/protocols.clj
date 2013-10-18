@@ -240,6 +240,14 @@
    The default implementation creates a new vector containing the diagonal values."
   (main-diagonal [m]))
 
+(defprotocol PSparseArray
+  "Protocol for determining if an array is sparse"
+  (is-sparse? [m]))
+
+(defprotocol PZeroCount
+  "Protocol for determining if an array is sparse"
+  (zero-count [m]))
+
 
 (defprotocol PAssignment
   "Protocol for assigning values element-wise to mutable arrays."

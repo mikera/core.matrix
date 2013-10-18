@@ -350,6 +350,12 @@
     (is (e== [0 1] (sub [1 2] 1.0)))
     (is (e== [0 -1] (sub 1.0 [1 2])))))
 
+(deftest test-sparsity 
+  (testing "sparse?"
+    (is (not (sparse? [0 1 2]))))
+  (testing "density"
+    (is (== 0.75 (density [0 1 2 3])))))
+
 (deftest test-object-array
   (is (e= [:a :b] (coerce [] (object-array [:a :b])))))
 

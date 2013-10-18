@@ -273,6 +273,20 @@
      (clone [m]
        (mp/construct-matrix m m)))
 
+(extend-protocol mp/PSparseArray
+   java.lang.Object
+     (is-sparse? [m]
+       false))
+
+(extend-protocol mp/PZeroCount
+   Number
+     (zero-count [m]
+       (if (zero? m) 1 0))
+   Object
+     (zero-count [m]
+       (mp/element-reduce m (fn [acc e] (if (zero? e) (inc acc) acc)) 0)))
+
+
 (extend-protocol mp/PMutableMatrixConstruction
   nil
     (mutable-matrix [m]

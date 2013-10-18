@@ -332,6 +332,15 @@
   [m]
   (mp/zero-matrix? m))
 
+(defn sparse?
+  "Returns true if an array is sparse, i.e. the implementation supports storage of the entire
+   array in less memory than would normally be implied by the number of elements. 
+
+   Sparse matrices may have memory requirements that scale with the number of non-zero elements
+   rather than the total number of elements, for example."
+  ([m]
+    (mp/is-sparse? m)))
+
 (defn element-type
   "Returns the class of elements that can be in the array. For example, a numerical array may return
    the class java.lang.Double."
@@ -392,6 +401,18 @@
    equal to the dimensionality of the array."
   ([m]
     (vec (mp/get-shape m))))
+
+(defn zero-count
+  "Counts the number of zeros in an array."
+  ([m]
+    (mp/zero-count m)))
+
+(defn density 
+  "Returns the density of the matrix, defined as the proportion on non-zero elements"
+  ([m]
+    (let [zeros (double (mp/zero-count m))
+          elems (double (mp/element-count m))]
+      (double (/ (- elems zeros) elems)))))
 
 (defn mutable?
   "Returns true if the matrix is mutable, i.e. supports setting of values"
