@@ -1,5 +1,4 @@
 (ns clojure.core.matrix.impl.ndarray
-  (:gen-class)
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
   (:use clojure.core.matrix.impl.ndarray-macro)
