@@ -142,20 +142,20 @@
            :array-cast 'object-array
            :type-cast 'identity
            :type-object java.lang.Object}
-  :long {:regname :ndarray-long
-         :fn-suffix 'long
-         :typename 'NDArrayLong
-         :array-tag 'longs
-         :array-cast 'long-array
-         :type-cast 'long
-         :type-object Long/TYPE}
-  :float {:regname :ndarray-float
-          :fn-suffix 'float
-          :typename 'NDArrayFloat
-          :array-tag 'floats
-          :array-cast 'float-array
-          :type-cast 'float
-          :type-object Float/TYPE}
+;  :long {:regname :ndarray-long
+;         :fn-suffix 'long
+;         :typename 'NDArrayLong
+;         :array-tag 'longs
+;         :array-cast 'long-array
+;         :type-cast 'long
+;         :type-object Long/TYPE}
+;  :float {:regname :ndarray-float
+;          :fn-suffix 'float
+;          :typename 'NDArrayFloat
+;          :array-tag 'floats
+;          :array-cast 'float-array
+;          :type-cast 'float
+;          :type-object Float/TYPE}
   :double {:regname :ndarray-double
            :fn-suffix 'double
            :typename 'NDArrayDouble
