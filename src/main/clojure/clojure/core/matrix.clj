@@ -637,6 +637,11 @@
     (or (mp/broadcast m shape)
         (error "Broadcast to target shape: " (seq shape) " not possble."))))
 
+(defn broadcast-like
+  "Broadcasts the second matrix to the shape of the first. See 'broadcast'."
+  ([m a]
+    (mp/broadcast-like m a)))
+
 (defn transpose
   "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped.
    More generally, the dimension indices are reversed for any shape of array. Note that 1D vectors
