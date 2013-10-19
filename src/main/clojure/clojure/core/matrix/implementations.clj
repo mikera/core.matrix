@@ -32,7 +32,7 @@
 
 ;; default implementation to use
 ;; should be included with clojure.core.matrix for easy of use
-(def DEFAULT-IMPLEMENTATION :ndarray)
+(def DEFAULT-IMPLEMENTATION :persistent-vector)
 
 ;; hashmap of implementation keys to canonical objects
 ;; objects must implement PImplementation protocol at a minimum
