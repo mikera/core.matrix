@@ -88,7 +88,9 @@
 						<id>clojure-compile-1</id>
 						<phase>compile</phase>
 						<goals>
+							<!--  
 							<goal>compile</goal>
+							-->
 						</goals>
 						<configuration>
 							<namespaces>
