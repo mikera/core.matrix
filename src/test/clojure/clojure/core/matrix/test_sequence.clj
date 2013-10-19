@@ -10,7 +10,6 @@
   (is (e== [-1 -2] (negate '(1 2)))))
 
 (deftest test-sequence-shape
-  (is (= [] (shape 1)))
   (is (= [2] (shape '(1 2))))
   (is (= [2 2] (shape '((1 2) (3 4))))))
 
