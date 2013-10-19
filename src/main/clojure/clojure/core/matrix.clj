@@ -439,9 +439,12 @@
       (identical? m n)
       (mp/same-shape? m n)))
   ([m n & more]
-    (and
-      (same-shape? m n)
-      (every? #(same-shape? m %) more))))
+    (loop [m m n n more (seq more)]
+      (if (or (identical? m n) (mp/same-shape? m n))
+        (if more 
+          (recur n (first more) (next more))
+          true)
+        false))))
 
 (defn numerical?
   "Returns true if the matrix is a valid numerical matrix (i.e. supports numerical core.matrix operations)."
