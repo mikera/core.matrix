@@ -194,11 +194,12 @@
     (is (not (op/== 2 4)))
     (is (op/== [1 2] [1.0 2.0])))
   (testing "nil equality"
-    (is (op/== nil nil))
-    (is (not (op/== nil [nil])))
-    (is (not (op/== nil []))))
+    (is (e= nil nil))
+    (is (not (e= nil [nil])))
+    (is (not (e= nil []))))
   (testing "unequal lengths"
-    (is (not (equals [1] [1 2]))))
+    (is (not (equals [1] [1 2])))
+    (is (not (e= [1] [1 2]))))
   (testing "equals does not broadcast"
     (is (not (equals (array 1) (array [1 1]))))))
 

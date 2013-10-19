@@ -431,7 +431,7 @@
   ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b))))))
 
 (defn same-shape?
-  "Returns true if the arrays have the identical shape, false otherwise"
+  "Returns true if the arrays have the same shape, false otherwise"
   ([] true)
   ([m] true)
   ([m n]
@@ -713,8 +713,8 @@
    with the given maximum tolerance (default is 0.0, i.e. exact numerical equivalence)"
   ([a b]
     (mp/matrix-equals a b))
-  ([a b epsilon] ;; TODO: proper protocol implementation
-    (every? #(<= (Math/abs (double %)) epsilon) (map - (mp/element-seq a) (mp/element-seq b)))))
+  ([a b epsilon] 
+    (mp/matrix-equals-epsilon a b epsilon)))
 
 ;; ======================================
 ;; matrix maths / operations
@@ -1152,9 +1152,13 @@
   ([m1]
     true)
   ([m1 m2]
-    (every? true? (map = (eseq m1) (eseq m2))))
+    (and
+      (same-shape? m1 m2)
+      (every? true? (map = (eseq m1) (eseq m2)))))
   ([m1 m2 & more]
-    (reduce (fn [r mi] (and r (e= m1 mi))) (e= m1 m2) more)))
+    (and
+      (same-shape? m1 m2)
+      (reduce (fn [r mi] (and r (e= m1 mi))) (e= m1 m2) more))))
 
 (defn e==
   "Returns true if all array elements are numerically equal. Throws an error if any elements

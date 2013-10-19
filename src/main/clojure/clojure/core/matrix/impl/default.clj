@@ -645,7 +645,7 @@
 (extend-protocol mp/PMatrixEquality
   nil
     (matrix-equals [a b]
-      (nil? b))
+      (error "nil is not a valid numerical value in equality testing"))
   java.lang.Number
     (matrix-equals [a b]
       (cond
@@ -659,6 +659,28 @@
         (if (== 0 (mp/dimensionality a))
           (== (mp/get-0d a) (mp/get-0d b))
           (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
+        false)))
+
+(defmacro eps== [a b eps]
+  `(<= (Math/abs (- (double ~a) (double ~b))) (double ~eps) ))
+
+;; equality checking
+(extend-protocol mp/PMatrixEqualityEpsilon
+  nil
+    (matrix-equals-epsilon [a b eps]
+      (error "nil is not a valid numerical value in equality testing"))
+  java.lang.Number
+    (matrix-equals-epsilon [a b eps]
+      (cond
+        (number? b) (eps== a b eps)
+        (== 0 (mp/dimensionality b)) (eps== a (mp/get-0d b) eps)
+        :else false))
+  java.lang.Object
+    (matrix-equals-epsilon [a b eps]
+      (if (= (seq (mp/get-shape a))
+             (seq (mp/get-shape b)))
+        (let [eps (double eps)]
+          (every? #(<= (Math/abs (double %)) eps) (map - (mp/element-seq a) (mp/element-seq b))))
         false)))
 
 (extend-protocol mp/PDoubleArrayOutput

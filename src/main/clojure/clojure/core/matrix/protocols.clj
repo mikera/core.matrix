@@ -283,6 +283,11 @@
       should use Number.doubleValue() to get a numeric value to compare.
       May throw an exception if the matrices are non-numeric"))
 
+(defprotocol PMatrixEqualityEpsilon
+  "Protocol for numerical array equality operations with a specified tolerance."
+  (matrix-equals-epsilon [a b eps]
+     "As matrix-equals, but provides a numerical tolerance for equality testing."))
+
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar.
 
