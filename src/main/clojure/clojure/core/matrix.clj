@@ -437,7 +437,7 @@
   ([m n]
     (or
       (identical? m n)
-      (clojure.core.matrix.utils/same-shape-object? (mp/get-shape m) (mp/get-shape n))))
+      (mp/same-shape? m n)))
   ([m n & more]
     (and
       (same-shape? m n)

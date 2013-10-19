@@ -202,6 +202,12 @@
    If the new shape requires more elements than the original shape, should throw an exception."
   (reshape [m shape]))
 
+(defprotocol PSameShape
+  "Protocol to test if two arrays have the same shape. Implementations may have an optimised 
+   method for shape equality tests, and this is a frequently required operations so it may
+   make sense to provide an optimised implementation."
+  (same-shape? [a b]))
+
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of an array.  If implemented, must return either a view, a scalar
    or an immutable sub-matrix: it must *not* return copied data. i.e. making a full copy must be avoided."

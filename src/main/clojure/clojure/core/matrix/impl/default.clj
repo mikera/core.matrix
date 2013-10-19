@@ -335,6 +335,16 @@
     (get-shape [m] nil)
     (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
 
+(extend-protocol mp/PSameShape
+  nil
+    (same-shape? [a b]
+      (== 0 (mp/dimensionality b)))
+  Number 
+    (same-shape? [a b]
+      (== 0 (mp/dimensionality b)))
+  Object
+    (same-shape? [a b]
+      (same-shape-object? (mp/get-shape a) (mp/get-shape b))))
 
 ;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps

@@ -22,6 +22,7 @@
   (testing "same shape function"
     (is (same-shape? [1 2] [3 4]))
     (is (same-shape? 0 1))
+    (is (same-shape? "Foo" nil))
     (is (not (same-shape? [1 2] [2 3 4])))
     (is (not (same-shape? [1 2] [[0 1] [2 3]])))))
 
