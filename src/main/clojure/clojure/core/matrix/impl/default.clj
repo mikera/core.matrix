@@ -664,12 +664,13 @@
         :else false))
   java.lang.Object
     (matrix-equals [a b]
-      (if (= (seq (mp/get-shape a))
-             (seq (mp/get-shape b)))
-        (if (== 0 (mp/dimensionality a))
-          (== (mp/get-0d a) (mp/get-0d b))
-          (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
-        false)))
+      (cond
+        (identical? a b) true
+        (mp/same-shape? a b)
+          (if (== 0 (mp/dimensionality a))
+            (== (mp/get-0d a) (mp/get-0d b))
+            (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
+        :else false)))
 
 (defmacro eps== [a b eps]
   `(<= (Math/abs (- (double ~a) (double ~b))) (double ~eps) ))
