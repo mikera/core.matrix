@@ -4,6 +4,12 @@
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.multimethods :as mm]))
 
+;; =============================================
+;; WRAPPER IMPLEMENTATIONS
+;;
+;; wrappers are used to implement specific shapes / types of arrays
+;; that are useful to implement certain array operations (typically as return values)
+
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 

@@ -11,7 +11,7 @@
 ;; html documentation about various matrix implementations available in
 ;; core.matrix
 
-(def repo-url "https://github.com/mikera/matrix-api")
+(def repo-url "https://github.com/mikera/core.matrix")
 (def src-path "src/main/clojure")
 
 (defn render-header

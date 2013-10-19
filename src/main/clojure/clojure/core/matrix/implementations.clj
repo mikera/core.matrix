@@ -32,7 +32,7 @@
 
 ;; default implementation to use
 ;; should be included with clojure.core.matrix for easy of use
-(def DEFAULT-IMPLEMENTATION :ndarray)
+(def DEFAULT-IMPLEMENTATION :persistent-vector)
 
 ;; hashmap of implementation keys to canonical objects
 ;; objects must implement PImplementation protocol at a minimum
@@ -61,7 +61,9 @@
         (catch Throwable t nil)))))
 
 (defn get-canonical-object
-  "Gets the canonical object for a specific implementation"
+  "Gets the canonical object for a specific implementation. The canonical object is used
+   to call implementation-specific protocol functions where required (e.g. creation of new 
+   arrays of the correct type for the implementation)"
   ([m]
     (let [k (get-implementation-key m)
           obj (@canonical-objects k)]

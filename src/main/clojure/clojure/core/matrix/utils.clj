@@ -27,7 +27,7 @@
   ([& vals]
     `(throw (java.lang.RuntimeException. (str ~@vals)))))
 
-;; useful TODO macro facilitates searching for TODO while throwing an error at runtime :-)
+;; useful TODO macro: facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO
   ([] `(error "TODO: not yet implemented")))
 
@@ -54,6 +54,7 @@
   "Returns true if two shapes are the same."
   ([sa sb]
     (cond
+      (identical? sa sb) true
       (= sa sb) true
       (not= (count sa) (count sb)) false
       (let [sa (seq sa)

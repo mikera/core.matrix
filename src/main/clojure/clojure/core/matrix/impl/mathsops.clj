@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.impl.mathsops)
 
 ;; data structure for code generation of maths operations
+;; format is (<symbol> <java.lang.Math equivalent>)
 
 (def maths-ops
   '[(abs Math/abs)

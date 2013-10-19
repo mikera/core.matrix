@@ -234,7 +234,7 @@ of indexes and strides"
    Matrices argument should be a list of locals. Anaphoric arguments that
    can be used in a body given that [a, b] are provided: a-shape, b-shape,
    a-data, b-data, a-strides, b-strides, a-offset, b-offset, a-ndims, b-ndims,
-   a-idx, b-idx (current indeces into a and b)"
+   a-idx, b-idx (current indexes into a and b)"
   [[m1 & _ :as matrices] body]
   `(expose-ndarrays [~@matrices]
      (if-not ~(unroll-predicate 'java.util.Arrays/equals

@@ -7,6 +7,17 @@
   (:require [clojure.core.matrix.impl.mathsops :as mops])
   (:require [clojure.core.matrix.implementations :as imp]))
 
+;; =========================================================================
+;; This namespace contains default implementations for core.matrix protocols
+;; 
+;; These will be used for any protocol that is not extended to an array type
+;;
+;; In general, default implementations are provided for:
+;; - nil : treated as a nil scalar value
+;; - java.lang.Number : treated as a numerical scalar value
+;; - java.lang.Object : any unrecognised object, will be treated as an array
+;;
+
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
@@ -269,12 +280,23 @@
       (mp/assign! m value)))
 
 (extend-protocol mp/PMatrixCloning
-      java.lang.Cloneable
-        (clone [m]
-          (.invoke ^java.lang.reflect.Method (.getDeclaredMethod (class m) "clone" nil) m nil))
-      java.lang.Object
-        (clone [m]
-          (mp/coerce-param m (mp/coerce-param [] m))))
+   java.lang.Object
+     (clone [m]
+       (mp/construct-matrix m m)))
+
+(extend-protocol mp/PSparseArray
+   java.lang.Object
+     (is-sparse? [m]
+       false))
+
+(extend-protocol mp/PZeroCount
+   Number
+     (zero-count [m]
+       (if (zero? m) 1 0))
+   Object
+     (zero-count [m]
+       (mp/element-reduce m (fn [acc e] (if (zero? e) (inc acc) acc)) 0)))
+
 
 (extend-protocol mp/PMutableMatrixConstruction
   nil
@@ -304,15 +326,25 @@
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
-    (get-shape [m] [])
+    (get-shape [m] nil)
     (dimension-count [m i] (error "java.lang.Number has zero dimensionality, cannot get dimension count"))
   java.lang.Object
     (dimensionality [m] 0)
-    (is-vector? [m] (== 1 (mp/dimensionality m)))
+    (is-vector? [m] false)
     (is-scalar? [m] true) ;; assume objects are scalars unless told otherwise
-    (get-shape [m] (for [i (range (mp/dimensionality m))] (mp/dimension-count m i)))
+    (get-shape [m] nil)
     (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
 
+(extend-protocol mp/PSameShape
+  nil
+    (same-shape? [a b]
+      (== 0 (mp/dimensionality b)))
+  Number 
+    (same-shape? [a b]
+      (== 0 (mp/dimensionality b)))
+  Object
+    (same-shape? [a b]
+      (same-shape-object? (mp/get-shape a) (mp/get-shape b))))
 
 ;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps
@@ -623,7 +655,7 @@
 (extend-protocol mp/PMatrixEquality
   nil
     (matrix-equals [a b]
-      (nil? b))
+      (error "nil is not a valid numerical value in equality testing"))
   java.lang.Number
     (matrix-equals [a b]
       (cond
@@ -632,12 +664,36 @@
         :else false))
   java.lang.Object
     (matrix-equals [a b]
-      (if (= (seq (mp/get-shape a))
-             (seq (mp/get-shape b)))
-        (if (== 0 (mp/dimensionality a))
-          (== (mp/get-0d a) (mp/get-0d b))
-          (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
-        false)))
+      (cond
+        (identical? a b) true
+        (mp/same-shape? a b)
+          (if (== 0 (mp/dimensionality a))
+            (== (mp/get-0d a) (mp/get-0d b))
+            (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
+        :else false)))
+
+(defmacro eps== [a b eps]
+  `(<= (Math/abs (- (double ~a) (double ~b))) (double ~eps) ))
+
+;; equality checking
+(extend-protocol mp/PMatrixEqualityEpsilon
+  nil
+    (matrix-equals-epsilon [a b eps]
+      (error "nil is not a valid numerical value in equality testing"))
+  java.lang.Number
+    (matrix-equals-epsilon [a b eps]
+      (cond
+        (number? b) (eps== a b eps)
+        (== 0 (mp/dimensionality b)) (eps== a (mp/get-0d b) eps)
+        :else false))
+  java.lang.Object
+    (matrix-equals-epsilon [a b eps]
+      (cond
+        (identical? a b) true
+        (mp/same-shape? a b)
+          (let [eps (double eps)]
+            (every? #(<= (Math/abs (double %)) eps) (map - (mp/element-seq a) (mp/element-seq b))))
+        :else false)))
 
 (extend-protocol mp/PDoubleArrayOutput
   java.lang.Number
@@ -794,7 +850,7 @@
   java.lang.Number
     (submatrix [m index-ranges]
       (if (seq index-ranges)
-        (error "Can't take partial submatrix of a scalr number")
+        (error "Can't take partial submatrix of a scalar number")
         m))
   java.lang.Object
     (submatrix [m index-ranges]

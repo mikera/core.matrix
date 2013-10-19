@@ -22,6 +22,7 @@
   (testing "same shape function"
     (is (same-shape? [1 2] [3 4]))
     (is (same-shape? 0 1))
+    (is (same-shape? "Foo" nil))
     (is (not (same-shape? [1 2] [2 3 4])))
     (is (not (same-shape? [1 2] [[0 1] [2 3]])))))
 
@@ -194,11 +195,12 @@
     (is (not (op/== 2 4)))
     (is (op/== [1 2] [1.0 2.0])))
   (testing "nil equality"
-    (is (op/== nil nil))
-    (is (not (op/== nil [nil])))
-    (is (not (op/== nil []))))
+    (is (e= nil nil))
+    (is (not (e= nil [nil])))
+    (is (not (e= nil []))))
   (testing "unequal lengths"
-    (is (not (equals [1] [1 2]))))
+    (is (not (equals [1] [1 2])))
+    (is (not (e= [1] [1 2]))))
   (testing "equals does not broadcast"
     (is (not (equals (array 1) (array [1 1]))))))
 
@@ -220,7 +222,10 @@
 
 (deftest test-broadcast-like
   (is (equals [2 2] (mp/broadcast-like [1 1] 2)))
-  (is (equals [2 2] (mp/broadcast-like [1 1] [2 2]))))
+  (is (equals [2 2] (mp/broadcast-like [1 1] [2 2])))
+  (is (equals [[7 7] [7 7]] (mp/broadcast-like [[1 2] [3 4]] 7)))
+  (is (equals [1 2 3] (mp/broadcast-like [2 3 4] [1 2 3])))
+  (is (error? (mp/broadcast-like [1 2 3] [1 2]))))
 
 (deftest test-divide
   (is (== 2 (div 4 2)))
@@ -302,7 +307,7 @@
     (is (== 0 (dimensionality :foo)))
     (is (== 0 (dimensionality 'bar)))
     (is (== 1.0 (mget 1.0)))
-    (is (= [] (shape 1.0))))
+    (is (nil? (shape 1.0))))
   (testing "functional operations"
     (is (= 2.0 (emap inc 1.0)))
     (is (= 10.0 (emap + 4.0 6.0)))
@@ -346,6 +351,12 @@
     (is (e== [2 3] (add 1.0 [1 2])))
     (is (e== [0 1] (sub [1 2] 1.0)))
     (is (e== [0 -1] (sub 1.0 [1 2])))))
+
+(deftest test-sparsity 
+  (testing "sparse?"
+    (is (not (sparse? [0 1 2]))))
+  (testing "density"
+    (is (== 0.75 (density [0 1 2 3])))))
 
 (deftest test-object-array
   (is (e= [:a :b] (coerce [] (object-array [:a :b])))))

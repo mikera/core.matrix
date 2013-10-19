@@ -69,8 +69,16 @@
   ([implementation data]
     (mp/construct-matrix (implementation-check implementation) data)))
 
-(defn new-vector
+(defn zero-vector
   "Constructs a new zero-filled numerical vector with the given length.
+   If the implementation supports mutable vectors, then the new vector will be fully mutable."
+  ([length]
+    (mp/new-vector (implementation-check) length))
+  ([implementation length]
+    (mp/new-vector (implementation-check implementation) length)))
+
+(defn new-vector
+  "Constructs a new vector with the given length.
    New matrix will contain default values as defined by the implementation (usually null or zero).
    If the implementation supports mutable vectors, then the new vector will be fully mutable."
   ([length]
@@ -78,18 +86,34 @@
   ([implementation length]
     (mp/new-vector (implementation-check implementation) length)))
 
-(defn new-matrix
+(defn zero-matrix
   "Constructs a new zero-filled numerical matrix with the given dimensions.
-   New matrix will contain default values as defined by the implementation (usually null or zero).
    If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([rows columns]
     (mp/new-matrix (implementation-check) rows columns))
   ([implementation rows columns]
     (mp/new-matrix (implementation-check implementation) rows columns)))
 
+(defn new-matrix
+  "Constructs a new 2D array (matrix) with the given dimensions.
+   The new matrix will contain default values as defined by the implementation (usually null or zero).
+   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+  ([rows columns]
+    (mp/new-matrix (implementation-check) rows columns))
+  ([implementation rows columns]
+    (mp/new-matrix (implementation-check implementation) rows columns)))
+
+(defn zero-array
+  "Creates a new zero-filled numerical array with the given shape.
+   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+  ([shape]
+    (mp/new-matrix-nd (implementation-check) shape))
+  ([implementation shape]
+    (mp/new-matrix-nd (implementation-check implementation) shape)))
+
 (defn new-array
   "Creates a new array with the given shape.
-   New matrix will contain default values as defined by the implementation (usually null or zero).
+   New array will contain default values as defined by the implementation (usually null or zero).
    If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([shape]
     (mp/new-matrix-nd (implementation-check) shape))
@@ -130,14 +154,18 @@
     (mp/construct-matrix (implementation-check implementation) (map vector data))))
 
 (defn identity-matrix
-  "Constructs a 2D identity matrix with the given number of rows"
+  "Constructs a 2D identity matrix with the given number of rows.
+
+   Identity matrices constructed with this function may not be fully mutable because they may be
+   implemented with a specialised identity matrix type. Use (mutable (identity-matrix ...)) if you 
+   need to guarantee a mutable matrix."
   ([dims]
     (mp/identity-matrix (implementation-check) dims))
   ([implementation dims]
     (mp/identity-matrix (implementation-check implementation) dims)))
 
-(defn mutable-matrix
-  "Constructs a mutable copy of the given matrix.
+(defn mutable
+  "Constructs a mutable copy of the given array data.
 
    If the implementation does not support mutable matrices, will return a mutable array
    from another core.matrix implementation that supports either the same element type or a broader type."
@@ -145,13 +173,24 @@
     (or (mp/mutable-matrix data)
         (array :ndarray data))) ;; TODO: consider restricting to tighter NDArray type?
   ([data type]
-    (mutable-matrix data) ;; TODO: support creation with specific element types
+    (mutable data) ;; TODO: support creation with specific element types
     ))
+
+(defn ^{:deprecated true} mutable-matrix
+  "Constructs a mutable copy of the given matrix.
+
+   DEPRECATED: please use mutable instead"
+  ([data]
+    (mutable data))
+  ([data type]
+    (mutable data type)))
 
 (defn diagonal-matrix
   "Constructs a 2D diagonal matrix with the given numerical values on the main diagonal.
-   All off-diagonal elements will be zero.
-   diagonal-values may be a vector or any Clojure sequence of values."
+   All off-diagonal elements will be zero. diagonal-values may be a vector or any Clojure sequence of values.
+
+   Diagonal matrices constructed this way may use specialised storage formats, hence may not be fully mutable.
+   Use (mutable (diagonal-matrix ...)) if you need to guarantee a mutable matrix."
   ([diagonal-values]
     (mp/diagonal-matrix (current-implementation-object) diagonal-values))
   ([implementation diagonal-values]
@@ -206,7 +245,7 @@
 
 (defn assign!
   "Assigns a new value to an array. Sets the values of the target elementwise, broadcasting where necessary.
-   Returns the mutated array."
+   Returns the mutated array. The new value may be either a scalar or a array of compatible (maybe smaller) shape."
   ([m a]
     (mp/assign! m a)
     m))
@@ -220,24 +259,29 @@
 
 (defn assign
   "Assigns a value elementwise to a given matrix, broadcasting to fill the whole matrix as necessary.
-   Returns a new matrix, of the same shape and implementation type as the original."
+   Returns a new matrix, of the same shape as the original."
   ([m a]
     (mp/broadcast (mp/coerce-param m a) (mp/get-shape m))))
 
 (defn clone
-  "Constructs a (shallow) clone of the matrix, using the same implementation. This function is intended to
-   allow safe defensive copying of matrices / vectors.
+  "Constructs a (shallow) clone of the matrix. This function is intended to
+   allow safe defensive usage of matrices / vectors. If the intent is to create a mutable clone of
+   some array data, it is recommended to use mutable instead.
 
    Guarantees that:
    1. Mutating the returned matrix will not modify any other matrix (defensive copy)
    2. The returned matrix will be fully mutable, if the implementation supports mutable matrices.
+
+   The clone may or may not be of the same implementation: implementations are encouraged to do so but
+   this is not mandatory.
 
    A matrix implementation which only provides immutable matrices may safely return the same matrix."
   ([m]
     (mp/clone m)))
 
 (defn to-nested-vectors
-  "Converts an array to an idiomatic, immutable nested Clojure vector format.
+  "Converts an array to an idiomatic, immutable nested Clojure vector format. The bottom level of the 
+   nested vectors will contain the element values.
 
    The depth of nesting will be equal to the dimensionality of the array."
   ([m]
@@ -270,8 +314,8 @@
 (defn scalar?
   "Returns true if the parameter is a scalar value (i.e. acceptable as matrix element value).
    A 0-d array containing a scalar is *not* itself a scalar value."
-  ([m]
-    (mp/is-scalar? m)))
+  ([v]
+    (mp/is-scalar? v)))
 
 (defn zero-dimensional?
   "Returns true if the parameter has zero dimensions. i.e. it is a 0-d array or a scalar value."
@@ -287,6 +331,15 @@
   "Returns true if all the elements of the parameter are zeros"
   [m]
   (mp/zero-matrix? m))
+
+(defn sparse?
+  "Returns true if an array is sparse, i.e. the implementation supports storage of the entire
+   array in less memory than would normally be implied by the number of elements. 
+
+   Sparse matrices may have memory requirements that scale with the number of non-zero elements
+   rather than the total number of elements, for example."
+  ([m]
+    (mp/is-sparse? m)))
 
 (defn element-type
   "Returns the class of elements that can be in the array. For example, a numerical array may return
@@ -316,6 +369,12 @@
   ([m dim]
     (mp/dimension-count m dim)))
 
+(defn slice-count
+  "Returns the number of slices in an array (array must be 1D or more). The array is sliced
+   in row-major order, i.e. this is the dimension count of the first dimension."
+  ([m]
+    (mp/dimension-count m 0)))
+
 (defn square?
   "Returns true if matrix is square (i.e. a 2D array with same number of rows and columns)"
   ([m]
@@ -336,12 +395,28 @@
          (== 1 (mp/dimension-count m 1)))))
 
 (defn shape
-  "Returns the shape of a matrix, i.e. the dimension sizes for all dimensions.
+  "Returns the shape of an array, i.e. the dimension sizes for all dimensions.
 
    The result will be a vector containing only integer index values, with a count
-   equal to the dimensionality of the array."
+   equal to the dimensionality of the array.
+   
+   Returns nil the if object is not an array (i.e. is a scalar value)"
   ([m]
-    (vec (mp/get-shape m))))
+    (if-let [sh (mp/get-shape m)]
+      (vec sh)
+      nil)))
+
+(defn zero-count
+  "Counts the number of zeros in an array."
+  ([m]
+    (mp/zero-count m)))
+
+(defn density 
+  "Returns the density of the matrix, defined as the proportion on non-zero elements"
+  ([m]
+    (let [zeros (double (mp/zero-count m))
+          elems (double (mp/element-count m))]
+      (double (/ (- elems zeros) elems)))))
 
 (defn mutable?
   "Returns true if the matrix is mutable, i.e. supports setting of values"
@@ -356,17 +431,20 @@
   ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b))))))
 
 (defn same-shape?
-  "Returns true if the arrays have the identical shape, false otherwise"
+  "Returns true if the arrays have the same shape, false otherwise"
   ([] true)
   ([m] true)
   ([m n]
     (or
       (identical? m n)
-      (clojure.core.matrix.utils/same-shape-object? (mp/get-shape m) (mp/get-shape n))))
+      (mp/same-shape? m n)))
   ([m n & more]
-    (and
-      (same-shape? m n)
-      (every? #(same-shape? m %) more))))
+    (loop [m m n n more (seq more)]
+      (if (or (identical? m n) (mp/same-shape? m n))
+        (if more 
+          (recur n (first more) (next more))
+          true)
+        false))))
 
 (defn numerical?
   "Returns true if the matrix is a valid numerical matrix (i.e. supports numerical core.matrix operations)."
@@ -513,12 +591,12 @@
       (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
 
 (defn rows
-  "Gets the rows of a matrix, as a sequence"
+  "Gets the rows of a matrix, as a sequence or vectors."
   ([m]
     (slices m)))
 
 (defn columns
-  "Gets the columns of a matrix, as a sequence"
+  "Gets the columns of a matrix, as a sequence of vectors."
   ([m]
     (slices m 1)))
 
@@ -572,7 +650,7 @@
   ([m]
     (or
       (mp/to-vector m)
-      (new-vector m (mp/element-seq m)))))
+      (array m (mp/element-seq m)))))
 
 
 ;; ====================================
@@ -586,6 +664,11 @@
   ([m shape]
     (or (mp/broadcast m shape)
         (error "Broadcast to target shape: " (seq shape) " not possble."))))
+
+(defn broadcast-like
+  "Broadcasts the second matrix to the shape of the first. See 'broadcast'."
+  ([m a]
+    (mp/broadcast-like m a)))
 
 (defn transpose
   "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped.
@@ -615,6 +698,12 @@
     (mp/fill! m value)
     m))
 
+(defn fill
+  "Fills a matrix with a single scalar value. The scalar value must be compatible with the element-type
+   of the array. Returns a new array."
+  ([m value]
+    (assign m value)))
+
 ;; ======================================
 ;; matrix comparisons
 
@@ -627,8 +716,8 @@
    with the given maximum tolerance (default is 0.0, i.e. exact numerical equivalence)"
   ([a b]
     (mp/matrix-equals a b))
-  ([a b epsilon] ;; TODO: proper protocol implementation
-    (every? #(<= (Math/abs (double %)) epsilon) (map - (mp/element-seq a) (mp/element-seq b)))))
+  ([a b epsilon] 
+    (mp/matrix-equals-epsilon a b epsilon)))
 
 ;; ======================================
 ;; matrix maths / operations
@@ -824,17 +913,6 @@
    Returns a new normalised vector."
   ([v]
     (mp/normalise v)))
-
-(defn normalise-probabilities
-  "Normalises a numerical probability vector, i.e. to a vector where all elements sum to 1.0.
-   Negative values are clamped to 0.0. A zero vector will be set set to [1/n .... 1/n]."
-  ([v]
-    (let [v (mp/element-map v #(if (>= % 0.0) % 0.0))
-          len (double (mp/element-sum v))]
-      (cond
-        (== len 1.0) v
-        (== len 0.0) (coerce v (let [n (mp/dimension-count v 0)] (repeat n (/ 1.0 n))))
-        :else (scale v (/ 1.0 len))))))
 
 (defn normalise!
   "Normalises a numerical vector in-place (scales to unit length).
@@ -1066,9 +1144,13 @@
   ([m1]
     true)
   ([m1 m2]
-    (every? true? (map = (eseq m1) (eseq m2))))
+    (and
+      (same-shape? m1 m2)
+      (every? true? (map = (eseq m1) (eseq m2)))))
   ([m1 m2 & more]
-    (reduce (fn [r mi] (and r (e= m1 mi))) (e= m1 m2) more)))
+    (and
+      (same-shape? m1 m2)
+      (reduce (fn [r mi] (and r (e= m1 mi))) (e= m1 m2) more))))
 
 (defn e==
   "Returns true if all array elements are numerically equal. Throws an error if any elements
@@ -1099,43 +1181,10 @@
 
 (defn index-seq [m]
   "Returns a sequence of all possible index vectors into a matrix, in row-major order"
-  (index-seq-for-shape (shape m)))
+  (index-seq-for-shape (mp/get-shape m)))
 
 ;; =========================================================
 ;; Print Matrix
-
-(defn- longest-nums
-  "Finds the longest string representation of
-   a number in each column within a given matrix."
-  [mat]
-  (let [tmat (transpose mat)
-        format-num #(format "%.3f" (double %))
-        col-long #(reduce max (map count (map format-num %)))]
-    (map col-long tmat)))
-
-(defn- str-elem
-  "Prints and element that takes up a given amount of whitespaces."
-  [elem whitespaces]
-  (let [formatter (str "%" whitespaces "." 3 "f")]
-    (format formatter (double elem))))
-
-(defn- str-row
-  "Creates a string for each row with the desired
-   amount of spaces between the elements."
-  [[elem-head & elem-tail] [len-head & len-tail]] ;; the first element doesn't have a leading ws.
-  (let [first-elem (str-elem elem-head len-head)
-        body-elems (map str-elem elem-tail len-tail)]
-  (str "[" first-elem " " (apply str body-elems) "]")))
-
-(defn- rprint
-  "Recursively prints each element with a leading
-   line break and whitespace. If there are no
-   elements left in the matrix it ends with a
-   closing bracket."
-  [[head & tail :as mat] acc len]
-  (if (empty? mat)
-    (str acc "]")
-    (recur tail (str acc "\n " (str-row head len)) len)))
 
 (defn pm
   "Pretty-prints a matrix"

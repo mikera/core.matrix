@@ -202,6 +202,12 @@
    If the new shape requires more elements than the original shape, should throw an exception."
   (reshape [m shape]))
 
+(defprotocol PSameShape
+  "Protocol to test if two arrays have the same shape. Implementations may have an optimised 
+   method for shape equality tests, and this is a frequently required operations so it may
+   make sense to provide an optimised implementation."
+  (same-shape? [a b]))
+
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of an array.  If implemented, must return either a view, a scalar
    or an immutable sub-matrix: it must *not* return copied data. i.e. making a full copy must be avoided."
@@ -240,6 +246,14 @@
    The default implementation creates a new vector containing the diagonal values."
   (main-diagonal [m]))
 
+(defprotocol PSparseArray
+  "Protocol for determining if an array is sparse"
+  (is-sparse? [m]))
+
+(defprotocol PZeroCount
+  "Protocol for determining if an array is sparse"
+  (zero-count [m]))
+
 
 (defprotocol PAssignment
   "Protocol for assigning values element-wise to mutable arrays."
@@ -274,6 +288,11 @@
       numercial types (e.g. java.lang.Long and java.lang.Double). Implementations that only support doubles
       should use Number.doubleValue() to get a numeric value to compare.
       May throw an exception if the matrices are non-numeric"))
+
+(defprotocol PMatrixEqualityEpsilon
+  "Protocol for numerical array equality operations with a specified tolerance."
+  (matrix-equals-epsilon [a b eps]
+     "As matrix-equals, but provides a numerical tolerance for equality testing."))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar.

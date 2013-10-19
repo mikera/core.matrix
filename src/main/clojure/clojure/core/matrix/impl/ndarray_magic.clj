@@ -98,16 +98,14 @@
   ([types extra-parts form]
      (doseq [t types
              :let [replaces (form-replaces extra-parts t)]]
-       (when-not (type-table-magic t)
-         (throw (IllegalArgumentException.
-                 (str "there is no type " (name t) " in init-magic"))))
-       (case (first form)
+       (when (type-table-magic t) ;; skip if not defined in type table
+         (case (first form)
          deftype (swap! deftypes-magic assoc t
                         (handle-forms t replaces form))
          defn (swap! defns-magic conj
                      (handle-defn-form t replaces form))
          :else (throw (IllegalArgumentException.
-                       "only deftype and defn are supported in with-magic"))))
+                       "only deftype and defn are supported in with-magic")))))
      :ok))
 
 (defmacro extend-types
@@ -118,11 +116,9 @@
                               [{} forms])]
     (doseq [t types
             :let [replaces (form-replaces extra-parts t)]]
-       (when-not (type-table-magic t)
-         (throw (IllegalArgumentException.
-                 (str "there is no type " (name t) " in init-magic"))))
-       (swap! deftypes-magic update-in [t] concat
-              (handle-forms t replaces forms)))
+       (when (type-table-magic t)
+         (swap! deftypes-magic update-in [t] concat
+              (handle-forms t replaces forms))))
     :ok))
 
 (defmacro spit-code
