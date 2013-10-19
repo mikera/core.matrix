@@ -61,7 +61,9 @@
         (catch Throwable t nil)))))
 
 (defn get-canonical-object
-  "Gets the canonical object for a specific implementation"
+  "Gets the canonical object for a specific implementation. The canonical object is used
+   to call implementation-specific protocol functions where required (e.g. creation of new 
+   arrays of the correct type for the implementation)"
   ([m]
     (let [k (get-implementation-key m)
           obj (@canonical-objects k)]

@@ -27,7 +27,7 @@
   ([& vals]
     `(throw (java.lang.RuntimeException. (str ~@vals)))))
 
-;; useful TODO macro facilitates searching for TODO while throwing an error at runtime :-)
+;; useful TODO macro: facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO
   ([] `(error "TODO: not yet implemented")))
 

@@ -7,6 +7,17 @@
   (:require [clojure.core.matrix.impl.mathsops :as mops])
   (:require [clojure.core.matrix.implementations :as imp]))
 
+;; =========================================================================
+;; This namespace contains default implementations for core.matrix protocols
+;; 
+;; These will be used for any protocol that is not extended to an array type
+;;
+;; In general, default implementations are provided for:
+;; - nil : treated as a nil scalar value
+;; - java.lang.Number : treated as a numerical scalar value
+;; - java.lang.Object : any unrecognised object, will be treated as an array
+;;
+
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
