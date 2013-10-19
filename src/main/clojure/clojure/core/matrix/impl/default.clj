@@ -688,11 +688,12 @@
         :else false))
   java.lang.Object
     (matrix-equals-epsilon [a b eps]
-      (if (= (seq (mp/get-shape a))
-             (seq (mp/get-shape b)))
-        (let [eps (double eps)]
-          (every? #(<= (Math/abs (double %)) eps) (map - (mp/element-seq a) (mp/element-seq b))))
-        false)))
+      (cond
+        (identical? a b) true
+        (mp/same-shape? a b)
+          (let [eps (double eps)]
+            (every? #(<= (Math/abs (double %)) eps) (map - (mp/element-seq a) (mp/element-seq b))))
+        :else false)))
 
 (extend-protocol mp/PDoubleArrayOutput
   java.lang.Number
