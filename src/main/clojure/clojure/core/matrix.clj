@@ -650,7 +650,7 @@
   ([m]
     (or
       (mp/to-vector m)
-      (new-vector m (mp/element-seq m)))))
+      (array m (mp/element-seq m)))))
 
 
 ;; ====================================
@@ -1219,16 +1219,6 @@
   (let [first-elem (str-elem elem-head len-head)
         body-elems (map str-elem elem-tail len-tail)]
   (str "[" first-elem " " (apply str body-elems) "]")))
-
-(defn- rprint
-  "Recursively prints each element with a leading
-   line break and whitespace. If there are no
-   elements left in the matrix it ends with a
-   closing bracket."
-  [[head & tail :as mat] acc len]
-  (if (empty? mat)
-    (str acc "]")
-    (recur tail (str acc "\n " (str-row head len)) len)))
 
 (defn pm
   "Pretty-prints a matrix"
