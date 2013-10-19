@@ -914,16 +914,6 @@
   ([v]
     (mp/normalise v)))
 
-(defn normalise-probabilities
-  "Normalises a numerical probability vector, i.e. to a vector where all elements sum to 1.0.
-   Negative values are clamped to 0.0. A zero vector will be set set to [1/n .... 1/n]."
-  ([v]
-    (let [v (mp/element-map v #(if (>= % 0.0) % 0.0))
-          len (double (mp/element-sum v))]
-      (cond
-        (== len 1.0) v
-        (== len 0.0) (coerce v (let [n (mp/dimension-count v 0)] (repeat n (/ 1.0 n))))
-        :else (scale v (/ 1.0 len))))))
 
 (defn normalise!
   "Normalises a numerical vector in-place (scales to unit length).
@@ -1192,7 +1182,7 @@
 
 (defn index-seq [m]
   "Returns a sequence of all possible index vectors into a matrix, in row-major order"
-  (index-seq-for-shape (shape m)))
+  (index-seq-for-shape (mp/get-shape m)))
 
 ;; =========================================================
 ;; Print Matrix
