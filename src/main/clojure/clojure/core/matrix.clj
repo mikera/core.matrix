@@ -1197,29 +1197,6 @@
 ;; =========================================================
 ;; Print Matrix
 
-(defn- longest-nums
-  "Finds the longest string representation of
-   a number in each column within a given matrix."
-  [mat]
-  (let [tmat (transpose mat)
-        format-num #(format "%.3f" (double %))
-        col-long #(reduce max (map count (map format-num %)))]
-    (map col-long tmat)))
-
-(defn- str-elem
-  "Prints and element that takes up a given amount of whitespaces."
-  [elem whitespaces]
-  (let [formatter (str "%" whitespaces "." 3 "f")]
-    (format formatter (double elem))))
-
-(defn- str-row
-  "Creates a string for each row with the desired
-   amount of spaces between the elements."
-  [[elem-head & elem-tail] [len-head & len-tail]] ;; the first element doesn't have a leading ws.
-  (let [first-elem (str-elem elem-head len-head)
-        body-elems (map str-elem elem-tail len-tail)]
-  (str "[" first-elem " " (apply str body-elems) "]")))
-
 (defn pm
   "Pretty-prints a matrix"
   [m]
