@@ -914,7 +914,6 @@
   ([v]
     (mp/normalise v)))
 
-
 (defn normalise!
   "Normalises a numerical vector in-place (scales to unit length).
    Returns the modified vector."
