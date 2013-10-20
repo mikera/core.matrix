@@ -1038,7 +1038,7 @@
   (identity-matrix? [m]
     (let [rc (mp/dimension-count m 0)
           cc (mp/dimension-count m 1)]
-      (if (== rc cc)
+      (if (and (== (mp/dimensionality m) 2) (== rc cc))
         (loop [i (long 0)]
           (if (< i rc)
             (if (loop [j (long 0)]
@@ -1055,7 +1055,7 @@
             true))
         false)))
   (zero-matrix? [m]
-    (every? #(and (not (nil? %)) (zero? %)) (mp/element-seq m)))
+    (every? #(and (number? %) (zero? %)) (mp/element-seq m)))
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false))
