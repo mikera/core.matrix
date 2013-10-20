@@ -251,7 +251,7 @@
   (is-sparse? [m]))
 
 (defprotocol PZeroCount
-  "Protocol for determining if an array is sparse"
+  "Protocol for counting the number of zeros in an array"
   (zero-count [m]))
 
 
