@@ -409,8 +409,9 @@
       (is (equals (mmul m m) i 1.0E-12)))))
 
 (defn test-numeric-matrix-predicates [m]
-  (when (and (matrix? m) (= 2 (dimensionality m)))
+  (when (== 2 (dimensionality m))
     (is (zero-matrix? (new-matrix m 10 10)))
+    (is (zero-matrix? (zero-matrix m 10 10)))
     (is (identity-matrix? (identity-matrix m 5)))
     (is (not (identity-matrix? (array m [[2 0][0 1]]))))
     (is (not (zero-matrix? (array m [[0 0][0 1]]))))

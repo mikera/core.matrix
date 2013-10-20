@@ -366,6 +366,11 @@
     (testing "example code"
       (clojure.core.matrix.examples/all-examples))))
 
+(deftest test-zeros
+  (is (zero-matrix? (zero-matrix 3 3)))
+  (is (zero-matrix? (zero-vector 3)))
+  (is (zero-matrix? (zero-array [2 2 2]))))
+
 (deftest test-numerical
   (testing "numerical predicate"
     (is true)

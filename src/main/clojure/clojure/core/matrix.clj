@@ -328,9 +328,10 @@
   (mp/identity-matrix? m))
 
 (defn zero-matrix?
-  "Returns true if all the elements of the parameter are zeros"
+  "Returns true if all the elements of the parameter are zeros."
   [m]
   (mp/zero-matrix? m))
+
 
 (defn sparse?
   "Returns true if an array is sparse, i.e. the implementation supports storage of the entire
