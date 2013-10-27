@@ -142,6 +142,11 @@
               m
               (reverse (drop-last dims target-shape)))))))
 
+(extend-protocol mp/PBroadcastLike
+  clojure.lang.IPersistentVector
+    (broadcast-like [m a]
+      (mp/broadcast a (mp/get-shape m))))
+
 (extend-protocol mp/PIndexedAccess
   clojure.lang.IPersistentVector
     (get-1d [m x]
@@ -259,6 +264,16 @@
   clojure.lang.IPersistentVector
     (coerce-param [m param]
       (persistent-vector-coerce param)))
+
+(extend-protocol mp/PRowOperations
+  clojure.lang.IPersistentVector
+    (swap-rows [m i j]
+      (when-not (== i j)
+        (assoc (assoc m i (m j)) j (m i))))
+    (multiply-row [m i factor]
+      (assoc m i (mp/scale (m i) factor)))
+    (add-row [m i j k]
+      (assoc m i (mapv (fn [vi vj] (+ vi (* vj k))) (m i) (m j)))))
 
 (extend-protocol mp/PMatrixMultiply
   clojure.lang.IPersistentVector
