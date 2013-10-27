@@ -1,7 +1,6 @@
 (ns clojure.core.matrix.impl.ndarray-magic
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
-  (:use clojure.core.matrix.impl.ndarray-magic)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.multimethods :as mm])
