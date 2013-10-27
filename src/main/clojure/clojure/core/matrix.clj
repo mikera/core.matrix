@@ -1059,6 +1059,11 @@
   [m i j factor]
   (mp/add-row m i j factor))
 
+(defn set-row
+  "Sets a row in a matrix using a specified vector."
+  [m i row]
+  (mp/set-row m i row))
+
 ;; ===================================
 ;; Linear algebra algorithms
 ;;

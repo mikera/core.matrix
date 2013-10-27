@@ -494,6 +494,10 @@
   (add-row [m i j k]
     "Returns a new matrix with row i added to row j times k"))
 
+(defprotocol PRowSetting
+  "Protocol for row setting. Should set a dimension 0 (row) slice to thegiven row value."
+  (set-row [m i row])
+  (set-row! [m i row]))
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
