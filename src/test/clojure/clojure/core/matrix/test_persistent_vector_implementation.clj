@@ -116,6 +116,12 @@
     (= [1 2] (eseq [(double-array [1 2])]))
     (= [1 2] (eseq [[(wrap/wrap-scalar 1) (wrap/wrap-scalar 2)]]))))
 
+(deftest test-contained-scalar-array
+  (let [a [(scalar-array 1) 2]]
+    (is (== 1 (dimensionality a)))
+    (is (vec? a))
+    (is (= [1 2] (slices a)))))
+
 (deftest test-scalar-interop
   (is (equals [2 4] (mul [1 2] (scalar-array 2)))))
 

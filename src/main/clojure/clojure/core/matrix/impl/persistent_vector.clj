@@ -30,8 +30,9 @@
   ([v]
     (mapv persistent-vector-coerce v)))
 
-(defn vector-1d? [^clojure.lang.IPersistentVector pv]
-  (or (== 0 (.length pv)) (mp/is-scalar? (.nth pv 0))))
+(defmacro vector-1d? [pv]
+  `(let [^clojure.lang.IPersistentVector pv# ~pv]
+     (or (== 0 (.length pv#)) (== 0 (mp/dimensionality (.nth pv# 0))))))
 
 (defn- mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
@@ -204,7 +205,9 @@
 (extend-protocol mp/PSliceSeq
   clojure.lang.IPersistentVector
     (get-major-slice-seq [m]
-      (seq m)))
+      (if (vector-1d? m) 
+        (seq (map mp/get-0d m))
+        (seq m))))
 
 (extend-protocol mp/PSliceJoin
   clojure.lang.IPersistentVector
