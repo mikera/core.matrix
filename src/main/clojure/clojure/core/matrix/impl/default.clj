@@ -47,7 +47,7 @@
 (defn construct-mutable-matrix
   "Constructs a new mutable matrix with the given data."
   ([m]
-    (let [dims (mp/dimensionality m)
+    (let [dims (long (mp/dimensionality m))
           type (mp/element-type m)
           double? (or (= Double/TYPE type))]
       (cond
@@ -94,7 +94,7 @@
     (get-nd [m indexes]
       (if (seq indexes)
         (error "Indexed get failed, not defined for:" (class m))
-        (if (mp/is-scalar? m) m (mp/get-0d m)))))
+        (mp/get-0d m))))
 
 (extend-protocol mp/PArrayMetrics
   nil
@@ -934,7 +934,7 @@
           (== 1 dims)             
             (if (or (seq? m) (sequential? m))
               (mapv mp/get-0d m)
-              (let [n (mp/dimension-count m 0)]
+              (let [n (long (mp/dimension-count m 0))]
                 (loop [i 0 res []]
                   (if (< i n)
                     (recur (inc i) (conj res (mp/get-1d m i)))
