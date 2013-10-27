@@ -734,8 +734,7 @@
 (extend-protocol mp/PRowSetting
   Object
     (set-row [m i row]
-      (let [cc (mp/dimension-count m 1)
-            svec (vec (mp/get-major-slice-seq m))
+      (let [svec (vec (mp/get-major-slice-seq m))
             row (mp/broadcast-like (svec 0) row)]
         (mp/coerce-param m (assoc svec i row))))
     (set-row! [m i row]
