@@ -269,7 +269,7 @@
 (extend-protocol mp/PMatrixEquality
   clojure.lang.IPersistentVector
     (matrix-equals [a b]
-      (let [bdims (mp/dimensionality b)]
+      (let [bdims (long (mp/dimensionality b))]
         (cond
           (<= bdims 0) 
             false
@@ -277,13 +277,21 @@
             false
           (== 1 bdims)
             (and (== 1 (mp/dimensionality a))
-                 (let [n (count a)]
+                 (let [n (long (count a))]
                    (loop [i 0]
                      (if (< i n)
                        (if (== (mp/get-1d a i) (mp/get-1d b i)) 
                          (recur (inc i))
                          false)
                        true))))
+          (vector? b)
+            (let [n (long (count a))]
+               (loop [i 0]
+                     (if (< i n)
+                       (if (mp/matrix-equals (a i) (b i)) 
+                         (recur (inc i))
+                         false)
+                       true)))
           :else 
             (loop [sa (seq a) sb (mp/get-major-slice-seq b)]
               (if sa
