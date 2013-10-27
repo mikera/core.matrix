@@ -343,7 +343,13 @@
 (extend-protocol mp/PFunctionalOperations
   clojure.lang.IPersistentVector
     (element-seq [m]
-      (mapcat mp/element-seq m))
+      (cond
+        (== 0 (count m)) 
+          '()
+        (> (mp/dimensionality (m 0)) 0)
+          (mapcat mp/element-seq m)
+        :else
+          (map mp/get-0d m)))
     (element-map
       ([m f]
         (mapmatrix f m))
