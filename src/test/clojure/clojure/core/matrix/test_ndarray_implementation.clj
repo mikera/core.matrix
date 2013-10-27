@@ -39,7 +39,8 @@
 
 (deftest add-product-test
   (testing "vector add-product"
-    (is (equals [7] (add-product (array :ndarray [1]) (array :ndarray [2]) (array :ndarray [3]))))))
+    (is (equals [7] (add-product (array :ndarray [1]) (array :ndarray [2]) (array :ndarray [3]))))
+    (is (equals [7] (add-product! (array :ndarray [1]) (array :ndarray [2]) (array :ndarray [3]))))))
 
 (deftest c-strides-test
   (are [strides shape] (= strides (vec (c-strides shape)))

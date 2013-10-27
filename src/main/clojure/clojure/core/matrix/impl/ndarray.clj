@@ -852,26 +852,20 @@
   mp/PAddProductMutable
     (add-product! [m a b]
       (let [^typename# a (if (instance? typename# a) a
-                             (mp/coerce-param m a))
+                             (mp/broadcast-like m a))
             ^typename# b (if (instance? typename# b) b
-                             (mp/coerce-param m b))]
+                             (mp/broadcast-like m b))]
         (iae-when-not (and (java.util.Arrays/equals (ints (.shape m))
                                                     (ints (.shape a)))
                            (java.util.Arrays/equals (ints (.shape a))
                                                     (ints (.shape b))))
-          "add-product! operates on arrays of equal shape")
-        (expose-ndarrays [a b m]
-          (let [a-rows (aget a-shape (int 0))
-                a-cols (aget a-shape (int 1))
-                b-rows (aget b-shape (int 0))
-                b-cols (aget b-shape (int 1))]
-            (do (c-for [i (int 0) (< i a-rows) (inc i)
-                        k (int 0) (< k a-cols) (inc k)]
-                  (let [t (aget-2d a-data a-strides a-offset i k)]
-                    (c-for [j (int 0) (< j b-cols) (inc j)]
-                      (aadd-2d m-data m-strides m-offset i j
-                               (* t (aget-2d b-data b-strides b-offset k j))))))
-                m)))))
+          "add-product operates on arrays of equal shape")
+        (let [^typename# m m]
+          (loop-over [a b m]
+                     (aset m-data m-idx (+ (aget m-data m-idx)
+                                           (* (aget a-data a-idx)
+                                              (aget b-data b-idx)))))
+          m)))
 
   mp/PAddScaledProduct
     (add-scaled-product [m a b factor]
