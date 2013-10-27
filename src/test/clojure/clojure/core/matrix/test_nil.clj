@@ -15,3 +15,6 @@
 
 (deftest instance-tests
   (clojure.core.matrix.compliance-tester/instance-test nil))
+
+(deftest test-join 
+  (is (e= [nil nil] (join [nil] [nil]))))

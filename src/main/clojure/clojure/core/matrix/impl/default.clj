@@ -844,7 +844,8 @@
 
 (extend-protocol mp/PSliceJoin
   nil
-    (join [m a] a)
+    (join [m a] 
+      (error "Can't join an array to a nil value!"))
   java.lang.Number
     (join [m a]
       (error "Can't join an array to a scalar number!"))
