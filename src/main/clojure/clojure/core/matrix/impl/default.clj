@@ -322,7 +322,7 @@
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
-    (get-shape [m] [])
+    (get-shape [m] nil)
     (dimension-count [m i] (error "cannot get dimension count from nil"))
   java.lang.Number
     (dimensionality [m] 0)

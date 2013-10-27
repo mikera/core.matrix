@@ -66,6 +66,11 @@
   (is (= [0.0 0.0 0.0] (seq (new-vector :double-array 3))))
   (is (e= [0.0 0.0 0.0] (new-vector :double-array 3))))
 
+(deftest test-nil 
+  (is (nil? (transpose nil)))
+  (is (== 0 (dimensionality nil)))
+  (is (nil? (shape nil))))
+
 (deftest test-compute-matrix
   (is (= [["00" "01"] ["10" "11"]]
          (compute-matrix :persistent-vector [2 2] str))))
