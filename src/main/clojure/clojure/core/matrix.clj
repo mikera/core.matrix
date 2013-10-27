@@ -602,7 +602,7 @@
       (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
 
 (defn rows
-  "Gets the rows of a matrix, as a sequence or vectors."
+  "Gets the rows of a matrix, as a sequence of vectors."
   ([m]
     (slices m)))
 
@@ -614,7 +614,8 @@
 (defn main-diagonal
   "Returns the main diagonal of a matrix or general array, as a vector.
    The main diagonal of a general array is defined as those elements where the all the
-   indexes are equal, i.e. the index is of the form [i i ... i]"
+   indexes are equal, i.e. the index is of the form [i i ... i]
+   Works on both square and rectangular matrices."
   ([m]
     (mp/main-diagonal m)))
 
@@ -646,8 +647,10 @@
     (let [c (mp/dimension-count m dimension)
           sh (mod shift-amount c)]
       (join-along dimension (submatrix m dimension [sh (- c sh)]) (submatrix m dimension [0 sh]))))
-  ([m [shifts]]
-    (TODO)))
+  ([m shifts]
+    (reduce (fn [m [dim shift]] (rotate m dim shift)) 
+            m 
+            (map-indexed (fn [i v] [i v]) shifts))))
 
 (defn as-vector
   "Creates a view of an array as a single flattened vector.
