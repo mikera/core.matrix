@@ -332,7 +332,6 @@
   [m]
   (mp/zero-matrix? m))
 
-
 (defn sparse?
   "Returns true if an array is sparse, i.e. the implementation supports storage of the entire
    array in less memory than would normally be implied by the number of elements. 
@@ -460,7 +459,7 @@
     If want-copy? is true, will guarantee a new double array (defensive copy).
     If want-copy? is false, will return the internal array used by m, or nil if not supported
     by the implementation.
-    If want-copy? is not sepcified, will return either a copy or the internal array"
+    If want-copy? is not specified, will return either a copy or the internal array"
    (^doubles [m]
      (mp/to-double-array m))
    (^doubles [m want-copy?]
@@ -468,6 +467,17 @@
        (if want-copy?
          (if arr (copy-double-array arr) (mp/to-double-array m))
          arr))))
+
+(defn to-object-array
+   "Returns a Java Object[] array containing the values of a numerical array m in row-major order.
+    If want-copy? is true, will guarantee a new Object array (defensive copy).
+    If want-copy? is false, will return the internal array used by m, or nil if not supported
+    by the implementation.
+    If want-copy? is not specified, will return either a copy or the internal array"
+   (^doubles [m]
+     (TODO))
+   (^doubles [m want-copy?]
+     (TODO)))
 
 ;; =======================================
 ;; matrix access
