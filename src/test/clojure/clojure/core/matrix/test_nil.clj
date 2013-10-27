@@ -9,6 +9,12 @@
 
 (deftest test-scalar-properties
   (is (not (array? nil)))
+  (is (nil? (shape nil)))
+  (is (== 1 (ecount nil))))
+
+(deftest test-nil 
+  (is (nil? (transpose nil)))
+  (is (== 0 (dimensionality nil)))
   (is (nil? (shape nil))))
 
 (deftest test-arithmentic
