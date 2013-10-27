@@ -150,7 +150,11 @@
 (extend-protocol mp/PIndexedAccess
   clojure.lang.IPersistentVector
     (get-1d [m x]
-      (.nth m (int x)))
+      (let [r (.nth m (int x))]
+        (cond 
+          (number? r) r
+          (mp/is-scalar? r) r
+          :else (mp/get-0d r))))
     (get-2d [m x y]
       (let [row (.nth m (int x))]
         (mp/get-1d row y)))
@@ -264,6 +268,32 @@
   clojure.lang.IPersistentVector
     (coerce-param [m param]
       (persistent-vector-coerce param)))
+
+(extend-protocol mp/PMatrixEquality
+  clojure.lang.IPersistentVector
+    (matrix-equals [a b]
+      (let [bdims (mp/dimensionality b)]
+        (cond
+          (<= bdims 0) 
+            false
+          (not= (count a) (mp/dimension-count b 0)) 
+            false
+          (== 1 bdims)
+            (and (== 1 (mp/dimensionality a))
+                 (let [n (count a)]
+                   (loop [i 0]
+                     (if (< i n)
+                       (if (== (mp/get-1d a i) (mp/get-1d b i)) 
+                         (recur (inc i))
+                         false)
+                       true))))
+          :else 
+            (loop [sa (seq a) sb (mp/get-major-slice-seq b)]
+              (if sa
+                (if (mp/matrix-equals (first sa) (first sb))
+                  (recur (next sa) (next sb))
+                  false)
+                true))))))
 
 (extend-protocol mp/PRowOperations
   clojure.lang.IPersistentVector

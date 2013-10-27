@@ -70,15 +70,6 @@
 ;; default implementation for matrix ops
 
 (extend-protocol mp/PIndexedAccess
-  java.util.List
-    (get-1d [m x]
-      (.get m (int x)))
-    (get-2d [m x y]
-      (mp/get-1d (.get m (int x)) y))
-    (get-nd [m indexes]
-      (if-let [s (seq indexes)]
-        (mp/get-nd (.get m (int (first s))) (next s))
-        m))
   nil
     (get-1d [m x]
       (error "Can't do 1D get on nil"))

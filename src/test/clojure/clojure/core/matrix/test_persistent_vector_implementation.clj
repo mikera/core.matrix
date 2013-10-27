@@ -34,17 +34,7 @@
 (deftest test-properties
   (is (numerical? [2 43]))
   (is (not (mutable? [1 2])))
-  (is (not (mutable? [[1 2] [3 4]]))))
-
-(deftest test-indexed-access
-  (testing "indexed access to java.util.List"
-    (let [al (java.util.ArrayList.)]
-      (.add al 1.0)
-      (.add al 2.0)
-      (.add al 3.0)
-      (is (= [1.0 2.0 3.0] (coerce [] al)))
-      (is (== 1.0 (mget al 0)))))
-
+  (is (not (mutable? [[1 2] [3 4]])))
   (testing "trace"
     (is (== 5 (trace [[1 2] [3 4]])))))
 
