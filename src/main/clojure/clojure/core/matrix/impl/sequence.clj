@@ -72,7 +72,9 @@
 (extend-protocol mp/PConversion
   clojure.lang.ISeq
     (convert-to-nested-vectors [m]
-      (mapv mp/convert-to-nested-vectors m)))
+      (if (> (mp/dimensionality (first m)) 0) 
+        (mapv mp/convert-to-nested-vectors m)
+        (mapv mp/get-0d m))))
 
 (extend-protocol mp/PDimensionInfo
   clojure.lang.ISeq

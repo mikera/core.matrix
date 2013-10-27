@@ -899,15 +899,15 @@
         (cond
           (<= dims 0)
               (mp/get-0d m)
-            (== 1 dims)
+          (== 1 dims)
               (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
-            (array? m)
+          (array? m)
               (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
-            (sequential? m)
+          (sequential? m)
               (mapv mp/convert-to-nested-vectors m)
-            (seq? m)
+          (seq? m)
               (mapv mp/convert-to-nested-vectors m)
-            :default
+          :default
               (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
 
 ;; TODO: shouldn't this be returning a view?
