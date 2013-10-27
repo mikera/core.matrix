@@ -895,12 +895,16 @@
       m)
   java.lang.Object
     (convert-to-nested-vectors [m]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
-          (<= dims 0)
+          (== dims 0)
               (mp/get-0d m)
           (== 1 dims)
-              (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
+              (let [n (mp/dimension-count m 0)]
+                (loop [i 0 res []]
+                  (if (< i n)
+                    (recur (inc i) (conj res (mp/get-1d m i)))
+                    res)))
           (array? m)
               (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
           (sequential? m)
