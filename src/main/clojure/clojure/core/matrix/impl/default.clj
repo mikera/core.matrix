@@ -45,12 +45,14 @@
 
 ;; TODO: make smarter for different numeric types
 (defn construct-mutable-matrix
-  "Constructs a mutable matrix with the given data."
+  "Constructs a new mutable matrix with the given data."
   ([m]
     (let [dims (mp/dimensionality m)
           type (mp/element-type m)
           double? (or (= Double/TYPE type))]
       (cond
+        (== dims 0)
+          (wrap/wrap-scalar (mp/get-0d m))
         (and (== dims 1) double?)
           (clojure.core.matrix.impl.double-array/construct-double-array m)
         double?
@@ -372,6 +374,8 @@
            (mp/coerce-param m))))
 
 (extend-protocol mp/PTranspose
+  nil
+    (transpose [m] m)
   java.lang.Number
     (transpose [m] m)
   java.lang.Object
