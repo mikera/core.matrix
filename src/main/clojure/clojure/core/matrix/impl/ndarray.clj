@@ -1025,7 +1025,7 @@
                              (mp/coerce-param m a))]
         (if-not (java.util.Arrays/equals (ints (.shape m)) (ints (.shape a)))
           (let [[m a] (mp/broadcast-compatible m a)]
-            (mp/matrix-add m a))
+            (mp/matrix-sub m a))
           (let [b (mp/clone m)]
             (loop-over [a b]
               (aset b-data b-idx (- (aget b-data b-idx)
@@ -1038,7 +1038,7 @@
                              (mp/coerce-param m a))]
         (if-not (java.util.Arrays/equals (ints (.shape m)) (ints (.shape a)))
           (let [[m a] (mp/broadcast-compatible m a)]
-            (mp/matrix-add m a))
+            (mp/matrix-add! m a))
           (do
             (loop-over [a m]
               (aset m-data m-idx (+ (aget m-data m-idx)
@@ -1049,7 +1049,7 @@
                              (mp/coerce-param m a))]
         (if-not (java.util.Arrays/equals (ints (.shape m)) (ints (.shape a)))
           (let [[m a] (mp/broadcast-compatible m a)]
-            (mp/matrix-add m a))
+            (mp/matrix-sub! m a))
           (do
             (loop-over [a m]
               (aset m-data m-idx (- (aget m-data m-idx)
