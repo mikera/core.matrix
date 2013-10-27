@@ -1050,14 +1050,14 @@
   (mp/swap-rows m i j))
 
 (defn multiply-row
-  "Multiply row i by constant k"
-  [m i k]
-  (mp/multiply-row m i k))
+  "Multiply row i by a constant factor"
+  [m i factor]
+  (mp/multiply-row m i factor))
 
 (defn add-row
-  "Add a row j times constant k to a row i and replace i"
-  [m i j k]
-  (mp/add-row m i j k))
+  "Add a row j multiplied by a scalar factor to a row i and replace row i with the result"
+  [m i j factor]
+  (mp/add-row m i j factor))
 
 ;; ===================================
 ;; Linear algebra algorithms
@@ -1147,7 +1147,7 @@
     (mp/element-map m f a more)))
 
 (defn esum
-  "Calculates the sum of all the elements in a numerical array"
+  "Calculates the sum of all the elements in a numerical array."
   [m]
   (mp/element-sum m))
 

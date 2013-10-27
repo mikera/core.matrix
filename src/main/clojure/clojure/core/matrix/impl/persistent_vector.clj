@@ -125,12 +125,6 @@
     (supports-dimensionality? [m dims]
       true))
 
-(extend-protocol mp/PZeroDimensionConstruction
-  clojure.lang.IPersistentVector
-    (new-scalar-array
-      ([m] 0)
-      ([m value] value)))
-
 (extend-protocol mp/PBroadcast
   clojure.lang.IPersistentVector
     (broadcast [m target-shape]
