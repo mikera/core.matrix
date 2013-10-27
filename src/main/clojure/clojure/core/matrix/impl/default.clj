@@ -367,6 +367,8 @@
 
 ;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps
+  nil
+    (trace [m] m)
   Number
     (trace [m] m)
   Object
@@ -927,7 +929,7 @@
       nil)
   Number
     (convert-to-nested-vectors [m]
-      ;; we accept a scalar as a "nested vector" for these purposes?
+      ;; we accept a scalar as a "nested vector" for these purposes
       m)
   Object
     (convert-to-nested-vectors [m]
