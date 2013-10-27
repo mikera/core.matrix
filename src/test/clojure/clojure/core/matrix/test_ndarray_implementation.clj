@@ -90,6 +90,12 @@
              (map #(coerce [] %)
                   (slices (empty-ndarray [2 2]))))))))
 
+(deftest test-add-sub
+  (let [a (array :ndarray [1 2])]
+    (add! a 10)
+    (sub! a [3 4])
+    (is (equals a [8 8]))))
+
 (deftest test-contained-vectors
   (let [a (array :ndarray :foo)]
     (mset! a [1 2 3])
