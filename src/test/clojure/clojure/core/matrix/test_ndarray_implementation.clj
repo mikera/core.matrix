@@ -74,8 +74,11 @@
       (is (== 10 (ereduce + m)))
       (is (== 4 (ereduce (fn [acc _] (inc acc)) 0 m)))
       (is (== 4 (ereduce (fn [acc _] (inc acc)) 0 (eseq m))))))
+  
+  (testing "Elementwise divide"
+    (is (equals [2 2] (div (array :ndarray [6 4]) [3 2])))))
 
-  (deftest test-ndarray-base
+(deftest test-ndarray-base
     (testing "construction"
       (is (= [3 3] (seq (shape (empty-ndarray [3 3]))))))
     (testing "getters"
@@ -88,7 +91,7 @@
     (testing "slices"
       (is (= [[nil nil] [nil nil]]
              (map #(coerce [] %)
-                  (slices (empty-ndarray [2 2]))))))))
+                  (slices (empty-ndarray [2 2])))))))
 
 (deftest test-add-sub
   (let [a (array :ndarray [1 2])]
