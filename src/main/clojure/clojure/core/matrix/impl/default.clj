@@ -979,7 +979,7 @@
       [m])
   Object
     (to-vector [m]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
             (mp/coerce-param m [(mp/get-0d m)])
@@ -1089,8 +1089,8 @@
 (extend-protocol mp/PMatrixPredicates
   Object
   (identity-matrix? [m]
-    (let [rc (mp/dimension-count m 0)
-          cc (mp/dimension-count m 1)]
+    (let [rc (long (mp/dimension-count m 0))
+          cc (long (mp/dimension-count m 1))]
       (if (and (== (mp/dimensionality m) 2) (== rc cc))
         (loop [i (long 0)]
           (if (< i rc)
