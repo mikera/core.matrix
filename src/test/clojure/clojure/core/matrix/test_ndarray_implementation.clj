@@ -6,6 +6,7 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as gen])
   (:require clojure.core.matrix.impl.persistent-vector)
+  (:require [clojure.core.matrix.impl.ndarray])
   (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
   (:require [clojure.core.matrix.impl.ndarray-macro :as macro])
   (:use clojure.core.matrix.impl.ndarray))
