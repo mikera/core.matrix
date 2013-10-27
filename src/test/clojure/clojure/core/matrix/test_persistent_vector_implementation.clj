@@ -28,7 +28,11 @@
     (is (empty? (eseq [])))
     (is (nil? (coerce [] nil)))))
 
+(deftest test-construction
+  (is (equals [[0 0] [0 0]] (zero-array [] [2 2]))))
+
 (deftest test-properties
+  (is (numerical? [2 43]))
   (is (not (mutable? [1 2])))
   (is (not (mutable? [[1 2] [3 4]]))))
 
