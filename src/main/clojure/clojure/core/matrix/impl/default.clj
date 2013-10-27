@@ -242,15 +242,15 @@
 (extend-protocol mp/PAssignment
   Object
     (assign! [m x]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
           (== 1 dims)
               (let [xdims (long (mp/dimensionality x))
-                  msize (long (mp/dimension-count m 0))]
-              (if (== 0 xdims)
-                (let [value (mp/get-0d x)]
-                  (dotimes [i msize] (mp/set-1d! m i value)))
-                (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
+                    msize (long (mp/dimension-count m 0))]
+                (if (== 0 xdims)
+                  (let [value (mp/get-0d x)]
+                    (dotimes [i msize] (mp/set-1d! m i value)))
+                  (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
             (array? m)
             (let [xdims (long (mp/dimensionality x))]
@@ -269,7 +269,7 @@
               (mp/assign-array! m arr 0 alen))))
       ([m arr start length]
           (let [length (long length)
-              start (long start)]
+                start (long start)]
          (if (mp/is-vector? m)
               (dotimes [i length]
                 (mp/set-1d! m i (nth arr (+ start i))))
@@ -300,10 +300,13 @@
        false))
 
 (extend-protocol mp/PZeroCount
-   Number
+  nil 
+    (zero-count [m]
+      0)
+  Number
      (zero-count [m]
        (if (zero? m) 1 0))
-   Object
+  Object
      (zero-count [m]
        (mp/element-reduce m (fn [acc e] (if (zero? e) (inc acc) acc)) 0)))
 
@@ -738,9 +741,10 @@
             row (mp/broadcast-like (svec 0) row)]
         (mp/coerce-param m (assoc svec i row))))
     (set-row! [m i row]
-      (let [sl (mp/get-major-slice m i)
+      (let [sl (mp/get-major-slice-view m i)
             row (mp/broadcast-like sl row)]
-        (mp/assign! sl row))))
+        (mp/assign! sl row)
+        m)))
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations

@@ -27,6 +27,12 @@
 (deftest test-type
   (is (= Double/TYPE (element-type (double-array [1 2])))))
 
+(deftest row-setting
+  (let [a (double-array [1 2 3])]
+    (is (equals [1 10 3] (set-row a 1 10)))
+    (set-row! a 0 7)
+    (is (equals [7 2 3] (seq a)))))
+
 (deftest test-slices
   (testing "slices"
     (let [m [(double-array [1 2]) (double-array [3 4])]]

@@ -1064,6 +1064,11 @@
   [m i row]
   (mp/set-row m i row))
 
+(defn set-row!
+  "Sets a row in a matrix using a specified vector."
+  [m i row]
+  (mp/set-row! m i row))
+
 ;; ===================================
 ;; Linear algebra algorithms
 ;;
