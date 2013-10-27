@@ -731,6 +731,18 @@
     (add-row [m i j k]
       (mp/add-row (mp/coerce-param [] m) i j k)))
 
+(extend-protocol mp/PRowSetting
+  Object
+    (set-row [m i row]
+      (let [cc (mp/dimension-count m 1)
+            svec (vec (mp/get-major-slice-seq m))
+            row (mp/broadcast-like (svec 0) row)]
+        (mp/coerce-param m (assoc svec i row))))
+    (set-row! [m i row]
+      (let [sl (mp/get-major-slice m i)
+            row (mp/broadcast-like sl row)]
+        (mp/assign! sl row))))
+
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
   Number

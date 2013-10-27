@@ -125,6 +125,10 @@
 (deftest test-scalar-interop
   (is (equals [2 4] (mul [1 2] (scalar-array 2)))))
 
+(deftest test-row-setting
+  (is (equals [[1 2] [5 5]] (set-row [[1 2] [3 4]] 1 5)))
+  (is (equals [[1 2] [5 6]] (set-row [[1 2] [3 4]] 1 [5 6]))))
+
 (deftest test-slices
   (is (= [1 2] (slices [1 2]))))
 
