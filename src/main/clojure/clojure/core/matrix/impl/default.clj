@@ -899,18 +899,20 @@
         (cond
           (== dims 0)
               (mp/get-0d m)
-          (== 1 dims)
+          (== 1 dims)             
+            (if (or (seq? m) (sequential? m))
+              (mapv mp/get-0d m)
               (let [n (mp/dimension-count m 0)]
                 (loop [i 0 res []]
                   (if (< i n)
                     (recur (inc i) (conj res (mp/get-1d m i)))
-                    res)))
-          (array? m)
-              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
+                    res))))
           (sequential? m)
               (mapv mp/convert-to-nested-vectors m)
           (seq? m)
               (mapv mp/convert-to-nested-vectors m)
+          (array? m)
+              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
           :default
               (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
 
