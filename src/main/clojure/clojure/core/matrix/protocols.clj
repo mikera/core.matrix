@@ -251,7 +251,7 @@
   (is-sparse? [m]))
 
 (defprotocol PZeroCount
-  "Protocol for determining if an array is sparse"
+  "Protocol for counting the number of zeros in an array"
   (zero-count [m]))
 
 
@@ -370,11 +370,12 @@
 
 (defprotocol PMatrixMutableScaling
   "Protocol to support mutable array scaling by scalar values."
-  (scale! [m a])
-  (pre-scale! [m a]))
+  (scale! [m factor])
+  (pre-scale! [m factor]))
 
 (defprotocol PMatrixAdd
-  "Protocol to support addition and subtraction on arbitrary matrices"
+  "Protocol to support addition and subtraction on arbitrary matrices. 
+   These are elementwise operations that should support broadcasting."
   (matrix-add [m a])
   (matrix-sub [m a]))
 
@@ -493,6 +494,10 @@
   (add-row [m i j k]
     "Returns a new matrix with row i added to row j times k"))
 
+(defprotocol PRowSetting
+  "Protocol for row setting. Should set a dimension 0 (row) slice to thegiven row value."
+  (set-row [m i row])
+  (set-row! [m i row]))
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
@@ -580,15 +585,12 @@
       :default (error "Can't coerce to vector: " (class x)))))
 
 (defn broadcast-compatible
-  "Broadcasts two matrices into indentical shapes.
+  "Broadcasts two matrices into identical shapes.
    Returns a vector containing the two broadcasted matrices.
    Throws an error if not possible."
   ([a b]
-    (let [sa (get-shape a) sb (get-shape b)]
-      (if (clojure.core.matrix.utils/same-shape-object? sa sb)
-        [a b]
-        (if-let [bs (broadcast-shape sa sb)]
-          (let [b (broadcast b bs)
-                a (broadcast a bs)]
-            [a b])
-          (error "Shapes are not compatible"))))))
+    (if (same-shape? a b)
+      [a b]
+      (if (< (dimensionality a) (dimensionality b))
+        [(broadcast-like b a) b]
+        [a (broadcast-like a b)]))))

@@ -335,7 +335,9 @@
     (is (= 3 (row-count [[1 2] [2 3] [3 4]])))
     (is (= 2 (column-count [[1 2] [2 3] [3 4]])))
     (is (= [3 2] (shape [[1 2] [2 3] [3 4]])))
-    (is (= [2 2 2] (shape [[[1 2] [2 3]] [[3 4] [5 6]]])))))
+    (is (= [2 2 2] (shape [[[1 2] [2 3]] [[3 4] [5 6]]]))))
+  (testing "element counts"
+    (is (== 1 (ecount :foo)))))
 
 (deftest test-broadcasting
   (testing "broadcast shapes"
@@ -365,6 +367,11 @@
   (binding [*out* (java.io.StringWriter.)]
     (testing "example code"
       (clojure.core.matrix.examples/all-examples))))
+
+(deftest test-zeros
+  (is (zero-matrix? (zero-matrix 3 3)))
+  (is (zero-matrix? (zero-vector 3)))
+  (is (zero-matrix? (zero-array [2 2 2]))))
 
 (deftest test-numerical
   (testing "numerical predicate"

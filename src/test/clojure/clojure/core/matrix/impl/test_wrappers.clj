@@ -53,6 +53,7 @@
   (is (equals 3 (wrap-slice [3 4] 0))))
 
 (deftest test-nd-wrap
+  (is (equals 1 (wrap-nd 1)))
   (is (equals [3 4] (wrap-nd [3 4])))
   (is (equals [3 4] (seq (wrap-nd [3 4])))))
 

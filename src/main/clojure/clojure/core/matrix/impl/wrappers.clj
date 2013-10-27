@@ -127,7 +127,7 @@
     (is-scalar? [m]
       false)
     (is-vector? [m]
-      (== 2 (mp/dimensionality array)))
+      (== 2 (mp/dimensionality array))) ;; i.e. the slice has dimensionality 1
     (dimension-count [m dimension-number]
       (if (< dimension-number 0)
         (error "Can't access negative dimension!")
@@ -145,7 +145,7 @@
     (get-0d [m]
       (mp/get-1d array slice))
     (set-0d! [m value]
-      (mp/set-1d array slice value))
+      (mp/set-1d! array slice value))
 
   mp/PConversion
     (convert-to-nested-vectors [m]
@@ -167,7 +167,7 @@
         (mp/set-nd! m indexes v)
         m))
     (is-mutable? [m]
-      (mp/is-mutable? array))
+      (mp/is-mutable? array)) ;; i.e. is the underlying array mutable
 
   mp/PIndexedSettingMutable
     (set-1d! [m row v]
@@ -285,8 +285,7 @@
         (set-source-index ix 1 column)
         (mp/get-nd array ix)))
     (get-nd [m indexes]
-      (let [^longs ix (copy-long-array source-position)
-            ^longs im (aget index-maps 0)]
+      (let [^longs ix (copy-long-array source-position)]
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
         (mp/get-nd array ix)))

@@ -45,12 +45,14 @@
 
 ;; TODO: make smarter for different numeric types
 (defn construct-mutable-matrix
-  "Constructs a mutable matrix with the given data."
+  "Constructs a new mutable matrix with the given data."
   ([m]
-    (let [dims (mp/dimensionality m)
+    (let [dims (long (mp/dimensionality m))
           type (mp/element-type m)
           double? (or (= Double/TYPE type))]
       (cond
+        (== dims 0)
+          (wrap/wrap-scalar (mp/get-0d m))
         (and (== dims 1) double?)
           (clojure.core.matrix.impl.double-array/construct-double-array m)
         double?
@@ -68,15 +70,6 @@
 ;; default implementation for matrix ops
 
 (extend-protocol mp/PIndexedAccess
-  java.util.List
-    (get-1d [m x]
-      (.get m (int x)))
-    (get-2d [m x y]
-      (mp/get-1d (.get m (int x)) y))
-    (get-nd [m indexes]
-      (if-let [s (seq indexes)]
-        (mp/get-nd (.get m (int (first s))) (next s))
-        m))
   nil
     (get-1d [m x]
       (error "Can't do 1D get on nil"))
@@ -86,7 +79,7 @@
       (if-let [s (seq indexes)]
         (error "Can't do ND get on nil with indexes: " s)
         m))
-  java.lang.Number
+  Number
     (get-1d [m x]
       (error "Can't do 1D get on a scalar number"))
     (get-2d [m x y]
@@ -95,20 +88,20 @@
       (if-let [s (seq indexes)]
         (error "Can't do ND get on a scalar number with indexes: " s)
         m))
-  java.lang.Object
+  Object
     (get-1d [m x] (mp/get-nd m [x]))
     (get-2d [m x y] (mp/get-nd m [x y]))
     (get-nd [m indexes]
       (if (seq indexes)
         (error "Indexed get failed, not defined for:" (class m))
-        (if (mp/is-scalar? m) m (mp/get-0d m)))))
+        (mp/get-0d m))))
 
 (extend-protocol mp/PArrayMetrics
   nil
     (nonzero-count [m] 1)
   Number
     (nonzero-count [m] (if (zero? m) 0 1))
-  java.lang.Object
+  Object
     (nonzero-count [m] 
       (mp/element-reduce m (fn [cnt e] (if (zero? e) cnt (inc cnt))) 0)))
 
@@ -129,12 +122,12 @@
       nil)
     (set-0d! [m value]
       (error "Can't set the value of nil!"))
-  java.lang.Number
+  Number
     (get-0d [m]
       m)
     (set-0d! [m value]
       (error "Can't set a scalar number!"))
-  java.lang.Object
+  Object
     (get-0d [m]
       (if (mp/is-scalar? m) m (mp/get-nd m [])))
     (set-0d! [m value]
@@ -149,7 +142,18 @@
       (mp/new-scalar-array m value)))
 
 (extend-protocol mp/PIndexedSetting
-  java.lang.Object
+  nil 
+    (set-1d [m row v]
+      (error "Can't do 1D set on nil"))
+    (set-2d [m row column v]
+      (error "Can't do 2D set on nil"))
+    (set-nd [m indexes v]
+      (if (seq indexes) 
+        (error "Can't do " (count indexes) "D set on nil")
+        v))
+    (is-mutable? [m]
+      false)
+  Object
     (set-1d [m row v]
       (let [m (mp/clone m)]
         (mp/set-1d! m row v)
@@ -166,13 +170,13 @@
       true))
 
 (extend-protocol mp/PNumerical
-  java.lang.Number
+  Number
     (numerical? [m]
       true)
   nil
     (numerical? [m]
       false)
-  java.lang.Object
+  Object
     (numerical? [m]
       (if (mp/is-scalar? m)
         false ;; it's a scalar but not a number, so must not be numerical
@@ -180,7 +184,7 @@
         (every? number? (mp/element-seq m)))))
 
 (extend-protocol mp/PVectorOps
-  java.lang.Number
+  Number
     (vector-dot [a b] (* a b))
     (length [a] (double a))
     (length-squared [a] (Math/sqrt (double a)))
@@ -190,7 +194,7 @@
           (> a 0.0) 1.0
           (< a 0.0) -1.0
           :else 0.0)))
-  java.lang.Object
+  Object
     (vector-dot [a b]
       (mp/element-sum (mp/element-multiply a b)))
     (length [a]
@@ -201,13 +205,13 @@
       (mp/scale a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
 
 (extend-protocol mp/PVectorDistance
-  java.lang.Number
+  Number
     (distance [a b] (Math/abs (double (- b a))))
-  java.lang.Object
+  Object
     (distance [a b] (double (mp/length (mp/matrix-sub a b)))))
 
 (extend-protocol mp/PVectorCross
-  java.lang.Object
+  Object
     (cross-product [a b]
       (let [x1 (double (mp/get-1d a 0))
             y1 (double (mp/get-1d a 1))
@@ -231,22 +235,22 @@
         a)))
 
 (extend-protocol mp/PMutableVectorOps
-  java.lang.Object
+  Object
     (normalise! [a]
       (mp/scale! a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
 
 (extend-protocol mp/PAssignment
-  java.lang.Object
+  Object
     (assign! [m x]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
           (== 1 dims)
               (let [xdims (long (mp/dimensionality x))
-                  msize (long (mp/dimension-count m 0))]
-              (if (== 0 xdims)
-                (let [value (mp/get-0d x)]
-                  (dotimes [i msize] (mp/set-1d! m i value)))
-                (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
+                    msize (long (mp/dimension-count m 0))]
+                (if (== 0 xdims)
+                  (let [value (mp/get-0d x)]
+                    (dotimes [i msize] (mp/set-1d! m i value)))
+                  (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
             (array? m)
             (let [xdims (long (mp/dimensionality x))]
@@ -265,7 +269,7 @@
               (mp/assign-array! m arr 0 alen))))
       ([m arr start length]
           (let [length (long length)
-              start (long start)]
+                start (long start)]
          (if (mp/is-vector? m)
               (dotimes [i length]
                 (mp/set-1d! m i (nth arr (+ start i))))
@@ -280,20 +284,29 @@
       (mp/assign! m value)))
 
 (extend-protocol mp/PMatrixCloning
-   java.lang.Object
+   nil
+     (clone [m]
+       m)
+   Number
+     (clone [m]
+       m)
+   Object
      (clone [m]
        (mp/construct-matrix m m)))
 
 (extend-protocol mp/PSparseArray
-   java.lang.Object
+   Object
      (is-sparse? [m]
        false))
 
 (extend-protocol mp/PZeroCount
-   Number
+  nil 
+    (zero-count [m]
+      0)
+  Number
      (zero-count [m]
        (if (zero? m) 1 0))
-   Object
+  Object
      (zero-count [m]
        (mp/element-reduce m (fn [acc e] (if (zero? e) (inc acc) acc)) 0)))
 
@@ -302,15 +315,15 @@
   nil
     (mutable-matrix [m]
       (wrap/wrap-scalar m))
-  java.lang.Number
+  Number
     (mutable-matrix [m]
       (wrap/wrap-scalar m))
-  java.lang.Object
+  Object
     (mutable-matrix [m]
       (construct-mutable-matrix m)))
 
 (extend-protocol mp/PComputeMatrix
-  java.lang.Object
+  Object
     (compute-matrix [m shape f]
       (let [m (mp/new-matrix-nd m shape)]
         (reduce (fn [m ix] (mp/set-nd m ix (apply f ix))) m (base-index-seq-for-shape shape)))))
@@ -320,15 +333,15 @@
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
-    (get-shape [m] [])
+    (get-shape [m] nil)
     (dimension-count [m i] (error "cannot get dimension count from nil"))
-  java.lang.Number
+  Number
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
     (get-shape [m] nil)
-    (dimension-count [m i] (error "java.lang.Number has zero dimensionality, cannot get dimension count"))
-  java.lang.Object
+    (dimension-count [m i] (error "Number has zero dimensionality, cannot get dimension count"))
+  Object
     (dimensionality [m] 0)
     (is-vector? [m] false)
     (is-scalar? [m] true) ;; assume objects are scalars unless told otherwise
@@ -348,9 +361,11 @@
 
 ;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps
-  java.lang.Number
+  nil
     (trace [m] m)
-  java.lang.Object
+  Number
+    (trace [m] m)
+  Object
     (trace [m]
       (when-not (== 2 (mp/dimensionality m)) (error "Trace requires a 2D matrix"))
       (let [rc (mp/dimension-count m 0)
@@ -372,9 +387,11 @@
            (mp/coerce-param m))))
 
 (extend-protocol mp/PTranspose
-  java.lang.Number
+  nil
     (transpose [m] m)
-  java.lang.Object
+  Number
+    (transpose [m] m)
+  Object
     (transpose [m]
       (case (long (mp/dimensionality m))
         0 m
@@ -391,7 +408,7 @@
               (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss) (nnext ss))))))))
 
 (extend-protocol mp/PMatrixProducts
-  java.lang.Number
+  Number
     (inner-product [m a]
       (if (number? a)
         (clojure.core/* m a)
@@ -400,7 +417,7 @@
       (if (number? a)
         (clojure.core/* m a)
         (mp/pre-scale a m)))
-  java.lang.Object
+  Object
     (inner-product [m a]
       (cond
         (mp/is-scalar? m)
@@ -425,7 +442,7 @@
 ;; matrix multiply
 ;; TODO: document returning NDArray
 (extend-protocol mp/PMatrixMultiply
-  java.lang.Number
+  Number
     (element-multiply [m a]
       (if (number? a)
         (clojure.core/* m a)
@@ -435,7 +452,7 @@
         (number? a) (* m a)
         (array? a) (mp/pre-scale a m)
         :else (error "Don't know how to multiply number with: " (class a))))
-  java.lang.Object
+  Object
     (matrix-multiply [m a]
       (let [mdims (long (mp/dimensionality m))
             adims (long (mp/dimensionality a))]
@@ -475,23 +492,23 @@
 
 ;; matrix multiply
 (extend-protocol mp/PMatrixMultiplyMutable
-  java.lang.Number
+  Number
     (element-multiply! [m a]
       (error "Can't do mutable multiply on a scalar number"))
     (matrix-multiply! [m a]
       (error "Can't do mutable multiply on a scalar number"))
-  java.lang.Object
+  Object
     (element-multiply! [m a]
       (mp/element-map! m * (mp/broadcast-like m a)))
     (matrix-multiply! [m a]
       (mp/assign! m (mp/matrix-multiply m a))))
 
 (extend-protocol mp/PMatrixDivide
-  java.lang.Number
+  Number
     (element-divide
       ([m] (/ m))
       ([m a] (mp/element-map a #(/ m %))))
-  java.lang.Object
+  Object
     (element-divide
       ([m] (mp/element-map m #(/ %)))
       ([m a]
@@ -500,65 +517,68 @@
 
 ;; matrix element summation
 (extend-protocol mp/PSummable
-  java.lang.Number
+  Number
     (element-sum [a] a)
-  java.lang.Object
+  Object
     (element-sum [a]
       (mp/element-reduce a +)))
 
 ;; add-product operations
 (extend-protocol mp/PAddProduct
-  java.lang.Number
+  Number
     (add-product [m a b]
       (+ m (* a b)))
-  java.lang.Object
+  Object
     (add-product [m a b]
       (mp/matrix-add m (mp/element-multiply a b))))
 
 (extend-protocol mp/PAddProductMutable
-  java.lang.Number
+  Number
     (add-product! [m a b]
       (error "Numbers are not mutable"))
-  java.lang.Object
+  Object
     (add-product! [m a b]
       (mp/matrix-add! m (mp/element-multiply a b))))
 
 (extend-protocol mp/PAddScaled
-  java.lang.Number
+  Number
     (add-scaled [m a factor]
       (+ m (* a factor)))
-  java.lang.Object
+  Object
     (add-scaled [m a factor]
       (mp/matrix-add m (mp/scale a factor))))
 
 (extend-protocol mp/PAddScaledMutable
-  java.lang.Number
+  Number
     (add-scaled! [m a factor]
       (error "Numbers are not mutable"))
-  java.lang.Object
+  Object
     (add-scaled! [m a factor]
       (mp/matrix-add! m (mp/scale a factor))))
 
 (extend-protocol mp/PAddScaledProduct
-  java.lang.Number
+  Number
     (add-scaled-product [m a b factor]
       (+ m (* a b factor)))
-  java.lang.Object
+  Object
     (add-scaled-product [m a b factor]
       (mp/matrix-add m (mp/scale (mp/element-multiply a b) factor))))
 
 (extend-protocol mp/PAddScaledProductMutable
-  java.lang.Number
+  Number
     (add-scaled-product! [m a b factor]
       (error "Numbers are not mutable"))
-  java.lang.Object
+  Object
     (add-scaled-product! [m a b factor]
       (mp/matrix-add! m (mp/scale (mp/element-multiply a b) factor))))
 
 ;; type of matrix element
 ;; the default is to assume any type is possible
 (extend-protocol mp/PTypeInfo
-  java.lang.Object
+  nil
+    (element-type [a]
+      java.lang.Object)
+  Object
     (element-type [a]
       java.lang.Object))
 
@@ -569,7 +589,7 @@
       (m a))
     (vector-transform! [m a]
       (mp/assign! a (m a)))
-  java.lang.Object
+  Object
     (vector-transform [m a]
       (cond
         (== 2 (mp/dimensionality m)) (mp/matrix-multiply m a)
@@ -579,7 +599,7 @@
 
 ;; matrix scaling
 (extend-protocol mp/PMatrixScaling
-  java.lang.Number
+  Number
     (scale [m a]
       (if (number? a)
         (* m a)
@@ -588,19 +608,19 @@
       (if (number? a)
         (* a m)
         (mp/scale a m)))
-  java.lang.Object
+  Object
     (scale [m a]
       (mp/element-map m #(* % a)))
     (pre-scale [m a]
       (mp/element-map m (partial * a))))
 
 (extend-protocol mp/PMatrixMutableScaling
-  java.lang.Number
+  Number
     (scale! [m a]
       (error "Can't scale! a numeric value: " m))
     (pre-scale! [m a]
       (error "Can't pre-scale! a numeric value: " m))
-  java.lang.Object
+  Object
     (scale! [m a]
       (mp/element-map! m #(* % a))
       m)
@@ -610,7 +630,7 @@
 
 (extend-protocol mp/PMatrixAdd
   ;; matrix add for scalars
-  java.lang.Number
+  Number
     (matrix-add [m a]
       (if (number? a) (+ m a)
         (mp/matrix-add a m)))
@@ -618,7 +638,7 @@
       (if (number? a) (- m a)
         (mp/negate (mp/matrix-sub a m))))
   ;; default impelementation - assume we can use emap?
-  java.lang.Object
+  Object
     (matrix-add [m a]
       (let [[m a] (mp/broadcast-compatible m a)]
         (mp/element-map m clojure.core/+ a)))
@@ -628,13 +648,13 @@
 
 (extend-protocol mp/PMatrixAddMutable
   ;; matrix add for scalars
-  java.lang.Number
+  Number
     (matrix-add! [m a]
       (error "Can't do mutable add! on a scalar number"))
     (matrix-sub! [m a]
       (error "Can't do mutable sub! on a scalar number"))
   ;; default impelementation - assume we can use emap?
-  java.lang.Object
+  Object
     (matrix-add! [m a]
       (mp/element-map! m clojure.core/+ a))
     (matrix-sub! [m a]
@@ -644,10 +664,10 @@
   nil
     (negate [m]
       (error "Can't negate nil!"))
-  java.lang.Number
+  Number
     (negate [m]
       (- m))
-  java.lang.Object
+  Object
     (negate [m]
       (mp/scale m -1)))
 
@@ -656,13 +676,13 @@
   nil
     (matrix-equals [a b]
       (error "nil is not a valid numerical value in equality testing"))
-  java.lang.Number
+  Number
     (matrix-equals [a b]
       (cond
         (number? b) (== a b)
         (== 0 (mp/dimensionality b)) (== a (mp/get-0d b))
         :else false))
-  java.lang.Object
+  Object
     (matrix-equals [a b]
       (cond
         (identical? a b) true
@@ -680,13 +700,13 @@
   nil
     (matrix-equals-epsilon [a b eps]
       (error "nil is not a valid numerical value in equality testing"))
-  java.lang.Number
+  Number
     (matrix-equals-epsilon [a b eps]
       (cond
         (number? b) (eps== a b eps)
         (== 0 (mp/dimensionality b)) (eps== a (mp/get-0d b) eps)
         :else false))
-  java.lang.Object
+  Object
     (matrix-equals-epsilon [a b eps]
       (cond
         (identical? a b) true
@@ -696,17 +716,17 @@
         :else false)))
 
 (extend-protocol mp/PDoubleArrayOutput
-  java.lang.Number
+  Number
     (to-double-array [m] (aset (double-array 1) 0 (double m)))
     (as-double-array [m] nil)
-  java.lang.Object
+  Object
     (to-double-array [m]
       (double-array (mp/element-seq m)))
     (as-double-array [m] nil))
 
 ;; row operations
 (extend-protocol mp/PRowOperations
-  java.lang.Object
+  Object
     (swap-rows [m i j]
       (mp/swap-rows (mp/coerce-param [] m) i j))
     (multiply-row [m i k]
@@ -714,9 +734,21 @@
     (add-row [m i j k]
       (mp/add-row (mp/coerce-param [] m) i j k)))
 
+(extend-protocol mp/PRowSetting
+  Object
+    (set-row [m i row]
+      (let [svec (vec (mp/get-major-slice-seq m))
+            row (mp/broadcast-like (svec 0) row)]
+        (mp/coerce-param m (assoc svec i row))))
+    (set-row! [m i row]
+      (let [sl (mp/get-major-slice-view m i)
+            row (mp/broadcast-like sl row)]
+        (mp/assign! sl row)
+        m)))
+
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
-  java.lang.Number
+  Number
     (element-seq [m]
       (list m))
     (element-map
@@ -738,9 +770,9 @@
         m)
       ([m f init]
         (f init m)))
-  java.lang.Object
+  Object
     (element-seq [m]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
             (list (mp/get-0d m))
@@ -794,10 +826,13 @@
 (extend-protocol mp/PElementCount
   nil (element-count [m] 1)
   Number (element-count [m] 1)
-  Object (element-count [m] (calc-element-count m)))
+  Object 
+    (element-count [m] (if (array? m) 
+                         (calc-element-count m)
+                         1)))
 
 (extend-protocol mp/PMatrixSlices
-  java.lang.Object
+  Object
     (get-row [m i]
       (mp/get-major-slice m i))
     (get-column [m i]
@@ -808,12 +843,12 @@
       (mp/get-slice (mp/coerce-param [] m) dimension i)))
 
 (extend-protocol mp/PSliceView
-  java.lang.Object
+  Object
     ;; default implementation uses a lightweight wrapper object
     (get-major-slice-view [m i] (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
 
 (extend-protocol mp/PSliceSeq
-  java.lang.Object
+  Object
     (get-major-slice-seq [m]
       (let [dims (mp/dimensionality m)]
         (cond
@@ -823,11 +858,12 @@
 
 (extend-protocol mp/PSliceJoin
   nil
-    (join [m a] a)
-  java.lang.Number
+    (join [m a] 
+      (error "Can't join an array to a nil value!"))
+  Number
     (join [m a]
       (error "Can't join an array to a scalar number!"))
-  java.lang.Object
+  Object
     (join [m a]
       (let [dims (mp/dimensionality m)
             adims (mp/dimensionality m)]
@@ -842,17 +878,28 @@
             (error "Joining with array of incompatible size")))))
 
 (extend-protocol mp/PSubVector
-  java.lang.Object
+  nil
+    (subvector [m start length]
+      (error "Can't take subvector of nil"))
+  Number
+    (subvector [m start length]
+      (error "Can't take subvector of a scalar number"))
+  Object
     (subvector [m start length]
       (mp/subvector (wrap/wrap-nd m) start length)))
 
 (extend-protocol mp/PSubMatrix
-  java.lang.Number
+  nil
+    (submatrix [m index-ranges]
+      (if (seq index-ranges)
+        (error "Can't take partial submatrix of nil")
+        m))
+  Number
     (submatrix [m index-ranges]
       (if (seq index-ranges)
         (error "Can't take partial submatrix of a scalar number")
         m))
-  java.lang.Object
+  Object
     (submatrix [m index-ranges]
       (clojure.core.matrix.impl.wrappers/wrap-submatrix m index-ranges)))
 
@@ -860,7 +907,7 @@
   nil
     (broadcast [m new-shape]
       (clojure.core.matrix.impl.wrappers/wrap-broadcast m new-shape))
-  java.lang.Object
+  Object
     (broadcast [m new-shape]
       (let [nshape new-shape
             mshape (mp/get-shape m)
@@ -877,7 +924,7 @@
   nil
     (broadcast-like [m a]
       (clojure.core.matrix.impl.wrappers/wrap-broadcast a (mp/get-shape m)))
-  java.lang.Object
+  Object
     (broadcast-like [m a]
       (let [sm (mp/get-shape m) sa (mp/get-shape a)]
         (if (clojure.core.matrix.utils/same-shape-object? sm sa)
@@ -889,56 +936,65 @@
   nil
     (convert-to-nested-vectors [m]
       nil)
-  java.lang.Number
+  Number
     (convert-to-nested-vectors [m]
-      ;; we accept a scalar as a "nested vector" for these purposes?
+      ;; we accept a scalar as a "nested vector" for these purposes
       m)
-  java.lang.Object
+  Object
     (convert-to-nested-vectors [m]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
-          (<= dims 0)
+          (== dims 0)
               (mp/get-0d m)
-            (== 1 dims)
-              (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
-            (array? m)
+          (== 1 dims)             
+            (if (or (seq? m) (sequential? m))
+              (mapv mp/get-0d m)
+              (let [n (long (mp/dimension-count m 0))]
+                (loop [i 0 res []]
+                  (if (< i n)
+                    (recur (inc i) (conj res (mp/get-1d m i)))
+                    res))))
+          (sequential? m)
+              (mapv mp/convert-to-nested-vectors m)
+          (seq? m)
+              (mapv mp/convert-to-nested-vectors m)
+          (array? m)
               (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
-            (sequential? m)
-              (mapv mp/convert-to-nested-vectors m)
-            (seq? m)
-              (mapv mp/convert-to-nested-vectors m)
-            :default
+          :default
               (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
 
-;; TODO: shouldn't this be returning a view?
 (extend-protocol mp/PVectorView
   nil
     (as-vector [m]
       [nil])
-  java.lang.Number
+  Number
     (as-vector [m]
       [m])
-  java.lang.Object
+  Object
     (as-vector [m]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
-          (== 0 dims)
-            (mp/coerce-param m [(mp/get-0d m)])
-          (mp/is-vector? m)
+          (== dims 0)
+            (mp/broadcast (wrap/wrap-nd m) [1])
+          (== dims 1)
             m
+          (not (mp/is-mutable? m))
+            ;; if not mutable, coercion to a vector works as a view
+            (mp/to-vector m)
           :else
-            (mp/coerce-param m (mp/element-seq m))))))
+            ;; We return nil for this: can't provide a mutable vector view
+            nil))))
 
 (extend-protocol mp/PVectorisable
   nil
     (to-vector [m]
       [nil])
-  java.lang.Number
+  Number
     (to-vector [m]
       [m])
-  java.lang.Object
+  Object
     (to-vector [m]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
             (mp/coerce-param m [(mp/get-0d m)])
@@ -948,13 +1004,19 @@
             (mp/coerce-param m (mp/element-seq m))))))
 
 (extend-protocol mp/PReshaping
-  java.lang.Number
+  nil
     (reshape [m shape]
       (case (long (reduce * 1 (seq shape)))
         0 (mp/broadcast m shape)
         1 (mp/broadcast m shape)
-        (error "Can't reshape a scalar value to shape: " (vec shape))))
-  java.lang.Object
+        (error "Can't reshape nil to shape: " (vec shape))))
+  Number
+    (reshape [m shape]
+      (case (long (reduce * 1 (seq shape)))
+        0 (mp/broadcast m shape)
+        1 (mp/broadcast m shape)
+        (error "Can't reshape a scalar number to shape: " (vec shape))))
+  Object
     (reshape [m shape]
       (let [partition-shape (fn partition-shape [es shape]
                               (if-let [s (seq shape)]
@@ -971,15 +1033,21 @@
           (first (mp/element-seq m))))))
 
 (extend-protocol mp/PCoercion
-  java.lang.Object
+  nil
+    (coerce-param [m param]
+      param)
+  Number
+    (coerce-param [m param]
+      param)
+  Object
     (coerce-param [m param]
       (mp/construct-matrix m (mp/convert-to-nested-vectors param))))
 
 (extend-protocol mp/PExponent
-  java.lang.Number
+  Number
     (element-pow [m exponent]
       (Math/pow (.doubleValue m) (double exponent)))
-  java.lang.Object
+  Object
     (element-pow [m exponent]
       (let [x (double exponent)]
         (mp/element-map m #(Math/pow (.doubleValue ^Number %) x)))))
@@ -993,28 +1061,28 @@
 ;; define standard Java maths functions for numbers
 (eval
   `(extend-protocol mp/PMathsFunctions
-     java.lang.Number
+     Number
        ~@(map (fn [[name func]]
                 `(~name [~'m] (double (~func (double ~'m)))))
               mops/maths-ops)
-     java.lang.Object
+     Object
        ~@(map (fn [[name func]]
                 `(~name [~'m] (mp/element-map ~'m #(double (~func (double %))))))
               mops/maths-ops)))
 
 (eval
   `(extend-protocol mp/PMathsFunctionsMutable
-     java.lang.Number
+     Number
        ~@(map (fn [[name func]]
                 `(~(symbol (str name "!")) [~'m] (error "Number is not mutable!")))
               mops/maths-ops)
-     java.lang.Object
+     Object
        ~@(map (fn [[name func]]
                 `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(double (~func (double %))))))
               mops/maths-ops)))
 
 (extend-protocol mp/PMatrixSubComponents
-  java.lang.Object
+  Object
     (main-diagonal [m]
       (let [sh (mp/get-shape m)
             rank (count sh)
@@ -1022,7 +1090,7 @@
         (mp/construct-matrix m (for [i (range dims)] (mp/get-nd m (repeat rank i)))))))
 
 (extend-protocol mp/PSpecialisedConstructors
-  java.lang.Object
+  Object
     (identity-matrix [m dims]
       (mp/diagonal-matrix m (repeat dims 1.0)))
     (diagonal-matrix [m diagonal-values]
@@ -1034,11 +1102,11 @@
         (mp/coerce-param m dm))))
 
 (extend-protocol mp/PMatrixPredicates
-  java.lang.Object
+  Object
   (identity-matrix? [m]
-    (let [rc (mp/dimension-count m 0)
-          cc (mp/dimension-count m 1)]
-      (if (== rc cc)
+    (let [rc (long (mp/dimension-count m 0))
+          cc (long (mp/dimension-count m 1))]
+      (if (and (== (mp/dimensionality m) 2) (== rc cc))
         (loop [i (long 0)]
           (if (< i rc)
             (if (loop [j (long 0)]
@@ -1055,7 +1123,7 @@
             true))
         false)))
   (zero-matrix? [m]
-    (every? #(and (not (nil? %)) (zero? %)) (mp/element-seq m)))
+    (every? #(and (number? %) (zero? %)) (mp/element-seq m)))
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false))

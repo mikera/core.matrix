@@ -1,7 +1,6 @@
 (ns clojure.core.matrix.impl.ndarray-magic
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
-  (:use clojure.core.matrix.impl.ndarray-magic)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.multimethods :as mm])
@@ -124,7 +123,8 @@
 (defmacro spit-code
   "Emits specialized versions of collected forms"
   []
-  `(do
+  `(do  ;let [start# (System/currentTimeMillis)]
+        ;(println (str "declares: " (- start# (System/currentTimeMillis))))
      ~@(map #(list 'declare %) (keys @defns-magic))
      ~@(vals @deftypes-magic)
      ~@(vals @defns-magic)
@@ -133,7 +133,7 @@
             (keys type-table-magic))))
 
 (defmacro specialize
-  "Allows to use 'magic' machinery from outside of `ndarray` namespace. This
+  "Allows use of the 'magic' machinery from outside of `ndarray` namespace. This
    is useful for `loop-over`. An example can be found in
    `test-ndarray-implementation` namespace"
   [type & body]

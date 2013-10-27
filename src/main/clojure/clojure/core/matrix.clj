@@ -58,7 +58,7 @@
   "Constructs a new n-dimensional array from the given data.
 
    The data may be in one of the following forms:
-   - A valid existing matrix
+   - A valid existing array
    - Nested sequences of scalar values, e.g. Clojure vectors
    - A sequence of slices, each of which must be valid matrix data
 
@@ -231,7 +231,7 @@
   "Returns true if the implementation for a given matrix supports a specific dimensionality, i.e.
    can natively create and manipulate matrices with the given number of dimensions"
   ([m dimension-count]
-    (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
+    (let [m (implementation-check m)]
       (mp/supports-dimensionality? m dimension-count))))
 
 (defn supports-shape?
@@ -328,7 +328,7 @@
   (mp/identity-matrix? m))
 
 (defn zero-matrix?
-  "Returns true if all the elements of the parameter are zeros"
+  "Returns true if all the elements of the parameter are zeros."
   [m]
   (mp/zero-matrix? m))
 
@@ -459,7 +459,7 @@
     If want-copy? is true, will guarantee a new double array (defensive copy).
     If want-copy? is false, will return the internal array used by m, or nil if not supported
     by the implementation.
-    If want-copy? is not sepcified, will return either a copy or the internal array"
+    If want-copy? is not specified, will return either a copy or the internal array"
    (^doubles [m]
      (mp/to-double-array m))
    (^doubles [m want-copy?]
@@ -467,6 +467,17 @@
        (if want-copy?
          (if arr (copy-double-array arr) (mp/to-double-array m))
          arr))))
+
+(defn to-object-array
+   "Returns a Java Object[] array containing the values of a numerical array m in row-major order.
+    If want-copy? is true, will guarantee a new Object array (defensive copy).
+    If want-copy? is false, will return the internal array used by m, or nil if not supported
+    by the implementation.
+    If want-copy? is not specified, will return either a copy or the internal array"
+   (^doubles [m]
+     (TODO))
+   (^doubles [m want-copy?]
+     (TODO)))
 
 ;; =======================================
 ;; matrix access
@@ -591,7 +602,7 @@
       (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
 
 (defn rows
-  "Gets the rows of a matrix, as a sequence or vectors."
+  "Gets the rows of a matrix, as a sequence of vectors."
   ([m]
     (slices m)))
 
@@ -603,7 +614,8 @@
 (defn main-diagonal
   "Returns the main diagonal of a matrix or general array, as a vector.
    The main diagonal of a general array is defined as those elements where the all the
-   indexes are equal, i.e. the index is of the form [i i ... i]"
+   indexes are equal, i.e. the index is of the form [i i ... i]
+   Works on both square and rectangular matrices."
   ([m]
     (mp/main-diagonal m)))
 
@@ -635,8 +647,10 @@
     (let [c (mp/dimension-count m dimension)
           sh (mod shift-amount c)]
       (join-along dimension (submatrix m dimension [sh (- c sh)]) (submatrix m dimension [0 sh]))))
-  ([m [shifts]]
-    (TODO)))
+  ([m shifts]
+    (reduce (fn [m [dim shift]] (rotate m dim shift)) 
+            m 
+            (map-indexed (fn [i v] [i v]) shifts))))
 
 (defn as-vector
   "Creates a view of an array as a single flattened vector.
@@ -1036,14 +1050,24 @@
   (mp/swap-rows m i j))
 
 (defn multiply-row
-  "Multiply row i by constant k"
-  [m i k]
-  (mp/multiply-row m i k))
+  "Multiply row i by a constant factor"
+  [m i factor]
+  (mp/multiply-row m i factor))
 
 (defn add-row
-  "Add a row j times constant k to a row i and replace i"
-  [m i j k]
-  (mp/add-row m i j k))
+  "Add a row j multiplied by a scalar factor to a row i and replace row i with the result"
+  [m i j factor]
+  (mp/add-row m i j factor))
+
+(defn set-row
+  "Sets a row in a matrix using a specified vector."
+  [m i row]
+  (mp/set-row m i row))
+
+(defn set-row!
+  "Sets a row in a matrix using a specified vector."
+  [m i row]
+  (mp/set-row! m i row))
 
 ;; ===================================
 ;; Linear algebra algorithms
@@ -1133,7 +1157,7 @@
     (mp/element-map m f a more)))
 
 (defn esum
-  "Calculates the sum of all the elements in a numerical array"
+  "Calculates the sum of all the elements in a numerical array."
   [m]
   (mp/element-sum m))
 
@@ -1207,7 +1231,9 @@
   ([impl]
     (if-let [im (imp/get-canonical-object impl)]
       im
-      (error "No clojure.core.matrix implementation available - " (str impl)))))
+      (cond 
+        (scalar? impl) (imp/get-canonical-object clojure.core.matrix/*matrix-implementation*)
+        :else (error "No clojure.core.matrix implementation available - " (str impl))))))
 
 (defn current-implementation-object
   "Gets the a canonical object for the currently active matrix implementation. This object

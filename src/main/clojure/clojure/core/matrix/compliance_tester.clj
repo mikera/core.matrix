@@ -194,13 +194,13 @@
   (is (e= m (coerce m (coerce :ndarray m)))))
 
 (defn test-as-vector [m]
-  (is (e= (as-vector m) (eseq m)))
-  (is (e= (reshape (as-vector m) (shape m)) m)))
+  (when-let [av (as-vector m)]
+    (is (e= av (eseq m)))
+    (is (e= (reshape av (shape m)) m))))
 
 (defn test-assign [m]
-  (when (> (ecount m) 0)
+  (when (and m (> (ecount m) 0)) ;; guard for nil and empty arrays
     (let [e (first (eseq m))
-          m (or m (error "trying to assign to nil object!?!"))
           n (assign m e)
           mm (mutable-matrix m)]
       (is (zero-dimensional? e))
@@ -229,7 +229,8 @@
     ))
 
 (defn test-to-string [m]
-  (is (string? (.toString m))))
+  (when m ;; guard for nil
+    (is (string? (.toString m)))))
 
 (defn test-elements [m]
   (let [es (eseq m)]
@@ -409,8 +410,9 @@
       (is (equals (mmul m m) i 1.0E-12)))))
 
 (defn test-numeric-matrix-predicates [m]
-  (when (and (matrix? m) (= 2 (dimensionality m)))
+  (when (== 2 (dimensionality m))
     (is (zero-matrix? (new-matrix m 10 10)))
+    (is (zero-matrix? (zero-matrix m 10 10)))
     (is (identity-matrix? (identity-matrix m 5)))
     (is (not (identity-matrix? (array m [[2 0][0 1]]))))
     (is (not (zero-matrix? (array m [[0 0][0 1]]))))

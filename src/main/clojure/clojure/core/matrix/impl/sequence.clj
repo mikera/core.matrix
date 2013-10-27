@@ -39,9 +39,13 @@
 (extend-protocol mp/PIndexedAccess
   clojure.lang.ISeq
     (get-1d [m x]
-      (nth m (int x)))
+      (let [r (nth m x)]
+        (cond 
+          (number? r) r
+          (mp/is-scalar? r) r
+          :else (mp/get-0d r))))
     (get-2d [m x y]
-      (let [row (nth m (int x))]
+      (let [row (nth m x)]
         (mp/get-1d row y)))
     (get-nd [m indexes]
       (if-let [next-indexes (next indexes)]
@@ -72,7 +76,9 @@
 (extend-protocol mp/PConversion
   clojure.lang.ISeq
     (convert-to-nested-vectors [m]
-      (mapv mp/convert-to-nested-vectors m)))
+      (if (> (mp/dimensionality (first m)) 0) 
+        (mapv mp/convert-to-nested-vectors m)
+        (mapv mp/get-0d m))))
 
 (extend-protocol mp/PDimensionInfo
   clojure.lang.ISeq

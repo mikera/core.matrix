@@ -214,6 +214,14 @@
          (aset new-xs# i# t#)))
      new-xs#))
 
+(defmacro scalar-coerce 
+  "Macro to coerce to scalar value with efficient check sequence"
+  ([x]
+  `(let [x# ~x]
+     (cond 
+       (number? x#) x#
+       :else (clojure.core.matrix.protocols/get-0d x#)))))
+
 (defn protocol?
   "Returns true if an argument is a protocol'"
   [p]

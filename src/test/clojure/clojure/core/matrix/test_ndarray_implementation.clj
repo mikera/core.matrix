@@ -6,6 +6,7 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as gen])
   (:require clojure.core.matrix.impl.persistent-vector)
+  (:require [clojure.core.matrix.impl.ndarray])
   (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
   (:require [clojure.core.matrix.impl.ndarray-macro :as macro])
   (:use clojure.core.matrix.impl.ndarray))
@@ -36,10 +37,10 @@
         diff (Math/abs (- x 1.19))]
     (is (< diff 0.01))))
 
-; TODO: fix failing test
-;(deftest add-product-test
-;  (testing "vector add-product"
-;    (is (equals [7] (add-product (array [1]) (array [2]) (array [3]))))))
+(deftest add-product-test
+  (testing "vector add-product"
+    (is (equals [7] (add-product (array :ndarray [1]) (array :ndarray [2]) (array :ndarray [3]))))
+    (is (equals [7] (add-product! (array :ndarray [1]) (array :ndarray [2]) (array :ndarray [3]))))))
 
 (deftest c-strides-test
   (are [strides shape] (= strides (vec (c-strides shape)))
@@ -74,8 +75,11 @@
       (is (== 10 (ereduce + m)))
       (is (== 4 (ereduce (fn [acc _] (inc acc)) 0 m)))
       (is (== 4 (ereduce (fn [acc _] (inc acc)) 0 (eseq m))))))
+  
+  (testing "Elementwise divide"
+    (is (equals [2 2] (div (array :ndarray [6 4]) [3 2])))))
 
-  (deftest test-ndarray-base
+(deftest test-ndarray-base
     (testing "construction"
       (is (= [3 3] (seq (shape (empty-ndarray [3 3]))))))
     (testing "getters"
@@ -88,7 +92,13 @@
     (testing "slices"
       (is (= [[nil nil] [nil nil]]
              (map #(coerce [] %)
-                  (slices (empty-ndarray [2 2]))))))))
+                  (slices (empty-ndarray [2 2])))))))
+
+(deftest test-add-sub
+  (let [a (array :ndarray [1 2])]
+    (add! a 10)
+    (sub! a [3 4])
+    (is (equals a [8 8]))))
 
 (deftest test-contained-vectors
   (let [a (array :ndarray :foo)]

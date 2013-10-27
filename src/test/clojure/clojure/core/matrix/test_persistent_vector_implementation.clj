@@ -28,19 +28,13 @@
     (is (empty? (eseq [])))
     (is (nil? (coerce [] nil)))))
 
+(deftest test-construction
+  (is (equals [[0 0] [0 0]] (zero-array [] [2 2]))))
+
 (deftest test-properties
+  (is (numerical? [2 43]))
   (is (not (mutable? [1 2])))
-  (is (not (mutable? [[1 2] [3 4]]))))
-
-(deftest test-indexed-access
-  (testing "indexed access to java.util.List"
-    (let [al (java.util.ArrayList.)]
-      (.add al 1.0)
-      (.add al 2.0)
-      (.add al 3.0)
-      (is (= [1.0 2.0 3.0] (coerce [] al)))
-      (is (== 1.0 (mget al 0)))))
-
+  (is (not (mutable? [[1 2] [3 4]])))
   (testing "trace"
     (is (== 5 (trace [[1 2] [3 4]])))))
 
@@ -122,8 +116,18 @@
     (= [1 2] (eseq [(double-array [1 2])]))
     (= [1 2] (eseq [[(wrap/wrap-scalar 1) (wrap/wrap-scalar 2)]]))))
 
+(deftest test-contained-scalar-array
+  (let [a [(scalar-array 1) 2]]
+    (is (== 1 (dimensionality a)))
+    (is (vec? a))
+    (is (= [1 2] (slices a)))))
+
 (deftest test-scalar-interop
   (is (equals [2 4] (mul [1 2] (scalar-array 2)))))
+
+(deftest test-row-setting
+  (is (equals [[1 2] [5 5]] (set-row [[1 2] [3 4]] 1 5)))
+  (is (equals [[1 2] [5 6]] (set-row [[1 2] [3 4]] 1 [5 6]))))
 
 (deftest test-slices
   (is (= [1 2] (slices [1 2]))))
