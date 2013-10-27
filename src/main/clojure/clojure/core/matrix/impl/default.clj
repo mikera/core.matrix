@@ -772,7 +772,7 @@
         (f init m)))
   Object
     (element-seq [m]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
             (list (mp/get-0d m))

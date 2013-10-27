@@ -58,7 +58,7 @@
   "Constructs a new n-dimensional array from the given data.
 
    The data may be in one of the following forms:
-   - A valid existing matrix
+   - A valid existing array
    - Nested sequences of scalar values, e.g. Clojure vectors
    - A sequence of slices, each of which must be valid matrix data
 
