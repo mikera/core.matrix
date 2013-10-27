@@ -370,11 +370,12 @@
 
 (defprotocol PMatrixMutableScaling
   "Protocol to support mutable array scaling by scalar values."
-  (scale! [m a])
-  (pre-scale! [m a]))
+  (scale! [m factor])
+  (pre-scale! [m factor]))
 
 (defprotocol PMatrixAdd
-  "Protocol to support addition and subtraction on arbitrary matrices"
+  "Protocol to support addition and subtraction on arbitrary matrices. 
+   These are elementwise operations that should support broadcasting."
   (matrix-add [m a])
   (matrix-sub [m a]))
 
