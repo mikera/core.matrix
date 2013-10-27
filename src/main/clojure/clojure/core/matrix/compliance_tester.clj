@@ -199,9 +199,8 @@
     (is (e= (reshape av (shape m)) m))))
 
 (defn test-assign [m]
-  (when (> (ecount m) 0)
+  (when (and m (> (ecount m) 0)) ;; guard for nil and empty arrays
     (let [e (first (eseq m))
-          m (or m (error "trying to assign to nil object!?!"))
           n (assign m e)
           mm (mutable-matrix m)]
       (is (zero-dimensional? e))
@@ -230,7 +229,8 @@
     ))
 
 (defn test-to-string [m]
-  (is (string? (.toString m))))
+  (when m ;; guard for nil
+    (is (string? (.toString m)))))
 
 (defn test-elements [m]
   (let [es (eseq m)]

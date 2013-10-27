@@ -151,6 +151,17 @@
       (mp/new-scalar-array m value)))
 
 (extend-protocol mp/PIndexedSetting
+  nil 
+    (set-1d [m row v]
+      (error "Can't do 1D set on nil"))
+    (set-2d [m row column v]
+      (error "Can't do 2D set on nil"))
+    (set-nd [m indexes v]
+      (if (seq indexes) 
+        (error "Can't do " (count indexes) "D set on nil")
+        v))
+    (is-mutable? [m]
+      false)
   java.lang.Object
     (set-1d [m row v]
       (let [m (mp/clone m)]
@@ -852,11 +863,22 @@
             (error "Joining with array of incompatible size")))))
 
 (extend-protocol mp/PSubVector
+  nil
+    (subvector [m start length]
+      (error "Can't take subvector of nil"))
+  java.lang.Number
+    (subvector [m start length]
+      (error "Can't take subvector of a scalar number"))
   java.lang.Object
     (subvector [m start length]
       (mp/subvector (wrap/wrap-nd m) start length)))
 
 (extend-protocol mp/PSubMatrix
+  nil
+    (submatrix [m index-ranges]
+      (if (seq index-ranges)
+        (error "Can't take partial submatrix of nil")
+        m))
   java.lang.Number
     (submatrix [m index-ranges]
       (if (seq index-ranges)
@@ -967,12 +989,18 @@
             (mp/coerce-param m (mp/element-seq m))))))
 
 (extend-protocol mp/PReshaping
+  nil
+    (reshape [m shape]
+      (case (long (reduce * 1 (seq shape)))
+        0 (mp/broadcast m shape)
+        1 (mp/broadcast m shape)
+        (error "Can't reshape nil to shape: " (vec shape))))
   java.lang.Number
     (reshape [m shape]
       (case (long (reduce * 1 (seq shape)))
         0 (mp/broadcast m shape)
         1 (mp/broadcast m shape)
-        (error "Can't reshape a scalar value to shape: " (vec shape))))
+        (error "Can't reshape a scalar number to shape: " (vec shape))))
   java.lang.Object
     (reshape [m shape]
       (let [partition-shape (fn partition-shape [es shape]
