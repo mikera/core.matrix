@@ -968,33 +968,37 @@
 
   mp/PMatrixScaling
     (scale [m factor]
-      (let [a (mp/clone m)]
+      (let [a (mp/clone m)
+            factor (type-cast# factor)]
         (loop-over [a]
           (aset a-data a-idx (type-cast#
                               (* (aget a-data a-idx)
-                                 (type-cast# factor)))))
+                                 factor))))
         a))
     (pre-scale [m factor]
-      (let [a (mp/clone m)]
-        (loop-over [a]
-          (aset a-data a-idx (type-cast#
-                              (* (type-cast# factor)
-                                 (aget a-data a-idx)))))
+      (let [a (mp/clone m)
+            factor (type-cast# factor)]
+        (let []
+          (loop-over [a]
+           (aset a-data a-idx (type-cast#
+                               (* factor
+                                  (aget a-data a-idx))))))
         a))
 
-  ;; TODO: waits for loop-over-nd
   mp/PMatrixMutableScaling
     (scale! [m factor]
-      (loop-over [m]
-        (aset m-data m-idx (type-cast#
-                            (* (aget m-data m-idx)
-                               (type-cast# factor)))))
+      (let [factor (type-cast# factor)]
+        (loop-over [m]
+          (aset m-data m-idx (type-cast#
+                              (* (aget m-data m-idx)
+                                 factor)))))
       m)
     (pre-scale! [m factor]
-      (loop-over [m]
-        (aset m-data m-idx (type-cast#
-                            (* (type-cast# factor)
-                               (aget m-data m-idx)))))
+      (let [factor (type-cast# factor)]
+        (loop-over [m]
+         (aset m-data m-idx (type-cast#
+                             (* factor
+                                (aget m-data m-idx))))))
       m)
 
   mp/PMatrixAdd
