@@ -3,6 +3,7 @@
   (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.operators :as op])
+  (:require [clojure.core.matrix.compliance-tester])
   (:refer-clojure :exclude [vector?])
   (:use clojure.test))
 
