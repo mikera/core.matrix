@@ -2,6 +2,7 @@
   (:require [clojure.walk :as w])
   (:use clojure.core.matrix.utils)
   (:use clojure.core.matrix.impl.ndarray-macro)
+  (:require [clojure.core.matrix.impl.default])
   (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.implementations :as imp])
