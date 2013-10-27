@@ -151,10 +151,7 @@
   clojure.lang.IPersistentVector
     (get-1d [m x]
       (let [r (.nth m (int x))]
-        (cond 
-          (number? r) r
-          (mp/is-scalar? r) r
-          :else (mp/get-0d r))))
+        (scalar-coerce r)))
     (get-2d [m x y]
       (let [row (.nth m (int x))]
         (mp/get-1d row y)))
@@ -162,7 +159,7 @@
       (if-let [next-indexes (next indexes)]
         (let [m (.nth m (int (first indexes)))]
           (mp/get-nd m next-indexes))
-        (.nth m (int (first indexes))))))
+        (scalar-coerce (.nth m (int (first indexes)))))))
 
 ;; we extend this so that nested mutable implementions are possible
 (extend-protocol mp/PIndexedSetting
