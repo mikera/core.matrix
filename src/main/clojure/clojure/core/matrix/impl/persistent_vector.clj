@@ -125,6 +125,29 @@
     (supports-dimensionality? [m dims]
       true))
 
+(extend-protocol mp/PZeroDimensionConstruction
+  clojure.lang.IPersistentVector
+    (new-scalar-array
+      ([m] 0)
+      ([m value] value)))
+
+(extend-protocol mp/PBroadcast
+  clojure.lang.IPersistentVector
+    (broadcast [m target-shape]
+      (let [mshape (mp/get-shape m)
+            dims (long (count mshape))
+            tdims (long (count target-shape))]
+        (cond
+          (> dims tdims) 
+            (error "Can't broadcast to a lower dimensional shape")
+          (not (every? identity (map #(== %1 %2) mshape (take-last dims target-shape))))
+            (error "Incompatible shapes, cannot broadcast " (vec mshape) " to " (vec target-shape))
+          :else
+            (reduce
+              (fn [m dup] (vec (repeat dup m)))
+              m
+              (reverse (drop-last dims target-shape)))))))
+
 (extend-protocol mp/PIndexedAccess
   clojure.lang.IPersistentVector
     (get-1d [m x]
