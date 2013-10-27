@@ -366,6 +366,14 @@
         (.length m)
         (mp/dimension-count (m 0) (dec x)))))
 
+(extend-protocol mp/PElementCount
+  clojure.lang.IPersistentVector
+    (element-count [m] 
+      (let [c (long (count m))] 
+        (if (== c 0) 
+          0
+          (* c (mp/element-count (m 0)))))))
+
 ;; we need to implement this for all persistent vectors since we need to check all nested components
 (extend-protocol mp/PConversion
   clojure.lang.IPersistentVector

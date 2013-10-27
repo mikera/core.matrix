@@ -820,7 +820,10 @@
 (extend-protocol mp/PElementCount
   nil (element-count [m] 1)
   Number (element-count [m] 1)
-  Object (element-count [m] (calc-element-count m)))
+  Object 
+    (element-count [m] (if (array? m) 
+                         (calc-element-count m)
+                         1)))
 
 (extend-protocol mp/PMatrixSlices
   Object
