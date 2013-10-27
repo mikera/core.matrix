@@ -282,6 +282,12 @@
       (mp/assign! m value)))
 
 (extend-protocol mp/PMatrixCloning
+   nil
+     (clone [m]
+       m)
+   Number
+     (clone [m]
+       m)
    java.lang.Object
      (clone [m]
        (mp/construct-matrix m m)))
@@ -984,6 +990,12 @@
           (first (mp/element-seq m))))))
 
 (extend-protocol mp/PCoercion
+  nil
+    (coerce-param [m param]
+      param)
+  Number
+    (coerce-param [m param]
+      param)
   java.lang.Object
     (coerce-param [m param]
       (mp/construct-matrix m (mp/convert-to-nested-vectors param))))

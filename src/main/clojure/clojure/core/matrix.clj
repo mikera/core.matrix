@@ -231,7 +231,7 @@
   "Returns true if the implementation for a given matrix supports a specific dimensionality, i.e.
    can natively create and manipulate matrices with the given number of dimensions"
   ([m dimension-count]
-    (let [m (if (keyword? m) (imp/get-canonical-object m) m)]
+    (let [m (implementation-check m)]
       (mp/supports-dimensionality? m dimension-count))))
 
 (defn supports-shape?
@@ -1208,7 +1208,9 @@
   ([impl]
     (if-let [im (imp/get-canonical-object impl)]
       im
-      (error "No clojure.core.matrix implementation available - " (str impl)))))
+      (cond 
+        (scalar? impl) (imp/get-canonical-object clojure.core.matrix/*matrix-implementation*)
+        :else (error "No clojure.core.matrix implementation available - " (str impl))))))
 
 (defn current-implementation-object
   "Gets the a canonical object for the currently active matrix implementation. This object

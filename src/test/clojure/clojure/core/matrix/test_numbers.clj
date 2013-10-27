@@ -19,3 +19,11 @@
   (is (error? (add! 1 1)))
   (is (error? (sub! 1 1)))
   (is (error? (mul! 1 1))))
+
+(deftest test-broadcasting
+  (is (equals [2 2 2] (broadcast 2 [3])))
+  (is (equals [2] (as-vector 2))))
+
+(deftest instance-tests
+  (clojure.core.matrix.compliance-tester/instance-test 0)
+  (clojure.core.matrix.compliance-tester/instance-test 1))

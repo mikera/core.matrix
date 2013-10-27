@@ -41,9 +41,10 @@
 (defn get-implementation-key
   "Returns the implementation code for a given object"
   ([m]
-    (if (keyword? m)
-      m
-      (mp/implementation-key m))))
+    (cond 
+      (keyword? m) m
+      (mp/is-scalar? m) nil
+      :else (mp/implementation-key m))))
 
 (defn register-implementation
   "Registers a matrix implementation for use. Should be called by all implementations
@@ -67,6 +68,8 @@
   ([m]
     (let [k (get-implementation-key m)
           obj (@canonical-objects k)]
-      (or obj
-          (if (try-load-implementation k) (@canonical-objects k))
-          (error "Unable to find implementation: [" k "]")))))
+      (if k 
+        (or obj
+           (if (try-load-implementation k) (@canonical-objects k))
+           (error "Unable to find implementation: [" k "]"))
+        nil))))
