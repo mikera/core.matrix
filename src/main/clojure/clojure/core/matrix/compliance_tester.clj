@@ -194,8 +194,9 @@
   (is (e= m (coerce m (coerce :ndarray m)))))
 
 (defn test-as-vector [m]
-  (is (e= (as-vector m) (eseq m)))
-  (is (e= (reshape (as-vector m) (shape m)) m)))
+  (when-let [av (as-vector m)]
+    (is (e= av (eseq m)))
+    (is (e= (reshape av (shape m)) m))))
 
 (defn test-assign [m]
   (when (> (ecount m) 0)

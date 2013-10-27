@@ -916,7 +916,6 @@
           :default
               (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
 
-;; TODO: shouldn't this be returning a view?
 (extend-protocol mp/PVectorView
   nil
     (as-vector [m]
@@ -926,14 +925,18 @@
       [m])
   java.lang.Object
     (as-vector [m]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
-          (== 0 dims)
-            (mp/coerce-param m [(mp/get-0d m)])
-          (mp/is-vector? m)
+          (== dims 0)
+            (mp/broadcast (wrap/wrap-nd m) [1])
+          (== dims 1)
             m
+          (not (mp/is-mutable? m))
+            ;; if not mutable, coercion to a vector works as a view
+            (mp/to-vector m)
           :else
-            (mp/coerce-param m (mp/element-seq m))))))
+            ;; We return nil for this: can't provide a mutable vector view
+            nil))))
 
 (extend-protocol mp/PVectorisable
   nil
