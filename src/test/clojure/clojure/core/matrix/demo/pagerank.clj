@@ -27,8 +27,12 @@
           (array (repeat n (/ 1.0 n))))
         (scale v (/ 1.0 s))))))
 
+;; =================================================================================
+;; Iterative method
+
 (defn pagerank 
-  "Returns an infinite sequence of vectors that converges on the pagerank values."
+  "Returns an infinite sequence of vectors that converges on the pagerank values,
+   using an iterative method."
   ([links]
     (let [transitions (transpose (map norm-1 (slices links)))
           initial-rank (norm-1 (zero-vector (row-count links)))]
@@ -48,3 +52,16 @@
 (nth (pagerank link-matrix) 100)
 ;; => [0.10268308453594212 0.13709906546448453 0.05783185760307677 0.2835419187399636 0.015000000000000003 0.049098055965063864 0.15296143983559468 0.13989401901156823 0.04689055884430651 0.015000000000000003]
 
+;; =================================================================================
+;; Direct (algebraic) method
+
+(defn pagerank-direct 
+  "Computes the pagerank directly"
+  ([links]
+    (let [transitions (transpose (map norm-1 (slices links)))
+          n (row-count links)]
+      (mmul (inverse (sub (identity-matrix n) (mul DAMPING transitions)))
+            (vec (repeat n (/ (- 1.0 DAMPING) n)))))))
+
+(pagerank-direct link-matrix)
+;; => [0.1026830845359421 0.1370990654644845 0.05783185760307677 0.28354191873996354 0.015000000000000003 0.04909805596506385 0.15296143983559463 0.13989401901156823 0.04689055884430651 0.015000000000000003]
