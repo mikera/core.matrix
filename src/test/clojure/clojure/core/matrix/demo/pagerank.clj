@@ -29,6 +29,8 @@
 
 ;; =================================================================================
 ;; Iterative method
+;;
+;; each iteration of the pagerank sequences gets closer to the correct pagerank value
 
 (defn pagerank 
   "Returns an infinite sequence of vectors that converges on the pagerank values,
@@ -41,8 +43,6 @@
                      (mmul (- 1.0 DAMPING) initial-rank)))
         initial-rank))))
 
-;; each iteration of the pagerank sequences gets closer to the correct pagerank value
-
 (nth (pagerank link-matrix) 0)
 ;; => [0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1]
 
@@ -51,6 +51,8 @@
 
 (nth (pagerank link-matrix) 100)
 ;; => [0.10268308453594212 0.13709906546448453 0.05783185760307677 0.2835419187399636 0.015000000000000003 0.049098055965063864 0.15296143983559468 0.13989401901156823 0.04689055884430651 0.015000000000000003]
+
+
 
 ;; =================================================================================
 ;; Direct (algebraic) method
