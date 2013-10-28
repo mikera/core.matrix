@@ -153,6 +153,17 @@
         v))
     (is-mutable? [m]
       false)
+  Number 
+    (set-1d [m row v]
+      (error "Can't do 1D set on a scalar number"))
+    (set-2d [m row column v]
+      (error "Can't do 2D set on a scalar number"))
+    (set-nd [m indexes v]
+      (if (seq indexes) 
+        (error "Can't do " (count indexes) "D set on a scalar number")
+        v))
+    (is-mutable? [m]
+      false) 
   Object
     (set-1d [m row v]
       (let [m (mp/clone m)]

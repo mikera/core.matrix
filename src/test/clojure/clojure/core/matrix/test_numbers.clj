@@ -21,6 +21,9 @@
   (is (error? (sub! 1 1)))
   (is (error? (mul! 1 1))))
 
+(deftest test-compute-matrix
+  (is (equals 3 (compute-matrix [] (fn [] 3)))))
+
 (deftest test-broadcasting
   (is (equals [2 2 2] (broadcast 2 [3])))
   (is (equals [2] (as-vector 2))))
