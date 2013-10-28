@@ -1,7 +1,11 @@
 (ns clojure.core.matrix.demo.pagerank
   (:use clojure.core.matrix))
 
+;; =================================================================================
 ;; A demo of a simple Pagerank calculation
+;;
+;; For more info on background and algoritrhm see:
+;;   - http://en.wikipedia.org/wiki/PageRank
 
 ;; link matrix: each row represnts the number outbound links from a page to other pages
 (def link-matrix
