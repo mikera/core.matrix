@@ -23,5 +23,10 @@
 (deftest test-join 
   (is (e= [nil nil] (join [nil] [nil]))))
 
+(deftest test-set
+  (is (equals 3 (mset nil 3)))
+  (is (error? (mset! nil 3)))
+  (is (error? (mset nil 2 3))))
+
 (deftest instance-tests
   (clojure.core.matrix.compliance-tester/instance-test nil))
