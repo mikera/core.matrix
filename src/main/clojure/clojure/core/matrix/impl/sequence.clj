@@ -7,7 +7,10 @@
   (:require [clojure.core.matrix.multimethods :as mm]))
 
 ;; core.matrix implementation for Clojure ISeq objects
-;; generally returns a persistent vector where possible
+;;
+;; Important notes:
+;; 1. Intended mainly for accessing data. Not recommended for computations...
+;; 2. generally returns a persistent vector where possible
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -63,6 +66,16 @@
       (mp/set-nd (mp/convert-to-nested-vectors m) indexes v))
     (is-mutable? [m]
       false))
+
+(extend-protocol mp/PBroadcast
+  clojure.lang.ISeq
+    (broadcast [m new-shape]
+      (mp/broadcast (mp/convert-to-nested-vectors m) new-shape)))
+
+(extend-protocol mp/PBroadcastLike
+  clojure.lang.ISeq
+    (broadcast-like [m a]
+      (mp/broadcast (mp/convert-to-nested-vectors a) (mp/get-shape m))))
 
 (extend-protocol mp/PSliceView
   clojure.lang.ISeq
