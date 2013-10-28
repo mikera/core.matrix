@@ -1,9 +1,9 @@
 (ns clojure.core.matrix.demo.pagerank
   (:use clojure.core.matrix))
 
-;; A demo of a simple Pagerank application
+;; A demo of a simple Pagerank calculation
 
-;; link matrix: each row represnts number outbound links from a page
+;; link matrix: each row represnts the number outbound links from a page to other pages
 (def link-matrix
   [[0 0 1 1 0 0 1 2 0 0]
    [1 0 0 1 0 0 0 0 0 0]
@@ -19,7 +19,7 @@
 (def DAMPING 0.85)
 
 (defn norm-1 
-  "Normalises a vector to a sum of 1.0"
+  "Normalises a vector to a sum of 1.0."
   ([v]
     (let [s (esum v)]
       (if (== s 0.0)
@@ -28,7 +28,7 @@
         (scale v (/ 1.0 s))))))
 
 (defn pagerank 
-  "Returns a sequence of vectors that converges on the pagerank values."
+  "Returns an infinite sequence of vectors that converges on the pagerank values."
   ([links]
     (let [transitions (transpose (map norm-1 (slices links)))
           initial-rank (norm-1 (zero-vector (row-count links)))]
