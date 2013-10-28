@@ -51,10 +51,13 @@
       (let [row (nth m x)]
         (mp/get-1d row y)))
     (get-nd [m indexes]
-      (if-let [next-indexes (next indexes)]
-        (let [m (nth m (int (first indexes)))]
-          (mp/get-nd m next-indexes))
-        (nth m (int (first indexes))))))
+      (if-let [indexes (seq indexes)]
+        (if-let [next-indexes (next indexes)]
+          (let [m (nth m (int (first indexes)))]
+            (mp/get-nd m next-indexes))
+          (nth m (int (first indexes))))
+        m ;; TODO: figure out if this is a good return value? should it be an error?
+        )))
 
 (extend-protocol mp/PIndexedSetting
   clojure.lang.ISeq
