@@ -54,7 +54,7 @@
         (nth m (int (first indexes))))))
 
 (extend-protocol mp/PIndexedSetting
-  java.lang.Object
+  clojure.lang.ISeq
     (set-1d [m row v]
       (mp/set-1d (mp/convert-to-nested-vectors m) row v))
     (set-2d [m row column v]
