@@ -136,10 +136,12 @@
 (extend-protocol mp/PZeroDimensionSet
   nil
     (set-0d [m value]
-      (wrap/wrap-scalar value))
+      value ;; should be OK, since scalars satisfy 0d array abstraction
+      )
   Object
     (set-0d [m value]
-      (mp/new-scalar-array m value)))
+      value ;; should be OK, since scalars satisfy 0d array abstraction
+      )) 
 
 (extend-protocol mp/PIndexedSetting
   nil 
