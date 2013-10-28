@@ -391,6 +391,11 @@
     (is (= 3 (scalar a))))
   (is (equals 0 (new-scalar-array))))
 
+(deftest test-min-max
+  (is (== 1 (emin [2 1 7])))
+  (is (== 7 (emax [2 1 7])))
+  (is (== 7 (emax [[4 3 2] [2 1 7] [-1 5 -20]]))))
+
 (deftest test-predicates
   (testing "scalar predicates"
     (is (not (array? 1)))
