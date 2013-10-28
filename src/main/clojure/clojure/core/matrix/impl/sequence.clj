@@ -53,9 +53,9 @@
     (get-nd [m indexes]
       (if-let [indexes (seq indexes)]
         (if-let [next-indexes (next indexes)]
-          (let [m (nth m (int (first indexes)))]
-            (mp/get-nd m next-indexes))
-          (nth m (int (first indexes))))
+          (let [mv (nth m (first indexes))]
+            (mp/get-nd mv next-indexes))
+          (nth m (first indexes)))
         m ;; TODO: figure out if this is a good return value? should it be an error?
         )))
 
