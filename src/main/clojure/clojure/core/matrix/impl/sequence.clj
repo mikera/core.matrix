@@ -123,9 +123,7 @@
           (mapv #(mp/element-map % f %2 %3) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
     (element-map!
       ([m f]
-        (do
-          (doseq [s m] (mp/element-map! s f))
-          m))
+        (error "Sequence arrays are not mutable!"))
       ([m f a]
         (error "Sequence arrays are not mutable!"))
       ([m f a more]
