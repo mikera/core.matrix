@@ -24,3 +24,10 @@
 ;; sequences should get converted to a better implementation
 (deftest test-to-vectors
   (is (vector? (emap inc '(1 2 3)))))
+
+(deftest test-empty-sequence
+  (let [v '()]
+    (is (== 0 (ecount v)))
+    (is (numerical? v))
+    (is (== 1 (dimensionality v)))
+    (is (== 0 (dimension-count v 0)))))
