@@ -139,7 +139,7 @@
       (wrap/wrap-scalar value))
   Object
     (set-0d [m value]
-      (mp/new-scalar-array m value)))
+      value))
 
 (extend-protocol mp/PIndexedSetting
   nil 
