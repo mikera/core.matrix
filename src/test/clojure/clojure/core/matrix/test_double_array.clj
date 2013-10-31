@@ -111,6 +111,11 @@
     (sub! v [1 1 2])
     (is (equals v [10 11 11]))))
 
+(deftest test-mutable-map!
+  (let [v (double-array [1 2 3])]
+    (emap! clojure.core/+ v [10 10 10])
+    (is (equals v [11 12 13]))))
+
 (deftest test-mutable-multiply
   (let [a (double-array [1 2])
         b (double-array [2 3])]
