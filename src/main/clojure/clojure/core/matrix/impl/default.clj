@@ -715,6 +715,18 @@
             (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
         :else false)))
 
+(extend-protocol mp/PValueEquality
+  nil
+    (value-equals [a b]
+      (and 
+        (== 0 (mp/dimensionality b))
+        (nil? (mp/get-0d b))))
+  Object
+    (value-equals [a b]
+      (and
+        (mp/same-shape? a b)
+        (every? true? (map = (mp/element-seq a) (mp/element-seq b))))))
+
 (defmacro eps== [a b eps]
   `(<= (Math/abs (- (double ~a) (double ~b))) (double ~eps) ))
 

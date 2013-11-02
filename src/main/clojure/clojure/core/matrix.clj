@@ -1168,33 +1168,31 @@
   (mp/element-sum m))
 
 (defn emin
-  "Gets the minimum value from a numerical array"
+  "Gets the minimum element value from a numerical array"
   ([m]
     (mp/element-reduce m 
                        (fn [best v] (if (or (not best) (< v best)) v best)) 
                        nil)))
 
 (defn emax
-  "Gets the maximum value from a numerical array"
+  "Gets the maximum element value from a numerical array"
   ([m]
     (mp/element-reduce m 
                        (fn [best v] (if (or (not best) (> v best)) v best)) 
                        nil)))
 
 (defn e=
-  "Returns true if all array elements are equal (using clojure.core/=).
+  "Returns true if all array elements are equal (using the semantics of clojure.core/=).
    WARNING: a java.lang.Long does not equal a java.lang.Double.
    Use 'equals' or 'e==' instead if you want numerical equality."
   ([m1]
     true)
   ([m1 m2]
-    (and
-      (same-shape? m1 m2)
-      (every? true? (map = (eseq m1) (eseq m2)))))
+    (mp/value-equals m1 m2))
   ([m1 m2 & more]
     (and
-      (same-shape? m1 m2)
-      (reduce (fn [r mi] (and r (e= m1 mi))) (e= m1 m2) more))))
+      (mp/value-equals m1 m2)
+      (apply e= m2 more))))
 
 (defn e==
   "Returns true if all array elements are numerically equal. Throws an error if any elements
