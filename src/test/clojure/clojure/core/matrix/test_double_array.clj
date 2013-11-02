@@ -116,6 +116,9 @@
     (emap! clojure.core/+ v [10 10 10])
     (is (equals v [11 12 13]))))
 
+(deftest test-broadcast-coerce
+  (is (= [1.0 2.0] (mp/broadcast-coerce [0 0] (double-array [1 2])))))
+
 (deftest test-mutable-multiply
   (let [a (double-array [1 2])
         b (double-array [2 3])]
