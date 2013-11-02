@@ -258,10 +258,10 @@
     m))
 
 (defn assign
-  "Assigns a value elementwise to a given matrix, broadcasting to fill the whole matrix as necessary.
-   Returns a new matrix, of the same shape as the original."
+  "Assigns array a elementwise, broadcasting to fill the whole shape of m.
+   Returns a new matrix, of the same shape as the original m."
   ([m a]
-    (mp/broadcast (mp/coerce-param m a) (mp/get-shape m))))
+    (mp/assign m a)))
 
 (defn clone
   "Constructs a (shallow) clone of the matrix. This function is intended to

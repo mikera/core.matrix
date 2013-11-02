@@ -270,6 +270,13 @@
     [m arr start length]
     "Sets the elements in an array from an Java array source, in row-major order."))
 
+(defprotocol PImmutableAssignment
+  "Protocol for assigning values element-wise to an array, broadcasting as needed."
+  (assign
+    [m source]
+    "Sets all the values in an array from a given source. Source may be a scalar
+     or a smaller array that can be broadcast to the shape of m."))
+
 (defprotocol PMutableFill
   (fill!
     [m value]

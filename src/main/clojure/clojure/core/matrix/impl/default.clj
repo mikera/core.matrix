@@ -291,6 +291,16 @@
                 (doseq-indexed [s ss i]
                   (mp/assign-array! s arr (+ start (* skip i)) skip))))))))
 
+(extend-protocol mp/PImmutableAssignment
+  nil
+    (assign [m source]
+      (let [r (mp/broadcast-coerce m source)]
+        (if (identical? r source) (mp/clone r) r)))
+  Object
+    (assign [m source]
+      (let [r (mp/broadcast-coerce m source)]
+        (if (identical? r source) (mp/clone r) r))))
+
 (extend-protocol mp/PMutableFill
   Object
     (fill! [m value]
