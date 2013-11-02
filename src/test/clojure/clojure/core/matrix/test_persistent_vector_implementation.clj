@@ -28,6 +28,9 @@
     (is (empty? (eseq [])))
     (is (nil? (coerce [] nil)))))
 
+(deftest test-assign 
+  (is (= [[1 2] [1 2]] (assign [[1 2] [3 4]] [1 2]))))
+
 (deftest test-construction
   (is (equals [[0 0] [0 0]] (zero-array [] [2 2]))))
 
