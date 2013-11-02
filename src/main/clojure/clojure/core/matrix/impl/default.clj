@@ -419,14 +419,14 @@
         0 m
         1 m
         2 (apply mapv vector (map
-                               #(mp/coerce-param [] %)
+                               #(mp/convert-to-nested-vectors %)
                                (mp/get-major-slice-seq m)))
         (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
           ;; note that function must come second for mp/element-map
           (case (count ss)
-            1 (mp/element-map (mp/coerce-param [] (first ss)) vector)
-            2 (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss))
-            (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss) (nnext ss)))))))
+            1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
+            2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
+            (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss)))))))
 
 (extend-protocol mp/PTransposeInPlace
   Object
@@ -770,11 +770,11 @@
 (extend-protocol mp/PRowOperations
   Object
     (swap-rows [m i j]
-      (mp/swap-rows (mp/coerce-param [] m) i j))
+      (mp/swap-rows (mp/convert-to-nested-vectors m) i j))
     (multiply-row [m i k]
-      (mp/multiply-row (mp/coerce-param [] m) i k))
+      (mp/multiply-row (mp/convert-to-nested-vectors m) i k))
     (add-row [m i j k]
-      (mp/add-row (mp/coerce-param [] m) i j k)))
+      (mp/add-row (mp/convert-to-nested-vectors m) i j k)))
 
 (extend-protocol mp/PRowSetting
   Object
@@ -882,7 +882,7 @@
     (get-major-slice [m i]
       (clojure.core.matrix.impl.wrappers/wrap-slice m i))
     (get-slice [m dimension i]
-      (mp/get-slice (mp/coerce-param [] m) dimension i)))
+      (mp/get-slice (mp/convert-to-nested-vectors m) dimension i)))
 
 (extend-protocol mp/PSliceView
   Object
@@ -1004,12 +1004,12 @@
                   (if (< i n)
                     (recur (inc i) (conj res (mp/get-1d m i)))
                     res))))
+          (array? m)
+              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
           (sequential? m)
               (mapv mp/convert-to-nested-vectors m)
           (seq? m)
               (mapv mp/convert-to-nested-vectors m)
-          (array? m)
-              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
           :default
               (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
 
@@ -1145,7 +1145,7 @@
       (mp/diagonal-matrix m (repeat dims 1.0)))
     (diagonal-matrix [m diagonal-values]
       (let [dims (count diagonal-values)
-            diagonal-values (mp/coerce-param [] diagonal-values)
+            diagonal-values (mp/convert-to-nested-vectors diagonal-values)
             zs (vec (repeat dims 0.0))
             dm (vec (for [i (range dims)]
                  (assoc zs i (nth diagonal-values i))))]
