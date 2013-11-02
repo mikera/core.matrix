@@ -11,6 +11,9 @@
   (is (not (array? nil)))
   (is (nil? (shape nil)))
   (is (== 1 (ecount nil)))
+  (is (not (e= nil [])))
+  (is (not (e= nil '())))
+  (is (e= nil nil))
   (is (nil? (assign 1 nil))))
 
 (deftest test-nil 
