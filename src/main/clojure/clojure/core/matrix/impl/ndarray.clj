@@ -623,6 +623,12 @@
   ;;   (broadcast [m target-shape])
   ;; mp/PBroadcastLike
   ;;   (broadcast-like [m a])
+  
+  mp/PBroadcastCoerce
+    (broadcast-coerce [m a]
+      (let [^typename# a (if (instance? typename# a) a (mp/coerce-param m a))]
+        (mp/broadcast-like m a)))
+  
   ;; mp/PReshaping
   ;;   (reshape [m shape])
 
@@ -834,9 +840,9 @@
   mp/PAddProduct
     (add-product [m a b]
       (let [^typename# a (if (instance? typename# a) a
-                             (mp/broadcast-like m a))
+                             (mp/broadcast-coerce m a))
             ^typename# b (if (instance? typename# b) b
-                             (mp/broadcast-like m b))]
+                             (mp/broadcast-coerce m b))]
         (iae-when-not (and (java.util.Arrays/equals (ints (.shape m))
                                                     (ints (.shape a)))
                            (java.util.Arrays/equals (ints (.shape a))
