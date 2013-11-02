@@ -1091,7 +1091,7 @@
       param)
   Object
     (coerce-param [m param]
-      (mp/construct-matrix m (mp/convert-to-nested-vectors param))))
+      (mp/construct-matrix m param)))
 
 (extend-protocol mp/PExponent
   Number

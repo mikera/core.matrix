@@ -29,13 +29,18 @@
   (instance? DOUBLE-ARRAY-CLASS m))
 
 (defn construct-double-array [data]
-  (cond
-    (== (mp/dimensionality data) 1)
-      (double-array (mp/element-seq data))
-    (mp/is-scalar? data)
-      data
-    :default
-      nil))
+  (let [dims (long (mp/dimensionality data))]
+    (cond
+     (== dims 1)
+       (let [n (long (mp/dimension-count data 0))
+             r (double-array n)]
+         (dotimes [i n]
+           (aset r i (double (mp/get-1d data i))))
+         r)
+     (== dims 0)
+       (mp/get-0d data)
+     :default
+       nil)))
 
 (extend-protocol mp/PImplementation
   (Class/forName "[D")
