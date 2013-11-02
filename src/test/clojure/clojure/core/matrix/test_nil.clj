@@ -20,6 +20,9 @@
 (deftest test-arithmentic
   (is (error? (add nil 1))))
 
+(deftest test-broadcast
+  (is (e= [nil nil] (broadcast nil [2]))))
+
 (deftest test-join 
   (is (e= [nil nil] (join [nil] [nil]))))
 

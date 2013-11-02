@@ -947,7 +947,7 @@
 (extend-protocol mp/PBroadcastCoerce
   nil
     (broadcast-coerce [m a]
-      (mp/get-0d a))
+      (mp/coerce-param m (mp/broadcast-like m a)))
   Object
     (broadcast-coerce [m a]
       (mp/coerce-param m (mp/broadcast-like m a))))
