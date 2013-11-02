@@ -63,7 +63,7 @@ All contributions / ideas welcome!
 There are a number of proposed enhancements listed as GitHub issues: these are a good place to start if you wish to contribute
 to core.matrix:
 
- - https://github.com/mikera/matrix-api/issues?state=open
+ - https://github.com/mikera/core.matrix/issues?state=open
 
 If you wish to contribute code, please ensure you have a **Clojure Contributors Agreement** signed and on file. For more information see:
 
@@ -75,8 +75,8 @@ Discussions related to core.matrix generally take place on the "Numerical Clojur
 
 If you are interested in writing a `core.matrix` implementation, see:
 
- - https://github.com/mikera/matrix-api/wiki/Implementation-Guide
+ - https://github.com/mikera/core.matrix/wiki/Implementation-Guide
 
 You can also find a protocol implementation summary here:
 
- - http://mikera.github.io/matrix-api/summary.html
+ - http://mikera.github.io/core.matrix/summary.html
