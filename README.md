@@ -54,7 +54,7 @@ so users should be prepared to deal with potential breaking changes when updatin
 
 The plan is to become an official Clojure Contrib language extension once the API has been well tested. 
 
-[![Build Status](https://travis-ci.org/mikera/matrix-api.png?branch=master)](https://travis-ci.org/mikera/matrix-api)
+[![Build Status](https://travis-ci.org/mikera/core.matrix.png?branch=master)](https://travis-ci.org/mikera/core.matrix)
 
 ### Contributing
 
