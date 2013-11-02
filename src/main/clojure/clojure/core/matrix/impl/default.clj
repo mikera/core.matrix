@@ -855,7 +855,7 @@
       ([m f a] (error "Can't do element-map! on nil"))
       ([m f a more] (error "Can't do element-map! on nil")))
     (element-reduce
-      ([m f] (f nil))
+      ([m f] nil)
       ([m f init] (f init nil))))
 
 (extend-protocol mp/PElementCount

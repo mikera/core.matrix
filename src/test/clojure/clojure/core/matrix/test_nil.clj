@@ -14,7 +14,8 @@
   (is (not (e= nil [])))
   (is (not (e= nil '())))
   (is (e= nil nil))
-  (is (nil? (assign 1 nil))))
+  (is (nil? (assign 1 nil)))
+  (is (nil? (ereduce + nil))))
 
 (deftest test-nil 
   (is (nil? (transpose nil)))
