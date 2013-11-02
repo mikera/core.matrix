@@ -269,7 +269,10 @@
     (is (= 1 (transpose 1)))
     (is (= [1.0] (transpose [1.0])))
     (is (= [[1 3] [2 4]] (transpose [[1 2] [3 4]])))
-    (is (= [[1] [2] [3]] (transpose [[1 2 3]])))))
+    (is (= [[1] [2] [3]] (transpose [[1 2 3]]))))
+  (testing "in place transpose"
+    (let [m [[1 2] [3 4]]]
+      (is (e= (transpose m) (transpose! (mutable m)))))))
 
 (deftest test-det
   (testing "determinant"
