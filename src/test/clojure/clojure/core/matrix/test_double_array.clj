@@ -48,6 +48,14 @@
       (is (scalar? fs))
       (is (== 0 (dimensionality fs)))
       (is (not (array? fs)))))
+  (testing "slice views"
+    (let [da (double-array [1 2 3])
+          fs (first (slice-views da))]
+      (is (not (scalar? fs)))
+      (is (== 0 (dimensionality fs)))
+      (fill! fs 10) 
+      (is (equals [10 2 3] da))
+      (is (array? fs))))
   (testing "wrong dimension"
     (let [da (double-array [1 2 3])]
       (is (error? (slice da 1 1))))))
