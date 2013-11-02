@@ -160,13 +160,15 @@
 (defn test-slice-assumptions [m]
   (let [dims (dimensionality m)]
     (when (> dims 0) ;; slices only valid for dimensionality 1 or above
-      (doseq [sl (slices m)]
-        (is (== (dec dims) (dimensionality sl)))
-        (is (= (next (shape m)) (seq (shape sl)))))
-      (when (> dims 1) ;; we get non-mutable scalars back when slicing 1d
-        (if-let [ss (seq (slices m))]
-          (let [fss (first ss)]
-            (is (= (mutable? fss) (mutable? m)))))))))
+      (let [slcs (slices m)]
+        (doseq [sl slcs]
+          (is (== (dec dims) (dimensionality sl)))
+          (is (= (next (shape m)) (seq (shape sl)))))
+        (when (> dims 1) ;; we get non-mutable scalars back when slicing 1d
+          (if-let [ss (seq slcs)]
+            (let [fss (first ss)]
+              (is (= (mutable? fss) (mutable? m)))))
+          (is (e= m slcs)))))))
 
 (defn test-submatrix-assumptions [m]
   (let [shp (shape m)
