@@ -347,7 +347,7 @@
         (mapmatrix #(* % a) m)))
     (pre-scale [m a]
       (let [a (mp/get-0d a)]
-        (mapmatrix (partial * a) m))))
+        (mapmatrix #(* a %) m))))
 
 (extend-protocol mp/PSquare
   clojure.lang.IPersistentVector
