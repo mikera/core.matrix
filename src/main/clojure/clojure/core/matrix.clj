@@ -684,6 +684,13 @@
   ([m a]
     (mp/broadcast-like m a)))
 
+(defn broadcast-coerce
+  "Broadcasts and coerces the second matrix to the shape and type of the first.
+   Equivalent to (coerce m (broadcast-like m a))."
+  ([m a]
+    (mp/broadcast-coerce m a)))
+
+
 (defn transpose
   "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped.
    More generally, the dimension indices are reversed for any shape of array. Note that 1D vectors

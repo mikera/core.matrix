@@ -227,6 +227,13 @@
   (is (equals [1 2 3] (mp/broadcast-like [2 3 4] [1 2 3])))
   (is (error? (mp/broadcast-like [1 2 3] [1 2]))))
 
+(deftest test-broadcast-coerce
+  (is (equals [2 2] (mp/broadcast-coerce [1 1] 2)))
+  (is (equals [2 2] (mp/broadcast-coerce [1 1] (double-array [2 2]))))
+  (is (equals [[7 7] [7 7]] (mp/broadcast-coerce [[1 2] [3 4]] 7)))
+  (is (equals [1 2 3] (mp/broadcast-coerce [2 3 4] [1 2 3])))
+  (is (error? (mp/broadcast-coerce [1 2 3] [1 2]))))
+
 (deftest test-divide
   (is (== 2 (div 4 2)))
   (is (op/== [2 1] (div [4 2] 2)))
