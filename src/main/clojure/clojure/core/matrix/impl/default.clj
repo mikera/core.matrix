@@ -419,16 +419,15 @@
       (case (long (mp/dimensionality m))
         0 m
         1 m
-        2 (mp/coerce-param m (apply mapv vector (map
-                                                  #(mp/coerce-param [] %)
-                                                  (mp/get-major-slice-seq m))))
-        (mp/coerce-param m
-          (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
-            ;; note that function must come second for mp/element-map
-            (case (count ss)
-              1 (mp/element-map (mp/coerce-param [] (first ss)) vector)
-              2 (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss))
-              (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss) (nnext ss))))))))
+        2 (apply mapv vector (map
+                               #(mp/coerce-param [] %)
+                               (mp/get-major-slice-seq m)))
+        (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
+          ;; note that function must come second for mp/element-map
+          (case (count ss)
+            1 (mp/element-map (mp/coerce-param [] (first ss)) vector)
+            2 (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss))
+            (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss) (nnext ss)))))))
 
 (extend-protocol mp/PTransposeInPlace
   Object
@@ -462,15 +461,14 @@
                                      (mp/get-major-slice-seq a)
                                      (mp/get-major-slice-seq m))) ;; TODO: implement with mutable accumulation
         :else
-          (mp/coerce-param m
-            (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m)))))
+          (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m))))
     (outer-product [m a]
       (cond
         (mp/is-scalar? m)
           (mp/pre-scale a m)
         :else
-          (mp/coerce-param m (mp/convert-to-nested-vectors
-                               (mp/element-map m (fn [v] (mp/pre-scale a v))))))))
+          (mp/convert-to-nested-vectors
+            (mp/element-map m (fn [v] (mp/pre-scale a v)))))))
 
 ;; matrix multiply
 ;; TODO: document returning NDArray
