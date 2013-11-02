@@ -158,7 +158,8 @@
                transpose
                slices
                first
-               (mget 1)))))
+               (mget 1))))
+  (is (equals [10] (add-product! (array :ndarray [4]) [2] [3]))))
 
 (deftest ndarray-test
   (ct/test-ndarray-implementation (empty-ndarray [3 3])))

@@ -852,9 +852,9 @@
   mp/PAddProductMutable
     (add-product! [m a b]
       (let [^typename# a (if (instance? typename# a) a
-                             (mp/broadcast-like m a))
+                             (mp/broadcast-coerce m a))
             ^typename# b (if (instance? typename# b) b
-                             (mp/broadcast-like m b))]
+                             (mp/broadcast-coerce m b))]
         (iae-when-not (and (java.util.Arrays/equals (ints (.shape m))
                                                     (ints (.shape a)))
                            (java.util.Arrays/equals (ints (.shape a))
