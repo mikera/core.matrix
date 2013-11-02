@@ -590,6 +590,7 @@
 
 (defn broadcast-compatible
   "Broadcasts two matrices into identical shapes, coercing to the type of the first matrix.
+   Intended to prepare for elementwise operations.
    Returns a vector containing the two broadcasted matrices.
    Throws an error if not possible."
   ([a b]
