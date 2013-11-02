@@ -616,9 +616,13 @@
 (extend-protocol mp/PVectorTransform
   clojure.lang.IFn
     (vector-transform [m a]
-      (m a))
+      (if
+        (vector? m) (mp/matrix-multiply m a)
+        (m a)))
     (vector-transform! [m a]
-      (mp/assign! a (m a)))
+      (if
+        (vector? m) (mp/assign! a (mp/matrix-multiply m a))
+        (mp/assign! a (m a))))
   Object
     (vector-transform [m a]
       (cond
