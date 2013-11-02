@@ -185,6 +185,14 @@
   ([data type]
     (mutable data type)))
 
+(defn ensure-mutable
+  "Checks if an array is mutable, and if not converts to a new mutable array. Guarantees
+   that the result will be mutable."
+  ([m]
+    (if (mp/is-mutable? m)
+      m
+      (mutable m))))
+
 (defn diagonal-matrix
   "Constructs a 2D diagonal matrix with the given numerical values on the main diagonal.
    All off-diagonal elements will be zero. diagonal-values may be a vector or any Clojure sequence of values.

@@ -115,6 +115,10 @@
       (is (thrown? Throwable (dimension-count m dims))))))
 
 (defn test-mutable-assumptions [m]
+  (testing "ensure mutable"
+    (let [em (ensure-mutable m)]
+      (is (mutable? em))
+      (is (e= m em))))
   (testing "mutable-matrix works ok"
     (let [mm (mutable-matrix m)]
       (is (mutable? mm))
