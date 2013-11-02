@@ -368,7 +368,9 @@
     (is (== 0.75 (density [0 1 2 3])))))
 
 (deftest test-object-array
-  (is (e= [:a :b] (coerce [] (object-array [:a :b])))))
+  (is (e= [:a :b] (coerce [] (object-array [:a :b]))))
+  (let [a (to-object-array [1 2 3])]
+    (is (= 2 (aget a 1)))))
 
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]

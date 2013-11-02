@@ -474,9 +474,10 @@
     If want-copy? is false, will return the internal array used by m, or nil if not supported
     by the implementation.
     If want-copy? is not specified, will return either a copy or the internal array"
-   (^doubles [m]
-     (TODO))
-   (^doubles [m want-copy?]
+   ([m]
+     ;; TODO: more efficient implementation with protocol
+     (object-array (mp/element-seq m)))
+   ([m want-copy?]
      (TODO)))
 
 ;; =======================================
@@ -666,7 +667,6 @@
       (mp/to-vector m)
       (array m (mp/element-seq m)))))
 
-
 ;; ====================================
 ;; structural change operations
 
@@ -689,7 +689,6 @@
    Equivalent to (coerce m (broadcast-like m a))."
   ([m a]
     (mp/broadcast-coerce m a)))
-
 
 (defn transpose
   "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped.
