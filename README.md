@@ -31,7 +31,7 @@ To use `core.matrix`, you can get the latest released version from Clojars:
 
 For code examples see:
 
- - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/clojure/core/matrix/examples.clj
+ - https://github.com/mikera/core.matrix/blob/master/src/main/clojure/clojure/core/matrix/examples.clj
 
 ### Documentation
 
