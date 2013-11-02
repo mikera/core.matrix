@@ -372,6 +372,11 @@
   (let [a (to-object-array [1 2 3])]
     (is (= 2 (aget a 1)))))
 
+(deftest test-permutation
+  (is (equals [[0 1] [1 0]] (permutation-matrix [1 0])))
+  (is (equals [[1 0] [0 1]] (permutation-matrix [0 1])))
+  (is (equals [[0 1 0] [0 0 1] [1 0 0]] (permutation-matrix [1 2 0]))))
+
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]
     (testing "example code"

@@ -1144,6 +1144,17 @@
                  (assoc zs i (nth diagonal-values i))))]
         (mp/coerce-param m dm))))
 
+(extend-protocol mp/PPermutationMatrix
+  Object
+    (permutation-matrix [m permutation]
+      (let [v (mp/convert-to-nested-vectors permutation)
+            n (count v)
+            r (mp/new-matrix m n n)
+            r (if (mp/is-mutable? r) r (construct-mutable-matrix r))]
+        (dotimes [i n]
+          (mp/set-2d! r i (v i) 1.0))
+        r)))
+
 (extend-protocol mp/PMatrixPredicates
   Object
   (identity-matrix? [m]

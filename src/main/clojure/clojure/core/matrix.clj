@@ -164,6 +164,15 @@
   ([implementation dims]
     (mp/identity-matrix (implementation-check implementation) dims)))
 
+(defn permutation-matrix
+  "Constructs a permutation matrix for a given permutation vector. The permutation vector should
+   contain a distinct set of intergers 0...n-1, representing the re-ordering performed by
+   the permutation matrix."
+  ([permutation]
+    (mp/permutation-matrix (implementation-check) permutation))
+  ([implementation permutation]
+    (mp/permutation-matrix (implementation-check implementation) permutation)))
+
 (defn mutable
   "Constructs a mutable copy of the given array data.
 
@@ -187,7 +196,7 @@
 
 (defn ensure-mutable
   "Checks if an array is mutable, and if not converts to a new mutable array. Guarantees
-   that the result will be mutable."
+   that the result will be mutable, but may not be the same type as the original array."
   ([m]
     (if (mp/is-mutable? m)
       m
