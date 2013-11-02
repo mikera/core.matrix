@@ -207,7 +207,7 @@
 
 (extend-protocol mp/PSliceView
   IPersistentVector
-    (get-major-slice-view [m i] (m i)))
+    (get-major-slice-view [m i] (.nth m i)))
 
 (extend-protocol mp/PSliceSeq
   IPersistentVector
