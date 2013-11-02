@@ -406,8 +406,7 @@
     (inverse [m]
       (->> m
            (mp/coerce-param (imp/get-canonical-object :ndarray-double))
-           (mp/inverse)
-           (mp/coerce-param m))))
+           (mp/inverse))))
 
 (extend-protocol mp/PTranspose
   nil
@@ -1048,11 +1047,11 @@
       (let [dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
-            (mp/coerce-param m [(mp/get-0d m)])
+            [(mp/get-0d m)]
           (mp/is-vector? m)
             (mp/clone m)
           :else
-            (mp/coerce-param m (mp/element-seq m))))))
+            (vec (mp/element-seq m))))))
 
 (extend-protocol mp/PReshaping
   nil
