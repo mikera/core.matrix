@@ -948,12 +948,13 @@
   mp/PMatrixDivide
     (element-divide [m a]
        (let [[m a] (mp/broadcast-compatible m a)
+             a (mp/coerce-param m a)
              m (mp/clone m)]
          (loop-over [m a]
            (aset m-data m-idx (type-cast#
                                (/ (aget m-data m-idx)
                                   (type-cast# (aget a-data a-idx))))))
-         a))
+         m))
     (element-divide [m]
       (let [a (mp/clone m)]
         (loop-over [a]

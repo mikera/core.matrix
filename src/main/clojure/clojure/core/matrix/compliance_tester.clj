@@ -398,6 +398,9 @@
   (is (equals (sub m 0.0) (scale m 1.0)))
   (is (equals (negate m) (outer-product -1.0 m)))
   (is (equals (add 0.0 m) (mul 1 m)))
+  (is (equals m (div m 1)))
+  (let [m (add (square m) 1)]
+    (is (equals m (div (square m) m))))
   (is (equals (emul m m) (square m)))
   (is (equals (esum m) (ereduce + m)))
   (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m)))))
