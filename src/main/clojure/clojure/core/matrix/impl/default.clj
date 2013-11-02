@@ -896,10 +896,10 @@
 (extend-protocol mp/PSliceSeq
   Object
     (get-major-slice-seq [m]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
-          (<= dims 0)
-            (error "Can't get slices on [" dims "]-dimensional object: " m)
+          (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object: " m)
+          (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
 
 (extend-protocol mp/PSliceJoin

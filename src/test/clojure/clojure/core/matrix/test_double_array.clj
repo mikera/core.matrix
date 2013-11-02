@@ -45,9 +45,9 @@
   (testing "slices"
     (let [da (double-array [1 2 3])
           fs (first (slices da))]
-      (is (not (scalar? fs)))
+      (is (scalar? fs))
       (is (== 0 (dimensionality fs)))
-      (is (array? fs))))
+      (is (not (array? fs)))))
   (testing "wrong dimension"
     (let [da (double-array [1 2 3])]
       (is (error? (slice da 1 1))))))

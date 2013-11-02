@@ -127,7 +127,9 @@
   (is (equals 1 (emap inc (array 0))))
   (is (equals [2] (emap inc (array [1]))))
   (is (equals [[3]] (emap inc (array [[2]]))))
-  (is (equals [[[[5]]]] (emap inc (array [[[[4]]]])))))
+  (is (equals [[[[5]]]] (emap inc (array [[[[4]]]]))))
+  (is (equals [10] (emap + [1] [2] [3] [4])))
+  (is (equals [10] (emap + [1] (broadcast 2 [1]) (double-array [3]) [4]))))
 
 (deftest test-conforming?
   (is (conforming? 1 [[2 2] [3 3]]))
