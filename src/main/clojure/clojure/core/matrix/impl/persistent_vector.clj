@@ -89,8 +89,6 @@
       (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; array with zero dimensionality
       
       ;; it's not an array - so try alternative coercions
-      (clojure.core/vector? x)
-        (if (is-nested-persistent-vectors? x) x (mapv mp/convert-to-nested-vectors x))
       (nil? x) x
       (.isArray (class x)) (map persistent-vector-coerce (seq x))
       (instance? java.util.List x) (coerce-nested x)
