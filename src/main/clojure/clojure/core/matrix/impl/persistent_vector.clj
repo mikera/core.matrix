@@ -148,6 +148,11 @@
     (broadcast-like [m a]
       (mp/broadcast a (mp/get-shape m))))
 
+(extend-protocol mp/PBroadcastCoerce
+  clojure.lang.IPersistentVector
+    (broadcast-coerce [m a]
+      (mp/broadcast (persistent-vector-coerce a) (mp/get-shape m))))
+
 (extend-protocol mp/PIndexedAccess
   clojure.lang.IPersistentVector
     (get-1d [m x]
