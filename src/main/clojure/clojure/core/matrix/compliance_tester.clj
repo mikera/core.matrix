@@ -190,7 +190,7 @@
   ;; (is (identical? m (coerce m m))) ;; TODO: figure out if we should enforce this?
   (let [vm (mp/convert-to-nested-vectors m)]
     (is (or (clojure.core/vector? vm) (== 0 (mp/dimensionality vm))))
-    (is (clojure.core.matrix.impl.persistent-vector/is-nested-vectors? vm))
+    (is (clojure.core.matrix.impl.persistent-vector/is-nested-persistent-vectors? vm))
     (is (e= m vm))))
 
 (defn test-vector-round-trip [m]

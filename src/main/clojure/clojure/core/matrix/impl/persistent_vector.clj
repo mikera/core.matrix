@@ -107,21 +107,7 @@
       (if (> (count m) 0)
         (+ 1 (vector-dimensionality (.nth ^IPersistentVector m 0)))
         1)
-    (mp/is-scalar? m) 0
     :else (mp/dimensionality m)))
-
-(defn is-nested-vectors?
-  "Returns true if m is in a correct nested vector implementation."
-  ([m]
-    (or (mp/is-scalar? m)
-        (and (clojure.core/vector? m)
-             (every? is-nested-vectors? m)))))
-
-;(defmacro with-broadcasting [syms form]
-;  (let [shape-syms (map (fn [_] (gensym "shape")) syms)]
-;    `(let [~(interleave shape-syms (map (fn [s] `(mp/get-shape ~s)) syms))
-;           bs# (broadcast-shape ~shape-syms)])))
-;; TODO comp[lete broadcasting macro
 
 ;; =======================================================================
 ;; Implementation for nested Clojure persistent vectors used as matrices
