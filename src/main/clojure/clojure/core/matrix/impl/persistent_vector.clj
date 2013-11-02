@@ -303,16 +303,6 @@
                   false)
                 true))))))
 
-(extend-protocol mp/PRowOperations
-  clojure.lang.IPersistentVector
-    (swap-rows [m i j]
-      (when-not (== i j)
-        (assoc (assoc m i (m j)) j (m i))))
-    (multiply-row [m i factor]
-      (assoc m i (mp/scale (m i) factor)))
-    (add-row [m i j k]
-      (assoc m i (mapv (fn [vi vj] (+ vi (* vj k))) (m i) (m j)))))
-
 (extend-protocol mp/PMatrixMultiply
   clojure.lang.IPersistentVector
     (element-multiply [m a]
@@ -362,9 +352,11 @@
 (extend-protocol mp/PRowOperations
   clojure.lang.IPersistentVector
     (swap-rows [m i j]
-      (assoc m j (m i) i (m j)))
+      (if (== i j)
+        m
+        (assoc (assoc m i (m j)) j (m i))))
     (multiply-row [m i factor]
-      (assoc m i (mp/matrix-multiply (m i) factor)))
+      (assoc m i (mp/scale (m i) factor)))
     (add-row [m i j factor]
       (assoc m i (mp/matrix-add (m i) (mp/matrix-multiply (m j) factor)))))
 
