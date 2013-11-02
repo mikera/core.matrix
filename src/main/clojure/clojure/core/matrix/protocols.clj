@@ -589,12 +589,12 @@
       :default (error "Can't coerce to vector: " (class x)))))
 
 (defn broadcast-compatible
-  "Broadcasts two matrices into identical shapes.
+  "Broadcasts two matrices into identical shapes, coercing to the type of the first matrix.
    Returns a vector containing the two broadcasted matrices.
    Throws an error if not possible."
   ([a b]
     (if (same-shape? a b)
       [a b]
       (if (< (dimensionality a) (dimensionality b))
-        [(broadcast-like b a) b]
-        [a (broadcast-like a b)]))))
+        [(broadcast-like b a) (coerce-param a b)]
+        [a (broadcast-coerce a b)]))))
