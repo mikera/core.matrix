@@ -171,7 +171,7 @@
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/mutable-matrix data)
-        (array :ndarray data))) ;; TODO: consider restricting to tighter NDArray type?
+        (clojure.core.matrix.impl.default/construct-mutable-matrix data))) 
   ([data type]
     (mutable data) ;; TODO: support creation with specific element types
     ))
