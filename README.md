@@ -37,7 +37,7 @@ For code examples see:
 
 For documentation and further examples see the Wiki:
 
- - https://github.com/mikera/matrix-api/wiki
+ - https://github.com/mikera/core.matrix/wiki
 
 ### Status
 
