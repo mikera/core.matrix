@@ -190,6 +190,10 @@
   "Protocol to broadcast into a given matrix shape. May also perform coercion if needed by the implementation."
   (broadcast-like [m a]))
 
+(defprotocol PBroadcastCoerce
+  "Protocol to broadcast into a given matrix shape and perform coercion in one step."
+  (broadcast-coerce [m a]))
+
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
   (convert-to-nested-vectors [m]))

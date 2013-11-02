@@ -944,6 +944,14 @@
           a
           (mp/broadcast a sm)))))
 
+(extend-protocol mp/PBroadcastCoerce
+  nil
+    (broadcast-coerce [m a]
+      (mp/get-0d a))
+  Object
+    (broadcast-coerce [m a]
+      (mp/coerce-param m (mp/broadcast-like m a))))
+
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
   nil
