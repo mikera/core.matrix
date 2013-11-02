@@ -430,6 +430,16 @@
               2 (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss))
               (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss) (nnext ss))))))))
 
+(extend-protocol mp/PTransposeInPlace
+  Object
+    (transpose! [m]
+      (let [n (long (mp/dimension-count m 0))]
+        (dotimes [i n]
+          (dotimes [j i]
+            (let [t (mp/get-2d m i j)]
+              (mp/set-2d! m i j (mp/get-2d m j i))
+              (mp/set-2d! m j i t)))))))
+
 (extend-protocol mp/PMatrixProducts
   Number
     (inner-product [m a]

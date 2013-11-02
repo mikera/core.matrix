@@ -717,8 +717,8 @@
 (defn transpose!
   "Transposes a square 2D matrix in-place. Will throw an exception if not possible."
   ([m]
-    ;; TODO: implement with a proper protocol
-    (assign! m (transpose m))))
+    (mp/transpose! m)
+    m))
 
 (defn reshape
   "Changes the shape of a matrix to the specified new shape. shape can be any sequence of dimension sizes.

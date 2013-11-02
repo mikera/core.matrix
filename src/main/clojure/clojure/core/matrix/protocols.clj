@@ -425,6 +425,11 @@
      - The transpose of a 1D vector is the same 1D vector
      - The transpose of a 2D matrix swaps rows and columns"))
 
+(defprotocol PTransposeInPlace 
+  "Protocol for mutable 2D matrix transpose in place"
+  (transpose! [m]
+    "Transposes a mutable 2D matrix in place"))
+
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
    array is a valid numerical value."
