@@ -136,10 +136,12 @@
 (extend-protocol mp/PZeroDimensionSet
   nil
     (set-0d [m value]
-      (wrap/wrap-scalar value))
+      value ;; should be OK, since scalars satisfy 0d array abstraction
+      )
   Object
     (set-0d [m value]
-      (mp/new-scalar-array m value)))
+      value ;; should be OK, since scalars satisfy 0d array abstraction
+      )) 
 
 (extend-protocol mp/PIndexedSetting
   nil 
@@ -153,6 +155,17 @@
         v))
     (is-mutable? [m]
       false)
+  Number 
+    (set-1d [m row v]
+      (error "Can't do 1D set on a scalar number"))
+    (set-2d [m row column v]
+      (error "Can't do 2D set on a scalar number"))
+    (set-nd [m indexes v]
+      (if (seq indexes) 
+        (error "Can't do " (count indexes) "D set on a scalar number")
+        v))
+    (is-mutable? [m]
+      false) 
   Object
     (set-1d [m row v]
       (let [m (mp/clone m)]
@@ -278,6 +291,16 @@
                 (doseq-indexed [s ss i]
                   (mp/assign-array! s arr (+ start (* skip i)) skip))))))))
 
+(extend-protocol mp/PImmutableAssignment
+  nil
+    (assign [m source]
+      (let [r (mp/broadcast-coerce m source)]
+        (if (identical? r source) (mp/clone r) r)))
+  Object
+    (assign [m source]
+      (let [r (mp/broadcast-coerce m source)]
+        (if (identical? r source) (mp/clone r) r))))
+
 (extend-protocol mp/PMutableFill
   Object
     (fill! [m value]
@@ -383,8 +406,7 @@
     (inverse [m]
       (->> m
            (mp/coerce-param (imp/get-canonical-object :ndarray-double))
-           (mp/inverse)
-           (mp/coerce-param m))))
+           (mp/inverse))))
 
 (extend-protocol mp/PTranspose
   nil
@@ -396,16 +418,25 @@
       (case (long (mp/dimensionality m))
         0 m
         1 m
-        2 (mp/coerce-param m (apply mapv vector (map
-                                                  #(mp/coerce-param [] %)
-                                                  (mp/get-major-slice-seq m))))
-        (mp/coerce-param m
-          (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
-            ;; note that function must come second for mp/element-map
-            (case (count ss)
-              1 (mp/element-map (mp/coerce-param [] (first ss)) vector)
-              2 (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss))
-              (mp/element-map (mp/coerce-param [] (first ss)) vector (second ss) (nnext ss))))))))
+        2 (apply mapv vector (map
+                               #(mp/convert-to-nested-vectors %)
+                               (mp/get-major-slice-seq m)))
+        (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
+          ;; note that function must come second for mp/element-map
+          (case (count ss)
+            1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
+            2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
+            (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss)))))))
+
+(extend-protocol mp/PTransposeInPlace
+  Object
+    (transpose! [m]
+      (let [n (long (mp/dimension-count m 0))]
+        (dotimes [i n]
+          (dotimes [j i]
+            (let [t (mp/get-2d m i j)]
+              (mp/set-2d! m i j (mp/get-2d m j i))
+              (mp/set-2d! m j i t)))))))
 
 (extend-protocol mp/PMatrixProducts
   Number
@@ -429,15 +460,14 @@
                                      (mp/get-major-slice-seq a)
                                      (mp/get-major-slice-seq m))) ;; TODO: implement with mutable accumulation
         :else
-          (mp/coerce-param m
-            (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m)))))
+          (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m))))
     (outer-product [m a]
       (cond
         (mp/is-scalar? m)
           (mp/pre-scale a m)
         :else
-          (mp/coerce-param m (mp/convert-to-nested-vectors
-                               (mp/element-map m (fn [v] (mp/pre-scale a v))))))))
+          (mp/convert-to-nested-vectors
+            (mp/element-map m (fn [v] (mp/pre-scale a v)))))))
 
 ;; matrix multiply
 ;; TODO: document returning NDArray
@@ -586,9 +616,13 @@
 (extend-protocol mp/PVectorTransform
   clojure.lang.IFn
     (vector-transform [m a]
-      (m a))
+      (if
+        (vector? m) (mp/matrix-multiply m a)
+        (m a)))
     (vector-transform! [m a]
-      (mp/assign! a (m a)))
+      (if
+        (vector? m) (mp/assign! a (mp/matrix-multiply m a))
+        (mp/assign! a (m a))))
   Object
     (vector-transform [m a]
       (cond
@@ -692,6 +726,18 @@
             (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
         :else false)))
 
+(extend-protocol mp/PValueEquality
+  nil
+    (value-equals [a b]
+      (and 
+        (== 0 (mp/dimensionality b))
+        (nil? (mp/get-0d b))))
+  Object
+    (value-equals [a b]
+      (and
+        (mp/same-shape? a b)
+        (every? true? (map = (mp/element-seq a) (mp/element-seq b))))))
+
 (defmacro eps== [a b eps]
   `(<= (Math/abs (- (double ~a) (double ~b))) (double ~eps) ))
 
@@ -728,11 +774,11 @@
 (extend-protocol mp/PRowOperations
   Object
     (swap-rows [m i j]
-      (mp/swap-rows (mp/coerce-param [] m) i j))
+      (mp/swap-rows (mp/convert-to-nested-vectors m) i j))
     (multiply-row [m i k]
-      (mp/multiply-row (mp/coerce-param [] m) i k))
+      (mp/multiply-row (mp/convert-to-nested-vectors m) i k))
     (add-row [m i j k]
-      (mp/add-row (mp/coerce-param [] m) i j k)))
+      (mp/add-row (mp/convert-to-nested-vectors m) i j k)))
 
 (extend-protocol mp/PRowSetting
   Object
@@ -820,7 +866,7 @@
       ([m f a] (error "Can't do element-map! on nil"))
       ([m f a more] (error "Can't do element-map! on nil")))
     (element-reduce
-      ([m f] (f nil))
+      ([m f] nil)
       ([m f init] (f init nil))))
 
 (extend-protocol mp/PElementCount
@@ -840,7 +886,7 @@
     (get-major-slice [m i]
       (clojure.core.matrix.impl.wrappers/wrap-slice m i))
     (get-slice [m dimension i]
-      (mp/get-slice (mp/coerce-param [] m) dimension i)))
+      (mp/get-slice (mp/convert-to-nested-vectors m) dimension i)))
 
 (extend-protocol mp/PSliceView
   Object
@@ -931,6 +977,14 @@
           a
           (mp/broadcast a sm)))))
 
+(extend-protocol mp/PBroadcastCoerce
+  nil
+    (broadcast-coerce [m a]
+      (mp/coerce-param m (mp/broadcast-like m a)))
+  Object
+    (broadcast-coerce [m a]
+      (mp/coerce-param m (mp/broadcast-like m a))))
+
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
   nil
@@ -954,12 +1008,12 @@
                   (if (< i n)
                     (recur (inc i) (conj res (mp/get-1d m i)))
                     res))))
+          (array? m)
+              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
           (sequential? m)
               (mapv mp/convert-to-nested-vectors m)
           (seq? m)
               (mapv mp/convert-to-nested-vectors m)
-          (array? m)
-              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
           :default
               (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
 
@@ -997,11 +1051,11 @@
       (let [dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
-            (mp/coerce-param m [(mp/get-0d m)])
+            [(mp/get-0d m)]
           (mp/is-vector? m)
             (mp/clone m)
           :else
-            (mp/coerce-param m (mp/element-seq m))))))
+            (vec (mp/element-seq m))))))
 
 (extend-protocol mp/PReshaping
   nil
@@ -1041,7 +1095,7 @@
       param)
   Object
     (coerce-param [m param]
-      (mp/construct-matrix m (mp/convert-to-nested-vectors param))))
+      (mp/construct-matrix m param)))
 
 (extend-protocol mp/PExponent
   Number
@@ -1095,11 +1149,22 @@
       (mp/diagonal-matrix m (repeat dims 1.0)))
     (diagonal-matrix [m diagonal-values]
       (let [dims (count diagonal-values)
-            diagonal-values (mp/coerce-param [] diagonal-values)
+            diagonal-values (mp/convert-to-nested-vectors diagonal-values)
             zs (vec (repeat dims 0.0))
             dm (vec (for [i (range dims)]
                  (assoc zs i (nth diagonal-values i))))]
         (mp/coerce-param m dm))))
+
+(extend-protocol mp/PPermutationMatrix
+  Object
+    (permutation-matrix [m permutation]
+      (let [v (mp/convert-to-nested-vectors permutation)
+            n (count v)
+            r (mp/new-matrix m n n)
+            r (if (mp/is-mutable? r) r (construct-mutable-matrix r))]
+        (dotimes [i n]
+          (mp/set-2d! r i (v i) 1.0))
+        r)))
 
 (extend-protocol mp/PMatrixPredicates
   Object

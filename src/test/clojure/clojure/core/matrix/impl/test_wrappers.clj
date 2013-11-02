@@ -26,7 +26,12 @@
     (is (== 8 (mget s))))
   (let [s (wrap-scalar 7)]
     (scale! s 2)
-    (is (== 14 (mget s)))))
+    (is (== 14 (mget s))))
+  (let [v (wrap-nd (double-array [1 2]))]
+    (is (equals [3 12] (add v [2 10])))
+    ;(add! v [2 10])  TODO: fix mutation of NDWRapper
+    ;(is (equals [3 12] v))
+  ))
 
 (deftest scalar-assumptions
   (is (== 0 (dimensionality (wrap-scalar 7))))

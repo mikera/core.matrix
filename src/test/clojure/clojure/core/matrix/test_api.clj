@@ -227,6 +227,13 @@
   (is (equals [1 2 3] (mp/broadcast-like [2 3 4] [1 2 3])))
   (is (error? (mp/broadcast-like [1 2 3] [1 2]))))
 
+(deftest test-broadcast-coerce
+  (is (equals [2 2] (mp/broadcast-coerce [1 1] 2)))
+  (is (equals [2 2] (mp/broadcast-coerce [1 1] (double-array [2 2]))))
+  (is (equals [[7 7] [7 7]] (mp/broadcast-coerce [[1 2] [3 4]] 7)))
+  (is (equals [1 2 3] (mp/broadcast-coerce [2 3 4] [1 2 3])))
+  (is (error? (mp/broadcast-coerce [1 2 3] [1 2]))))
+
 (deftest test-divide
   (is (== 2 (div 4 2)))
   (is (op/== [2 1] (div [4 2] 2)))
@@ -262,7 +269,10 @@
     (is (= 1 (transpose 1)))
     (is (= [1.0] (transpose [1.0])))
     (is (= [[1 3] [2 4]] (transpose [[1 2] [3 4]])))
-    (is (= [[1] [2] [3]] (transpose [[1 2 3]])))))
+    (is (= [[1] [2] [3]] (transpose [[1 2 3]]))))
+  (testing "in place transpose"
+    (let [m [[1 2] [3 4]]]
+      (is (e= (transpose m) (transpose! (mutable m)))))))
 
 (deftest test-det
   (testing "determinant"
@@ -361,7 +371,14 @@
     (is (== 0.75 (density [0 1 2 3])))))
 
 (deftest test-object-array
-  (is (e= [:a :b] (coerce [] (object-array [:a :b])))))
+  (is (e= [:a :b] (coerce [] (object-array [:a :b]))))
+  (let [a (to-object-array [1 2 3])]
+    (is (= 2 (aget a 1)))))
+
+(deftest test-permutation
+  (is (equals [[0 1] [1 0]] (permutation-matrix [1 0])))
+  (is (equals [[1 0] [0 1]] (permutation-matrix [0 1])))
+  (is (equals [[0 1 0] [0 0 1] [1 0 0]] (permutation-matrix [1 2 0]))))
 
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]
@@ -390,6 +407,11 @@
     (is (= 3 (mget a)))
     (is (= 3 (scalar a))))
   (is (equals 0 (new-scalar-array))))
+
+(deftest test-min-max
+  (is (== 1 (emin [2 1 7])))
+  (is (== 7 (emax [2 1 7])))
+  (is (== 7 (emax [[4 3 2] [2 1 7] [-1 5 -20]]))))
 
 (deftest test-predicates
   (testing "scalar predicates"

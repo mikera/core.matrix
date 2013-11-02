@@ -7,7 +7,10 @@
   (:require [clojure.core.matrix.multimethods :as mm]))
 
 ;; core.matrix implementation for Clojure ISeq objects
-;; generally returns a persistent vector where possible
+;;
+;; Important notes:
+;; 1. Intended mainly for accessing data. Not recommended for computations...
+;; 2. generally returns a persistent vector where possible
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -48,13 +51,16 @@
       (let [row (nth m x)]
         (mp/get-1d row y)))
     (get-nd [m indexes]
-      (if-let [next-indexes (next indexes)]
-        (let [m (nth m (int (first indexes)))]
-          (mp/get-nd m next-indexes))
-        (nth m (int (first indexes))))))
+      (if-let [indexes (seq indexes)]
+        (if-let [next-indexes (next indexes)]
+          (let [mv (nth m (first indexes))]
+            (mp/get-nd mv next-indexes))
+          (nth m (first indexes)))
+        m ;; TODO: figure out if this is a good return value? should it be an error?
+        )))
 
 (extend-protocol mp/PIndexedSetting
-  java.lang.Object
+  clojure.lang.ISeq
     (set-1d [m row v]
       (mp/set-1d (mp/convert-to-nested-vectors m) row v))
     (set-2d [m row column v]
@@ -63,6 +69,16 @@
       (mp/set-nd (mp/convert-to-nested-vectors m) indexes v))
     (is-mutable? [m]
       false))
+
+(extend-protocol mp/PBroadcast
+  clojure.lang.ISeq
+    (broadcast [m new-shape]
+      (mp/broadcast (mp/convert-to-nested-vectors m) new-shape)))
+
+(extend-protocol mp/PBroadcastLike
+  clojure.lang.ISeq
+    (broadcast-like [m a]
+      (mp/broadcast (mp/convert-to-nested-vectors a) (mp/get-shape m))))
 
 (extend-protocol mp/PSliceView
   clojure.lang.ISeq
@@ -110,9 +126,7 @@
           (mapv #(mp/element-map % f %2 %3) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
     (element-map!
       ([m f]
-        (do
-          (doseq [s m] (mp/element-map! s f))
-          m))
+        (error "Sequence arrays are not mutable!"))
       ([m f a]
         (error "Sequence arrays are not mutable!"))
       ([m f a more]

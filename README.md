@@ -31,13 +31,13 @@ To use `core.matrix`, you can get the latest released version from Clojars:
 
 For code examples see:
 
- - https://github.com/mikera/matrix-api/blob/master/src/main/clojure/clojure/core/matrix/examples.clj
+ - https://github.com/mikera/core.matrix/blob/master/src/main/clojure/clojure/core/matrix/examples.clj
 
 ### Documentation
 
 For documentation and further examples see the Wiki:
 
- - https://github.com/mikera/matrix-api/wiki
+ - https://github.com/mikera/core.matrix/wiki
 
 ### Status
 
@@ -54,7 +54,7 @@ so users should be prepared to deal with potential breaking changes when updatin
 
 The plan is to become an official Clojure Contrib language extension once the API has been well tested. 
 
-[![Build Status](https://travis-ci.org/mikera/matrix-api.png?branch=master)](https://travis-ci.org/mikera/matrix-api)
+[![Build Status](https://travis-ci.org/mikera/core.matrix.png?branch=master)](https://travis-ci.org/mikera/core.matrix)
 
 ### Contributing
 
@@ -63,7 +63,7 @@ All contributions / ideas welcome!
 There are a number of proposed enhancements listed as GitHub issues: these are a good place to start if you wish to contribute
 to core.matrix:
 
- - https://github.com/mikera/matrix-api/issues?state=open
+ - https://github.com/mikera/core.matrix/issues?state=open
 
 If you wish to contribute code, please ensure you have a **Clojure Contributors Agreement** signed and on file. For more information see:
 
@@ -75,8 +75,8 @@ Discussions related to core.matrix generally take place on the "Numerical Clojur
 
 If you are interested in writing a `core.matrix` implementation, see:
 
- - https://github.com/mikera/matrix-api/wiki/Implementation-Guide
+ - https://github.com/mikera/core.matrix/wiki/Implementation-Guide
 
 You can also find a protocol implementation summary here:
 
- - http://mikera.github.io/matrix-api/summary.html
+ - http://mikera.github.io/core.matrix/summary.html

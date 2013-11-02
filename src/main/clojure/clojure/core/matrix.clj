@@ -164,6 +164,15 @@
   ([implementation dims]
     (mp/identity-matrix (implementation-check implementation) dims)))
 
+(defn permutation-matrix
+  "Constructs a permutation matrix for a given permutation vector. The permutation vector should
+   contain a distinct set of intergers 0...n-1, representing the re-ordering performed by
+   the permutation matrix."
+  ([permutation]
+    (mp/permutation-matrix (implementation-check) permutation))
+  ([implementation permutation]
+    (mp/permutation-matrix (implementation-check implementation) permutation)))
+
 (defn mutable
   "Constructs a mutable copy of the given array data.
 
@@ -171,7 +180,7 @@
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/mutable-matrix data)
-        (array :ndarray data))) ;; TODO: consider restricting to tighter NDArray type?
+        (clojure.core.matrix.impl.default/construct-mutable-matrix data))) 
   ([data type]
     (mutable data) ;; TODO: support creation with specific element types
     ))
@@ -184,6 +193,14 @@
     (mutable data))
   ([data type]
     (mutable data type)))
+
+(defn ensure-mutable
+  "Checks if an array is mutable, and if not converts to a new mutable array. Guarantees
+   that the result will be mutable, but may not be the same type as the original array."
+  ([m]
+    (if (mp/is-mutable? m)
+      m
+      (mutable m))))
 
 (defn diagonal-matrix
   "Constructs a 2D diagonal matrix with the given numerical values on the main diagonal.
@@ -258,10 +275,10 @@
     m))
 
 (defn assign
-  "Assigns a value elementwise to a given matrix, broadcasting to fill the whole matrix as necessary.
-   Returns a new matrix, of the same shape as the original."
+  "Assigns array a elementwise, broadcasting to fill the whole shape of m.
+   Returns a new matrix, of the same shape as the original m."
   ([m a]
-    (mp/broadcast (mp/coerce-param m a) (mp/get-shape m))))
+    (mp/assign m a)))
 
 (defn clone
   "Constructs a (shallow) clone of the matrix. This function is intended to
@@ -474,9 +491,10 @@
     If want-copy? is false, will return the internal array used by m, or nil if not supported
     by the implementation.
     If want-copy? is not specified, will return either a copy or the internal array"
-   (^doubles [m]
-     (TODO))
-   (^doubles [m want-copy?]
+   ([m]
+     ;; TODO: more efficient implementation with protocol
+     (object-array (mp/element-seq m)))
+   ([m want-copy?]
      (TODO)))
 
 ;; =======================================
@@ -666,7 +684,6 @@
       (mp/to-vector m)
       (array m (mp/element-seq m)))))
 
-
 ;; ====================================
 ;; structural change operations
 
@@ -684,6 +701,12 @@
   ([m a]
     (mp/broadcast-like m a)))
 
+(defn broadcast-coerce
+  "Broadcasts and coerces the second matrix to the shape and type of the first.
+   Equivalent to (coerce m (broadcast-like m a))."
+  ([m a]
+    (mp/broadcast-coerce m a)))
+
 (defn transpose
   "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped.
    More generally, the dimension indices are reversed for any shape of array. Note that 1D vectors
@@ -694,8 +717,8 @@
 (defn transpose!
   "Transposes a square 2D matrix in-place. Will throw an exception if not possible."
   ([m]
-    ;; TODO: implement with a proper protocol
-    (assign! m (transpose m))))
+    (mp/transpose! m)
+    m))
 
 (defn reshape
   "Changes the shape of a matrix to the specified new shape. shape can be any sequence of dimension sizes.
@@ -1161,20 +1184,32 @@
   [m]
   (mp/element-sum m))
 
+(defn emin
+  "Gets the minimum element value from a numerical array"
+  ([m]
+    (mp/element-reduce m 
+                       (fn [best v] (if (or (not best) (< v best)) v best)) 
+                       nil)))
+
+(defn emax
+  "Gets the maximum element value from a numerical array"
+  ([m]
+    (mp/element-reduce m 
+                       (fn [best v] (if (or (not best) (> v best)) v best)) 
+                       nil)))
+
 (defn e=
-  "Returns true if all array elements are equal (using clojure.core/=).
+  "Returns true if all array elements are equal (using the semantics of clojure.core/=).
    WARNING: a java.lang.Long does not equal a java.lang.Double.
    Use 'equals' or 'e==' instead if you want numerical equality."
   ([m1]
     true)
   ([m1 m2]
-    (and
-      (same-shape? m1 m2)
-      (every? true? (map = (eseq m1) (eseq m2)))))
+    (mp/value-equals m1 m2))
   ([m1 m2 & more]
     (and
-      (same-shape? m1 m2)
-      (reduce (fn [r mi] (and r (e= m1 mi))) (e= m1 m2) more))))
+      (mp/value-equals m1 m2)
+      (apply e= m2 more))))
 
 (defn e==
   "Returns true if all array elements are numerically equal. Throws an error if any elements

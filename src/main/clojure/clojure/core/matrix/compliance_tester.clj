@@ -115,6 +115,10 @@
       (is (thrown? Throwable (dimension-count m dims))))))
 
 (defn test-mutable-assumptions [m]
+  (testing "ensure mutable"
+    (let [em (ensure-mutable m)]
+      (is (mutable? em))
+      (is (e= m em))))
   (testing "mutable-matrix works ok"
     (let [mm (mutable-matrix m)]
       (is (mutable? mm))
@@ -156,13 +160,15 @@
 (defn test-slice-assumptions [m]
   (let [dims (dimensionality m)]
     (when (> dims 0) ;; slices only valid for dimensionality 1 or above
-      (doseq [sl (slices m)]
-        (is (== (dec dims) (dimensionality sl)))
-        (is (= (next (shape m)) (seq (shape sl)))))
-      (when (> dims 1) ;; we get non-mutable scalars back when slicing 1d
-        (if-let [ss (seq (slices m))]
-          (let [fss (first ss)]
-            (is (= (mutable? fss) (mutable? m)))))))))
+      (let [slcs (slices m)]
+        (doseq [sl slcs]
+          (is (== (dec dims) (dimensionality sl)))
+          (is (= (next (shape m)) (seq (shape sl)))))
+        (when (> dims 1) ;; we get non-mutable scalars back when slicing 1d
+          (if-let [ss (seq slcs)]
+            (let [fss (first ss)]
+              (is (= (mutable? fss) (mutable? m)))))
+          (is (e= m slcs)))))))
 
 (defn test-submatrix-assumptions [m]
   (let [shp (shape m)
@@ -184,7 +190,7 @@
   ;; (is (identical? m (coerce m m))) ;; TODO: figure out if we should enforce this?
   (let [vm (mp/convert-to-nested-vectors m)]
     (is (or (clojure.core/vector? vm) (== 0 (mp/dimensionality vm))))
-    (is (clojure.core.matrix.impl.persistent-vector/is-nested-vectors? vm))
+    (is (clojure.core.matrix.impl.persistent-vector/is-nested-persistent-vectors? vm))
     (is (e= m vm))))
 
 (defn test-vector-round-trip [m]
@@ -398,6 +404,9 @@
   (is (equals (sub m 0.0) (scale m 1.0)))
   (is (equals (negate m) (outer-product -1.0 m)))
   (is (equals (add 0.0 m) (mul 1 m)))
+  (is (equals m (div m 1)))
+  (let [m (add (square m) 1)]
+    (is (equals m (div (square m) m))))
   (is (equals (emul m m) (square m)))
   (is (equals (esum m) (ereduce + m)))
   (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m)))))

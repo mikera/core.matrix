@@ -163,6 +163,10 @@
   (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions")
   (diagonal-matrix [m diagonal-values] "Create a diagonal matrix with the specified leading diagonal values"))
 
+(defprotocol PPermutationMatrix
+  "Protocol for construction of a permutation matrix."
+  (permutation-matrix [m permutation]))
+
 (defprotocol PCoercion
   "Protocol to coerce a parameter to a format usable by a specific implementation. It is
    up to the implementation to determine what parameter types they support.
@@ -189,6 +193,10 @@
 (defprotocol PBroadcastLike
   "Protocol to broadcast into a given matrix shape. May also perform coercion if needed by the implementation."
   (broadcast-like [m a]))
+
+(defprotocol PBroadcastCoerce
+  "Protocol to broadcast into a given matrix shape and perform coercion in one step."
+  (broadcast-coerce [m a]))
 
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
@@ -266,6 +274,13 @@
     [m arr start length]
     "Sets the elements in an array from an Java array source, in row-major order."))
 
+(defprotocol PImmutableAssignment
+  "Protocol for assigning values element-wise to an array, broadcasting as needed."
+  (assign
+    [m source]
+    "Sets all the values in an array from a given source. Source may be a scalar
+     or a smaller array that can be broadcast to the shape of m."))
+
 (defprotocol PMutableFill
   (fill!
     [m value]
@@ -279,6 +294,11 @@
   (as-double-array [m]
     "Returns the internal double array used by m. If no such array is used, returns nil.
      Provides an opportunity to avoid copying the internal array."))
+
+(defprotocol PValueEquality
+  "Protocol for comparing two arrays, with the semantics of clojure.core/=.
+   Returns false if the arrays are not of equal shape, or if any elements are not equal."
+  (value-equals [m a]))
 
 (defprotocol PMatrixEquality
   "Protocol for numerical array equality operations."
@@ -404,6 +424,11 @@
      - The transpose of a scalar is the same scalar
      - The transpose of a 1D vector is the same 1D vector
      - The transpose of a 2D matrix swaps rows and columns"))
+
+(defprotocol PTransposeInPlace 
+  "Protocol for mutable 2D matrix transpose in place"
+  (transpose! [m]
+    "Transposes a mutable 2D matrix in place"))
 
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
@@ -585,12 +610,13 @@
       :default (error "Can't coerce to vector: " (class x)))))
 
 (defn broadcast-compatible
-  "Broadcasts two matrices into identical shapes.
+  "Broadcasts two matrices into identical shapes, coercing to the type of the first matrix.
+   Intended to prepare for elementwise operations.
    Returns a vector containing the two broadcasted matrices.
    Throws an error if not possible."
   ([a b]
     (if (same-shape? a b)
       [a b]
       (if (< (dimensionality a) (dimensionality b))
-        [(broadcast-like b a) b]
-        [a (broadcast-like a b)]))))
+        [(broadcast-like b a) (coerce-param a b)]
+        [a (broadcast-coerce a b)]))))
