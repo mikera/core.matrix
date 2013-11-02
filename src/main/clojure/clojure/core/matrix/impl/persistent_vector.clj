@@ -59,19 +59,33 @@
       (apply mapv f m1 m2 more)
       (apply mapv (partial mapmatrix f) m1 m2 more))))
 
-(defn is-nested-persistent-vectors? [x]
-  (cond
-    (number? x) true
-    (mp/is-scalar? x) true
-    (not (instance? clojure.lang.IPersistentVector x)) false
-    :else (every? is-nested-persistent-vectors? x)))
+(defn- mapv-identity-check
+  "Maps a function over a persistent vector, only modifying the vector if the function
+   returns a different value"
+  ([f ^clojure.lang.IPersistentVector v]
+    (let [n (.count v)]
+      (loop [i 0 v v]
+        (if (< i n)
+          (let [x (.nth v i)
+                y (f x)]
+            (recur (inc i) (if (identical? x y) v (assoc v i y))))
+          v)))))
+
+(defn is-nested-persistent-vectors? 
+  "Test if array is already in nested persistent vector format."
+  ([x]
+    (cond
+      (number? x) true
+      (mp/is-scalar? x) true
+      (not (instance? clojure.lang.IPersistentVector x)) false
+      :else (every? is-nested-persistent-vectors? x))))
 
 (defn persistent-vector-coerce [x]
   "Coerces to nested persistent vectors"
   (let [dims (mp/dimensionality x)]
     (cond
-      (> dims 0) (mp/convert-to-nested-vectors x) ;; any array
-      (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; arrays with zero dimensionality
+      (> dims 0) (mp/convert-to-nested-vectors x) ;; any array with 1 or more dimensions
+      (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; array with zero dimensionality
       
       ;; it's not an array - so try alternative coercions
       (clojure.core/vector? x)
@@ -421,7 +435,7 @@
 (extend-protocol mp/PConversion
   clojure.lang.IPersistentVector
     (convert-to-nested-vectors [m]
-      (mapv mp/convert-to-nested-vectors m)))
+      (mapv-identity-check mp/convert-to-nested-vectors m)))
 
 (extend-protocol mp/PFunctionalOperations
   clojure.lang.IPersistentVector
