@@ -307,6 +307,7 @@
 (defn scalar
   "Coerces m to a scalar value. Result is guaranteed not to be an array.
    Will throw an exception if m is not zero-dimensional."
+  {:inline (fn [m] `(mp/get-0d ~m))}
   ([m]
     (mp/get-0d m)))
 
@@ -321,7 +322,7 @@
 (defn matrix?
   "Returns true if parameter is a valid matrix (dimensionality == 2)"
   ([m]
-    (== (mp/dimensionality m) 2)))
+    (== (long (mp/dimensionality m)) 2)))
 
 (defn vec?
   "Returns true if the parameter is a vector (1-dimensional array)"
@@ -337,7 +338,7 @@
 (defn zero-dimensional?
   "Returns true if the parameter has zero dimensions. i.e. it is a 0-d array or a scalar value."
   [m]
-  (== 0 (mp/dimensionality m)))
+  (== 0 (long (mp/dimensionality m))))
 
 (defn identity-matrix?
   "Returns true if the parameter is an identity-matrix"
@@ -407,13 +408,13 @@
 (defn row-matrix?
   "Returns true if a matrix is a row-matrix (i.e. is 2D and has exactly one row)"
   ([m]
-    (and (== (mp/dimensionality m) 2)
+    (and (== (long (mp/dimensionality m)) 2)
          (== 1 (mp/dimension-count m 0)))))
 
 (defn column-matrix?
   "Returns true if a matrix is a column-matrix (i.e. is 2D and has has exactly one column)"
   ([m]
-    (and (== (mp/dimensionality m) 2)
+    (and (== (long (mp/dimensionality m)) 2)
          (== 1 (mp/dimension-count m 1)))))
 
 (defn shape
