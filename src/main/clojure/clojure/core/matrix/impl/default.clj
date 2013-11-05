@@ -24,12 +24,12 @@
 ;; ============================================================
 ;; Utility functions for default implementations
 
-(defn array?
+(defmacro array?
   "Returns true if the parameter is an N-dimensional array of any type"
   ([m]
-    (satisfies? mp/PImplementation m)))
+    `(not (mp/is-scalar? ~m))))
 
-(defn square?
+(defn- square?
   "Returns true if matrix is square (2D with same number of rows and columns)"
   ([m]
     (and
