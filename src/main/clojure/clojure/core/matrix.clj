@@ -1090,7 +1090,7 @@
 ;;
 
 (defn swap-rows
-  "Swap row i with row j"
+  "Swap row i with row j in a matrix"
   [m i j]
   (mp/swap-rows m i j))
 
@@ -1277,6 +1277,7 @@
 
 (defn current-implementation
   "Gets the currently active matrix implementation (as a keyword)"
+  {:inline (fn [] 'clojure.core.matrix/*matrix-implementation*)}
   ([] clojure.core.matrix/*matrix-implementation*))
 
 (defn- implementation-check
