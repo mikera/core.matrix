@@ -418,6 +418,10 @@
    equal to the dimensionality of the array.
    
    Returns nil the if object is not an array (i.e. is a scalar value)"
+  {:inline (fn 
+             ([m] `(if-let [~'sh (mp/get-shape ~m)]
+                     (vec ~'sh)
+                     nil)))}
   ([m]
     (if-let [sh (mp/get-shape m)]
       (vec sh)
@@ -502,6 +506,11 @@
 
 (defn mget
   "Gets a scalar value from an array at the specified position. Supports any number of dimensions."
+  {:inline (fn 
+             ([m] `(mp/get-0d ~m))
+             ([m x] `(mp/get-1d ~m ~x))
+             ([m x y] `(mp/get-2d ~m ~x ~y)))
+   :inline-arities #{1 2 3}}
   ([m]
     (mp/get-0d m))
   ([m x]
@@ -527,6 +536,11 @@
   "Sets a scalar value in an array at the specified position. Supports any number of dimensions.
    Will throw an exception if the matrix is not mutable.
    Returns the modified matrix (it is guaranteed to return the same instance)"
+  {:inline (fn 
+             ([m v] `(mp/set-0d! ~m ~v))
+             ([m x v] `(mp/set-1d! ~m ~x ~v))
+             ([m x y v] `(mp/set-2d! ~m ~x ~y ~v)))
+   :inline-arities #{2 3 4}}
   ([m v]
     (mp/set-0d! m v)
     m)
