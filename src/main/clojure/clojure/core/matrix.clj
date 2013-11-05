@@ -316,6 +316,7 @@
 
 (defn array?
   "Returns true if the parameter is an N-dimensional array, for any N>=0"
+  {:inline (fn [m] `(not (mp/is-scalar? ~m)))}
   ([m]
     (not (mp/is-scalar? m))))
 
@@ -332,6 +333,7 @@
 (defn scalar?
   "Returns true if the parameter is a scalar value (i.e. acceptable as matrix element value).
    A 0-d array containing a scalar is *not* itself a scalar value."
+  {:inline (fn [m] `(mp/is-scalar? ~m))}
   ([v]
     (mp/is-scalar? v)))
 
