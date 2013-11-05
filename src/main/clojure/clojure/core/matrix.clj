@@ -367,28 +367,33 @@
 (defn dimensionality
   "Returns the dimensionality of an array. The dimensionality is equal to
    the number of dimensions in the array's shape."
+  {:inline (fn ([m] `(mp/dimensionality ~m)))}
   ([m]
     (mp/dimensionality m)))
 
 (defn row-count
   "Returns the number of rows in a matrix or vector (array must be 1D or more)"
+  {:inline (fn ([m] `(mp/dimension-count ~m 0)))}
   ([m]
     (mp/dimension-count m 0)))
 
 (defn column-count
   "Returns the number of columns in a matrix (array must be 2D or more)"
+  {:inline (fn ([m] `(mp/dimension-count ~m 1)))}
   ([m]
     (mp/dimension-count m 1)))
 
 (defn dimension-count
   "Returns the size of the specified dimension in a matrix. Will throw an error if the matrix
    does not have the specified dimension."
+  {:inline (fn ([m dim] `(mp/dimension-count ~m ~dim)))}
   ([m dim]
     (mp/dimension-count m dim)))
 
 (defn slice-count
   "Returns the number of slices in an array (array must be 1D or more). The array is sliced
    in row-major order, i.e. this is the dimension count of the first dimension."
+  {:inline (fn ([m] `(mp/dimension-count ~m 0)))}
   ([m]
     (mp/dimension-count m 0)))
 
@@ -712,12 +717,14 @@
 
 (defn broadcast-like
   "Broadcasts the second matrix to the shape of the first. See 'broadcast'."
+  {:inline (fn ([m a] `(mp/broadcast-like ~m ~a)))}
   ([m a]
     (mp/broadcast-like m a)))
 
 (defn broadcast-coerce
   "Broadcasts and coerces the second matrix to the shape and type of the first.
    Equivalent to (coerce m (broadcast-like m a))."
+  {:inline (fn ([m a] `(mp/broadcast-coerce ~m ~a)))}
   ([m a]
     (mp/broadcast-coerce m a)))
 
