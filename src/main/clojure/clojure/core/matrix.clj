@@ -182,7 +182,9 @@
     (or (mp/mutable-matrix data)
         (clojure.core.matrix.impl.default/construct-mutable-matrix data))) 
   ([data type]
-    (mutable data) ;; TODO: support creation with specific element types
+    (or (mp/mutable-matrix data)
+        (clojure.core.matrix.impl.default/construct-mutable-matrix data))
+    ;; TODO: support creation with specific element types
     ))
 
 (defn ^{:deprecated true} mutable-matrix
