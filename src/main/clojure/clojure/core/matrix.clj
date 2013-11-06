@@ -1104,9 +1104,12 @@
   (mp/multiply-row m i factor))
 
 (defn add-row
-  "Add a row j multiplied by a scalar factor to a row i and replace row i with the result"
-  [m i j factor]
-  (mp/add-row m i j factor))
+  "Add a row j (optionally multiplied by a scalar factor) to a row i 
+   and replace row i with the result"
+  ([m i j]
+    (mp/add-row m i j 1.0))
+  ([m i j factor]
+    (mp/add-row m i j factor)))
 
 (defn set-row
   "Sets a row in a matrix using a specified vector."
