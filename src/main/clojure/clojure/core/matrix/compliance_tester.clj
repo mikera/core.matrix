@@ -2,7 +2,6 @@
   (:use clojure.core.matrix)
   (:use clojure.test)
   (:require [clojure.core.matrix.operators :as ops])
-  (:require [clojure.core.matrix.utils :as utils])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as generic])
   (:require [clojure.core.matrix.implementations :as imp])
