@@ -151,7 +151,7 @@
 
    The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
-    (mp/construct-matrix (implementation-check) (vector data)))
+    (mp/construct-matrix (implementation-check) (vector data))) ;; wrapping in 1 extra vector level, should be OK
   ([implementation data]
     (mp/construct-matrix (implementation-check implementation) (vector data))))
 
@@ -160,7 +160,7 @@
 
    The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
-    (mp/construct-matrix (implementation-check) (map vector data)))
+    (mp/construct-matrix (implementation-check) (map vector data))) ;; TODO: is use of map broken here? Might not be sequential?
   ([implementation data]
     (mp/construct-matrix (implementation-check implementation) (map vector data))))
 
@@ -1067,12 +1067,12 @@
     (mp/trace a)))
 
 (defn length
-  "Calculates the euclidean length (magnitude) of a vector"
+  "Calculates the euclidean length (magnitude) of a numerical vector"
   ([m]
     (mp/length m)))
 
 (defn length-squared
-  "Calculates the squared length (squared magnitude) of a vector"
+  "Calculates the squared length (squared magnitude) of a numerical vector"
   ([m]
      (mp/length-squared m)))
 
@@ -1142,7 +1142,7 @@
 (defn rank
   "Computes the rank of a matrix, i.e. the number of linearly independent rows"
   ([m]
-    (mp/PMatrixRank m)))
+    (mp/rank m)))
 
 (defn lu-decomposition
   "Computes the LU decompotion of a matrix. Returns a vector containing two matrices [L U]
