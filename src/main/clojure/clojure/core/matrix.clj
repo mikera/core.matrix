@@ -1219,6 +1219,11 @@
   ([f m a & more]
     (mp/element-map m f a more)))
 
+;(defn slice-map 
+;  "Maps a function over all all slices of an array"
+;  ([f m]
+;    (mp/slice-map m f))) 
+
 (defn esum
   "Calculates the sum of all the elements in a numerical array."
   [m]
