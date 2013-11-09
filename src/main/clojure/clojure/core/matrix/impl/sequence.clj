@@ -20,12 +20,12 @@
     (implementation-key [m] :sequence)
     (meta-info [m]
       {:doc "Core.matrix implementation for Clojure ISeq objects"})
-    (new-vector [m length] (vec (repeat length 0.0)))
-    (new-matrix [m rows columns] (vec (repeat rows (mp/new-vector m columns))))
+    (new-vector [m length] 
+      (mp/new-vector [] length))
+    (new-matrix [m rows columns] 
+      (mp/new-matrix [] rows columns))
     (new-matrix-nd [m dims]
-      (if-let [dims (seq dims)]
-        (vec (repeat (first dims) (mp/new-matrix-nd m (next dims))))
-        0.0))
+      (mp/new-matrix-nd [] dims))
     (construct-matrix [m data]
       (mp/coerce-param [] data))
     (supports-dimensionality? [m dims]
