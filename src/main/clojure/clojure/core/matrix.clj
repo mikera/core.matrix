@@ -729,7 +729,7 @@
    Will throw an excption if broadcast to the target shape is not possible."
   ([m shape]
     (or (mp/broadcast m shape)
-        (error "Broadcast to target shape: " (seq shape) " not possble."))))
+        (error "Broadcast to target shape: " (vec shape) " not possble."))))
 
 (defn broadcast-like
   "Broadcasts the second matrix to the shape of the first. See 'broadcast'."
@@ -784,7 +784,9 @@
 (defn equals
   "Returns true if two arrays are numerically equal.
 
-   Will return false for arrays of different shapes.
+   Will return false for arrays of different shapes. 
+
+   May either return false or throw an error if the arrays are not numerical.
 
    If epsilon is provided, performs an equality test
    with the given maximum tolerance (default is 0.0, i.e. exact numerical equivalence)"
@@ -932,8 +934,7 @@
   ([a b]
     (mp/matrix-sub a b))
   ([a b & more]
-    (reduce mp/matrix-sub (mp/matrix-sub a b) more)
-    a))
+    (reduce mp/matrix-sub (mp/matrix-sub a b) more)))
 
 (defn add!
   "Performs element-wise mutable addition on one or more numerical arrays.

@@ -264,7 +264,9 @@
   (testing "mutable sub"
     (let [v (mutable-matrix [10 10])]
       (sub! v [1 2] [1 2])
-      (is (equals [8 6] v)))))
+      (is (equals [8 6] v))))
+  (testing "arity 3 sub regression"
+    (is (equals [-1 -2] (sub [1 2] [1 2] [1 2])))))
 
 (deftest test-transpose
   (testing "transpose different dimensionalities"
