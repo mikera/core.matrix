@@ -222,14 +222,6 @@
        (number? x#) x#
        :else (clojure.core.matrix.protocols/get-0d x#)))))
 
-(defmacro double-coerce 
-  "Macro to coerce to double value with an efficient dispatch sequence"
-  ([x]
-  `(let [x# ~x]
-     (cond 
-       (number? x#) (double x#)
-       :else (double (clojure.core.matrix.protocols/get-0d x#))))))
-
 (defn protocol?
   "Returns true if an argument is a protocol'"
   [p]
