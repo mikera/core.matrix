@@ -33,12 +33,12 @@
     (cond
      (== dims 1)
        (let [n (long (mp/dimension-count data 0))
-             r (double-array n)]
-         (dotimes [i n]
-           (aset r i (double (mp/get-1d data i))))
-         r)
+               r (double-array n)]
+           (dotimes [i n]
+             (aset r i (double (mp/get-1d data i))))
+           r)
      (== dims 0)
-       (mp/get-0d data)
+       (double (mp/get-0d data))
      :default
        nil)))
 

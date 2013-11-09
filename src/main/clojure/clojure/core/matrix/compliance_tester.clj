@@ -6,7 +6,7 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as generic])
   (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.utils :as utils :refer [error]]))
+  (:require [clojure.core.matrix.utils :as utils :refer [error error?]]))
 
 ;; ====================================
 ;; COMPLIANCE TESTING
@@ -308,7 +308,10 @@
       (testing "coerce works"
         (or (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [[1 2] [3 4]])))))
       (let [m (matrix [[1 2] [3 4]])]
-        (is (equals [[1 2] [3 4]] (to-nested-vectors m)))))))
+        (is (equals [[1 2] [3 4]] (to-nested-vectors m))))))
+  (testing "Invalid vectors"
+    (is (error? (matrix m [1 [2 3]])))
+    (is (error? (matrix m [[2 3] 1])))))
 
 (defn test-dimensionality [im]
   (testing "supported matrix size tests"

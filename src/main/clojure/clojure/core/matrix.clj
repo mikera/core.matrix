@@ -40,7 +40,7 @@
 (def ^:dynamic *matrix-implementation* imp/DEFAULT-IMPLEMENTATION)
 
 (defn matrix
-  "Constructs a matrix from the given data.
+  "Constructs a matrix from the given numerical data.
 
    The data may be in one of the following forms:
    - A valid existing matrix
@@ -50,9 +50,13 @@
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
   ([data]
-    (mp/construct-matrix (implementation-check) data))
+    (or
+      (mp/construct-matrix (implementation-check) data)
+      (mp/coerce-param [] data)))
   ([implementation data]
-    (mp/construct-matrix (implementation-check implementation) data)))
+    (or 
+      (mp/construct-matrix (implementation-check implementation) data)
+      (mp/coerce-param [] data))))
 
 (defn array
   "Constructs a new n-dimensional array from the given data.
@@ -72,7 +76,9 @@
       (mp/construct-matrix (implementation-check) data)
       (mp/coerce-param [] data)))
   ([implementation data]
-    (mp/construct-matrix (implementation-check implementation) data)))
+    (or 
+      (mp/construct-matrix (implementation-check implementation) data)
+      (mp/coerce-param [] data))))
 
 (defn zero-vector
   "Constructs a new zero-filled numerical vector with the given length.

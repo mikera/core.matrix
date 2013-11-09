@@ -27,15 +27,7 @@
         (vec (repeat (first dims) (mp/new-matrix-nd m (next dims))))
         0.0))
     (construct-matrix [m data]
-      (let [dims (mp/dimensionality data)]
-        (cond
-            (== dims 0) (if (mp/is-scalar? data) data (mp/get-0d data))
-            (>= dims 1)
-              (mapv #(mp/construct-matrix m %) (for [i (range (mp/dimension-count data 0))] (mp/get-major-slice data i)))
-            (sequential? data)
-              (mapv #(mp/construct-matrix m %) data)
-            :default
-              (error "Don't know how to construct matrix from: " (class data)))))
+      (mp/coerce-param [] data))
     (supports-dimensionality? [m dims]
       true))
 

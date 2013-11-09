@@ -175,10 +175,12 @@
       (let [row (.nth m (int x))]
         (mp/get-1d row y)))
     (get-nd [m indexes]
-      (if-let [next-indexes (next indexes)]
-        (let [m (.nth m (int (first indexes)))]
-          (mp/get-nd m next-indexes))
-        (scalar-coerce (.nth m (int (first indexes)))))))
+      (if-let [indexes (seq indexes)]
+        (if-let [next-indexes (next indexes)]
+          (let [m (.nth m (int (first indexes)))]
+            (mp/get-nd m next-indexes))
+          (.nth m (int (first indexes))))
+        m)))
 
 ;; we extend this so that nested mutable implementions are possible
 (extend-protocol mp/PIndexedSetting
@@ -244,6 +246,13 @@
   IPersistentVector
     (subvector [m start length]
       (subvec m start (+ start length))))
+
+(extend-protocol mp/PValidateShape
+  IPersistentVector
+    (validate-shape [m]
+      (if (mp/same-shapes? m)
+        (mp/get-shape m)
+        (error "Inconsistent shape for persistent vector array.")))) 
 
 (extend-protocol mp/PMatrixAdd
   IPersistentVector

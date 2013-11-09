@@ -60,6 +60,7 @@
         :else
           (mp/coerce-param (imp/get-canonical-object :ndarray) m)))))
 
+
 ;; ============================================================
 ;; Default implementations
 ;; - default behaviour for java.lang.Number scalars
@@ -257,6 +258,7 @@
     (assign! [m x]
       (let [dims (long (mp/dimensionality m))]
         (cond
+          (== 0 dims) (mp/set-0d! m (mp/get-0d x))
           (== 1 dims)
               (let [xdims (long (mp/dimensionality x))
                     msize (long (mp/dimension-count m 0))]
@@ -264,14 +266,15 @@
                   (let [value (mp/get-0d x)]
                     (dotimes [i msize] (mp/set-1d! m i value)))
                   (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
-          (== 0 dims) (mp/set-0d! m (mp/get-0d x))
-            (array? m)
+          (array? m)
             (let [xdims (long (mp/dimensionality x))]
               (if (> xdims 0)
-                (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) (mp/get-major-slice-seq x)))
+                (let [xss (mp/get-major-slice-seq x)
+                      _ (or (mp/same-shapes? xss) (error "Inconsistent slice shapes for assign!"))]
+                  (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) xss)))
                 (let [value (mp/get-0d x)]
                   (doseq [ms (mp/get-major-slice-seq m)] (mp/assign! ms value)))))
-            :else
+           :else
               (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
       ([m arr]
@@ -876,6 +879,22 @@
     (element-count [m] (if (array? m) 
                          (calc-element-count m)
                          1)))
+
+(extend-protocol mp/PValidateShape
+  nil
+    (validate-shape [m]
+      nil)
+  Object
+    (validate-shape [m]
+      (cond
+        (== 0 (mp/dimensionality m))
+          (if (mp/is-scalar? m) nil [])
+        :else 
+          (let [shapes (map mp/validate-shape (mp/get-major-slice-seq m))]
+            (if (mp/same-shapes? shapes)
+              (cons (mp/dimension-count m 0) (first shapes))
+              (error "Inconsistent shapes for sub arrays in " (class m))))))) 
+
 
 (extend-protocol mp/PMatrixSlices
   Object
