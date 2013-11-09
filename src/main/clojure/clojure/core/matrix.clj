@@ -966,7 +966,7 @@
   ([m factor]
     (mp/scale m factor))
   ([m factor & more-factors]
-    (mp/scale m (* factor (reduce * more-factors)))))
+    (mp/scale m (mp/element-multiply factor (reduce mp/element-multiply more-factors)))))
 
 (defn scale!
   "Scales a numerical array by one or more scalar factors (in place).
@@ -975,7 +975,7 @@
     (mp/scale! m factor)
     m)
   ([m factor & more-factors]
-    (mp/scale! m (* factor (reduce * more-factors)))
+    (mp/scale! m (mp/element-multiply factor (reduce mp/element-multiply more-factors)))
     m))
 
 (defn square
