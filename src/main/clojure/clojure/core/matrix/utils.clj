@@ -215,7 +215,7 @@
      new-xs#))
 
 (defmacro scalar-coerce 
-  "Macro to coerce to scalar value with efficient check sequence"
+  "Macro to coerce to scalar value with an efficient dispatch sequence"
   ([x]
   `(let [x# ~x]
      (cond 

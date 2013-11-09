@@ -40,7 +40,7 @@
 (def ^:dynamic *matrix-implementation* imp/DEFAULT-IMPLEMENTATION)
 
 (defn matrix
-  "Constructs a matrix from the given data.
+  "Constructs a matrix from the given numerical data.
 
    The data may be in one of the following forms:
    - A valid existing matrix
@@ -50,24 +50,35 @@
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*"
   ([data]
-    (mp/construct-matrix (implementation-check) data))
+    (or
+      (mp/construct-matrix (implementation-check) data)
+      (mp/coerce-param [] data)))
   ([implementation data]
-    (mp/construct-matrix (implementation-check implementation) data)))
+    (or 
+      (mp/construct-matrix (implementation-check implementation) data)
+      (mp/coerce-param [] data))))
 
 (defn array
   "Constructs a new n-dimensional array from the given data.
 
    The data may be in one of the following forms:
    - A valid existing array
-   - Nested sequences of scalar values, e.g. Clojure vectors
+   - Nested sequences of scalar values, e.g. Clojure vectors (must have regular shape)
    - A sequence of slices, each of which must be valid matrix data
 
    If implementation is not specified, uses the current matrix library as specified
-   in *matrix-implementation*"
+   in *matrix-implementation*
+
+   If the implementation does not support the shape of data provided, will attempt to
+   create an array using a different implemntation on a best-efforts basis."
   ([data]
-    (mp/construct-matrix (implementation-check) data))
+    (or
+      (mp/construct-matrix (implementation-check) data)
+      (mp/coerce-param [] data)))
   ([implementation data]
-    (mp/construct-matrix (implementation-check implementation) data)))
+    (or 
+      (mp/construct-matrix (implementation-check implementation) data)
+      (mp/coerce-param [] data))))
 
 (defn zero-vector
   "Constructs a new zero-filled numerical vector with the given length.
@@ -140,7 +151,7 @@
 
    The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
-    (mp/construct-matrix (implementation-check) (vector data)))
+    (mp/construct-matrix (implementation-check) (vector data))) ;; wrapping in 1 extra vector level, should be OK
   ([implementation data]
     (mp/construct-matrix (implementation-check implementation) (vector data))))
 
@@ -149,7 +160,7 @@
 
    The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
-    (mp/construct-matrix (implementation-check) (map vector data)))
+    (mp/construct-matrix (implementation-check) (map vector data))) ;; TODO: is use of map broken here? Might not be sequential?
   ([implementation data]
     (mp/construct-matrix (implementation-check implementation) (map vector data))))
 
@@ -182,7 +193,9 @@
     (or (mp/mutable-matrix data)
         (clojure.core.matrix.impl.default/construct-mutable-matrix data))) 
   ([data type]
-    (mutable data) ;; TODO: support creation with specific element types
+    (or (mp/mutable-matrix data)
+        (clojure.core.matrix.impl.default/construct-mutable-matrix data))
+    ;; TODO: support creation with specific element types
     ))
 
 (defn ^{:deprecated true} mutable-matrix
@@ -307,6 +320,7 @@
 (defn scalar
   "Coerces m to a scalar value. Result is guaranteed not to be an array.
    Will throw an exception if m is not zero-dimensional."
+  {:inline (fn [m] `(mp/get-0d ~m))}
   ([m]
     (mp/get-0d m)))
 
@@ -315,13 +329,14 @@
 
 (defn array?
   "Returns true if the parameter is an N-dimensional array, for any N>=0"
+  {:inline (fn [m] `(not (mp/is-scalar? ~m)))}
   ([m]
     (not (mp/is-scalar? m))))
 
 (defn matrix?
   "Returns true if parameter is a valid matrix (dimensionality == 2)"
   ([m]
-    (== (mp/dimensionality m) 2)))
+    (== (long (mp/dimensionality m)) 2)))
 
 (defn vec?
   "Returns true if the parameter is a vector (1-dimensional array)"
@@ -331,13 +346,14 @@
 (defn scalar?
   "Returns true if the parameter is a scalar value (i.e. acceptable as matrix element value).
    A 0-d array containing a scalar is *not* itself a scalar value."
+  {:inline (fn [m] `(mp/is-scalar? ~m))}
   ([v]
     (mp/is-scalar? v)))
 
 (defn zero-dimensional?
   "Returns true if the parameter has zero dimensions. i.e. it is a 0-d array or a scalar value."
   [m]
-  (== 0 (mp/dimensionality m)))
+  (== 0 (long (mp/dimensionality m))))
 
 (defn identity-matrix?
   "Returns true if the parameter is an identity-matrix"
@@ -367,28 +383,33 @@
 (defn dimensionality
   "Returns the dimensionality of an array. The dimensionality is equal to
    the number of dimensions in the array's shape."
+  {:inline (fn ([m] `(mp/dimensionality ~m)))}
   ([m]
     (mp/dimensionality m)))
 
 (defn row-count
   "Returns the number of rows in a matrix or vector (array must be 1D or more)"
+  {:inline (fn ([m] `(mp/dimension-count ~m 0)))}
   ([m]
     (mp/dimension-count m 0)))
 
 (defn column-count
   "Returns the number of columns in a matrix (array must be 2D or more)"
+  {:inline (fn ([m] `(mp/dimension-count ~m 1)))}
   ([m]
     (mp/dimension-count m 1)))
 
 (defn dimension-count
   "Returns the size of the specified dimension in a matrix. Will throw an error if the matrix
    does not have the specified dimension."
+  {:inline (fn ([m dim] `(mp/dimension-count ~m ~dim)))}
   ([m dim]
     (mp/dimension-count m dim)))
 
 (defn slice-count
   "Returns the number of slices in an array (array must be 1D or more). The array is sliced
    in row-major order, i.e. this is the dimension count of the first dimension."
+  {:inline (fn ([m] `(mp/dimension-count ~m 0)))}
   ([m]
     (mp/dimension-count m 0)))
 
@@ -402,13 +423,13 @@
 (defn row-matrix?
   "Returns true if a matrix is a row-matrix (i.e. is 2D and has exactly one row)"
   ([m]
-    (and (== (mp/dimensionality m) 2)
+    (and (== (long (mp/dimensionality m)) 2)
          (== 1 (mp/dimension-count m 0)))))
 
 (defn column-matrix?
   "Returns true if a matrix is a column-matrix (i.e. is 2D and has has exactly one column)"
   ([m]
-    (and (== (mp/dimensionality m) 2)
+    (and (== (long (mp/dimensionality m)) 2)
          (== 1 (mp/dimension-count m 1)))))
 
 (defn shape
@@ -418,6 +439,10 @@
    equal to the dimensionality of the array.
    
    Returns nil the if object is not an array (i.e. is a scalar value)"
+  {:inline (fn 
+             ([m] `(if-let [~'sh (mp/get-shape ~m)]
+                     (vec ~'sh)
+                     nil)))}
   ([m]
     (if-let [sh (mp/get-shape m)]
       (vec sh)
@@ -502,6 +527,11 @@
 
 (defn mget
   "Gets a scalar value from an array at the specified position. Supports any number of dimensions."
+  {:inline (fn 
+             ([m] `(mp/get-0d ~m))
+             ([m x] `(mp/get-1d ~m ~x))
+             ([m x y] `(mp/get-2d ~m ~x ~y)))
+   :inline-arities #{1 2 3}}
   ([m]
     (mp/get-0d m))
   ([m x]
@@ -527,6 +557,11 @@
   "Sets a scalar value in an array at the specified position. Supports any number of dimensions.
    Will throw an exception if the matrix is not mutable.
    Returns the modified matrix (it is guaranteed to return the same instance)"
+  {:inline (fn 
+             ([m v] `(mp/set-0d! ~m ~v))
+             ([m x v] `(mp/set-1d! ~m ~x ~v))
+             ([m x y v] `(mp/set-2d! ~m ~x ~y ~v)))
+   :inline-arities #{2 3 4}}
   ([m v]
     (mp/set-0d! m v)
     m)
@@ -694,16 +729,18 @@
    Will throw an excption if broadcast to the target shape is not possible."
   ([m shape]
     (or (mp/broadcast m shape)
-        (error "Broadcast to target shape: " (seq shape) " not possble."))))
+        (error "Broadcast to target shape: " (vec shape) " not possble."))))
 
 (defn broadcast-like
   "Broadcasts the second matrix to the shape of the first. See 'broadcast'."
+  {:inline (fn ([m a] `(mp/broadcast-like ~m ~a)))}
   ([m a]
     (mp/broadcast-like m a)))
 
 (defn broadcast-coerce
   "Broadcasts and coerces the second matrix to the shape and type of the first.
    Equivalent to (coerce m (broadcast-like m a))."
+  {:inline (fn ([m a] `(mp/broadcast-coerce ~m ~a)))}
   ([m a]
     (mp/broadcast-coerce m a)))
 
@@ -747,7 +784,9 @@
 (defn equals
   "Returns true if two arrays are numerically equal.
 
-   Will return false for arrays of different shapes.
+   Will return false for arrays of different shapes. 
+
+   May either return false or throw an error if the arrays are not numerical.
 
    If epsilon is provided, performs an equality test
    with the given maximum tolerance (default is 0.0, i.e. exact numerical equivalence)"
@@ -895,8 +934,7 @@
   ([a b]
     (mp/matrix-sub a b))
   ([a b & more]
-    (reduce mp/matrix-sub (mp/matrix-sub a b) more)
-    a))
+    (reduce mp/matrix-sub (mp/matrix-sub a b) more)))
 
 (defn add!
   "Performs element-wise mutable addition on one or more numerical arrays.
@@ -928,7 +966,7 @@
   ([m factor]
     (mp/scale m factor))
   ([m factor & more-factors]
-    (mp/scale m (* factor (reduce * more-factors)))))
+    (mp/scale m (mp/element-multiply factor (reduce mp/element-multiply more-factors)))))
 
 (defn scale!
   "Scales a numerical array by one or more scalar factors (in place).
@@ -937,7 +975,7 @@
     (mp/scale! m factor)
     m)
   ([m factor & more-factors]
-    (mp/scale! m (* factor (reduce * more-factors)))
+    (mp/scale! m (mp/element-multiply factor (reduce mp/element-multiply more-factors)))
     m))
 
 (defn square
@@ -1029,12 +1067,12 @@
     (mp/trace a)))
 
 (defn length
-  "Calculates the euclidean length (magnitude) of a vector"
+  "Calculates the euclidean length (magnitude) of a numerical vector"
   ([m]
     (mp/length m)))
 
 (defn length-squared
-  "Calculates the squared length (squared magnitude) of a vector"
+  "Calculates the squared length (squared magnitude) of a numerical vector"
   ([m]
      (mp/length-squared m)))
 
@@ -1068,7 +1106,7 @@
 ;;
 
 (defn swap-rows
-  "Swap row i with row j"
+  "Swap row i with row j in a matrix"
   [m i j]
   (mp/swap-rows m i j))
 
@@ -1078,9 +1116,12 @@
   (mp/multiply-row m i factor))
 
 (defn add-row
-  "Add a row j multiplied by a scalar factor to a row i and replace row i with the result"
-  [m i j factor]
-  (mp/add-row m i j factor))
+  "Add a row j (optionally multiplied by a scalar factor) to a row i 
+   and replace row i with the result"
+  ([m i j]
+    (mp/add-row m i j 1.0))
+  ([m i j factor]
+    (mp/add-row m i j factor)))
 
 (defn set-row
   "Sets a row in a matrix using a specified vector."
@@ -1101,7 +1142,7 @@
 (defn rank
   "Computes the rank of a matrix, i.e. the number of linearly independent rows"
   ([m]
-    (mp/PMatrixRank m)))
+    (mp/rank m)))
 
 (defn lu-decomposition
   "Computes the LU decompotion of a matrix. Returns a vector containing two matrices [L U]
@@ -1179,6 +1220,11 @@
   ([f m a & more]
     (mp/element-map m f a more)))
 
+;(defn slice-map 
+;  "Maps a function over all all slices of an array"
+;  ([f m]
+;    (mp/slice-map m f))) 
+
 (defn esum
   "Calculates the sum of all the elements in a numerical array."
   [m]
@@ -1255,6 +1301,7 @@
 
 (defn current-implementation
   "Gets the currently active matrix implementation (as a keyword)"
+  {:inline (fn [] 'clojure.core.matrix/*matrix-implementation*)}
   ([] clojure.core.matrix/*matrix-implementation*))
 
 (defn- implementation-check

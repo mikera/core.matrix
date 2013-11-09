@@ -132,6 +132,11 @@
   "Option protocol for quick determination of array matrics"
   (nonzero-count [m]))
 
+(defprotocol PValidateShape
+  "Optional protocol to validate the shape of a matrix. If the matrix has an incorrect shape, should 
+   throw an error. Otherwise it should return the correct shape."
+  (validate-shape [m])) 
+
 (defprotocol PMutableMatrixConstruction
   "Protocol for creating a mutable copy of a matrix. If implemented, must return either a fully mutable
    copy of the given matrix, or nil if not possible.
@@ -463,6 +468,9 @@
      if it is already a 1D vector."))
 
 (defprotocol PVectorisable
+  "Protocol to return an array as a flattened vector of all elements.
+   Implementations are encouraged to avoid taking a full copy of all data
+   (e.g. by using structural sharing or views)."
   (to-vector [m]
     "Returns an array as a single flattened vector"))
 
@@ -620,3 +628,14 @@
       (if (< (dimensionality a) (dimensionality b))
         [(broadcast-like b a) (coerce-param a b)]
         [a (broadcast-coerce a b)]))))
+
+(defn same-shapes?
+  "Returns true if a sequence of arrays all have the same shape."
+  [arrays]
+  (let [shapes (map #(or (get-shape %) []) arrays)]
+    (loop [s (first shapes) ns (next shapes)]
+      (if ns
+        (if (same-shape-object? s (first ns))
+          (recur s (next ns))
+          false)
+        true)))) 

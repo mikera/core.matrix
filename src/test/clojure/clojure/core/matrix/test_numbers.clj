@@ -21,6 +21,10 @@
   (is (error? (sub! 1 1)))
   (is (error? (mul! 1 1))))
 
+(deftest test-errors
+  (is (error? (slices 7)))
+  (is (error? (slice-views 7))))
+
 (deftest test-compute-matrix
   (is (equals 3 (compute-matrix [] (fn [] 3)))))
 

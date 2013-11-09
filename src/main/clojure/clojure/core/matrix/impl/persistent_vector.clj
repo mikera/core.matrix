@@ -72,14 +72,25 @@
             (recur (inc i) (if (identical? x y) v (assoc v i y))))
           v)))))
 
+(defn- check-vector-shape
+  ([v shape]
+    (and
+      (instance? IPersistentVector v)
+      (== (count v) (first shape))
+      (if-let [ns (next shape)]
+        (every? #(check-vector-shape % ns) v)
+        (every? #(not (instance? IPersistentVector %)) v)))))
+
 (defn is-nested-persistent-vectors? 
-  "Test if array is already in nested persistent vector format."
+  "Test if array is already in nested persistent vector array format."
   ([x]
     (cond
       (number? x) true
       (mp/is-scalar? x) true
       (not (instance? clojure.lang.IPersistentVector x)) false
-      :else (every? is-nested-persistent-vectors? x))))
+      :else (and 
+              (every? is-nested-persistent-vectors? x)
+              (check-vector-shape x (mp/get-shape x))))))
 
 (defn persistent-vector-coerce [x]
   "Coerces to nested persistent vectors"
@@ -164,10 +175,12 @@
       (let [row (.nth m (int x))]
         (mp/get-1d row y)))
     (get-nd [m indexes]
-      (if-let [next-indexes (next indexes)]
-        (let [m (.nth m (int (first indexes)))]
-          (mp/get-nd m next-indexes))
-        (scalar-coerce (.nth m (int (first indexes)))))))
+      (if-let [indexes (seq indexes)]
+        (if-let [next-indexes (next indexes)]
+          (let [m (.nth m (int (first indexes)))]
+            (mp/get-nd m next-indexes))
+          (.nth m (int (first indexes))))
+        m)))
 
 ;; we extend this so that nested mutable implementions are possible
 (extend-protocol mp/PIndexedSetting
@@ -207,7 +220,7 @@
 
 (extend-protocol mp/PSliceView
   IPersistentVector
-    (get-major-slice-view [m i] (m i)))
+    (get-major-slice-view [m i] (.nth m i)))
 
 (extend-protocol mp/PSliceSeq
   IPersistentVector
@@ -233,6 +246,13 @@
   IPersistentVector
     (subvector [m start length]
       (subvec m start (+ start length))))
+
+(extend-protocol mp/PValidateShape
+  IPersistentVector
+    (validate-shape [m]
+      (if (mp/same-shapes? m)
+        (mp/get-shape m)
+        (error "Inconsistent shape for persistent vector array.")))) 
 
 (extend-protocol mp/PMatrixAdd
   IPersistentVector
@@ -420,7 +440,12 @@
 (extend-protocol mp/PConversion
   IPersistentVector
     (convert-to-nested-vectors [m]
-      (mapv-identity-check mp/convert-to-nested-vectors m)))
+      (if (is-nested-persistent-vectors? m)
+        m
+        (let [m (mapv-identity-check mp/convert-to-nested-vectors m)]
+          (if (reduce = (map mp/get-shape m))
+            m
+            (error "Can't convert to persistent vector array: inconsistent shape."))))))
 
 (extend-protocol mp/PFunctionalOperations
   IPersistentVector

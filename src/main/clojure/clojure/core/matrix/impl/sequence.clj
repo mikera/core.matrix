@@ -20,22 +20,14 @@
     (implementation-key [m] :sequence)
     (meta-info [m]
       {:doc "Core.matrix implementation for Clojure ISeq objects"})
-    (new-vector [m length] (vec (repeat length 0.0)))
-    (new-matrix [m rows columns] (vec (repeat rows (mp/new-vector m columns))))
+    (new-vector [m length] 
+      (mp/new-vector [] length))
+    (new-matrix [m rows columns] 
+      (mp/new-matrix [] rows columns))
     (new-matrix-nd [m dims]
-      (if-let [dims (seq dims)]
-        (vec (repeat (first dims) (mp/new-matrix-nd m (next dims))))
-        0.0))
+      (mp/new-matrix-nd [] dims))
     (construct-matrix [m data]
-      (let [dims (mp/dimensionality data)]
-        (cond
-            (== dims 0) (if (mp/is-scalar? data) data (mp/get-0d data))
-            (>= dims 1)
-              (mapv #(mp/construct-matrix m %) (for [i (range (mp/dimension-count data 0))] (mp/get-major-slice data i)))
-            (sequential? data)
-              (mapv #(mp/construct-matrix m %) data)
-            :default
-              (error "Don't know how to construct matrix from: " (class data)))))
+      (mp/coerce-param [] data))
     (supports-dimensionality? [m dims]
       true))
 

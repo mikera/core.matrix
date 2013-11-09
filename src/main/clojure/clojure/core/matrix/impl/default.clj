@@ -24,12 +24,12 @@
 ;; ============================================================
 ;; Utility functions for default implementations
 
-(defn array?
+(defmacro array?
   "Returns true if the parameter is an N-dimensional array of any type"
   ([m]
-    (satisfies? mp/PImplementation m)))
+    `(not (mp/is-scalar? ~m))))
 
-(defn square?
+(defn- square?
   "Returns true if matrix is square (2D with same number of rows and columns)"
   ([m]
     (and
@@ -59,6 +59,7 @@
           (mp/coerce-param (imp/get-canonical-object :ndarray-double) m)
         :else
           (mp/coerce-param (imp/get-canonical-object :ndarray) m)))))
+
 
 ;; ============================================================
 ;; Default implementations
@@ -257,6 +258,7 @@
     (assign! [m x]
       (let [dims (long (mp/dimensionality m))]
         (cond
+          (== 0 dims) (mp/set-0d! m (mp/get-0d x))
           (== 1 dims)
               (let [xdims (long (mp/dimensionality x))
                     msize (long (mp/dimension-count m 0))]
@@ -264,14 +266,15 @@
                   (let [value (mp/get-0d x)]
                     (dotimes [i msize] (mp/set-1d! m i value)))
                   (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
-          (== 0 dims) (mp/set-0d! m (mp/get-0d x))
-            (array? m)
+          (array? m)
             (let [xdims (long (mp/dimensionality x))]
               (if (> xdims 0)
-                (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) (mp/get-major-slice-seq x)))
+                (let [xss (mp/get-major-slice-seq x)
+                      _ (or (mp/same-shapes? xss) (error "Inconsistent slice shapes for assign!"))]
+                  (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) xss)))
                 (let [value (mp/get-0d x)]
                   (doseq [ms (mp/get-major-slice-seq m)] (mp/assign! ms value)))))
-            :else
+           :else
               (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
       ([m arr]
@@ -714,7 +717,7 @@
     (matrix-equals [a b]
       (cond
         (number? b) (== a b)
-        (== 0 (mp/dimensionality b)) (== a (mp/get-0d b))
+        (== 0 (mp/dimensionality b)) (== a (scalar-coerce b))
         :else false))
   Object
     (matrix-equals [a b]
@@ -722,16 +725,18 @@
         (identical? a b) true
         (mp/same-shape? a b)
           (if (== 0 (mp/dimensionality a))
-            (== (mp/get-0d a) (mp/get-0d b))
+            (== (mp/get-0d a) (scalar-coerce b))
             (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
         :else false)))
 
 (extend-protocol mp/PValueEquality
   nil
     (value-equals [a b]
-      (and 
-        (== 0 (mp/dimensionality b))
-        (nil? (mp/get-0d b))))
+      (or 
+        (nil? b)
+        (and 
+          (== 0 (mp/dimensionality b))
+          (nil? (mp/get-0d b)))))
   Object
     (value-equals [a b]
       (and
@@ -877,6 +882,22 @@
                          (calc-element-count m)
                          1)))
 
+(extend-protocol mp/PValidateShape
+  nil
+    (validate-shape [m]
+      nil)
+  Object
+    (validate-shape [m]
+      (cond
+        (== 0 (mp/dimensionality m))
+          (if (mp/is-scalar? m) nil [])
+        :else 
+          (let [shapes (map mp/validate-shape (mp/get-major-slice-seq m))]
+            (if (mp/same-shapes? shapes)
+              (cons (mp/dimension-count m 0) (first shapes))
+              (error "Inconsistent shapes for sub arrays in " (class m))))))) 
+
+
 (extend-protocol mp/PMatrixSlices
   Object
     (get-row [m i]
@@ -896,11 +917,11 @@
 (extend-protocol mp/PSliceSeq
   Object
     (get-major-slice-seq [m]
-      (let [dims (mp/dimensionality m)]
+      (let [dims (long (mp/dimensionality m))]
         (cond
-          (<= dims 0)
-            (error "Can't get slices on [" dims "]-dimensional object: " m)
-          :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
+          (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object: " m)
+          (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
+          :else (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0)))))))
 
 (extend-protocol mp/PSliceJoin
   nil
