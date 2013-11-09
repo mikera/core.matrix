@@ -72,14 +72,25 @@
             (recur (inc i) (if (identical? x y) v (assoc v i y))))
           v)))))
 
+(defn- check-vector-shape
+  ([v shape]
+    (and
+      (instance? IPersistentVector v)
+      (== (count v) (first shape))
+      (if-let [ns (next shape)]
+        (every? #(check-vector-shape % ns) v)
+        (every? #(not (instance? IPersistentVector %)) v)))))
+
 (defn is-nested-persistent-vectors? 
-  "Test if array is already in nested persistent vector format."
+  "Test if array is already in nested persistent vector array format."
   ([x]
     (cond
       (number? x) true
       (mp/is-scalar? x) true
       (not (instance? clojure.lang.IPersistentVector x)) false
-      :else (every? is-nested-persistent-vectors? x))))
+      :else (and 
+              (every? is-nested-persistent-vectors? x)
+              (check-vector-shape x (mp/get-shape x))))))
 
 (defn persistent-vector-coerce [x]
   "Coerces to nested persistent vectors"
