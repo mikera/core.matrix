@@ -431,7 +431,12 @@
 (extend-protocol mp/PConversion
   IPersistentVector
     (convert-to-nested-vectors [m]
-      (mapv-identity-check mp/convert-to-nested-vectors m)))
+      (if (is-nested-persistent-vectors? m)
+        m
+        (let [m (mapv-identity-check mp/convert-to-nested-vectors m)]
+          (if (reduce = (map mp/get-shape m))
+            m
+            (error "Can't convert to persistent vector array: inconsistent shape."))))))
 
 (extend-protocol mp/PFunctionalOperations
   IPersistentVector
