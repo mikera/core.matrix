@@ -468,6 +468,9 @@
      if it is already a 1D vector."))
 
 (defprotocol PVectorisable
+  "Protocol to return an array as a flattened vector of all elements.
+   Implementations are encouraged to avoid taking a full copy of all data
+   (e.g. by using structural sharing or views)."
   (to-vector [m]
     "Returns an array as a single flattened vector"))
 
