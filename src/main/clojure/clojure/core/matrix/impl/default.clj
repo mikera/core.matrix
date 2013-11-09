@@ -717,7 +717,7 @@
     (matrix-equals [a b]
       (cond
         (number? b) (== a b)
-        (== 0 (mp/dimensionality b)) (== a (mp/get-0d b))
+        (== 0 (mp/dimensionality b)) (== a (scalar-coerce b))
         :else false))
   Object
     (matrix-equals [a b]
@@ -725,16 +725,18 @@
         (identical? a b) true
         (mp/same-shape? a b)
           (if (== 0 (mp/dimensionality a))
-            (== (mp/get-0d a) (mp/get-0d b))
+            (== (mp/get-0d a) (scalar-coerce b))
             (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
         :else false)))
 
 (extend-protocol mp/PValueEquality
   nil
     (value-equals [a b]
-      (and 
-        (== 0 (mp/dimensionality b))
-        (nil? (mp/get-0d b))))
+      (or 
+        (nil? b)
+        (and 
+          (== 0 (mp/dimensionality b))
+          (nil? (mp/get-0d b)))))
   Object
     (value-equals [a b]
       (and
