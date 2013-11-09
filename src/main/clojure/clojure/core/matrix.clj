@@ -59,13 +59,18 @@
 
    The data may be in one of the following forms:
    - A valid existing array
-   - Nested sequences of scalar values, e.g. Clojure vectors
+   - Nested sequences of scalar values, e.g. Clojure vectors (must have regular shape)
    - A sequence of slices, each of which must be valid matrix data
 
    If implementation is not specified, uses the current matrix library as specified
-   in *matrix-implementation*"
+   in *matrix-implementation*
+
+   If the implementation does not support the shape of data provided, will attempt to
+   create an array using a different implemntation on a best-efforts basis."
   ([data]
-    (mp/construct-matrix (implementation-check) data))
+    (or
+      (mp/construct-matrix (implementation-check) data)
+      (mp/coerce-param [] data)))
   ([implementation data]
     (mp/construct-matrix (implementation-check implementation) data)))
 
