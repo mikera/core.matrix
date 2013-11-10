@@ -94,7 +94,7 @@
 
 (defn persistent-vector-coerce [x]
   "Coerces to nested persistent vectors"
-  (let [dims (mp/dimensionality x)]
+  (let [dims (long (mp/dimensionality x))]
     (cond
       (> dims 0) (mp/convert-to-nested-vectors x) ;; any array with 1 or more dimensions
       (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; array with zero dimensionality
