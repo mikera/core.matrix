@@ -52,6 +52,9 @@
   (is (equals [7] (add-product [1] 2 3)))
   (is (equals [3 8] (add-product [0 0] [1 2] [3 4]))))
 
+(deftest test-reshape
+  (is (equals [[0 1] [2 3] [4 5]] (reshape (range 6) [3 2])))) 
+
 (deftest test-square
   (is (equals 81 (square 9)))
   (is (equals [1 4] (square [1 2])))
