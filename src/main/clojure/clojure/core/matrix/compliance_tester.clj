@@ -202,7 +202,7 @@
 
 (defn test-as-vector [m]
   (when-let [av (as-vector m)]
-    (is (e= av (eseq m)))
+    (is (e= av (vec (eseq m))))
     (is (e= (reshape av (shape m)) m))))
 
 (defn test-assign [m]
@@ -242,7 +242,7 @@
 (defn test-elements [m]
   (let [es (eseq m)]
     (testing "scalar should be equivalent to identity function on elements"
-      (is (= es (map scalar es))))))
+      (is (= (vec es) (map scalar es))))))
 
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
