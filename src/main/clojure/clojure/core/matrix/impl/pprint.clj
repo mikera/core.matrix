@@ -4,14 +4,15 @@
 
 ;; pretty-printing utilities for matrices
 
+(defn- format-num [x] (format "%.3f" (double x)))
+
 (defn- longest-nums
   "Finds the longest string representation of
    a number in each column within a given matrix."
   [mat]
   (let [tmat (mp/transpose mat)
-        format-num #(format "%.3f" (double %))
-        col-long #(reduce max (map count (map format-num %)))]
-    (map col-long tmat)))
+        col-long (fn [r] (mp/element-reduce (mp/element-map r #(count (format-num %))) max))]
+    (map col-long (mp/get-major-slice-seq tmat))))
 
 (defn- str-elem
   "Prints and element that takes up a given amount of whitespaces."
@@ -39,8 +40,13 @@
 
 (defn pm
   "Pretty-prints a matrix"
-  [[mat-first & mat-rest :as m]]
-  (let [len (longest-nums m)
-        start (str "[" (str-row mat-first len))
-        out (str start (rprint mat-rest "" len))]
-    (println out)))
+  [m]
+  (cond
+    (mp/is-scalar? m) (println (format-num m))
+    (== 1 (mp/dimensionality m)) (println (str-row m (longest-nums m)))
+    :else 
+      (let [len (longest-nums m)
+            rows (mp/get-major-slice-seq m) 
+            start (str "[" (str-row (first rows) len))
+            out (str start (rprint (next rows) "" len))]
+         (println out))))
