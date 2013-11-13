@@ -55,44 +55,33 @@
   (add (mmul CLICK-THROUGH transitions rank)
        (mmul (- 1.0 CLICK-THROUGH) initial-rank)))
 
-(step initial-rank)
-(step *1)
+(pm initial-rank)
+(pm (step initial-rank))
 
 (def pageranks (iterate step initial-rank))
 
-(nth pageranks 0)
+(pm (nth pageranks 0))
 ;; => [0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1]
 
-(nth pageranks 1)
+(pm (nth pageranks 1))
 ;; => [0.12479166666666668 0.068125 0.05962500000000001 0.3160416666666667 0.015000000000000003 0.046875 0.07450000000000001 0.19775000000000004 0.08229166666666667 0.015000000000000003]
 
-(nth pageranks 10)
+(pm (nth pageranks 10))
 ;; => [0.10267022104015164 0.13709020713321848 0.05783843684746401 0.2835544691864015 0.015000000000000003 0.04909679698625842 0.15295646321406195 0.1398971838945996 0.04689622169784466 0.015000000000000003]
 
-(nth pageranks 100)
+(pm (nth pageranks 100))
 ;; => [0.10268308453594212 0.13709906546448453 0.05783185760307677 0.2835419187399636 0.015000000000000003 0.049098055965063864 0.15296143983559468 0.13989401901156823 0.04689055884430651 0.015000000000000003]
-
-(defn pagerank 
-  "Returns an infinite sequence of vectors that converges on the pagerank values,
-   using an iterative method."
-  ([links]
-    (let [transitions (transpose (map norm-1 (slices links)))
-          initial-rank (norm-1 (zero-vector (row-count links)))]
-      (iterate 
-        (fn [v] (add (mmul CLICK-THROUGH transitions v)
-                     (mmul (- 1.0 CLICK-THROUGH) initial-rank)))
-        initial-rank))))
 
 ;; =================================================================================
 ;; Direct (algebraic) method
 
 (defn pagerank-direct 
   "Computes the pagerank directly"
-  ([links]
+  ([transitions]
     (mmul (inverse (sub (identity-matrix n) (mul CLICK-THROUGH transitions)))
             (vec (repeat n (/ (- 1.0 CLICK-THROUGH) n))))))
 
-(pagerank-direct links)
+(pm (pagerank-direct transitions))
 ;; => [0.1026830845359421 0.1370990654644845 0.05783185760307677 0.28354191873996354 0.015000000000000003 0.04909805596506385 0.15296143983559463 0.13989401901156823 0.04689055884430651 0.015000000000000003]
 
 )

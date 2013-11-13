@@ -23,8 +23,10 @@
 (defn- str-row
   "Creates a string for each row with the desired
    amount of spaces between the elements."
-  [[elem-head & elem-tail] [len-head & len-tail]] ;; the first element doesn't have a leading ws.
-  (let [first-elem (str-elem elem-head len-head)
+  [row len] ;; the first element doesn't have a leading ws.
+  (let [[elem-head & elem-tail] (mp/get-major-slice-seq row)
+        [len-head & len-tail] len
+        first-elem (str-elem elem-head len-head)
         body-elems (map str-elem elem-tail len-tail)]
   (str "[" first-elem (apply str (map #(str " " %) body-elems)) "]")))
 
