@@ -34,7 +34,7 @@
 
 (norm-1 [1 2 3 4])
 
-;; where do visitors go, as a pproportion?
+;; where do outbound visitors go, as a proportion?
 (map norm-1 (rows links))
 (pm *1)
 
@@ -48,15 +48,16 @@
 ;; =================================================================================
 ;; Iterative method
 ;;
+;; state defines the location of the browsing population
 ;; each iteration of the pagerank sequences gets closer to the correct pagerank value
 
 (def initial-state (broadcast (/ 1.0 n) [n])) 
+(pm initial-state)
 
 (defn step [state]
-  (add (mmul CLICK-THROUGH transitions state)
-       (mmul (- 1.0 CLICK-THROUGH) initial-state)))
+  (add (* CLICK-THROUGH         (mmul transitions state))
+       (* (- 1.0 CLICK-THROUGH) initial-state)))
 
-(pm initial-state)
 (pm (step initial-state))
 
 (def pageranks (iterate step initial-state))
