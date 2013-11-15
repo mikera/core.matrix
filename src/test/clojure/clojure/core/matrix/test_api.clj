@@ -118,6 +118,7 @@
   (is (equals [[3]] (submatrix (array [[1 2] [3 4]]) [[1 1] [0 1]])))
   (is (equals [[2] [4]] (submatrix (array [[1 2] [3 4]]) 1 [1 1])))
   (is (equals [2 3] (submatrix (array [1 2 3 4]) [[1 2]])))
+  (is (equals [[4]] (submatrix [[1 2] [3 4]] 1 1 1 1))) 
   (is (equals [2 3] (submatrix (array [1 2 3 4]) 0 [1 2]))))
 
 (deftest test-element-seq

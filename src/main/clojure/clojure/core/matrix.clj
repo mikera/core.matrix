@@ -608,7 +608,7 @@
   ([m dimension index-range]
     (mp/submatrix m (assoc (vec (repeat (mp/dimensionality m) nil)) dimension index-range)))
   ([m row-start row-length col-start col-length]
-    (mp/submatrix (list row-start row-length) (list col-start col-length))))
+    (mp/submatrix m [(list row-start row-length) (list col-start col-length)])))
 
 (defn subvector
   "Gets a view of part of a vector. The view maintains a reference to the original,
