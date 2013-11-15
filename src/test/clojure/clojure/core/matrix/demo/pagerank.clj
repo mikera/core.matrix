@@ -13,7 +13,8 @@
 ;;   - http://en.wikipedia.org/wiki/PageRank
 
 (def links
-;; link matrix: each row represnts the number of outbound links from a page to other pages
+;; link matrix: each row represnts the number of 
+;; outbound links from a page to other pages
   [[0 0 1 1 0 0 1 2 0 0]
    [1 0 0 1 0 0 0 0 0 0]
    [0 0 0 2 0 0 0 0 1 0]
@@ -28,7 +29,7 @@
 (def n (row-count links))
 
 (defn proportions 
-  "Normalises a vector to a sum of 1.0."
+  "Normalises a vector to a sum of 1.0"
   ([v]
     (/ v (esum v))))
 
@@ -50,19 +51,20 @@ outbound
 ;; Iterative method
 ;;
 ;; state defines the location of the browsing population
-;; each iteration of the pagerank sequences gets closer to the correct pagerank value
+;; each iteration of the pagerank sequences gets 
+;; closer to the correct pagerank value
 
-(def initial-state (broadcast (/ 1.0 n) [n])) 
+(def initial-state (proportions (repeat n 1000000))) 
 (pm initial-state)
 
 (defn step 
-  "Compute the next state, i.e. the proportion of people on each page"
+  "Compute the next state, i.e. the proportion of people 
+   on each page"
   ([state]
     (+ (* CLICK-THROUGH         (mmul inbound state))
        (* (- 1.0 CLICK-THROUGH) initial-state))))
 
 (pm (step initial-state))
-(pm (step (step initial-state)))
 
 (def pageranks (iterate step initial-state))
 
@@ -81,7 +83,7 @@ outbound
 ;; has it converged? if so this should be near zero
 (pm (- (nth pageranks 100) (nth pageranks 300)))
 
-
+;; make array out of sequence of steps
 (pm (array (take 8 pageranks))) 
 
 ;; =================================================================================
