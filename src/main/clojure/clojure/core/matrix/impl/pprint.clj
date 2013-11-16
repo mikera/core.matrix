@@ -9,9 +9,9 @@
 (defn- longest-nums
   "Finds the longest string representation of
    a number in each column within a given matrix."
-  [mat]
+  [mat formatter]
   (let [tmat (mp/transpose mat)
-        col-long (fn [r] (mp/element-reduce (mp/element-map r #(count (format-num %))) max))]
+        col-long (fn [r] (mp/element-reduce (mp/element-map r #(count (formatter %))) max))]
     (map col-long (mp/get-major-slice-seq tmat))))
 
 (defn- str-elem
@@ -45,9 +45,9 @@
   [m]
   (cond
     (mp/is-scalar? m) (println (format-num m))
-    (== 1 (mp/dimensionality m)) (println (str-row m (longest-nums m)))
+    (== 1 (mp/dimensionality m)) (println (str-row m (longest-nums m format-num)))
     :else 
-      (let [len (longest-nums m)
+      (let [len (longest-nums m format-num)
             rows (mp/get-major-slice-seq m) 
             start (str "[" (str-row (first rows) len))
             out (str start (rprint (next rows) "" len))]
