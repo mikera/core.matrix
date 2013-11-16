@@ -42,13 +42,14 @@
 
 (defn pm
   "Pretty-prints a matrix"
-  [m & {:keys [prefix]}]
-  (cond
-    (mp/is-scalar? m) (println (str prefix (format-num m)))
-    (== 1 (mp/dimensionality m)) (println (str prefix (str-row m (longest-nums m format-num))))
+  [m & {:keys [prefix formatter]}]
+  (let [formatter (or formatter format-num)]
+    (cond
+     (mp/is-scalar? m) (println (str prefix (formatter m)))
+     (== 1 (mp/dimensionality m)) (println (str prefix (str-row m (longest-nums m formatter))))
     :else 
-      (let [len (longest-nums m format-num)
-            rows (mp/get-major-slice-seq m) 
+       (let [len (longest-nums m formatter)
+             rows (mp/get-major-slice-seq m) 
             start (str prefix "[" (str-row (first rows) len))
             out (str start (rprint (next rows) prefix len))]
-         (println out))))
+         (println out)))))
