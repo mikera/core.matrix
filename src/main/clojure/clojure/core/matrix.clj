@@ -1293,8 +1293,10 @@
 
 (defn pm
   "Pretty-prints a matrix"
-  [m]
-  (pprint/pm m))
+  ([m]
+    (pprint/pm m))
+  ([m & args]
+    (apply pprint/pm m args)))
 
 ;; =========================================================
 ;; Implementation management functions
