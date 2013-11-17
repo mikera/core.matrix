@@ -199,7 +199,7 @@
 
 (extend-protocol mp/PVectorOps
   Number
-    (vector-dot [a b] (* a b))
+    (vector-dot [a b] (mp/pre-scale b a))
     (length [a] (double a))
     (length-squared [a] (Math/sqrt (double a)))
     (normalise [a]
