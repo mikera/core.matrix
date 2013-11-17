@@ -655,13 +655,15 @@
       (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
 
 (defn rows
-  "Gets the rows of an array, as a sequence of vectors."
+  "Gets the rows of an array, as a sequence of vectors.
+
+   If the array has more than 2 dimensions, will return the rows from all slices in order."
   ([m]
     (case (long (mp/dimensionality m)) 
-      0 (error "Can't get rows of a 0-dimensional object")
-      1 (error "Can't get rows of a 1-dimensional object") ;; TODO: consider scalar or length 1 vector results?
-      2 (slices m)
-      (mapcat rows (slices m)))))
+        0 (error "Can't get rows of a 0-dimensional object")
+        1 (error "Can't get rows of a 1-dimensional object") ;; TODO: consider scalar or length 1 vector results?
+        2 (slices m)
+        (mapcat rows (slices m)))))
 
 (defn columns
   "Gets the columns of a matrix, as a sequence of vectors."
