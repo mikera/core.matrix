@@ -6,16 +6,21 @@
 
 (defn- format-num [x] (format "%.3f" (double x)))
 
+(defn- default-formatter [x]
+  (if (number? x)
+    (format-num x)
+    (str x)))
+
 (defn- longest-nums
   "Finds the longest string representation of
-   a number in each column within a given matrix."
+   any element in each column within a given matrix."
   [mat formatter]
   (let [tmat (mp/transpose mat)
         col-long (fn [r] (mp/element-reduce (mp/element-map r #(count (formatter %))) max))]
     (map col-long (mp/get-major-slice-seq tmat))))
 
 (defn- str-elem
-  "Prints and element that takes up a given amount of whitespaces."
+  "Prints an element that takes up a given amount of whitespaces."
   [elem whitespaces]
   (let [formatter (str "%" whitespaces "." 3 "f")]
     (format formatter (double elem))))
@@ -43,7 +48,7 @@
 (defn pm
   "Pretty-prints a matrix"
   [m & {:keys [prefix formatter]}]
-  (let [formatter (or formatter format-num)]
+  (let [formatter (or formatter default-formatter)]
     (cond
      (mp/is-scalar? m) (println (str prefix (formatter m)))
      (== 1 (mp/dimensionality m)) (println (str prefix (str-row m (longest-nums m formatter))))
