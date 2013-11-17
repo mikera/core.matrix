@@ -266,9 +266,16 @@
 (extend-protocol mp/PVectorOps
   IPersistentVector
     (vector-dot [a b]
-      (let [b (persistent-vector-coerce b)]
-        (when-not (== (count a) (count b)) (error "Mismatched vector sizes"))
-        (reduce + 0 (map * a b))))
+      (let [dims (long (mp/dimensionality b))
+            ;; b (persistent-vector-coerce b)
+            ]
+        (cond
+          (and (== dims 1) (instance? clojure.lang.Indexed b))
+            (do 
+              (when-not (== (count a) (count b)) (error "Mismatched vector sizes"))
+              (reduce + 0 (map * a b)))
+          (== dims 0) (mp/scale a b)
+          :else (mp/inner-product a b))))
     (length [a]
       (Math/sqrt (double (reduce + (map #(* % %) a)))))
     (length-squared [a]
