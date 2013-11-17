@@ -166,6 +166,46 @@
     (convert-to-nested-vectors [m]
       (vec m)))
 
+(defmacro doubles-squared-sum [a]
+  `(let [a# ~(vary-meta a assoc :tag 'doubles)
+         n# (alength a#)]
+     (loop [i# 0 res# 0.0]
+       (if (< i# n#)
+         (recur (inc i#) (+ res# (let [v# (aget a# i#)] (* v# v#))))
+         res#))))
+
+(extend-protocol mp/PVectorOps
+  (Class/forName "[D")
+    (vector-dot [a b] 
+      (cond
+        (instance? (Class/forName "[D") b)
+          (let [^doubles a a
+                ^doubles b b
+                n (alength a)]
+            (when (not (== n (alength b))) (error "Incompatible double array lengths"))
+            (loop [i 0 res 0.0]
+              (if (< i n)
+                (recur (inc i) (+ res (* (aget a i) (aget b i))))
+                res)))
+        (== 1 (mp/dimensionality b))
+          (let [^doubles a a
+                n (alength a)]
+            (when (not (== n (mp/dimension-count b 0))) (error "Incompatible vector lengths"))
+            (loop [i 0 res 0.0]
+              (if (< i n)
+                (recur (inc i) (+ res (* (aget a i) (mp/get-1d b i))))
+                res)))
+        :else nil))
+    (length [a] (Math/sqrt (doubles-squared-sum a)))
+    (length-squared [a] 
+      (doubles-squared-sum a))
+    (normalise [a]
+      (let [a ^doubles a
+            len (doubles-squared-sum a)]
+        (cond
+          (> len 0.0) (mp/scale a (/ 1.0 (Math/sqrt len))) 
+          :else (double-array (alength a))))))
+
 (extend-protocol mp/PCoercion
   (Class/forName "[D")
     (coerce-param [m param]
