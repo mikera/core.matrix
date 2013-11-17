@@ -444,7 +444,14 @@
 (defprotocol PVectorOps
   "Protocol to support common numerical vector operations."
   (vector-dot [a b]
-     "Dot product of two vectors. Should return a scalar value.")
+     "Numerical dot product of two vectors. Must return a scalar value if the two parameters are 
+      vectors of equal length.
+
+      If the vectors are of unequal length, should throw an exception (however returning nil is
+      also acceptable).
+
+      Otherwise the implementation may optionally either return nil or compute a higher dimensional 
+      inner-product (if it is able to do so).")
   (length [a]
      "Euclidian length of a vector.")
   (length-squared [a]

@@ -1009,9 +1009,13 @@
     v))
 
 (defn dot
-  "Computes the dot product (1Dx1D inner product) of two numerical vectors"
+  "Computes the dot product (1Dx1D inner product) of two numerical vectors.
+
+   If either argument is not a vector, computes a higher dimensional inner product."
   ([a b]
-    (mp/vector-dot a b)))
+    (or 
+      (mp/vector-dot a b)
+      (mp/inner-product a b))))
 
 (defn inner-product
   "Computes the inner product of numerical arrays.
