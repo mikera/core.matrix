@@ -666,9 +666,15 @@
         (mapcat rows (slices m)))))
 
 (defn columns
-  "Gets the columns of a matrix, as a sequence of vectors."
+  "Gets the columns of an array, as a sequence of vectors.
+
+   If the array has more than 2 dimensions, will return the columns from all slices in order."
   ([m]
-    (slices m 1)))
+    (case (long (mp/dimensionality m)) 
+        0 (error "Can't get columns of a 0-dimensional object")
+        1 (error "Can't get columns of a 1-dimensional object") ;; TODO: consider scalar or length 1 vector results?
+        2 (slices m 1)
+        (mapcat rows (slices m)))))
 
 (defn main-diagonal
   "Returns the main diagonal of a matrix or general array, as a vector.
