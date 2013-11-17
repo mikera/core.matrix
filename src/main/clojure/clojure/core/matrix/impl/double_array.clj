@@ -178,7 +178,7 @@
   (Class/forName "[D")
     (vector-dot [a b] 
       (cond
-        (instance? (Class/forName "[D") b)
+        (is-double-array? b)
           (let [^doubles a a
                 ^doubles b b
                 n (alength a)]
