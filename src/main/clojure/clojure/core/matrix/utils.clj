@@ -94,6 +94,11 @@
   (^longs [^longs arr]
     (java.util.Arrays/copyOf arr (int (alength arr)))))
 
+(defn copy-object-array
+  "Returns a copy of a long array"
+  (^objects [^objects arr]
+    (java.util.Arrays/copyOf arr (int (alength arr)))))
+
 (defn long-range
   "Returns a range of longs in a long[] array"
   ([end]
