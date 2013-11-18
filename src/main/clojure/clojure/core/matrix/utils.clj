@@ -103,9 +103,18 @@
         (aset arr i (long i)))
       arr)))
 
+(defmacro is-object-array? [m]
+  `(instance? ~(Class/forName "[Ljava.lang.Object;") ~m))
+
+(defmacro is-long-array? [m]
+  `(instance? ~(Class/forName "[J") ~m))
+
+(defmacro is-double-array? [m]
+  `(instance? ~(Class/forName "[D") ~m))
+
 (defn to-long-array
   ([data]
-    (if (instance? (Class/forName "[D") data)
+    (if (is-long-array? data)
       data
       (long-array data))))
 

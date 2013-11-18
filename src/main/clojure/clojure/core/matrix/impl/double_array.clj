@@ -25,9 +25,6 @@
             :type-cast 'double
             :type-object Double/TYPE}})
 
-(defn is-double-array? [m]
-  (instance? DOUBLE-ARRAY-CLASS m))
-
 (defn construct-double-array [data]
   (let [dims (long (mp/dimensionality data))]
     (cond
@@ -92,11 +89,11 @@
         (aget ^doubles m (int (first indexes)))
         (error "Can't get from double array with dimensionality: " (count indexes)))))
 
-;(extend-protocol mp/PSummable
-;  (Class/forName "[D")
-;    (element-sum [m]
-;      (let [^doubles m m]
-;        (areduce m i res 0.0 (+ res (aget m i))))))
+(extend-protocol mp/PSummable
+  (Class/forName "[D")
+    (element-sum [m]
+      (let [^doubles m m]
+        (areduce m i res 0.0 (+ res (aget m i))))))
 
 (extend-protocol mp/PIndexedSetting
   (Class/forName "[D")
