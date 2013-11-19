@@ -35,9 +35,9 @@
     "Returns a new matrix containing the given data. data should be in the form of either
      nested sequences or a valid existing matrix")
   (new-vector [m length]
-    "Returns a new vector (1D column matrix) of the given length.")
+    "Returns a new vector (1D column matrix) of the given length, filled with numeric zero.")
   (new-matrix [m rows columns]
-    "Returns a new matrix (regular 2D matrix) with the given number of rows and columns.")
+    "Returns a new matrix (regular 2D matrix) with the given number of rows and columns, filled with numeric zero.")
   (new-matrix-nd [m shape]
     "Returns a new general matrix of the given shape.
      Shape must be a sequence of dimension sizes.")

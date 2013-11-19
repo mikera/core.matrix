@@ -4,12 +4,13 @@
   (:require clojure.core.matrix.impl.persistent-vector)
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.impl.mathsops :as mops])
-  (:require [clojure.core.matrix.multimethods :as mm]))
+  (:require [clojure.core.matrix.multimethods :as mm])
+  (:import [java.util Arrays]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
-;; clojure.core.matrix implementation for Java double arrays
+;; clojure.core.matrix implementation for Java Object arrays
 ;;
 ;; Useful as a fast, mutable implementation.
 
@@ -42,17 +43,24 @@
               m)
           :else (error "Can't make a nested object array of dimensionality: " dims))))
 
+(def ^Double ZERO 0.0)
+
+(defmacro construct-object-vector [n]
+  `(let [arr# (object-array ~n)]
+     (Arrays/fill arr# ZERO)
+     arr#))
+
 (extend-protocol mp/PImplementation
   (Class/forName "[Ljava.lang.Object;")
     (implementation-key [m] :object-array)
     (meta-info [m]
-      {:doc "Clojure.core.matrix implementation for Java double arrays"})
-    (new-vector [m length] (object-array (int length)))
+      {:doc "Clojure.core.matrix implementation for Java Object arrays"})
+    (new-vector [m length] (construct-object-vector (long length)))
     (new-matrix [m rows columns] 
-      (let [columns (int columns)
+      (let [columns (long columns)
             m (object-array rows)]
         (dotimes [i rows]
-          (aset m i (object-array columns)))
+          (aset m i (construct-object-vector columns)))
         m))
     (new-matrix-nd [m shape]
       (construct-nd shape))
@@ -140,3 +148,22 @@
           :else 
             (error "Can't set on object array with dimensionality: " (count indexes)))))
     (is-mutable? [m] true))
+
+(extend-protocol mp/PIndexedSettingMutable
+  (Class/forName "[Ljava.lang.Object;")
+    (set-1d! [m x v]
+      (aset ^objects m (int x) v))
+    (set-2d! [m x y v]
+      (mp/set-1d! (aget ^objects m x) y v))
+    (set-nd! [m indexes v]
+      (let [^objects m m
+            dims (long (count indexes))]
+        (cond 
+          (== 1 dims)
+            (aset m (int (first indexes)) v)
+          (> dims 1)
+            (mp/set-nd! (aget m (int (first indexes))) (next indexes) v)
+          :else
+            (error "Can't set on object array with dimensionality: " (count indexes))))))
+
+(imp/register-implementation (object-array [1]))

@@ -510,7 +510,7 @@
                (c-for [i (long 0) (< i mrows) (inc i)
                        j (long 0) (< j acols) (inc j)]
                  (mp/set-2d! new-m i j 0))
-               (c-for [i (long 0) (< i mrows) (inc i)
+                (c-for [i (long 0) (< i mrows) (inc i)
                        j (long 0) (< j acols) (inc j)
                        k (long 0) (< k mcols) (inc k)]
                  (mp/set-2d! new-m i j (+ (mp/get-2d new-m i j)

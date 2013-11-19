@@ -73,5 +73,6 @@
       (if k 
         (or obj
            (if (try-load-implementation k) (@canonical-objects k))
+           (when-not (keyword? m) m)
            (error "Unable to find implementation: [" k "]"))
         nil))))

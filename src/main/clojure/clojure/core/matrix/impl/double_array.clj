@@ -6,7 +6,6 @@
   (:require [clojure.core.matrix.impl.mathsops :as mops])
   (:require [clojure.core.matrix.multimethods :as mm]))
 
-
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
