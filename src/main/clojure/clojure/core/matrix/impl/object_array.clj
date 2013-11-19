@@ -166,4 +166,21 @@
           :else
             (error "Can't set on object array with dimensionality: " (count indexes))))))
 
+(extend-protocol mp/PBroadcast
+  (Class/forName "[Ljava.lang.Object;")
+    (broadcast [m target-shape]
+      (let [mshape (mp/get-shape m)
+            dims (long (count mshape))
+            tdims (long (count target-shape))]
+        (cond
+          (> dims tdims) 
+            (error "Can't broadcast to a lower dimensional shape")
+          (not (every? identity (map #(== %1 %2) mshape (take-last dims target-shape))))
+            (error "Incompatible shapes, cannot broadcast " (vec mshape) " to " (vec target-shape))
+          :else
+            (reduce
+              (fn [m dup] (object-array (repeat dup m)))
+              m
+              (reverse (drop-last dims target-shape)))))))
+
 (imp/register-implementation (object-array [1]))
