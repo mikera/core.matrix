@@ -10,6 +10,10 @@
 (deftest regressions
   (is (= [2] (seq (emap inc (object-array [1]))))))
 
+(deftest to-objects
+  (is (equals [0 1 2] (to-object-array (range 3))))
+  (is (e= [1 2 3 :foo] (to-object-array [[1 2] [3 :foo]]))))
+
 (deftest instance-tests
   ;(clojure.core.matrix.compliance-tester/instance-test (object-array []))
   (clojure.core.matrix.compliance-tester/instance-test (object-array [1]))

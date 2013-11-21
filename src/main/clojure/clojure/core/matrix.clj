@@ -516,11 +516,13 @@
     If want-copy? is false, will return the internal array used by m, or nil if not supported
     by the implementation.
     If want-copy? is not specified, will return either a copy or the internal array"
-   ([m]
-     ;; TODO: more efficient implementation with protocol
-     (object-array (mp/element-seq m)))
-   ([m want-copy?]
-     (TODO)))
+   (^objects [m]
+     (mp/to-object-array m))
+   (^objects [m want-copy?]
+     (let [arr (mp/as-object-array m)]
+       (if want-copy?
+         (if arr (copy-object-array arr) (mp/to-object-array m))
+         arr))))
 
 ;; =======================================
 ;; matrix access
