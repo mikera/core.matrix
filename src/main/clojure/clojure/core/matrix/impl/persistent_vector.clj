@@ -43,8 +43,8 @@
   ([f m]
     (let [dims (long (mp/dimensionality m))]
       (cond
-        (== 0 dims) (f (mp/get-0d m))
-        (== 1 dims) (mapv f (mp/element-seq m))
+        (== 0 dims) (f (scalar-coerce m))
+        (== 1 dims) (mapv #(f (scalar-coerce %)) m)
         :else (mapv (partial mapmatrix f) m))))
   ([f m1 m2]
     (if (mp/is-vector? m1)
@@ -52,7 +52,7 @@
         (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
         (when (and (== 1 dim2) (not= (mp/dimension-count m1 0) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
         (if (== 0 dim2)
-          (let [v (mp/get-0d m2)] (mapv #(f % v) m1 ))
+          (let [v (scalar-coerce m2)] (mapv #(f % v) m1 ))
           (mapv f m1 (mp/element-seq m2))))
       (mapv (partial mapmatrix f) m1 (mp/get-major-slice-seq  m2))))
   ([f m1 m2 & more]
