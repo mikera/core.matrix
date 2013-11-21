@@ -43,10 +43,25 @@
               m)
           :else (error "Can't make a nested object array of dimensionality: " dims))))
 
-(defn object-array-coerce [param]
-  (if (> (mp/dimensionality param) 0) 
-    (object-array (map object-array-coerce (mp/get-major-slice-seq param)))
-    (mp/get-0d param)))
+(defn object-array-coerce 
+  "Coerce to object array format, avoids copying sub-arrays if possible."
+  ([m]
+  (if (> (mp/dimensionality m) 0) 
+    (if (is-object-array? m)
+      (let [^objects m m
+            n (count m)]
+        (loop [ret m i 0]
+          (if (< i n)
+            (let [mv (aget m i)
+                  cmv (object-array-coerce mv)]
+              (if (and (identical? m ret) (identical? mv cmv))
+                (recur ret (inc i))
+                (let [mm (copy-object-array m)]
+                  (aset mm i cmv)
+                  (recur mm (inc i)))))
+            ret)))
+      (object-array (map object-array-coerce (mp/get-major-slice-seq m))))
+    (mp/get-0d m))))
 
 (def ^Double ZERO 0.0)
 
