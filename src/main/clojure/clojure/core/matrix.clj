@@ -511,7 +511,7 @@
          arr))))
 
 (defn to-object-array
-   "Returns a Java Object[] array containing the values of a numerical array m in row-major order.
+   "Returns a Java Object[] array containing the values of an array m in row-major order.
     If want-copy? is true, will guarantee a new Object array (defensive copy).
     If want-copy? is false, will return the internal array used by m, or nil if not supported
     by the implementation.
