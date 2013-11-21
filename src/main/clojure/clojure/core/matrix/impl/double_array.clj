@@ -77,6 +77,11 @@
     (to-double-array [m] (copy-double-array m))
     (as-double-array [m] m))
 
+(extend-protocol mp/PObjectArrayOutput
+  (Class/forName "[D")
+    (to-object-array [m] (object-array m))
+    (as-object-array [m] nil))
+
 (extend-protocol mp/PIndexedAccess
   (Class/forName "[D")
     (get-1d [m x]

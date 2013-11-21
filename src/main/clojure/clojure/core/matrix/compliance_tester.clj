@@ -244,6 +244,11 @@
     (testing "scalar should be equivalent to identity function on elements"
       (is (= (vec es) (map scalar es))))))
 
+(defn test-array-output [m]
+  (let [arr (to-object-array m)]
+    (testing "object array should equal element sequence"
+      (is (= (seq (eseq m)) (seq arr))))))
+
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-as-vector m)
@@ -260,6 +265,7 @@
   (test-pm m)
   (test-to-string m)
   (test-elements m)
+  (test-array-output m)
   (test-broadcast m)
   (test-general-transpose m))
 

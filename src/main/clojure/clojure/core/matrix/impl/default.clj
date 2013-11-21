@@ -768,7 +768,8 @@
 
 (extend-protocol mp/PDoubleArrayOutput
   Number
-    (to-double-array [m] (aset (double-array 1) 0 (double m)))
+    (to-double-array [m] 
+      (let [arr (double-array 1)] (aset arr 0 (double m)) arr))
     (as-double-array [m] nil)
   Object
     (to-double-array [m]
@@ -776,8 +777,13 @@
     (as-double-array [m] nil))
 
 (extend-protocol mp/PObjectArrayOutput
+  nil
+    (to-object-array [m] 
+      (let [arr (object-array 1)] arr))
+    (as-object-array [m] nil)
   Number
-    (to-object-array [m] (aset (object-array 1) 0 m))
+    (to-object-array [m] 
+      (let [arr (object-array 1)] (aset arr 0 m) arr))
     (as-object-array [m] nil)
   Object
     (to-object-array [m]
