@@ -775,6 +775,15 @@
       (double-array (mp/element-seq m)))
     (as-double-array [m] nil))
 
+(extend-protocol mp/PObjectArrayOutput
+  Number
+    (to-object-array [m] (aset (object-array 1) 0 m))
+    (as-object-array [m] nil)
+  Object
+    (to-object-array [m]
+      (object-array (mp/element-seq m)))
+    (as-object-array [m] nil))
+
 ;; row operations
 (extend-protocol mp/PRowOperations
   Object

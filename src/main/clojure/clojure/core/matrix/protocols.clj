@@ -321,7 +321,6 @@
     "Returns the internal object array used by m. If no such array is used, returns nil.
      Provides an opportunity to avoid copying the internal array."))
 
-
 (defprotocol PValueEquality
   "Protocol for comparing two arrays, with the semantics of clojure.core/=.
    Returns false if the arrays are not of equal shape, or if any elements are not equal."
