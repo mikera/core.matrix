@@ -173,10 +173,15 @@
   (permutation-matrix [m permutation]))
 
 (defprotocol PCoercion
-  "Protocol to coerce a parameter to a format usable by a specific implementation. It is
+  "Protocol to coerce a parameter to a format used by a specific implementation. It is
    up to the implementation to determine what parameter types they support.
    If the implementation is unable to perform coercion, it must return nil.
-   Implementations must also be able to coerce valid scalar values (presumably to themselves...)"
+
+   If coercion is impossible (e.g. param has an invalid shape or element types) then the
+   implementation *may* throw an exception, though it may also return nil to get default behaviour,
+   which should implement any expected exceptions.
+
+   Implementations must also be able to coerce valid scalar values (presumably via the identity function)"
   (coerce-param [m param]
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
      May return nil if unable to do so, in which case a default implementation can be used."))
@@ -200,11 +205,15 @@
   (broadcast-like [m a]))
 
 (defprotocol PBroadcastCoerce
-  "Protocol to broadcast into a given matrix shape and perform coercion in one step."
+  "Protocol to broadcast into a given matrix shape and perform coercion in one step.
+
+   Equivalent to (coerce m (broadcast-like m a)) but likely to be more efficient."
   (broadcast-coerce [m a]))
 
 (defprotocol PConversion
-  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
+  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers,
+   however providing an efficient implementation is strongly encouraged to enable fast interop 
+   with Clojure vectors."
   (convert-to-nested-vectors [m]))
 
 (defprotocol PReshaping
