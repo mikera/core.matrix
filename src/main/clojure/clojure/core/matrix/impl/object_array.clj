@@ -43,6 +43,11 @@
               m)
           :else (error "Can't make a nested object array of dimensionality: " dims))))
 
+(defn object-array-coerce [param]
+  (if (> (mp/dimensionality param) 0) 
+    (object-array (map object-array-coerce (mp/get-major-slice-seq param)))
+    (mp/get-0d param)))
+
 (def ^Double ZERO 0.0)
 
 (defmacro construct-object-vector [n]
@@ -182,5 +187,47 @@
               (fn [m dup] (object-array (repeat dup m)))
               m
               (reverse (drop-last dims target-shape)))))))
+
+(extend-protocol mp/PCoercion
+  (Class/forName "[Ljava.lang.Object;")
+    (coerce-param [m param]
+      (object-array-coerce param)))
+
+(extend-protocol mp/PMutableMatrixConstruction
+  (Class/forName "[Ljava.lang.Object;")
+    (mutable-matrix [m]
+      (if (> (mp/dimensionality m) 1)
+        (object-array (map mp/mutable-matrix m))
+        (object-array (map mp/get-0d m)))))
+
+(extend-protocol mp/PConversion
+  (Class/forName "[Ljava.lang.Object;")
+    (convert-to-nested-vectors [m]
+      (mapv mp/convert-to-nested-vectors (seq m))))
+
+(extend-protocol mp/PMatrixSlices
+  (Class/forName "[Ljava.lang.Object;")
+    (get-row [m i]
+      (aget ^objects m (long i)))
+    (get-column [m i]
+      (mp/get-major-slice (aget ^objects m (long i)) i))
+    (get-major-slice [m i]
+      (aget ^objects m (long i)))
+    (get-slice [m dimension i]
+      (aget ^objects m (long i))))
+
+(extend-protocol mp/PSliceView
+  (Class/forName "[Ljava.lang.Object;")
+    ;; default implementation uses a lightweight wrapper object
+    (get-major-slice-view [m i] 
+      (aget ^objects m i)))
+
+(extend-protocol mp/PSliceSeq
+  (Class/forName "[Ljava.lang.Object;")
+    (get-major-slice-seq [m]
+      (let [^objects m m]
+        (if (and (> 0 (alength m)) (== 0 (mp/dimensionality (aget m 0)))) 
+          (seq (map mp/get-0d m))
+          (seq m)))))
 
 (imp/register-implementation (object-array [1]))

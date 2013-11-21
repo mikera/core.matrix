@@ -7,6 +7,9 @@
   (:require [clojure.core.matrix.compliance-tester])
   (:require clojure.core.matrix.impl.double-array))
 
+(deftest regressions
+  (is (= [2] (seq (emap inc (object-array [1]))))))
+
 (deftest instance-tests
   ;(clojure.core.matrix.compliance-tester/instance-test (object-array []))
   (clojure.core.matrix.compliance-tester/instance-test (object-array [1]))
