@@ -451,6 +451,10 @@
      - The transpose of a 1D vector is the same 1D vector
      - The transpose of a 2D matrix swaps rows and columns"))
 
+(defprotocol PRotate
+  "Rotates an array along a specified dimension by the given number of places."
+  (rotate [m dim places])) 
+
 (defprotocol PTransposeInPlace 
   "Protocol for mutable 2D matrix transpose in place"
   (transpose! [m]
