@@ -36,7 +36,7 @@
   (str "[" first-elem (apply str (map #(str " " %) body-elems)) "]")))
 
 (defn- rprint
-  "Recursively prints each element with a leading
+  "Recursively joins each element with a leading
    line break and whitespace. If there are no
    elements left in the matrix it ends with a
    closing bracket."
@@ -50,11 +50,11 @@
   [m & {:keys [prefix formatter]}]
   (let [formatter (or formatter default-formatter)]
     (cond
-     (mp/is-scalar? m) (println (str prefix (formatter m)))
-     (== 1 (mp/dimensionality m)) (println (str prefix (str-row m (longest-nums m formatter))))
+     (mp/is-scalar? m) (str prefix (formatter m))
+     (== 1 (mp/dimensionality m)) (str prefix (str-row m (longest-nums m formatter)))
     :else 
        (let [len (longest-nums m formatter)
              rows (mp/get-major-slice-seq m) 
-            start (str prefix "[" (str-row (first rows) len))
-            out (str start (rprint (next rows) prefix len))]
-         (println out)))))
+             start (str prefix "[" (str-row (first rows) len))
+             out (str start (rprint (next rows) prefix len))]
+         out))))
