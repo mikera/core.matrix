@@ -457,6 +457,12 @@
    Rotating a dimension that does not exist has no effect on the array."
   (rotate [m dim places])) 
 
+(defprotocol PRotateAll
+  "Rotates an array using the specified shifts for each dimension.
+
+   shifts may be any sequence of iteger shift amounts."
+  (rotate-all [m shifts])) 
+
 (defprotocol PTransposeInPlace 
   "Protocol for mutable 2D matrix transpose in place"
   (transpose! [m]

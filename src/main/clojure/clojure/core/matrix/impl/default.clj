@@ -461,6 +461,18 @@
         :else
           (mp/rotate (mp/convert-to-nested-vectors m) dim places))))
 
+
+(extend-protocol mp/PRotateAll
+  nil
+    (rotate-all [m shifts] nil)
+  Number
+    (rotate-all [m shifts] m)
+  Object
+    (rotate-all [m shifts] 
+      (reduce (fn [m [dim shift]] (mp/rotate m dim shift)) 
+         m 
+         (map-indexed (fn [i v] [i v]) shifts))))
+
 (extend-protocol mp/PMatrixProducts
   Number
     (inner-product [m a]

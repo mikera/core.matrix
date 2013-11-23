@@ -713,9 +713,7 @@
   ([m dimension shift-amount]
     (mp/rotate m dimension shift-amount))
   ([m shifts]
-    (reduce (fn [m [dim shift]] (rotate m dim shift)) 
-            m 
-            (map-indexed (fn [i v] [i v]) shifts))))
+    (mp/rotate-all m shifts)))
 
 (defn as-vector
   "Creates a view of an array as a single flattened vector.
