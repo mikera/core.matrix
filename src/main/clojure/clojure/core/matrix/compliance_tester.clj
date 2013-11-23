@@ -191,7 +191,9 @@
     (is (e= m (rotate m sh)))
     (when (>= dims 1)
       (is (e= m (rotate m 0 (sh 0))))
-      (is (e= (rotate m 0 (inc (sh 0))) (rotate m 0 1))))))
+      (is (e= (rotate m 0 (inc (sh 0))) (rotate m 0 1))))
+    (is (e= m (rotate (rotate m 0 1) 0 -1)))
+    (is (e= m (rotate (rotate m 1 1) 1 -1)))))
 
 (defn test-coerce [m]
   ;; (is (identical? m (coerce m m))) ;; TODO: figure out if we should enforce this?
