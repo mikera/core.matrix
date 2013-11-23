@@ -727,7 +727,7 @@
   ([m]
     (or
       (mp/to-vector m)
-      (array m (mp/element-seq m)))))
+      (array m (mp/to-object-array m)))))
 
 ;; ====================================
 ;; structural change operations
