@@ -452,7 +452,9 @@
      - The transpose of a 2D matrix swaps rows and columns"))
 
 (defprotocol PRotate
-  "Rotates an array along a specified dimension by the given number of places."
+  "Rotates an array along a specified dimension by the given number of places.
+
+   Rotating a dimension that does not exist has no effect on the array."
   (rotate [m dim places])) 
 
 (defprotocol PTransposeInPlace 

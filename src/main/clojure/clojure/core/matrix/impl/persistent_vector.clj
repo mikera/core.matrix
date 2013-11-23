@@ -242,6 +242,15 @@
           :else
             (error "Joining with array of incompatible size")))))
 
+(extend-protocol mp/PRotate
+  IPersistentVector
+    (rotate [m dim places]
+      (if (== 0 dim)
+        (let [c (count m)
+              sh (mod places c)]
+          (vec (concat (subvec m sh c) (subvec m 0 sh))))
+        (mapv (fn [s] (mp/rotate s dim places))))))
+
 (extend-protocol mp/PSubVector
   IPersistentVector
     (subvector [m start length]

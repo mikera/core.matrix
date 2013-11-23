@@ -441,6 +441,20 @@
               (mp/set-2d! m i j (mp/get-2d m j i))
               (mp/set-2d! m j i t)))))))
 
+(extend-protocol mp/PRotate
+  nil
+    (rotate [m dim places] nil)
+  Number
+    (rotate [m dim places] m)
+  Object
+    (rotate [m dim places]
+      (if (== 0 dim)
+        (let [ss (mp/get-major-slice-seq m)
+              c (mp/dimension-count m 0)
+              sh (mod places c)]
+          (vec (take-last (- c sh) ss) (drop sh ss)))
+        (mp/rotate (mp/convert-to-nested-vectors m) dim places))))
+
 (extend-protocol mp/PMatrixProducts
   Number
     (inner-product [m a]

@@ -711,9 +711,7 @@
 (defn rotate
   "Rotates an array along specified dimensions."
   ([m dimension shift-amount]
-    (let [c (mp/dimension-count m dimension)
-          sh (mod shift-amount c)]
-      (join-along dimension (submatrix m dimension [sh (- c sh)]) (submatrix m dimension [0 sh]))))
+    (mp/rotate m dimension shift-amount))
   ([m shifts]
     (reduce (fn [m [dim shift]] (rotate m dim shift)) 
             m 
