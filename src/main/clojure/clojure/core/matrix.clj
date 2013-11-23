@@ -294,18 +294,18 @@
     (mp/assign m a)))
 
 (defn clone
-  "Constructs a (shallow) clone of the matrix. This function is intended to
+  "Constructs a (shallow) clone of the array. This function is intended to
    allow safe defensive usage of matrices / vectors. If the intent is to create a mutable clone of
    some array data, it is recommended to use mutable instead.
 
    Guarantees that:
-   1. Mutating the returned matrix will not modify any other matrix (defensive copy)
-   2. The returned matrix will be fully mutable, if the implementation supports mutable matrices.
+   1. Mutating the returned array will not modify any other array (defensive copy)
+   2. The returned array will be fully mutable, if the implementation supports mutable matrices.
 
    The clone may or may not be of the same implementation: implementations are encouraged to do so but
    this is not mandatory.
 
-   A matrix implementation which only provides immutable matrices may safely return the same matrix."
+   A core.matrix implementation which only provides immutable arrays may safely return the same array."
   ([m]
     (mp/clone m)))
 
@@ -578,13 +578,13 @@
     m))
 
 (defn get-row
-  "Gets a row of a matrix as a vector.
+  "Gets a row of a matrix, as a vector.
    Will return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
 (defn get-column
-  "Gets a column of a matrix as a vector.
+  "Gets a column of a matrix, as a vector.
    Will return a mutable view if supported by the implementation."
   ([m y]
     (mp/get-column m y)))
