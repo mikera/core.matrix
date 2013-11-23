@@ -185,6 +185,14 @@
       (is (= (seq (shape m))
              (seq (reverse (shape mt))))))))
 
+(defn test-rotate [m]
+  (let [sh (shape m)
+        dims (dimensionality m)]
+    (is (e= m (rotate m sh)))
+    (when (>= dims 1)
+      (is (e= m (rotate m 0 (sh 0))))
+      (is (e= (rotate m 0 (inc (sh 0))) (rotate m 0 1))))))
+
 (defn test-coerce [m]
   ;; (is (identical? m (coerce m m))) ;; TODO: figure out if we should enforce this?
   (let [vm (mp/convert-to-nested-vectors m)]
@@ -262,6 +270,7 @@
   (test-vector-round-trip m)
   (test-ndarray-round-trip m)
   (test-reshape m)
+  (test-rotate m)
   (test-pm m)
   (test-to-string m)
   (test-elements m)

@@ -247,9 +247,11 @@
     (rotate [m dim places]
       (if (== 0 dim)
         (let [c (count m)
-              sh (mod places c)]
-          (vec (concat (subvec m sh c) (subvec m 0 sh))))
-        (mapv (fn [s] (mp/rotate s dim places))))))
+              sh (if (> c 0) (mod places c) 0)]
+          (if (== sh 0)
+            m
+            (vec (concat (subvec m sh c) (subvec m 0 sh)))))
+        (mapv (fn [s] (mp/rotate s (dec dim) places)) m))))
 
 (extend-protocol mp/PSubVector
   IPersistentVector
