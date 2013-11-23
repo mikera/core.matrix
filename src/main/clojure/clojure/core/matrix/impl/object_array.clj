@@ -11,6 +11,8 @@
 (set! *unchecked-math* true)
 
 ;; clojure.core.matrix implementation for Java Object arrays
+;; general arrays are represented as nested arrays wrapped by a Java Object[] array
+;; all sub-arrays must have the same shape.
 ;;
 ;; Useful as a fast, mutable implementation.
 
@@ -233,7 +235,6 @@
 
 (extend-protocol mp/PSliceView
   (Class/forName "[Ljava.lang.Object;")
-    ;; default implementation uses a lightweight wrapper object
     (get-major-slice-view [m i] 
       (aget ^objects m i)))
 
@@ -244,5 +245,24 @@
         (if (and (> 0 (alength m)) (== 0 (mp/dimensionality (aget m 0)))) 
           (seq (map mp/get-0d m))
           (seq m)))))
+
+(extend-protocol mp/PElementCount
+  (Class/forName "[Ljava.lang.Object;")
+    (element-count [m] 
+      (let [^objects m m
+            n (alength m)] 
+        (if (== n 0)
+          0
+          (* n (mp/element-count (aget m 0)))))))
+
+(extend-protocol mp/PValidateShape
+  (Class/forName "[Ljava.lang.Object;")
+    (validate-shape [m]
+      (let [^objects m m
+            shapes (map mp/validate-shape (seq m))]
+        (if (mp/same-shapes? shapes)
+          (cons (alength m) (first shapes))
+          (error "Inconsistent shapes for sub arrays in object array"))))) 
+
 
 (imp/register-implementation (object-array [1]))
