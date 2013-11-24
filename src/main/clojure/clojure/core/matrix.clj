@@ -1035,7 +1035,7 @@
   ([a b]
     (mp/inner-product a b))
   ([a b & more]
-    (reduce inner-product (inner-product a b) more)))
+    (reduce mp/inner-product (mp/inner-product a b) more)))
 
 (defn outer-product
   "Computes the outer product of numerical arrays."
