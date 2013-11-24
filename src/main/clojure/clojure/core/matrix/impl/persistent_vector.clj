@@ -484,7 +484,8 @@
         (apply mapmatrix f m a more)))
     (element-map!
       ([m f]
-        (doseq [s m] (mp/element-map! s f))
+        (doseq [s m] 
+          (mp/element-map! s f))
         m)
       ([m f a]
         (dotimes [i (count m)]

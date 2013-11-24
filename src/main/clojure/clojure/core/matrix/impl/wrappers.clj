@@ -181,7 +181,7 @@
     (clone [m] (wrap-slice (mp/clone array) slice))
 
   java.lang.Object
-    (toString [m] (str (mp/persistent-vector-coerce m))))
+    (toString [m] (str (mp/convert-to-nested-vectors m))))
 
 
 ;; =============================================

@@ -264,5 +264,57 @@
           (cons (alength m) (first shapes))
           (error "Inconsistent shapes for sub arrays in object array"))))) 
 
+(extend-protocol mp/PFunctionalOperations
+  (Class/forName "[Ljava.lang.Object;")
+    (element-seq [m]
+      (let [^objects m m]
+        (cond
+          (== 0 (alength m)) 
+            '()
+          (> (mp/dimensionality (aget m 0)) 0)
+            (mapcat mp/element-seq m)
+          :else
+            (map mp/get-0d m))))
+    (element-map
+      ([m f]
+        (object-array (map #(mp/element-map % f) m)))
+      ([m f a]
+        (object-array (map #(mp/element-map %1 f %2) m (mp/get-major-slice-seq a))))
+      ([m f a more]
+        (object-array (apply map #(apply mp/element-map %1 f %2 %&) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
+    (element-map!
+      ([m f]
+        (dotimes [i (count m)] 
+          (let [^objects m m
+                s (aget m i)]
+            (if (mp/is-mutable? s) 
+              (mp/element-map! s f) 
+              (aset m i (mp/element-map s f)))))
+        m)
+      ([m f a]
+        (dotimes [i (count m)]
+          (let [^objects m m
+                s (aget m i)
+                as (mp/get-major-slice a i)]
+            (if (mp/is-mutable? s) 
+              (mp/element-map! s f as)
+              (aset m i (mp/element-map s f as)))))
+        m)
+      ([m f a more]
+        (dotimes [i (count m)]
+          (let [^objects m m
+                s (aget m i)
+                as (mp/get-major-slice a i)
+                ms (map #(mp/get-major-slice % i) more)]
+            (if (mp/is-mutable? s) 
+              (apply mp/element-map! s f as ms)
+              (aset m i (apply mp/element-map s f as ms)))))
+        m))
+    (element-reduce
+      ([m f]
+        (reduce f (mp/element-seq m)))
+      ([m f init]
+        (reduce f init (mp/element-seq m)))))
+
 
 (imp/register-implementation (object-array [1]))

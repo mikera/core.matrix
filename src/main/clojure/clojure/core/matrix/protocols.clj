@@ -646,7 +646,7 @@
 ;; Utility functions
 
 (defn persistent-vector-coerce [x]
-  "Coerces to nested persistent vectors"
+  "Coerces a data structure to nested persistent vectors"
   (let [dims (dimensionality x)]
     (cond
       (== dims 0) (get-0d x)
