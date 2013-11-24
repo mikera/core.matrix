@@ -6,7 +6,6 @@
   (:require [clojure.core.matrix.impl.mathsops :as mops])
   (:require [clojure.core.matrix.multimethods :as mm]))
 
-
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
@@ -24,9 +23,6 @@
             :array-cast 'double-array
             :type-cast 'double
             :type-object Double/TYPE}})
-
-(defn is-double-array? [m]
-  (instance? DOUBLE-ARRAY-CLASS m))
 
 (defn construct-double-array [data]
   (let [dims (long (mp/dimensionality data))]
@@ -80,6 +76,11 @@
   (Class/forName "[D")
     (to-double-array [m] (copy-double-array m))
     (as-double-array [m] m))
+
+(extend-protocol mp/PObjectArrayOutput
+  (Class/forName "[D")
+    (to-object-array [m] (object-array m))
+    (as-object-array [m] nil))
 
 (extend-protocol mp/PIndexedAccess
   (Class/forName "[D")
@@ -166,6 +167,46 @@
     (convert-to-nested-vectors [m]
       (vec m)))
 
+(defmacro doubles-squared-sum [a]
+  `(let [a# ~(vary-meta a assoc :tag 'doubles)
+         n# (alength a#)]
+     (loop [i# 0 res# 0.0]
+       (if (< i# n#)
+         (recur (inc i#) (+ res# (let [v# (aget a# i#)] (* v# v#))))
+         res#))))
+
+(extend-protocol mp/PVectorOps
+  (Class/forName "[D")
+    (vector-dot [a b] 
+      (cond
+        (is-double-array? b)
+          (let [^doubles a a
+                ^doubles b b
+                n (alength a)]
+            (when (not (== n (alength b))) (error "Incompatible double array lengths"))
+            (loop [i 0 res 0.0]
+              (if (< i n)
+                (recur (inc i) (+ res (* (aget a i) (aget b i))))
+                res)))
+        (== 1 (mp/dimensionality b))
+          (let [^doubles a a
+                n (alength a)]
+            (when (not (== n (mp/dimension-count b 0))) (error "Incompatible vector lengths"))
+            (loop [i 0 res 0.0]
+              (if (< i n)
+                (recur (inc i) (+ res (* (aget a i) (mp/get-1d b i))))
+                res)))
+        :else nil))
+    (length [a] (Math/sqrt (doubles-squared-sum a)))
+    (length-squared [a] 
+      (doubles-squared-sum a))
+    (normalise [a]
+      (let [a ^doubles a
+            len (doubles-squared-sum a)]
+        (cond
+          (> len 0.0) (mp/scale a (/ 1.0 (Math/sqrt len))) 
+          :else (double-array (alength a))))))
+
 (extend-protocol mp/PCoercion
   (Class/forName "[D")
     (coerce-param [m param]
@@ -177,6 +218,47 @@
   (Class/forName "[D")
     (clone [m]
       (java.util.Arrays/copyOf ^doubles m (int (count m)))))
+
+(extend-protocol mp/PFunctionalOperations
+  (Class/forName "[D")
+    (element-seq [m]
+      (seq m))
+    (element-map
+      ([m f]
+        (let [^doubles m (double-array m)]
+          (dotimes [i (alength m)]
+            (aset m i (double (f (aget m i)))))
+          m))
+      ([m f a]
+        (let [^doubles m (double-array m)
+              ^doubles a (mp/broadcast-coerce m a)]
+          (dotimes [i (alength m)]
+            (aset m i (double (f (aget m i) (aget a i)))))
+          m))
+      ([m f a more]
+        (let [^doubles m (double-array m)
+              ^doubles a (mp/broadcast-coerce m a)
+              more (mapv #(mp/broadcast-coerce m %) more)
+              more-count (long (count more))
+              ^doubles vs (double-array more-count)]
+          (dotimes [i (alength m)]
+            (dotimes [j more-count] (aset vs j (aget ^doubles (more j) i)))
+            (aset m i (double (apply f (aget m i) (aget a i) vs))))
+          m)))
+    (element-map!
+      ([m f]
+        (mp/assign! m (mp/element-map m f)))
+      ([m f a]
+        (mp/assign! m (mp/element-map m f a)))
+      ([m f a more]
+        (mp/assign! m (mp/element-map m f a more))))
+    (element-reduce
+      ([m f]
+        (let [^doubles m m]
+          (reduce f m)))
+      ([m f init]
+        (let [^doubles m m]
+          (reduce f init m)))))
 
 ;; registration
 

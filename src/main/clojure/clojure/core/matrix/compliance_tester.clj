@@ -2,7 +2,6 @@
   (:use clojure.core.matrix)
   (:use clojure.test)
   (:require [clojure.core.matrix.operators :as ops])
-  (:require [clojure.core.matrix.utils :as utils])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as generic])
   (:require [clojure.core.matrix.implementations :as imp])
@@ -186,6 +185,16 @@
       (is (= (seq (shape m))
              (seq (reverse (shape mt))))))))
 
+(defn test-rotate [m]
+  (let [sh (shape m)
+        dims (dimensionality m)]
+    (is (e= m (rotate m sh)))
+    (when (>= dims 1)
+      (is (e= m (rotate m 0 (sh 0))))
+      (is (e= (rotate m 0 (inc (sh 0))) (rotate m 0 1))))
+    (is (e= m (rotate (rotate m 0 1) 0 -1)))
+    (is (e= m (rotate (rotate m 1 1) 1 -1)))))
+
 (defn test-coerce [m]
   ;; (is (identical? m (coerce m m))) ;; TODO: figure out if we should enforce this?
   (let [vm (mp/convert-to-nested-vectors m)]
@@ -203,7 +212,7 @@
 
 (defn test-as-vector [m]
   (when-let [av (as-vector m)]
-    (is (e= av (eseq m)))
+    (is (e= av (vec (eseq m))))
     (is (e= (reshape av (shape m)) m))))
 
 (defn test-assign [m]
@@ -243,7 +252,12 @@
 (defn test-elements [m]
   (let [es (eseq m)]
     (testing "scalar should be equivalent to identity function on elements"
-      (is (= es (map scalar es))))))
+      (is (= (vec es) (map scalar es))))))
+
+(defn test-array-output [m]
+  (let [arr (to-object-array m)]
+    (testing "object array should equal element sequence"
+      (is (= (seq (eseq m)) (seq arr))))))
 
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
@@ -258,9 +272,11 @@
   (test-vector-round-trip m)
   (test-ndarray-round-trip m)
   (test-reshape m)
+  (test-rotate m)
   (test-pm m)
   (test-to-string m)
   (test-elements m)
+  (test-array-output m)
   (test-broadcast m)
   (test-general-transpose m))
 
@@ -309,9 +325,11 @@
         (or (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [[1 2] [3 4]])))))
       (let [m (matrix [[1 2] [3 4]])]
         (is (equals [[1 2] [3 4]] (to-nested-vectors m))))))
-  (testing "Invalid vectors"
-    (is (error? (matrix m [1 [2 3]])))
-    (is (error? (matrix m [[2 3] 1])))))
+;  (testing "Invalid vectors"
+;    (is (error? (matrix m [1 [2 3]])))
+;    (is (error? (matrix m [[2 3] 1]))))
+;  
+)
 
 (defn test-dimensionality [im]
   (testing "supported matrix size tests"

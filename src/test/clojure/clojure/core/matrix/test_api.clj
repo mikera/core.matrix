@@ -42,6 +42,7 @@
 
 (deftest test-products
   (is (equals 1 (inner-product [0 1 1] [1 1 0])))
+  (is (equals 110 (inner-product [0 2 3] 5 [7 11 0])))
   (is (equals [[2 4] [6 8]] (inner-product [[2 0] [0 2]] [[1 2] [3 4]])))
   (is (equals [3 6] (outer-product 3 [1 2])))
   (is (equals [3 6] (outer-product [1 2] 3)))
@@ -51,6 +52,9 @@
   (is (equals 7 (add-product 1 2 3)))
   (is (equals [7] (add-product [1] 2 3)))
   (is (equals [3 8] (add-product [0 0] [1 2] [3 4]))))
+
+(deftest test-reshape
+  (is (equals [[0 1] [2 3] [4 5]] (reshape (range 6) [3 2])))) 
 
 (deftest test-square
   (is (equals 81 (square 9)))
@@ -115,6 +119,7 @@
   (is (equals [[3]] (submatrix (array [[1 2] [3 4]]) [[1 1] [0 1]])))
   (is (equals [[2] [4]] (submatrix (array [[1 2] [3 4]]) 1 [1 1])))
   (is (equals [2 3] (submatrix (array [1 2 3 4]) [[1 2]])))
+  (is (equals [[4]] (submatrix [[1 2] [3 4]] 1 1 1 1))) 
   (is (equals [2 3] (submatrix (array [1 2 3 4]) 0 [1 2]))))
 
 (deftest test-element-seq

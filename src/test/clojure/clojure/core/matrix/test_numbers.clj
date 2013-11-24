@@ -25,6 +25,15 @@
   (is (error? (slices 7)))
   (is (error? (slice-views 7))))
 
+(deftest test-dot
+  (is (== 10 (dot 2 5)))
+  (is (equals [3 6 9] (dot 3 [1 2 3])))) 
+
+(deftest test-rotate
+  (testing "Rotate should be identity on scalar values"
+    (is (== 3 (rotate 3 0 10)))
+    (is (== 3 (rotate 3 10 10))))) 
+
 (deftest test-compute-matrix
   (is (equals 3 (compute-matrix [] (fn [] 3)))))
 

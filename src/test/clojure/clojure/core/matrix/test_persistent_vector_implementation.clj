@@ -61,6 +61,12 @@
 (deftest test-rotate
   (is (equals [2 3 1] (rotate [1 2 3] 0 1))))
 
+(deftest test-dot
+  (is (equals [2 4 6] (dot 2 [1 2 3])))
+  (is (equals [2 4 6] (dot [1 2 3] 2)))
+  (is (equals 20 (dot [1 2 3] [2 3 4])))
+  (is (equals [[1 2] [6 8]] (dot [[1 0] [0 2]] [[1 2] [3 4]])))) 
+
 (deftest test-incompatible
   (is (error? (add [1 2] [3 4 5])))
   (is (error? (sub [[1] [2]] [[3] [4] [5]])))

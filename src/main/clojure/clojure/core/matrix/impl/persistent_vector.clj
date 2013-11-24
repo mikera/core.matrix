@@ -43,8 +43,8 @@
   ([f m]
     (let [dims (long (mp/dimensionality m))]
       (cond
-        (== 0 dims) (f (mp/get-0d m))
-        (== 1 dims) (mapv f (mp/element-seq m))
+        (== 0 dims) (f (scalar-coerce m))
+        (== 1 dims) (mapv #(f (scalar-coerce %)) m)
         :else (mapv (partial mapmatrix f) m))))
   ([f m1 m2]
     (if (mp/is-vector? m1)
@@ -52,7 +52,7 @@
         (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
         (when (and (== 1 dim2) (not= (mp/dimension-count m1 0) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
         (if (== 0 dim2)
-          (let [v (mp/get-0d m2)] (mapv #(f % v) m1 ))
+          (let [v (scalar-coerce m2)] (mapv #(f % v) m1 ))
           (mapv f m1 (mp/element-seq m2))))
       (mapv (partial mapmatrix f) m1 (mp/get-major-slice-seq  m2))))
   ([f m1 m2 & more]
@@ -94,7 +94,7 @@
 
 (defn persistent-vector-coerce [x]
   "Coerces to nested persistent vectors"
-  (let [dims (mp/dimensionality x)]
+  (let [dims (long (mp/dimensionality x))]
     (cond
       (> dims 0) (mp/convert-to-nested-vectors x) ;; any array with 1 or more dimensions
       (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; array with zero dimensionality
@@ -242,6 +242,17 @@
           :else
             (error "Joining with array of incompatible size")))))
 
+(extend-protocol mp/PRotate
+  IPersistentVector
+    (rotate [m dim places]
+      (if (== 0 dim)
+        (let [c (count m)
+              sh (if (> c 0) (mod places c) 0)]
+          (if (== sh 0)
+            m
+            (vec (concat (subvec m sh c) (subvec m 0 sh)))))
+        (mapv (fn [s] (mp/rotate s (dec dim) places)) m))))
+
 (extend-protocol mp/PSubVector
   IPersistentVector
     (subvector [m start length]
@@ -266,9 +277,16 @@
 (extend-protocol mp/PVectorOps
   IPersistentVector
     (vector-dot [a b]
-      (let [b (persistent-vector-coerce b)]
-        (when-not (== (count a) (count b)) (error "Mismatched vector sizes"))
-        (reduce + 0 (map * a b))))
+      (let [dims (long (mp/dimensionality b))
+            ;; b (persistent-vector-coerce b)
+            ]
+        (cond
+          (and (== dims 1) (instance? clojure.lang.Indexed b))
+            (do 
+              (when-not (== (count a) (count b)) (error "Mismatched vector sizes"))
+              (reduce + 0 (map * a b)))
+          (== dims 0) (mp/scale a b)
+          :else (mp/inner-product a b))))
     (length [a]
       (Math/sqrt (double (reduce + (map #(* % %) a)))))
     (length-squared [a]
@@ -466,7 +484,8 @@
         (apply mapmatrix f m a more)))
     (element-map!
       ([m f]
-        (doseq [s m] (mp/element-map! s f))
+        (doseq [s m] 
+          (mp/element-map! s f))
         m)
       ([m f a]
         (dotimes [i (count m)]

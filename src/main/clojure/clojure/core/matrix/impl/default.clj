@@ -199,7 +199,7 @@
 
 (extend-protocol mp/PVectorOps
   Number
-    (vector-dot [a b] (* a b))
+    (vector-dot [a b] (mp/pre-scale b a))
     (length [a] (double a))
     (length-squared [a] (Math/sqrt (double a)))
     (normalise [a]
@@ -441,6 +441,38 @@
               (mp/set-2d! m i j (mp/get-2d m j i))
               (mp/set-2d! m j i t)))))))
 
+(extend-protocol mp/PRotate
+  nil
+    (rotate [m dim places] nil)
+  Number
+    (rotate [m dim places] m)
+  Object
+    (rotate [m dim places]
+      (cond 
+        (<= (mp/dimensionality m) 0)
+          m
+        (== 0 dim)
+          (let [ss (mp/get-major-slice-seq m)
+                c (long (mp/dimension-count m 0))
+                sh (long (if (> c 0) (long (mod places c)) 0))]
+            (if (== sh 0)
+              m
+              (vec (concat (take-last (- c sh) ss) (take sh ss)))))
+        :else
+          (mp/rotate (mp/convert-to-nested-vectors m) dim places))))
+
+
+(extend-protocol mp/PRotateAll
+  nil
+    (rotate-all [m shifts] nil)
+  Number
+    (rotate-all [m shifts] m)
+  Object
+    (rotate-all [m shifts] 
+      (reduce (fn [m [dim shift]] (mp/rotate m dim shift)) 
+         m 
+         (map-indexed (fn [i v] [i v]) shifts))))
+
 (extend-protocol mp/PMatrixProducts
   Number
     (inner-product [m a]
@@ -459,9 +491,11 @@
         (mp/is-scalar? a)
           (mp/scale m a)
         (== 1 (mp/dimensionality m))
-          (reduce mp/matrix-add (map (fn [sl x] (mp/scale sl x))
-                                     (mp/get-major-slice-seq a)
-                                     (mp/get-major-slice-seq m))) ;; TODO: implement with mutable accumulation
+          (if (== 1 (mp/dimensionality a))
+            (mp/element-sum (mp/element-multiply m a))
+            (reduce mp/matrix-add (map (fn [sl x] (mp/scale sl x))
+                                       (mp/get-major-slice-seq a)
+                                       (mp/get-major-slice-seq m)))) ;; TODO: implement with mutable accumulation
         :else
           (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m))))
     (outer-product [m a]
@@ -510,7 +544,7 @@
                (c-for [i (long 0) (< i mrows) (inc i)
                        j (long 0) (< j acols) (inc j)]
                  (mp/set-2d! new-m i j 0))
-               (c-for [i (long 0) (< i mrows) (inc i)
+                (c-for [i (long 0) (< i mrows) (inc i)
                        j (long 0) (< j acols) (inc j)
                        k (long 0) (< k mcols) (inc k)]
                  (mp/set-2d! new-m i j (+ (mp/get-2d new-m i j)
@@ -768,12 +802,27 @@
 
 (extend-protocol mp/PDoubleArrayOutput
   Number
-    (to-double-array [m] (aset (double-array 1) 0 (double m)))
+    (to-double-array [m] 
+      (let [arr (double-array 1)] (aset arr 0 (double m)) arr))
     (as-double-array [m] nil)
   Object
     (to-double-array [m]
       (double-array (mp/element-seq m)))
     (as-double-array [m] nil))
+
+(extend-protocol mp/PObjectArrayOutput
+  nil
+    (to-object-array [m] 
+      (let [arr (object-array 1)] arr))
+    (as-object-array [m] nil)
+  Number
+    (to-object-array [m] 
+      (let [arr (object-array 1)] (aset arr 0 m) arr))
+    (as-object-array [m] nil)
+  Object
+    (to-object-array [m]
+      (object-array (mp/element-seq m)))
+    (as-object-array [m] nil))
 
 ;; row operations
 (extend-protocol mp/PRowOperations
@@ -919,7 +968,7 @@
     (get-major-slice-seq [m]
       (let [dims (long (mp/dimensionality m))]
         (cond
-          (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object: " m)
+          (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object")
           (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           :else (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0)))))))
 

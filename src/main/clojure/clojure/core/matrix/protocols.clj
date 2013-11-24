@@ -35,9 +35,9 @@
     "Returns a new matrix containing the given data. data should be in the form of either
      nested sequences or a valid existing matrix")
   (new-vector [m length]
-    "Returns a new vector (1D column matrix) of the given length.")
+    "Returns a new vector (1D column matrix) of the given length, filled with numeric zero.")
   (new-matrix [m rows columns]
-    "Returns a new matrix (regular 2D matrix) with the given number of rows and columns.")
+    "Returns a new matrix (regular 2D matrix) with the given number of rows and columns, filled with numeric zero.")
   (new-matrix-nd [m shape]
     "Returns a new general matrix of the given shape.
      Shape must be a sequence of dimension sizes.")
@@ -173,10 +173,18 @@
   (permutation-matrix [m permutation]))
 
 (defprotocol PCoercion
-  "Protocol to coerce a parameter to a format usable by a specific implementation. It is
+  "Protocol to coerce a parameter to a format used by a specific implementation. It is
    up to the implementation to determine what parameter types they support.
    If the implementation is unable to perform coercion, it must return nil.
-   Implementations must also be able to coerce valid scalar values (presumably to themselves...)"
+
+   Implementations are encouraged to avoid taking a full copy of the data, for performance reasons.
+   It is preferable to use structural sharing with the original data if possible.
+
+   If coercion is impossible (e.g. param has an invalid shape or element types) then the
+   implementation *may* throw an exception, though it may also return nil to get default behaviour,
+   which should implement any expected exceptions.
+
+   Implementations must also be able to coerce valid scalar values (presumably via the identity function)"
   (coerce-param [m param]
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
      May return nil if unable to do so, in which case a default implementation can be used."))
@@ -200,11 +208,15 @@
   (broadcast-like [m a]))
 
 (defprotocol PBroadcastCoerce
-  "Protocol to broadcast into a given matrix shape and perform coercion in one step."
+  "Protocol to broadcast into a given matrix shape and perform coercion in one step.
+
+   Equivalent to (coerce m (broadcast-like m a)) but likely to be more efficient."
   (broadcast-coerce [m a]))
 
 (defprotocol PConversion
-  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
+  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers,
+   however providing an efficient implementation is strongly encouraged to enable fast interop 
+   with Clojure vectors."
   (convert-to-nested-vectors [m]))
 
 (defprotocol PReshaping
@@ -298,6 +310,15 @@
      the internal double array used by m, depending on the implementation.")
   (as-double-array [m]
     "Returns the internal double array used by m. If no such array is used, returns nil.
+     Provides an opportunity to avoid copying the internal array."))
+
+(defprotocol PObjectArrayOutput
+  "Protocol for getting data as an object array"
+  (to-object-array [m]
+    "Returns an object array containing the values of m in row-major order. May or may not be
+     the internal object array used by m, depending on the implementation.")
+  (as-object-array [m]
+    "Returns the internal object array used by m. If no such array is used, returns nil.
      Provides an opportunity to avoid copying the internal array."))
 
 (defprotocol PValueEquality
@@ -430,6 +451,18 @@
      - The transpose of a 1D vector is the same 1D vector
      - The transpose of a 2D matrix swaps rows and columns"))
 
+(defprotocol PRotate
+  "Rotates an array along a specified dimension by the given number of places.
+
+   Rotating a dimension that does not exist has no effect on the array."
+  (rotate [m dim places])) 
+
+(defprotocol PRotateAll
+  "Rotates an array using the specified shifts for each dimension.
+
+   shifts may be any sequence of iteger shift amounts."
+  (rotate-all [m shifts])) 
+
 (defprotocol PTransposeInPlace 
   "Protocol for mutable 2D matrix transpose in place"
   (transpose! [m]
@@ -444,7 +477,14 @@
 (defprotocol PVectorOps
   "Protocol to support common numerical vector operations."
   (vector-dot [a b]
-     "Dot product of two vectors. Should return a scalar value.")
+     "Numerical dot product of two vectors. Must return a scalar value if the two parameters are 
+      vectors of equal length.
+
+      If the vectors are of unequal length, should throw an exception (however returning nil is
+      also acceptable).
+
+      Otherwise the implementation may optionally either return nil or compute a higher dimensional 
+      inner-product (if it is able to do so).")
   (length [a]
      "Euclidian length of a vector.")
   (length-squared [a]
@@ -606,7 +646,7 @@
 ;; Utility functions
 
 (defn persistent-vector-coerce [x]
-  "Coerces to nested persistent vectors"
+  "Coerces a data structure to nested persistent vectors"
   (let [dims (dimensionality x)]
     (cond
       (== dims 0) (get-0d x)

@@ -15,5 +15,9 @@
 
   (let [da (double-array [1 1])]
     (c/quick-bench (add da da)))
+  
+  (let [da (double-array (range 100))]
+    (c/quick-bench (esum da)))
+
 
   )

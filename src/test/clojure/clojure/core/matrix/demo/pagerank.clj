@@ -1,5 +1,10 @@
 (ns clojure.core.matrix.demo.pagerank
-  (:use clojure.core.matrix))
+  (:refer-clojure :exclude [* - + / ==])
+  (:require clojure.core.matrix.impl.ndarray)
+  (:use clojure.core.matrix)
+  (:use clojure.core.matrix.operators))
+
+(defn demo []
 
 ;; =================================================================================
 ;; A demo of a simple Pagerank calculation
@@ -7,8 +12,9 @@
 ;; For more info on background and algoritrhm see:
 ;;   - http://en.wikipedia.org/wiki/PageRank
 
-;; link matrix: each row represnts the number outbound links from a page to other pages
 (def links
+;; link matrix: each row represnts the number of 
+;; outbound links from a page to other pages
   [[0 0 1 1 0 0 1 2 0 0]
    [1 0 0 1 0 0 0 0 0 0]
    [0 0 0 2 0 0 0 0 1 0]
@@ -20,58 +26,77 @@
    [0 0 0 2 0 0 0 1 0 0]
    [1 1 1 1 0 1 0 2 1 0]])
 
-(def DAMPING 0.85)
+(def n (row-count links))
 
-(defn norm-1 
-  "Normalises a vector to a sum of 1.0."
+(defn proportions 
+  "Normalises a vector to a sum of 1.0"
   ([v]
-    (let [s (esum v)]
-      (if (== s 0.0)
-        (let [n (ecount v)] 
-          (array (repeat n (/ 1.0 n))))
-        (scale v (/ 1.0 s))))))
+    (/ v (esum v))))
+
+(proportions [1 2 3 4])
+
+;; where do outbound visitors go, as a proportion?
+(def outbound (array (map proportions (rows links))))
+outbound
+(pm outbound)
+
+;; convert outbound to inbound proportions
+(def inbound (transpose outbound))
+(pm inbound)
+
+;; chance of user clicking a link at each step
+(def CLICK-THROUGH 0.85)
 
 ;; =================================================================================
 ;; Iterative method
 ;;
-;; each iteration of the pagerank sequences gets closer to the correct pagerank value
+;; state defines the location of the browsing population
+;; each iteration of the pagerank sequences gets 
+;; closer to the correct pagerank value
 
-(defn pagerank 
-  "Returns an infinite sequence of vectors that converges on the pagerank values,
-   using an iterative method."
-  ([links]
-    (let [transitions (transpose (map norm-1 (slices links)))
-          initial-rank (norm-1 (zero-vector (row-count links)))]
-      (iterate 
-        (fn [v] (add (mmul DAMPING transitions v)
-                     (mmul (- 1.0 DAMPING) initial-rank)))
-        initial-rank))))
+(def initial-state (proportions (repeat n 1000000))) 
+(pm initial-state)
 
-(defn demo []
+(defn step 
+  "Compute the next state, i.e. the proportion of people 
+   on each page"
+  ([state]
+    (+ (* CLICK-THROUGH         (mmul inbound state))
+       (* (- 1.0 CLICK-THROUGH) initial-state))))
 
-(nth (pagerank links) 0)
-;; => [0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1]
+(pm (step initial-state))
 
-(nth (pagerank links) 10)
-;; => [0.10267022104015164 0.13709020713321848 0.05783843684746401 0.2835544691864015 0.015000000000000003 0.04909679698625842 0.15295646321406195 0.1398971838945996 0.04689622169784466 0.015000000000000003]
+(def pageranks (iterate step initial-state))
 
-(nth (pagerank links) 100)
-;; => [0.10268308453594212 0.13709906546448453 0.05783185760307677 0.2835419187399636 0.015000000000000003 0.049098055965063864 0.15296143983559468 0.13989401901156823 0.04689055884430651 0.015000000000000003]
+(pm (nth pageranks 0))
+;; => [0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100]
 
+(pm (nth pageranks 4))
+;; => [0.108 0.138 0.057 0.280 0.015 0.050 0.153 0.140 0.046 0.015]
 
+(pm (nth pageranks 10))
+;; => [0.103 0.137 0.058 0.284 0.015 0.049 0.153 0.140 0.047 0.015]
+
+(pm (nth pageranks 100))
+;; => [0.103 0.137 0.058 0.284 0.015 0.049 0.153 0.140 0.047 0.015]
+
+;; has it converged? if so this should be near zero
+(pm (- (nth pageranks 100) (nth pageranks 300)))
+
+;; make array out of sequence of steps
+(pm (array (take 8 pageranks))) 
 
 ;; =================================================================================
 ;; Direct (algebraic) method
 
 (defn pagerank-direct 
   "Computes the pagerank directly"
-  ([links]
-    (let [transitions (transpose (map norm-1 (slices links)))
-          n (row-count links)]
-      (mmul (inverse (sub (identity-matrix n) (mul DAMPING transitions)))
-            (vec (repeat n (/ (- 1.0 DAMPING) n)))))))
+  ([inbound]
+    (mmul (inverse (- (identity-matrix n) 
+                      (* CLICK-THROUGH inbound)))
+          (* (- 1.0 CLICK-THROUGH) initial-state))))
 
-(pagerank-direct links)
-;; => [0.1026830845359421 0.1370990654644845 0.05783185760307677 0.28354191873996354 0.015000000000000003 0.04909805596506385 0.15296143983559463 0.13989401901156823 0.04689055884430651 0.015000000000000003]
+(pm (pagerank-direct inbound))
+;; => [0.103 0.137 0.058 0.284 0.015 0.049 0.153 0.140 0.047 0.015]
 
 )

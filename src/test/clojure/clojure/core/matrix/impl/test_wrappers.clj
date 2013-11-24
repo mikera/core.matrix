@@ -6,6 +6,9 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.compliance-tester]))
 
+(deftest regressions
+  (is (str (wrap-slice [[1 2] [3 4]] 1))))
+
 (deftest assumptions
   (is (== 0 (dimensionality (wrap-nd 7))))
   (is (== 1 (dimensionality (wrap-nd [7]))))

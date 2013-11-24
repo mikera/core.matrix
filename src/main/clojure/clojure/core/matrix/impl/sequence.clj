@@ -34,11 +34,7 @@
 (extend-protocol mp/PIndexedAccess
   clojure.lang.ISeq
     (get-1d [m x]
-      (let [r (nth m x)]
-        (cond 
-          (number? r) r
-          (mp/is-scalar? r) r
-          :else (mp/get-0d r))))
+      (scalar-coerce (nth m x)))
     (get-2d [m x y]
       (let [row (nth m x)]
         (mp/get-1d row y)))
