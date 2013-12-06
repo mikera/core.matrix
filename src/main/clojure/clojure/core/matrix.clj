@@ -763,9 +763,13 @@
 (defn transpose
   "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped.
    More generally, the dimension indices are reversed for any shape of array. Note that 1D vectors
-   and scalars will be returned unchanged."
+   and scalars will be returned unchanged.
+
+   If ordering is provided, will re-order dimensions according to the provided order."
   ([m]
-    (mp/transpose m)))
+    (mp/transpose m))
+  ([m ordering]
+    (TODO)))
 
 (defn transpose!
   "Transposes a square 2D matrix in-place. Will throw an exception if not possible."
