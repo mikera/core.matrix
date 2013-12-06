@@ -1055,6 +1055,14 @@
     (broadcast-coerce [m a]
       (mp/coerce-param m (mp/broadcast-like m a))))
 
+(extend-protocol mp/PPack
+  nil
+    (pack [m]
+      nil)
+  Object
+    (pack [m]
+      m))
+
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
   nil

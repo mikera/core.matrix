@@ -202,6 +202,9 @@
     (is (clojure.core.matrix.impl.persistent-vector/is-nested-persistent-vectors? vm))
     (is (e= m vm))))
 
+(defn test-pack [m]
+  (is (e= m (pack m))))
+
 (defn test-vector-round-trip [m]
   (is (e= m (coerce m (coerce [] m)))))
 
@@ -263,6 +266,7 @@
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-as-vector m)
   (test-coerce m)
+  (test-pack m)
   (test-assign m)
   (test-join m)
   (test-dimensionality-assumptions m)

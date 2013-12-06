@@ -524,6 +524,12 @@
          (if arr (copy-object-array arr) (mp/to-object-array m))
          arr))))
 
+(defn pack
+  "Packs array data in the most efficient format as defined by the implementation. May return the
+   same array if no additional packing is required."
+  ([a]
+    (mp/pack a))) 
+
 ;; =======================================
 ;; matrix access
 
