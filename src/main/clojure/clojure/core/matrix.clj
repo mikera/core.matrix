@@ -1215,7 +1215,9 @@
 (defn ecount
   "Returns the total count of elements in an array.
 
-   Equal to the product of the lenegths of each dimension in the array's shape."
+   Equal to the product of the lenegths of each dimension in the array's shape.
+
+   Returns 1 for a zero-dimensional array or scalar."
   ([m]
     (mp/element-count m)))
 
