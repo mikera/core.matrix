@@ -1095,6 +1095,20 @@
           :default
               (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
 
+(extend-protocol mp/PRowColMatrix
+  nil
+    (column-matrix [m data] (error "Can't create a column matrix from nil"))
+    (row-matrix [m data] (error "Can't create a column matrix from nil"))
+  Object
+    (column-matrix [m data] 
+      (if (== 1 (mp/dimensionality data))
+        (mp/coerce-param m (mapv vector (mp/element-seq data)))
+        (error "Can't create a column matrix: input must be 1D vector")))
+    (row-matrix [m data] 
+      (if (== 1 (mp/dimensionality data))
+        (mp/coerce-param m (vector data))
+        (error "Can't create a row matrix: input must be 1D vector")))) 
+
 (extend-protocol mp/PVectorView
   nil
     (as-vector [m]

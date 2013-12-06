@@ -151,18 +151,18 @@
 
    The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
-    (mp/construct-matrix (implementation-check) (vector data))) ;; wrapping in 1 extra vector level, should be OK
+    (mp/row-matrix (implementation-check) data)) ;; wrapping in 1 extra vector level, should be OK
   ([implementation data]
-    (mp/construct-matrix (implementation-check implementation) (vector data))))
+    (mp/row-matrix (implementation-check implementation) data)))
 
 (defn column-matrix
   "Constucts a column matrix with the given data. The returned matrix is a 2D Nx1 column matrix.
 
    The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
-    (mp/construct-matrix (implementation-check) (map vector data))) ;; TODO: is use of map broken here? Might not be sequential?
+    (mp/column-matrix (implementation-check) data)) ;; TODO: is use of map broken here? Might not be sequential?
   ([implementation data]
-    (mp/construct-matrix (implementation-check implementation) (map vector data))))
+    (mp/column-matrix (implementation-check implementation) data)))
 
 (defn identity-matrix
   "Constructs a 2D identity matrix with the given number of rows.

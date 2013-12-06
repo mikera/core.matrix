@@ -137,6 +137,15 @@
    throw an error. Otherwise it should return the correct shape."
   (validate-shape [m])) 
 
+(defprotocol PRowColMatrix
+  "Protocol to support construction of row and column matrices from 1D vectors.
+
+   A vector of length N should be converted to a 1xN or Nx1 matrix respectively.   
+
+   Should throw an error if the data is not a 1D vector"
+  (column-matrix [m data])
+  (row-matrix [m data])) 
+
 (defprotocol PMutableMatrixConstruction
   "Protocol for creating a mutable copy of a matrix. If implemented, must return either a fully mutable
    copy of the given matrix, or nil if not possible.
