@@ -863,15 +863,19 @@
   ([a b] (mp/element-divide a b))
   ([a b & more] (reduce mp/element-divide (mp/element-divide a b) more)))
 
-;; TODO: implement using a protocol
 (defn div!
   "Performs in-place element-wise matrix division for numerical arrays."
-  ([a] 
-    (assign! a (mp/element-divide a)))
-  ([a b] 
-    (assign! a (mp/element-divide a b)))
-  ([a b & more] 
-    (assign! a(reduce mp/element-divide (mp/element-divide a b) more))))
+  ([a]
+     (mp/element-divide! a)
+     a)
+  ([a b]
+     (mp/element-divide! a b)
+     a)
+  ([a b & more]
+     (mp/element-divide! a b)
+     (doseq [c more]
+       (mp/element-divide! a c))
+     a))
 
 (defn mul!
   "Performs in-place element-wise multiplication of numerical arrays."
