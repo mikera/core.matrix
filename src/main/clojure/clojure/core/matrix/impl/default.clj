@@ -582,6 +582,18 @@
         (let [[m a] (mp/broadcast-compatible m a)]
           (mp/element-map m #(/ %1 %2) a)))))
 
+(extend-protocol mp/PMatrixDivideMutable
+  Number
+  (element-divide!
+    ([m] (error "Can't do mutable divide on a scalar number"))
+    ([m a] (error "Can't do mutable divide on a scalar numer")))
+  Object
+  (element-divide!
+    ([m] (mp/element-map! m #(/ %)))
+    ([m a]
+       (let [[m a] (mp/broadcast-compatible m a)]
+         (mp/element-map! m #(/ %1 %2) a)))))
+
 ;; matrix element summation
 (extend-protocol mp/PSummable
   Number
