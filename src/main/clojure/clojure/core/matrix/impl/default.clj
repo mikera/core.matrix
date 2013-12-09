@@ -885,13 +885,19 @@
           :else (error "Don't know how to create element-seq from: " m))))
     (element-map
       ([m f]
-        (let [s (map f (mp/element-seq m))]
-          (mp/reshape (mp/coerce-param m s)
-                      (mp/get-shape m))))
+        (if (== 0 (mp/dimensionality m))
+          (f (mp/get-0d m)) ;; handle case of single element
+          (let [s (map f (mp/element-seq m))]
+            (mp/reshape (mp/coerce-param m s)
+                        (mp/get-shape m)))))
       ([m f a]
-        (let [s (map f (mp/element-seq m) (mp/element-seq a))]
-          (mp/reshape (mp/coerce-param m s)
-                      (mp/get-shape m))))
+        (if (== 0 (mp/dimensionality m))
+          (let [v (mp/get-0d m)]
+            (mp/element-map a #(f v %)))
+          (let [[m a] (mp/broadcast-compatible m a)
+                s (map f (mp/element-seq m) (mp/element-seq a))]
+            (mp/reshape (mp/coerce-param m s) ;; TODO: faster construction method?
+                        (mp/get-shape m)))))
       ([m f a more]
         (let [s (map f (mp/element-seq m) (mp/element-seq a))
               s (apply map f (list* (mp/element-seq m)
