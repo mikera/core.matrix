@@ -855,9 +855,11 @@
       ([m f]
         (f m))
       ([m f a]
-        (f m (mp/get-0d a)))
+        (mp/element-map a #(f m %)))
       ([m f a more]
-        (apply f m (mp/get-0d a) (map mp/get-0d more))))
+        (if-let [moremore (next more)]
+          (mp/element-map a #(apply f m %1 %2 %&) (first more) moremore)
+          (mp/element-map a #(f m %1 %2) (first more)))))
     (element-map!
       ([m f]
         (error "java.lang.Number instance is not mutable!"))
