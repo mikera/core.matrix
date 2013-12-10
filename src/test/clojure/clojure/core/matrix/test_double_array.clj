@@ -124,8 +124,13 @@
     (emap! clojure.core/+ v [10 10 10])
     (is (equals v [11 12 13]))))
 
+(deftest test-div
+  (is (equals [1 2] (div (double-array [2 4]) 2))))
+
 (deftest test-div!
-  (is (equals [1 2] (div! (double-array [2 4]) 2)))) 
+  (let [da (double-array [2 4])]
+    (div! da 2)
+    (is (equals [1 2] da))))
 
 (deftest test-broadcast-coerce
   (is (= [1.0 2.0] (mp/broadcast-coerce [0 0] (double-array [1 2])))))
