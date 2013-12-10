@@ -80,3 +80,11 @@ If you are interested in writing a `core.matrix` implementation, see:
 You can also find a protocol implementation summary here:
 
  - http://mikera.github.io/core.matrix/summary.html
+
+### Thanks
+
+YourKit is kindly supporting this open source project with its full-featured Java Profiler.
+YourKit, LLC is the creator of innovative and intelligent tools for profiling
+Java and .NET applications. Take a look at YourKit's leading software products:
+<a href="http://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a> and
+<a href="http://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a>.
