@@ -1301,9 +1301,18 @@
         false)))
   (zero-matrix? [m]
     (every? #(and (number? %) (zero? %)) (mp/element-seq m)))
+  (symmetric-matrix? [m]
+    (and (square? m)
+         (every? (fn [[i j]] (= (mp/get-2d m i j) (mp/get-2d m j i)))
+                 (let [dim (first (mp/get-shape m))]
+                   (for [i (range dim)
+                         j (range dim)
+                         :when (> j i)]
+                     [i j])))))
   nil
   (identity-matrix? [m] false)
-  (zero-matrix? [m] false))
+  (zero-matrix? [m] false)
+  (symmetric-matrix? [m] false))
 
 
 ;; =======================================================
