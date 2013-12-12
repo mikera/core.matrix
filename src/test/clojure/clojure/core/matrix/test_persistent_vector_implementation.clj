@@ -26,7 +26,14 @@
     (is (e= [] (coerce [] [])))
     (is (e= [] (assign [] 1.0)))
     (is (empty? (eseq [])))
-    (is (nil? (coerce [] nil)))))
+    (is (nil? (coerce [] nil))))
+  (testing "broadcast on emap"
+    (is (equals [[6 7] [8 9]] (emap + [[1 2] [3 4]] 5)))
+    (is (equals [[6 7] [8 9]] (emap + 5 [[1 2] [3 4]])))))
+
+(deftest test-assign 
+  (is (= [[1 2] [1 2]] (assign [[1 2] [3 4]] [1 2])))
+  (is (error? (assign [1 2] [[1 2] [3 4]]))))
 
 (deftest test-construction
   (is (equals [[0 0] [0 0]] (zero-array [] [2 2]))))
@@ -56,6 +63,12 @@
 
 (deftest test-rotate
   (is (equals [2 3 1] (rotate [1 2 3] 0 1))))
+
+(deftest test-dot
+  (is (equals [2 4 6] (dot 2 [1 2 3])))
+  (is (equals [2 4 6] (dot [1 2 3] 2)))
+  (is (equals 20 (dot [1 2 3] [2 3 4])))
+  (is (equals [[1 2] [6 8]] (dot [[1 0] [0 2]] [[1 2] [3 4]])))) 
 
 (deftest test-incompatible
   (is (error? (add [1 2] [3 4 5])))
@@ -156,6 +169,12 @@
       (is (= (matrix [[0 2 4]]) (multiply-row (matrix [[0 1 2]]) 0 2))))
     (testing "add row j to i and replace i with the result"
       (is (= (matrix [[3 3] [1 1]]) (add-row (matrix [[1 1] [1 1]]) 0 1 2)))))
+
+(deftest test-bad-shapes
+  (is (error? (array [1 [2 3]])))
+  (is (error? (array [[1 2] [2 3 4]])))
+  (is (error? (array [[1 2 3 4] [2 3 4]])))
+  (is (error? (array [[1 2 3 4] 5]))))
 
 ;; run complicance tests
 

@@ -34,7 +34,7 @@
     (new-matrix-nd [m dims]
       (with-shape {} dims))
     (construct-matrix [m data]
-      (let [sh (mp/get-shape data)]
+      (let [sh (mp/validate-shape data)]
         (with-shape
           (reduce
             (fn [mp [v i]] (if (nil? v) mp (assoc mp (vec i) v)))

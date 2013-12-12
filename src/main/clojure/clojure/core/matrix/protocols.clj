@@ -35,9 +35,9 @@
     "Returns a new matrix containing the given data. data should be in the form of either
      nested sequences or a valid existing matrix")
   (new-vector [m length]
-    "Returns a new vector (1D column matrix) of the given length.")
+    "Returns a new vector (1D column matrix) of the given length, filled with numeric zero.")
   (new-matrix [m rows columns]
-    "Returns a new matrix (regular 2D matrix) with the given number of rows and columns.")
+    "Returns a new matrix (regular 2D matrix) with the given number of rows and columns, filled with numeric zero.")
   (new-matrix-nd [m shape]
     "Returns a new general matrix of the given shape.
      Shape must be a sequence of dimension sizes.")
@@ -132,6 +132,20 @@
   "Option protocol for quick determination of array matrics"
   (nonzero-count [m]))
 
+(defprotocol PValidateShape
+  "Optional protocol to validate the shape of a matrix. If the matrix has an incorrect shape, should 
+   throw an error. Otherwise it should return the correct shape."
+  (validate-shape [m])) 
+
+(defprotocol PRowColMatrix
+  "Protocol to support construction of row and column matrices from 1D vectors.
+
+   A vector of length N should be converted to a 1xN or Nx1 matrix respectively.   
+
+   Should throw an error if the data is not a 1D vector"
+  (column-matrix [m data])
+  (row-matrix [m data])) 
+
 (defprotocol PMutableMatrixConstruction
   "Protocol for creating a mutable copy of a matrix. If implemented, must return either a fully mutable
    copy of the given matrix, or nil if not possible.
@@ -163,11 +177,26 @@
   (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions")
   (diagonal-matrix [m diagonal-values] "Create a diagonal matrix with the specified leading diagonal values"))
 
+(defprotocol PPermutationMatrix
+  "Protocol for construction of a permutation matrix."
+  (permutation-matrix [m permutation]))
+
 (defprotocol PCoercion
-  "Protocol to coerce a parameter to a format usable by a specific implementation. It is
+  "Protocol to coerce a parameter to a format used by a specific implementation. It is
    up to the implementation to determine what parameter types they support.
    If the implementation is unable to perform coercion, it must return nil.
-   Implementations must also be able to coerce valid scalar values (presumably to themselves...)"
+
+   Implementations are encouraged to avoid taking a full copy of the data, for performance reasons.
+   It is preferable to use structural sharing with the original data if possible.
+
+   If coercion is impossible (e.g. param has an invalid shape or element types) then the
+   implementation *may* throw an exception, though it may also return nil to get default behaviour,
+   which should implement any expected exceptions.
+
+   If an implementation implements coercion via copying, then it is recommended that conversion
+   should be to the most efficient packed representation (i.e. as defined by 'pack')
+
+   Implementations must also be able to coerce valid scalar values (presumably via the identity function)"
   (coerce-param [m param]
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
      May return nil if unable to do so, in which case a default implementation can be used."))
@@ -190,8 +219,16 @@
   "Protocol to broadcast into a given matrix shape. May also perform coercion if needed by the implementation."
   (broadcast-like [m a]))
 
+(defprotocol PBroadcastCoerce
+  "Protocol to broadcast into a given matrix shape and perform coercion in one step.
+
+   Equivalent to (coerce m (broadcast-like m a)) but likely to be more efficient."
+  (broadcast-coerce [m a]))
+
 (defprotocol PConversion
-  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers."
+  "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers,
+   however providing an efficient implementation is strongly encouraged to enable fast interop 
+   with Clojure vectors."
   (convert-to-nested-vectors [m]))
 
 (defprotocol PReshaping
@@ -201,6 +238,17 @@
    If the new shape has less elements than the original shape, it is OK to truncate the remaining elements.
    If the new shape requires more elements than the original shape, should throw an exception."
   (reshape [m shape]))
+
+(defprotocol PPack
+  "Protocol to efficiently pack an array, according to the most efficient representation for a given 
+   implementation.
+
+   Definition of pack is up to the implementation to interpret, but the general rules are:
+   1. Must not change the value of the array for comparison purposes
+   2. Must not change the shape of the array
+   3. May preserve sparse representation
+   4. Should convert most efficient format for common operations (e.g. mget, inner-product)"
+  (pack [m])) 
 
 (defprotocol PSameShape
   "Protocol to test if two arrays have the same shape. Implementations may have an optimised 
@@ -266,6 +314,13 @@
     [m arr start length]
     "Sets the elements in an array from an Java array source, in row-major order."))
 
+(defprotocol PImmutableAssignment
+  "Protocol for assigning values element-wise to an array, broadcasting as needed."
+  (assign
+    [m source]
+    "Sets all the values in an array from a given source. Source may be a scalar
+     or a smaller array that can be broadcast to the shape of m."))
+
 (defprotocol PMutableFill
   (fill!
     [m value]
@@ -279,6 +334,20 @@
   (as-double-array [m]
     "Returns the internal double array used by m. If no such array is used, returns nil.
      Provides an opportunity to avoid copying the internal array."))
+
+(defprotocol PObjectArrayOutput
+  "Protocol for getting data as an object array"
+  (to-object-array [m]
+    "Returns an object array containing the values of m in row-major order. May or may not be
+     the internal object array used by m, depending on the implementation.")
+  (as-object-array [m]
+    "Returns the internal object array used by m. If no such array is used, returns nil.
+     Provides an opportunity to avoid copying the internal array."))
+
+(defprotocol PValueEquality
+  "Protocol for comparing two arrays, with the semantics of clojure.core/=.
+   Returns false if the arrays are not of equal shape, or if any elements are not equal."
+  (value-equals [m a]))
 
 (defprotocol PMatrixEquality
   "Protocol for numerical array equality operations."
@@ -339,6 +408,13 @@
   "Protocol to support element-wise division operator.
    One-arg version returns the reciprocal of all elements."
   (element-divide
+    [m]
+    [m a]))
+
+(defprotocol PMatrixDivideMutable
+  "Protocol to support mutable element-wise division operater.
+   One-arg version returns the reciprocal of all elements."
+  (element-divide!
     [m]
     [m a]))
 
@@ -405,6 +481,23 @@
      - The transpose of a 1D vector is the same 1D vector
      - The transpose of a 2D matrix swaps rows and columns"))
 
+(defprotocol PRotate
+  "Rotates an array along a specified dimension by the given number of places.
+
+   Rotating a dimension that does not exist has no effect on the array."
+  (rotate [m dim places])) 
+
+(defprotocol PRotateAll
+  "Rotates an array using the specified shifts for each dimension.
+
+   shifts may be any sequence of iteger shift amounts."
+  (rotate-all [m shifts])) 
+
+(defprotocol PTransposeInPlace 
+  "Protocol for mutable 2D matrix transpose in place"
+  (transpose! [m]
+    "Transposes a mutable 2D matrix in place"))
+
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
    array is a valid numerical value."
@@ -414,7 +507,14 @@
 (defprotocol PVectorOps
   "Protocol to support common numerical vector operations."
   (vector-dot [a b]
-     "Dot product of two vectors. Should return a scalar value.")
+     "Numerical dot product of two vectors. Must return a scalar value if the two parameters are 
+      vectors of equal length.
+
+      If the vectors are of unequal length, should throw an exception (however returning nil is
+      also acceptable).
+
+      Otherwise the implementation may optionally either return nil or compute a higher dimensional 
+      inner-product (if it is able to do so).")
   (length [a]
      "Euclidian length of a vector.")
   (length-squared [a]
@@ -438,6 +538,9 @@
      if it is already a 1D vector."))
 
 (defprotocol PVectorisable
+  "Protocol to return an array as a flattened vector of all elements.
+   Implementations are encouraged to avoid taking a full copy of all data
+   (e.g. by using structural sharing or views)."
   (to-vector [m]
     "Returns an array as a single flattened vector"))
 
@@ -573,7 +676,7 @@
 ;; Utility functions
 
 (defn persistent-vector-coerce [x]
-  "Coerces to nested persistent vectors"
+  "Coerces a data structure to nested persistent vectors"
   (let [dims (dimensionality x)]
     (cond
       (== dims 0) (get-0d x)
@@ -585,12 +688,24 @@
       :default (error "Can't coerce to vector: " (class x)))))
 
 (defn broadcast-compatible
-  "Broadcasts two matrices into identical shapes.
+  "Broadcasts two matrices into identical shapes, coercing to the type of the first matrix.
+   Intended to prepare for elementwise operations.
    Returns a vector containing the two broadcasted matrices.
    Throws an error if not possible."
   ([a b]
     (if (same-shape? a b)
       [a b]
       (if (< (dimensionality a) (dimensionality b))
-        [(broadcast-like b a) b]
-        [a (broadcast-like a b)]))))
+        [(broadcast-like b a) (coerce-param a b)]
+        [a (broadcast-coerce a b)]))))
+
+(defn same-shapes?
+  "Returns true if a sequence of arrays all have the same shape."
+  [arrays]
+  (let [shapes (map #(or (get-shape %) []) arrays)]
+    (loop [s (first shapes) ns (next shapes)]
+      (if ns
+        (if (same-shape-object? s (first ns))
+          (recur s (next ns))
+          false)
+        true)))) 

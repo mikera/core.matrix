@@ -42,6 +42,7 @@
 
 (deftest test-products
   (is (equals 1 (inner-product [0 1 1] [1 1 0])))
+  (is (equals 110 (inner-product [0 2 3] 5 [7 11 0])))
   (is (equals [[2 4] [6 8]] (inner-product [[2 0] [0 2]] [[1 2] [3 4]])))
   (is (equals [3 6] (outer-product 3 [1 2])))
   (is (equals [3 6] (outer-product [1 2] 3)))
@@ -51,6 +52,9 @@
   (is (equals 7 (add-product 1 2 3)))
   (is (equals [7] (add-product [1] 2 3)))
   (is (equals [3 8] (add-product [0 0] [1 2] [3 4]))))
+
+(deftest test-reshape
+  (is (equals [[0 1] [2 3] [4 5]] (reshape (range 6) [3 2])))) 
 
 (deftest test-square
   (is (equals 81 (square 9)))
@@ -115,6 +119,7 @@
   (is (equals [[3]] (submatrix (array [[1 2] [3 4]]) [[1 1] [0 1]])))
   (is (equals [[2] [4]] (submatrix (array [[1 2] [3 4]]) 1 [1 1])))
   (is (equals [2 3] (submatrix (array [1 2 3 4]) [[1 2]])))
+  (is (equals [[4]] (submatrix [[1 2] [3 4]] 1 1 1 1))) 
   (is (equals [2 3] (submatrix (array [1 2 3 4]) 0 [1 2]))))
 
 (deftest test-element-seq
@@ -127,7 +132,9 @@
   (is (equals 1 (emap inc (array 0))))
   (is (equals [2] (emap inc (array [1]))))
   (is (equals [[3]] (emap inc (array [[2]]))))
-  (is (equals [[[[5]]]] (emap inc (array [[[[4]]]])))))
+  (is (equals [[[[5]]]] (emap inc (array [[[[4]]]]))))
+  (is (equals [10] (emap + [1] [2] [3] [4])))
+  (is (equals [10] (emap + [1] (broadcast 2 [1]) (double-array [3]) [4]))))
 
 (deftest test-conforming?
   (is (conforming? 1 [[2 2] [3 3]]))
@@ -227,6 +234,13 @@
   (is (equals [1 2 3] (mp/broadcast-like [2 3 4] [1 2 3])))
   (is (error? (mp/broadcast-like [1 2 3] [1 2]))))
 
+(deftest test-broadcast-coerce
+  (is (equals [2 2] (mp/broadcast-coerce [1 1] 2)))
+  (is (equals [2 2] (mp/broadcast-coerce [1 1] (double-array [2 2]))))
+  (is (equals [[7 7] [7 7]] (mp/broadcast-coerce [[1 2] [3 4]] 7)))
+  (is (equals [1 2 3] (mp/broadcast-coerce [2 3 4] [1 2 3])))
+  (is (error? (mp/broadcast-coerce [1 2 3] [1 2]))))
+
 (deftest test-divide
   (is (== 2 (div 4 2)))
   (is (op/== [2 1] (div [4 2] 2)))
@@ -255,14 +269,19 @@
   (testing "mutable sub"
     (let [v (mutable-matrix [10 10])]
       (sub! v [1 2] [1 2])
-      (is (equals [8 6] v)))))
+      (is (equals [8 6] v))))
+  (testing "arity 3 sub regression"
+    (is (equals [-1 -2] (sub [1 2] [1 2] [1 2])))))
 
 (deftest test-transpose
   (testing "transpose different dimensionalities"
     (is (= 1 (transpose 1)))
     (is (= [1.0] (transpose [1.0])))
     (is (= [[1 3] [2 4]] (transpose [[1 2] [3 4]])))
-    (is (= [[1] [2] [3]] (transpose [[1 2 3]])))))
+    (is (= [[1] [2] [3]] (transpose [[1 2 3]]))))
+  (testing "in place transpose"
+    (let [m [[1 2] [3 4]]]
+      (is (e= (transpose m) (transpose! (mutable m)))))))
 
 (deftest test-det
   (testing "determinant"
@@ -361,7 +380,14 @@
     (is (== 0.75 (density [0 1 2 3])))))
 
 (deftest test-object-array
-  (is (e= [:a :b] (coerce [] (object-array [:a :b])))))
+  (is (e= [:a :b] (coerce [] (object-array [:a :b]))))
+  (let [a (to-object-array [1 2 3])]
+    (is (= 2 (aget a 1)))))
+
+(deftest test-permutation
+  (is (equals [[0 1] [1 0]] (permutation-matrix [1 0])))
+  (is (equals [[1 0] [0 1]] (permutation-matrix [0 1])))
+  (is (equals [[0 1 0] [0 0 1] [1 0 0]] (permutation-matrix [1 2 0]))))
 
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]

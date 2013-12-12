@@ -2,11 +2,10 @@
   (:use clojure.core.matrix)
   (:use clojure.test)
   (:require [clojure.core.matrix.operators :as ops])
-  (:require [clojure.core.matrix.utils :as utils])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as generic])
   (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.utils :as utils :refer [error]]))
+  (:require [clojure.core.matrix.utils :as utils :refer [error error?]]))
 
 ;; ====================================
 ;; COMPLIANCE TESTING
@@ -115,6 +114,10 @@
       (is (thrown? Throwable (dimension-count m dims))))))
 
 (defn test-mutable-assumptions [m]
+  (testing "ensure mutable"
+    (let [em (ensure-mutable m)]
+      (is (mutable? em))
+      (is (e= m em))))
   (testing "mutable-matrix works ok"
     (let [mm (mutable-matrix m)]
       (is (mutable? mm))
@@ -156,13 +159,15 @@
 (defn test-slice-assumptions [m]
   (let [dims (dimensionality m)]
     (when (> dims 0) ;; slices only valid for dimensionality 1 or above
-      (doseq [sl (slices m)]
-        (is (== (dec dims) (dimensionality sl)))
-        (is (= (next (shape m)) (seq (shape sl)))))
-      (when (> dims 1) ;; we get non-mutable scalars back when slicing 1d
-        (if-let [ss (seq (slices m))]
-          (let [fss (first ss)]
-            (is (= (mutable? fss) (mutable? m)))))))))
+      (let [slcs (slices m)]
+        (doseq [sl slcs]
+          (is (== (dec dims) (dimensionality sl)))
+          (is (= (next (shape m)) (seq (shape sl)))))
+        (when (> dims 1) ;; we get non-mutable scalars back when slicing 1d
+          (if-let [ss (seq slcs)]
+            (let [fss (first ss)]
+              (is (= (mutable? fss) (mutable? m)))))
+          (is (e= m slcs)))))))
 
 (defn test-submatrix-assumptions [m]
   (let [shp (shape m)
@@ -180,22 +185,37 @@
       (is (= (seq (shape m))
              (seq (reverse (shape mt))))))))
 
+(defn test-rotate [m]
+  (let [sh (shape m)
+        dims (dimensionality m)]
+    (is (e= m (rotate m sh)))
+    (when (>= dims 1)
+      (is (e= m (rotate m 0 (sh 0))))
+      (is (e= (rotate m 0 (inc (sh 0))) (rotate m 0 1))))
+    (is (e= m (rotate (rotate m 0 1) 0 -1)))
+    (is (e= m (rotate (rotate m 1 1) 1 -1)))))
+
 (defn test-coerce [m]
   ;; (is (identical? m (coerce m m))) ;; TODO: figure out if we should enforce this?
   (let [vm (mp/convert-to-nested-vectors m)]
     (is (or (clojure.core/vector? vm) (== 0 (mp/dimensionality vm))))
-    (is (clojure.core.matrix.impl.persistent-vector/is-nested-vectors? vm))
+    (is (clojure.core.matrix.impl.persistent-vector/is-nested-persistent-vectors? vm))
     (is (e= m vm))))
+
+(defn test-pack [m]
+  (is (e= m (pack m))))
 
 (defn test-vector-round-trip [m]
   (is (e= m (coerce m (coerce [] m)))))
 
 (defn test-ndarray-round-trip [m]
-  (is (e= m (coerce m (coerce :ndarray m)))))
+  ;; TODO: reinstate once NDArray startup time fixed
+  ;; (is (e= m (coerce m (coerce :ndarray m))))
+  )
 
 (defn test-as-vector [m]
   (when-let [av (as-vector m)]
-    (is (e= av (eseq m)))
+    (is (e= av (vec (eseq m))))
     (is (e= (reshape av (shape m)) m))))
 
 (defn test-assign [m]
@@ -235,12 +255,18 @@
 (defn test-elements [m]
   (let [es (eseq m)]
     (testing "scalar should be equivalent to identity function on elements"
-      (is (= es (map scalar es))))))
+      (is (= (vec es) (map scalar es))))))
+
+(defn test-array-output [m]
+  (let [arr (to-object-array m)]
+    (testing "object array should equal element sequence"
+      (is (= (seq (eseq m)) (seq arr))))))
 
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-as-vector m)
   (test-coerce m)
+  (test-pack m)
   (test-assign m)
   (test-join m)
   (test-dimensionality-assumptions m)
@@ -250,9 +276,11 @@
   (test-vector-round-trip m)
   (test-ndarray-round-trip m)
   (test-reshape m)
+  (test-rotate m)
   (test-pm m)
   (test-to-string m)
   (test-elements m)
+  (test-array-output m)
   (test-broadcast m)
   (test-general-transpose m))
 
@@ -300,7 +328,12 @@
       (testing "coerce works"
         (or (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [[1 2] [3 4]])))))
       (let [m (matrix [[1 2] [3 4]])]
-        (is (equals [[1 2] [3 4]] (to-nested-vectors m)))))))
+        (is (equals [[1 2] [3 4]] (to-nested-vectors m))))))
+;  (testing "Invalid vectors"
+;    (is (error? (matrix m [1 [2 3]])))
+;    (is (error? (matrix m [[2 3] 1]))))
+;  
+)
 
 (defn test-dimensionality [im]
   (testing "supported matrix size tests"
@@ -398,6 +431,9 @@
   (is (equals (sub m 0.0) (scale m 1.0)))
   (is (equals (negate m) (outer-product -1.0 m)))
   (is (equals (add 0.0 m) (mul 1 m)))
+  (is (equals m (div m 1)))
+  (let [m (add (square m) 1)]
+    (is (equals m (div (square m) m))))
   (is (equals (emul m m) (square m)))
   (is (equals (esum m) (ereduce + m)))
   (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m)))))

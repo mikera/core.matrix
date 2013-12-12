@@ -45,8 +45,16 @@
   (testing "slices"
     (let [da (double-array [1 2 3])
           fs (first (slices da))]
+      (is (scalar? fs))
+      (is (== 0 (dimensionality fs)))
+      (is (not (array? fs)))))
+  (testing "slice views"
+    (let [da (double-array [1 2 3])
+          fs (first (slice-views da))]
       (is (not (scalar? fs)))
       (is (== 0 (dimensionality fs)))
+      (fill! fs 10) 
+      (is (equals [10 2 3] da))
       (is (array? fs))))
   (testing "wrong dimension"
     (let [da (double-array [1 2 3])]
@@ -110,6 +118,22 @@
     (add! v [10 10 10])
     (sub! v [1 1 2])
     (is (equals v [10 11 11]))))
+
+(deftest test-mutable-map!
+  (let [v (double-array [1 2 3])]
+    (emap! clojure.core/+ v [10 10 10])
+    (is (equals v [11 12 13]))))
+
+(deftest test-div
+  (is (equals [1 2] (div (double-array [2 4]) 2))))
+
+(deftest test-div!
+  (let [da (double-array [2 4])]
+    (div! da 2)
+    (is (equals [1 2] da))))
+
+(deftest test-broadcast-coerce
+  (is (= [1.0 2.0] (mp/broadcast-coerce [0 0] (double-array [1 2])))))
 
 (deftest test-mutable-multiply
   (let [a (double-array [1 2])

@@ -10,7 +10,12 @@
 (deftest test-scalar-properties
   (is (not (array? nil)))
   (is (nil? (shape nil)))
-  (is (== 1 (ecount nil))))
+  (is (== 1 (ecount nil)))
+  (is (not (e= nil [])))
+  (is (not (e= nil '())))
+  (is (e= nil nil))
+  (is (nil? (assign 1 nil)))
+  (is (nil? (ereduce + nil))))
 
 (deftest test-nil 
   (is (nil? (transpose nil)))
@@ -19,6 +24,10 @@
 
 (deftest test-arithmentic
   (is (error? (add nil 1))))
+
+(deftest test-broadcast
+  (is (e= [nil nil] (broadcast nil [2])))
+  (is (e= [nil nil] (assign [1 2] nil))))
 
 (deftest test-join 
   (is (e= [nil nil] (join [nil] [nil]))))

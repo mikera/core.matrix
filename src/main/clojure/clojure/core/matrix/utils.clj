@@ -94,6 +94,11 @@
   (^longs [^longs arr]
     (java.util.Arrays/copyOf arr (int (alength arr)))))
 
+(defn copy-object-array
+  "Returns a copy of a long array"
+  (^objects [^objects arr]
+    (java.util.Arrays/copyOf arr (int (alength arr)))))
+
 (defn long-range
   "Returns a range of longs in a long[] array"
   ([end]
@@ -103,9 +108,18 @@
         (aset arr i (long i)))
       arr)))
 
+(defmacro is-object-array? [m]
+  `(instance? ~(Class/forName "[Ljava.lang.Object;") ~m))
+
+(defmacro is-long-array? [m]
+  `(instance? ~(Class/forName "[J") ~m))
+
+(defmacro is-double-array? [m]
+  `(instance? ~(Class/forName "[D") ~m))
+
 (defn to-long-array
   ([data]
-    (if (instance? (Class/forName "[D") data)
+    (if (is-long-array? data)
       data
       (long-array data))))
 
@@ -215,7 +229,7 @@
      new-xs#))
 
 (defmacro scalar-coerce 
-  "Macro to coerce to scalar value with efficient check sequence"
+  "Macro to coerce to scalar value with an efficient dispatch sequence"
   ([x]
   `(let [x# ~x]
      (cond 
