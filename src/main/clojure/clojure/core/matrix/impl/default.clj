@@ -371,14 +371,14 @@
     (dimensionality [m] 
       (cond 
         (.isArray (.getClass m)) 
-          (let [n (alength m)]
-            (if (> n 0) (inc (mp/dimensionality (aget m 0))) 1))
+          (let [n (count m)]
+            (if (> n 0) (inc (mp/dimensionality (nth m 0))) 1))
         :else 0))
     (is-vector? [m] 
       (cond 
         (.isArray (.getClass m)) 
-          (let [n (alength m)]
-            (or (== n 0) (== 1 (mp/dimensionality (aget m 0)))))
+          (let [n (count m)]
+            (or (== n 0) (== 1 (mp/dimensionality (nth m 0)))))
         :else false))
     (is-scalar? [m] 
       (cond
@@ -387,8 +387,8 @@
     (get-shape [m] 
       (cond
         (.isArray (.getClass m)) 
-          (let [n (alength m)]
-            (if (== n 0) [0] (cons n (mp/get-shape (aget m 0))))) 
+          (let [n (count m)]
+            (if (== n 0) [0] (cons n (mp/get-shape (nth m 0))))) 
         :else nil))
     (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
 
@@ -1007,6 +1007,7 @@
       (let [dims (long (mp/dimensionality m))]
         (cond
           (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object")
+          (.isArray (.getClass m)) (seq m) 
           (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           :else (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0)))))))
 
