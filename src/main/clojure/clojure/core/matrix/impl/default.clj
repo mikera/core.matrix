@@ -368,13 +368,28 @@
     (get-shape [m] nil)
     (dimension-count [m i] (error "Number has zero dimensionality, cannot get dimension count"))
   Object
-    (dimensionality [m] 0)
-    (is-vector? [m] false)
+    (dimensionality [m] 
+      (cond 
+        (.isArray (.getClass m)) 
+          (let [n (alength m)]
+            (if (> n 0) (inc (mp/dimensionality (aget m 0))) 1))
+        :else 0))
+    (is-vector? [m] 
+      (cond 
+        (.isArray (.getClass m)) 
+          (let [n (alength m)]
+            (or (== n 0) (== 1 (mp/dimensionality (aget m 0)))))
+        :else false))
     (is-scalar? [m] 
       (cond
         (.isArray (.getClass m)) false
         :else true)) ;; assume objects are scalars unless told otherwise
-    (get-shape [m] nil)
+    (get-shape [m] 
+      (cond
+        (.isArray (.getClass m)) 
+          (let [n (alength m)]
+            (if (== n 0) [0] (cons n (mp/get-shape (aget m 0))))) 
+        :else nil))
     (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
 
 (extend-protocol mp/PSameShape
