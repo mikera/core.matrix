@@ -1,4 +1,4 @@
-(defproject mars0i/core.matrix "0.16.1-SNAPSHOT"
+(defproject net.mikera/core.matrix "0.16.1-SNAPSHOT"
   :description "mars0i's fork of mikera/core.matrix"
   :url "https://github.com/mars0i/core.matrix"
   :license {:name "Eclipse Public License (EPL)"
