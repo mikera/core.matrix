@@ -90,11 +90,19 @@
         (error "Can't do ND get on a scalar number with indexes: " s)
         m))
   Object
-    (get-1d [m x] (mp/get-nd m [x]))
-    (get-2d [m x y] (mp/get-nd m [x y]))
+    (get-1d [m x] 
+      (cond
+        (java-array? m) (mp/get-0d (nth m x))
+        :else (mp/get-nd m [x])))
+    (get-2d [m x y] 
+      (cond
+        (java-array? m) (mp/get-1d (nth m x) y)
+        :else (mp/get-nd m [x y])))
     (get-nd [m indexes]
       (if (seq indexes)
-        (error "Indexed get failed, not defined for:" (class m))
+        (cond
+          (java-array? m) (mp/get-nd (nth m (first indexes)) (next indexes))
+          :else (error "Indexed get failed, not defined for:" (class m)))
         (mp/get-0d m))))
 
 (extend-protocol mp/PArrayMetrics
@@ -390,7 +398,11 @@
           (let [n (count m)]
             (if (== n 0) [0] (cons n (mp/get-shape (nth m 0))))) 
         :else nil))
-    (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
+    (dimension-count [m i] 
+      (cond
+        (.isArray (.getClass m))
+          (if (== i 0) (count m) (mp/dimension-count (nth m 0) (dec i)))
+        :else (error "Can't determine count of dimension " i " on Object: " (class m)))))
 
 (extend-protocol mp/PSameShape
   nil
