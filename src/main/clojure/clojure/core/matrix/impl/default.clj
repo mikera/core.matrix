@@ -370,7 +370,10 @@
   Object
     (dimensionality [m] 0)
     (is-vector? [m] false)
-    (is-scalar? [m] true) ;; assume objects are scalars unless told otherwise
+    (is-scalar? [m] 
+      (cond
+        (.isArray (.getClass m)) false
+        :else true)) ;; assume objects are scalars unless told otherwise
     (get-shape [m] nil)
     (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
 
