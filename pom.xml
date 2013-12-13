@@ -17,8 +17,7 @@
   <scm>
     <connection>scm:git:git://github.com//.git</connection>
     <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
-    <tag>ad5d1ba1673f3f1cac170ffab53b409b6ff7ebfe
-</tag>
+    <tag>76db444a04c46a005af7a39903bf60c343905adc</tag>
     <url>https://github.com//</url>
   </scm>
   <build>
@@ -37,7 +36,7 @@
         <directory>resources</directory>
       </testResource>
     </testResources>
-    <directory>target</directory>
+    <directory>target/</directory>
     <outputDirectory>target/classes</outputDirectory>
     <plugins>
       <plugin>
@@ -102,30 +101,6 @@
       <version>1.5.1</version>
     </dependency>
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>tools.nrepl</artifactId>
-      <version>0.2.3</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.clojure</groupId>
-          <artifactId>clojure</artifactId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>clojure-complete</groupId>
-      <artifactId>clojure-complete</artifactId>
-      <version>0.2.3</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.clojure</groupId>
-          <artifactId>clojure</artifactId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.google.caliper</groupId>
       <artifactId>caliper</artifactId>
       <version>0.5-rc1</version>
@@ -150,9 +125,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>net.mikera</groupId>
+      <groupId>mars0i</groupId>
       <artifactId>vectorz-clj</artifactId>
-      <version>0.16.0</version>
+      <version>0.17.1-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -168,12 +143,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>clatrix</groupId>
-      <artifactId>clatrix</artifactId>
-      <version>0.3.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>reiddraper</groupId>
       <artifactId>simple-check</artifactId>
       <version>0.4.1</version>
@@ -183,6 +152,18 @@
       <groupId>org.clojure</groupId>
       <artifactId>tools.macro</artifactId>
       <version>0.1.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.nrepl</artifactId>
+      <version>0.2.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>clojure-complete</groupId>
+      <artifactId>clojure-complete</artifactId>
+      <version>0.2.3</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

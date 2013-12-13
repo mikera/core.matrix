@@ -365,10 +365,10 @@
   [m]
   (mp/zero-matrix? m))
 
-(defn symmetric-matrix?
+(defn symmetric?
   "Returns true if the parameter is a symmetric matrix"
   [m]
-  (mp/symmetric-matrix? m))
+  (mp/symmetric? m))
 
 (defn sparse?
   "Returns true if an array is sparse, i.e. the implementation supports storage of the entire
