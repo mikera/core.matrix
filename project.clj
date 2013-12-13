@@ -1,7 +1,7 @@
 ;; This project.clj is provided as a convenience for Leiningen users
 ;; The official core.matrix project configuration is in the pom.xml
 
-(defproject net.mikera/core.matrix "0.16.1-SNAPSHOT"
+(defproject mars0i/core.matrix "0.16.1-SNAPSHOT"
   :url "https://github.com/mikera/matrix-api"
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -15,6 +15,9 @@
                                   [criterium/criterium "0.4.2"]
                                   [hiccup "1.0.4"]
                                   [net.mikera/vectorz-clj "0.16.0"]
+                                  [slingshot "0.10.3"]
+                                  [org.jblas/jblas "1.2.3"]
+                                  [clatrix/clatrix "0.3.0"]
                                   [reiddraper/simple-check "0.4.1"]
                                   [org.clojure/tools.macro "0.1.5"]
                                   [com.google.caliper/caliper "0.5-rc1"]]
