@@ -1,8 +1,5 @@
-;; This project.clj is provided as a convenience for Leiningen users
-;; The official core.matrix project configuration is in the pom.xml
-
 (defproject mars0i/core.matrix "0.16.1-SNAPSHOT"
-  :url "https://github.com/mikera/matrix-api"
+  :url "https://github.com/mars0i/core.matrix"
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :source-paths ["src/main/clojure"]
