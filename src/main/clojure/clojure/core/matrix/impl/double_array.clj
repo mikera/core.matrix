@@ -275,7 +275,8 @@
   (Class/forName "[D")
   (element-divide
     ([m] (mp/element-map m #(/ %)))
-    ([m a] (mp/element-map m #(/ % a)))))
+    ([m a] (let [[m a] (mp/broadcast-compatible m a)]
+             (mp/element-map m #(/ %1 %2) a)))))
 
 ;; registration
 
