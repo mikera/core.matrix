@@ -101,9 +101,20 @@
   )
 
 (deftest test-pow
-  (is (== 8 (pow 2 3)))
-  (is (== 8 (clojure.core.matrix.operators/** 2 3))) 
-  )
+  (let [a (array :persistent-vector [1 2 3])
+        m (matrix :persistent-vector [[1 2 3] [4 5 6] [7 8 9]])]
+    (testing "pow works on scalars"
+      (is (== 8 (pow 2 3)))
+      (is (== 8 (clojure.core.matrix.operators/** 2 3))))
+    (testing "pow works when base is an array and exponent is a scalar"
+      (is (equals [1.0 4.0 9.0] (pow a 2)))
+      (is (equals [[1.0 4.0 9.0] [16.0 25.0 36.0] [49.0 64.0 81.0]] (pow m 2))))
+    (testing "pow works when base is a scalar and exponent is an array"
+      (is (equals [5.0 25.0 125.0] (pow 5 a))
+          (equals [[2.0 4.0 8.0] [16.0 32.0 64.0] [128.0 256.0 512.0]] (pow 2 m))))
+    (testing "pow works when both the base and the exponent are arrays"
+      (is (equals [1.0 4.0 27.0] (pow a a)))
+      (is (equals [[1.0 2.0 3.0] [16.0 25.0 36.0] [343.0 512.0 729.0]] (pow m a))))))
 
 (deftest test-slices
   (testing "rows and columns of clojure vector matrix"
