@@ -1278,6 +1278,16 @@
           (mp/set-2d! r i (v i) 1.0))
         r)))
 
+;; helper function for symmetric? predicate in PMatrixPredicates  
+(defn- symmetric-matrix-entries?
+  [m]
+  (every? (fn [[i j]] (= (mp/get-2d m i j) (mp/get-2d m j i)))
+          (let [dim (first (mp/get-shape m))]
+            (for [i (range dim)
+                  j (range dim)
+                  :when (> j i)]
+              [i j]))))
+
 (extend-protocol mp/PMatrixPredicates
   Object
   (identity-matrix? [m]
@@ -1303,12 +1313,7 @@
     (every? #(and (number? %) (zero? %)) (mp/element-seq m)))
   (symmetric? [m]
     (and (square? m)
-         (every? (fn [[i j]] (= (mp/get-2d m i j) (mp/get-2d m j i)))
-                 (let [dim (first (mp/get-shape m))]
-                   (for [i (range dim)
-                         j (range dim)
-                         :when (> j i)]
-                     [i j])))))
+         (symmetric-matrix-entries? m)))
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false)
