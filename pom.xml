@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>core.matrix</artifactId>
 	<version>0.16.1-SNAPSHOT</version>
@@ -87,9 +88,7 @@
 						<id>clojure-compile-1</id>
 						<phase>compile</phase>
 						<goals>
-							<!--  
-							<goal>compile</goal>
-							-->
+							<!-- <goal>compile</goal> -->
 						</goals>
 						<configuration>
 							<namespaces>
@@ -116,10 +115,11 @@
 				<directory>src/dev/clojure</directory>
 			</testResource>
 		</testResources>
-		
+
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -161,6 +161,14 @@
 			<url>https://clojars.org/repo</url>
 		</repository>
 	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>clojars.org</id>
+			<name>Clojars repository</name>
+			<url>https://clojars.org/repo</url>
+		</repository>
+	</distributionManagement>
 
 	<scm>
 		<connection>scm:git:git@github.com:clojure-numerics/core.matrix.git</connection>
