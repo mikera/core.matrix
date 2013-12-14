@@ -1126,6 +1126,12 @@
   ([m exponent & more]
     (reduce (fn [m x] (mp/element-pow m x)) (mp/element-pow m exponent) more)))
 
+(defn pow! 
+  "Mutable exponent function, see 'pow'"
+  ([m a]
+    ;; TODO: implement via a protocol + default implementation
+    (mp/assign! m (pow m a)))) 
+
 ;; create all unary maths operators
 (eval
   `(do ~@(map (fn [[name func]]
