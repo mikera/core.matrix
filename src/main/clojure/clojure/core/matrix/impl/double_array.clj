@@ -260,6 +260,23 @@
         (let [^doubles m m]
           (reduce f init m)))))
 
+(extend-protocol mp/PMatrixDivideMutable
+  (Class/forName "[D")
+  (element-divide!
+    ([m] (let [^doubles m m]
+             (dotimes [i (alength m)]
+               (aset m i (/ 1.0 / (aget m i))))
+             nil))
+    ([m a] (let [^doubles m m]
+             (dotimes [i (alength m)]
+               (aset m i (/ (aget m i) a)))))))
+
+(extend-protocol mp/PMatrixDivide
+  (Class/forName "[D")
+  (element-divide
+    ([m] (mp/element-map m #(/ %)))
+    ([m a] (mp/element-map m #(/ % a)))))
+
 ;; registration
 
 (imp/register-implementation (double-array [1]))
