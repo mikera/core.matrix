@@ -151,18 +151,18 @@
 
    The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
-    (mp/construct-matrix (implementation-check) (vector data))) ;; wrapping in 1 extra vector level, should be OK
+    (mp/row-matrix (implementation-check) data)) ;; wrapping in 1 extra vector level, should be OK
   ([implementation data]
-    (mp/construct-matrix (implementation-check implementation) (vector data))))
+    (mp/row-matrix (implementation-check implementation) data)))
 
 (defn column-matrix
   "Constucts a column matrix with the given data. The returned matrix is a 2D Nx1 column matrix.
 
    The data must be either a valid existing vector or a sequence of scalar values."
   ([data]
-    (mp/construct-matrix (implementation-check) (map vector data))) ;; TODO: is use of map broken here? Might not be sequential?
+    (mp/column-matrix (implementation-check) data)) ;; TODO: is use of map broken here? Might not be sequential?
   ([implementation data]
-    (mp/construct-matrix (implementation-check implementation) (map vector data))))
+    (mp/column-matrix (implementation-check implementation) data)))
 
 (defn identity-matrix
   "Constructs a 2D identity matrix with the given number of rows.
@@ -524,6 +524,12 @@
          (if arr (copy-object-array arr) (mp/to-object-array m))
          arr))))
 
+(defn pack
+  "Packs array data in the most efficient format as defined by the implementation. May return the
+   same array if no additional packing is required."
+  ([a]
+    (mp/pack a))) 
+
 ;; =======================================
 ;; matrix access
 
@@ -757,9 +763,13 @@
 (defn transpose
   "Transposes a matrix, returning a new matrix. For 2D matices, rows and columns are swapped.
    More generally, the dimension indices are reversed for any shape of array. Note that 1D vectors
-   and scalars will be returned unchanged."
+   and scalars will be returned unchanged.
+
+   If ordering is provided, will re-order dimensions according to the provided order."
   ([m]
-    (mp/transpose m)))
+    (mp/transpose m))
+  ([m ordering]
+    (TODO)))
 
 (defn transpose!
   "Transposes a square 2D matrix in-place. Will throw an exception if not possible."
@@ -853,15 +863,19 @@
   ([a b] (mp/element-divide a b))
   ([a b & more] (reduce mp/element-divide (mp/element-divide a b) more)))
 
-;; TODO: implement using a protocol
 (defn div!
   "Performs in-place element-wise matrix division for numerical arrays."
-  ([a] 
-    (assign! a (mp/element-divide a)))
-  ([a b] 
-    (assign! a (mp/element-divide a b)))
-  ([a b & more] 
-    (assign! a(reduce mp/element-divide (mp/element-divide a b) more))))
+  ([a]
+     (mp/element-divide! a)
+     a)
+  ([a b]
+     (mp/element-divide! a b)
+     a)
+  ([a b & more]
+     (mp/element-divide! a b)
+     (doseq [c more]
+       (mp/element-divide! a c))
+     a))
 
 (defn mul!
   "Performs in-place element-wise multiplication of numerical arrays."
@@ -1112,6 +1126,12 @@
   ([m exponent & more]
     (reduce (fn [m x] (mp/element-pow m x)) (mp/element-pow m exponent) more)))
 
+(defn pow! 
+  "Mutable exponent function, see 'pow'"
+  ([m a]
+    ;; TODO: implement via a protocol + default implementation
+    (mp/assign! m (pow m a)))) 
+
 ;; create all unary maths operators
 (eval
   `(do ~@(map (fn [[name func]]
@@ -1215,7 +1235,9 @@
 (defn ecount
   "Returns the total count of elements in an array.
 
-   Equal to the product of the lenegths of each dimension in the array's shape."
+   Equal to the product of the lenegths of each dimension in the array's shape.
+
+   Returns 1 for a zero-dimensional array or scalar."
   ([m]
     (mp/element-count m)))
 

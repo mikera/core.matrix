@@ -26,7 +26,10 @@
     (is (e= [] (coerce [] [])))
     (is (e= [] (assign [] 1.0)))
     (is (empty? (eseq [])))
-    (is (nil? (coerce [] nil)))))
+    (is (nil? (coerce [] nil))))
+  (testing "broadcast on emap"
+    (is (equals [[6 7] [8 9]] (emap + [[1 2] [3 4]] 5)))
+    (is (equals [[6 7] [8 9]] (emap + 5 [[1 2] [3 4]])))))
 
 (deftest test-assign 
   (is (= [[1 2] [1 2]] (assign [[1 2] [3 4]] [1 2])))

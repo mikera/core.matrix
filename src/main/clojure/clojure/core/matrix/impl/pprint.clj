@@ -41,9 +41,13 @@
    elements left in the matrix it ends with a
    closing bracket."
   [[head & tail :as mat] acc len]
-  (if (empty? mat)
-    (str acc "]")
-    (recur tail (str "\n" acc " " (str-row head len)) len)))
+  (cond 
+    (empty? mat)
+      (str acc "]")
+    (== 1 (mp/dimensionality head))
+      (recur tail (str "\n" acc " " (str-row head len)) len)
+    :else 
+      (error "Printing of higher dimensional arrays not yet supported")))
 
 (defn pm
   "Pretty-prints a matrix"

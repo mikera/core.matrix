@@ -68,6 +68,23 @@
 ;;   implement in terms of simpler operations, on assumption that
 ;;   we have fallen through to the default implementation
 
+;; default overall implementation
+
+(extend-protocol mp/PImplementation
+  Object
+    (implementation-key [m] :default)
+    (meta-info [m] {})
+    (construct-matrix [m data] 
+      (mp/construct-matrix [] data))
+    (new-vector [m length]
+      (mp/new-vector [] length))
+    (new-matrix [m rows columns]
+      (mp/new-matrix [] rows columns))
+    (new-matrix-nd [m shape]
+      (mp/new-matrix-nd [] shape))
+    (supports-dimensionality? [m dimensions]
+      true))
+
 ;; default implementation for matrix ops
 
 (extend-protocol mp/PIndexedAccess
@@ -90,11 +107,19 @@
         (error "Can't do ND get on a scalar number with indexes: " s)
         m))
   Object
-    (get-1d [m x] (mp/get-nd m [x]))
-    (get-2d [m x y] (mp/get-nd m [x y]))
+    (get-1d [m x] 
+      (cond
+        (java-array? m) (mp/get-0d (nth m x))
+        :else (mp/get-nd m [x])))
+    (get-2d [m x y] 
+      (cond
+        (java-array? m) (mp/get-1d (nth m x) y)
+        :else (mp/get-nd m [x y])))
     (get-nd [m indexes]
       (if (seq indexes)
-        (error "Indexed get failed, not defined for:" (class m))
+        (cond
+          (java-array? m) (mp/get-nd (nth m (first indexes)) (next indexes))
+          :else (error "Indexed get failed, not defined for:" (class m)))
         (mp/get-0d m))))
 
 (extend-protocol mp/PArrayMetrics
@@ -368,11 +393,33 @@
     (get-shape [m] nil)
     (dimension-count [m i] (error "Number has zero dimensionality, cannot get dimension count"))
   Object
-    (dimensionality [m] 0)
-    (is-vector? [m] false)
-    (is-scalar? [m] true) ;; assume objects are scalars unless told otherwise
-    (get-shape [m] nil)
-    (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
+    (dimensionality [m] 
+      (cond 
+        (.isArray (.getClass m)) 
+          (let [n (count m)]
+            (if (> n 0) (inc (mp/dimensionality (nth m 0))) 1))
+        :else 0))
+    (is-vector? [m] 
+      (cond 
+        (.isArray (.getClass m)) 
+          (let [n (count m)]
+            (or (== n 0) (== 0 (mp/dimensionality (nth m 0)))))
+        :else false))
+    (is-scalar? [m] 
+      (cond
+        (.isArray (.getClass m)) false
+        :else true)) ;; assume objects are scalars unless told otherwise
+    (get-shape [m] 
+      (cond
+        (.isArray (.getClass m)) 
+          (let [n (count m)]
+            (if (== n 0) [0] (cons n (mp/get-shape (nth m 0))))) 
+        :else nil))
+    (dimension-count [m i] 
+      (cond
+        (.isArray (.getClass m))
+          (if (== i 0) (count m) (mp/dimension-count (nth m 0) (dec i)))
+        :else (error "Can't determine count of dimension " i " on Object: " (class m)))))
 
 (extend-protocol mp/PSameShape
   nil
@@ -581,6 +628,18 @@
       ([m a]
         (let [[m a] (mp/broadcast-compatible m a)]
           (mp/element-map m #(/ %1 %2) a)))))
+
+(extend-protocol mp/PMatrixDivideMutable
+  Number
+  (element-divide!
+    ([m] (error "Can't do mutable divide on a scalar number"))
+    ([m a] (error "Can't do mutable divide on a scalar numer")))
+  Object
+  (element-divide!
+    ([m] (mp/element-map! m #(/ %)))
+    ([m a]
+       (let [[m a] (mp/broadcast-compatible m a)]
+         (mp/element-map! m #(/ %1 %2) a)))))
 
 ;; matrix element summation
 (extend-protocol mp/PSummable
@@ -855,9 +914,11 @@
       ([m f]
         (f m))
       ([m f a]
-        (f m (mp/get-0d a)))
+        (mp/element-map a #(f m %)))
       ([m f a more]
-        (apply f m (mp/get-0d a) (map mp/get-0d more))))
+        (if-let [moremore (next more)]
+          (mp/element-map a #(apply f m %1 %2 %&) (first more) moremore)
+          (mp/element-map a #(f m %1 %2) (first more)))))
     (element-map!
       ([m f]
         (error "java.lang.Number instance is not mutable!"))
@@ -872,10 +933,13 @@
         (f init m)))
   Object
     (element-seq [m]
-      (let [dims (long (mp/dimensionality m))]
+      (let [c (.getClass m)
+            dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
             (list (mp/get-0d m))
+          (and (.isArray c) (.isPrimitive (.getComponentType c)))
+            (seq m)            
           (== 1 dims)
             (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           (array? m)
@@ -883,13 +947,19 @@
           :else (error "Don't know how to create element-seq from: " m))))
     (element-map
       ([m f]
-        (let [s (map f (mp/element-seq m))]
-          (mp/reshape (mp/coerce-param m s)
-                      (mp/get-shape m))))
+        (if (== 0 (mp/dimensionality m))
+          (f (mp/get-0d m)) ;; handle case of single element
+          (let [s (map f (mp/element-seq m))]
+            (mp/reshape (mp/coerce-param m s)
+                        (mp/get-shape m)))))
       ([m f a]
-        (let [s (map f (mp/element-seq m) (mp/element-seq a))]
-          (mp/reshape (mp/coerce-param m s)
-                      (mp/get-shape m))))
+        (if (== 0 (mp/dimensionality m))
+          (let [v (mp/get-0d m)]
+            (mp/element-map a #(f v %)))
+          (let [[m a] (mp/broadcast-compatible m a)
+                s (map f (mp/element-seq m) (mp/element-seq a))]
+            (mp/reshape (mp/coerce-param m s) ;; TODO: faster construction method?
+                        (mp/get-shape m)))))
       ([m f a more]
         (let [s (map f (mp/element-seq m) (mp/element-seq a))
               s (apply map f (list* (mp/element-seq m)
@@ -950,11 +1020,15 @@
 (extend-protocol mp/PMatrixSlices
   Object
     (get-row [m i]
-      (mp/get-major-slice m i))
+      (if (java-array? m)
+        (nth m i)
+        (mp/get-major-slice m i)))
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
-      (clojure.core.matrix.impl.wrappers/wrap-slice m i))
+      (if (java-array? m)
+        (nth m i)
+        (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
     (get-slice [m dimension i]
       (mp/get-slice (mp/convert-to-nested-vectors m) dimension i)))
 
@@ -969,6 +1043,7 @@
       (let [dims (long (mp/dimensionality m))]
         (cond
           (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object")
+          (.isArray (.getClass m)) (seq m) 
           (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           :else (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0)))))))
 
@@ -1055,6 +1130,14 @@
     (broadcast-coerce [m a]
       (mp/coerce-param m (mp/broadcast-like m a))))
 
+(extend-protocol mp/PPack
+  nil
+    (pack [m]
+      nil)
+  Object
+    (pack [m]
+      m))
+
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
   nil
@@ -1086,6 +1169,20 @@
               (mapv mp/convert-to-nested-vectors m)
           :default
               (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
+
+(extend-protocol mp/PRowColMatrix
+  nil
+    (column-matrix [m data] (error "Can't create a column matrix from nil"))
+    (row-matrix [m data] (error "Can't create a column matrix from nil"))
+  Object
+    (column-matrix [m data] 
+      (if (== 1 (mp/dimensionality data))
+        (mp/coerce-param m (mapv vector (mp/element-seq data)))
+        (error "Can't create a column matrix: input must be 1D vector")))
+    (row-matrix [m data] 
+      (if (== 1 (mp/dimensionality data))
+        (mp/coerce-param m (vector data))
+        (error "Can't create a row matrix: input must be 1D vector")))) 
 
 (extend-protocol mp/PVectorView
   nil
@@ -1170,11 +1267,14 @@
 (extend-protocol mp/PExponent
   Number
     (element-pow [m exponent]
-      (Math/pow (.doubleValue m) (double exponent)))
+      (if (array? exponent)
+        (mp/element-map exponent #(Math/pow (.doubleValue m) (.doubleValue ^Number %)))
+        (Math/pow (.doubleValue m) (double exponent))))
   Object
     (element-pow [m exponent]
-      (let [x (double exponent)]
-        (mp/element-map m #(Math/pow (.doubleValue ^Number %) x)))))
+      (if (array? exponent)
+        (mp/element-map m #(Math/pow (.doubleValue ^Number %1) (.doubleValue ^Number %2)) exponent)
+        (mp/element-map m #(Math/pow (.doubleValue ^Number %) exponent)))))
 
 (extend-protocol mp/PSquare
   Number

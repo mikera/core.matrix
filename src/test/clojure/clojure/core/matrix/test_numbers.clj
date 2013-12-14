@@ -34,6 +34,10 @@
     (is (== 3 (rotate 3 0 10)))
     (is (== 3 (rotate 3 10 10))))) 
 
+(deftest test-shape
+  (is (== 1 (ecount 13)))
+  (is (nil? (shape 13)))) 
+
 (deftest test-compute-matrix
   (is (equals 3 (compute-matrix [] (fn [] 3)))))
 

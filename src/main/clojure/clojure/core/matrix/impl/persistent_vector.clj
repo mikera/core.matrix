@@ -47,14 +47,18 @@
         (== 1 dims) (mapv #(f (scalar-coerce %)) m)
         :else (mapv (partial mapmatrix f) m))))
   ([f m1 m2]
-    (if (mp/is-vector? m1)
-      (let [dim2 (long (mp/dimensionality m2))]
-        (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
-        (when (and (== 1 dim2) (not= (mp/dimension-count m1 0) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
-        (if (== 0 dim2)
-          (let [v (scalar-coerce m2)] (mapv #(f % v) m1 ))
-          (mapv f m1 (mp/element-seq m2))))
-      (mapv (partial mapmatrix f) m1 (mp/get-major-slice-seq  m2))))
+    (let [dim2 (long (mp/dimensionality m2))]
+      (cond (mp/is-vector? m1)
+        (do
+          (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
+          (when (and (== 1 dim2) (not= (mp/dimension-count m1 0) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
+          (if (== 0 dim2)
+            (let [v (scalar-coerce m2)] (mapv #(f % v) m1 ))
+            (mapv f m1 (mp/element-seq m2))))
+        :else
+          (mapv (partial mapmatrix f) 
+                m1 
+                (mp/get-major-slice-seq m2)))))
   ([f m1 m2 & more]
     (if (mp/is-vector? m1)
       (apply mapv f m1 m2 more)
@@ -479,7 +483,7 @@
       ([m f]
         (mapmatrix f m))
       ([m f a]
-        (mapmatrix f m a))
+        (mapmatrix f m (mp/broadcast-like m a)))
       ([m f a more]
         (apply mapmatrix f m a more)))
     (element-map!

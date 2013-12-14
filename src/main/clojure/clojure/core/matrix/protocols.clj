@@ -137,6 +137,15 @@
    throw an error. Otherwise it should return the correct shape."
   (validate-shape [m])) 
 
+(defprotocol PRowColMatrix
+  "Protocol to support construction of row and column matrices from 1D vectors.
+
+   A vector of length N should be converted to a 1xN or Nx1 matrix respectively.   
+
+   Should throw an error if the data is not a 1D vector"
+  (column-matrix [m data])
+  (row-matrix [m data])) 
+
 (defprotocol PMutableMatrixConstruction
   "Protocol for creating a mutable copy of a matrix. If implemented, must return either a fully mutable
    copy of the given matrix, or nil if not possible.
@@ -184,6 +193,9 @@
    implementation *may* throw an exception, though it may also return nil to get default behaviour,
    which should implement any expected exceptions.
 
+   If an implementation implements coercion via copying, then it is recommended that conversion
+   should be to the most efficient packed representation (i.e. as defined by 'pack')
+
    Implementations must also be able to coerce valid scalar values (presumably via the identity function)"
   (coerce-param [m param]
     "Attempts to coerce param into a matrix format supported by the implementation of matrix m.
@@ -226,6 +238,17 @@
    If the new shape has less elements than the original shape, it is OK to truncate the remaining elements.
    If the new shape requires more elements than the original shape, should throw an exception."
   (reshape [m shape]))
+
+(defprotocol PPack
+  "Protocol to efficiently pack an array, according to the most efficient representation for a given 
+   implementation.
+
+   Definition of pack is up to the implementation to interpret, but the general rules are:
+   1. Must not change the value of the array for comparison purposes
+   2. Must not change the shape of the array
+   3. May preserve sparse representation
+   4. Should convert most efficient format for common operations (e.g. mget, inner-product)"
+  (pack [m])) 
 
 (defprotocol PSameShape
   "Protocol to test if two arrays have the same shape. Implementations may have an optimised 
@@ -385,6 +408,13 @@
   "Protocol to support element-wise division operator.
    One-arg version returns the reciprocal of all elements."
   (element-divide
+    [m]
+    [m a]))
+
+(defprotocol PMatrixDivideMutable
+  "Protocol to support mutable element-wise division operater.
+   One-arg version returns the reciprocal of all elements."
+  (element-divide!
     [m]
     [m a]))
 

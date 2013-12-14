@@ -42,6 +42,9 @@
   `(when-not ~pred?
      (iae ~exception-str)))
 
+(defmacro java-array? [m]
+  `(.isArray (.getClass ~m))) 
+
 (defn valid-shape?
   "returns true if the given object is a valid core.matrix array shape."
   ([shape]
