@@ -1263,11 +1263,14 @@
 (extend-protocol mp/PExponent
   Number
     (element-pow [m exponent]
-      (Math/pow (.doubleValue m) (double exponent)))
+      (if (array? exponent)
+        (mp/element-map exponent #(Math/pow (.doubleValue m) (.doubleValue ^Number %)))
+        (Math/pow (.doubleValue m) (double exponent))))
   Object
     (element-pow [m exponent]
-      (let [x (double exponent)]
-        (mp/element-map m #(Math/pow (.doubleValue ^Number %) x)))))
+      (if (array? exponent)
+        (mp/element-map m #(Math/pow (.doubleValue ^Number %1) (.doubleValue ^Number %2)) exponent)
+        (mp/element-map m #(Math/pow (.doubleValue ^Number %) exponent)))))
 
 (extend-protocol mp/PSquare
   Number
