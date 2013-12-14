@@ -16,4 +16,5 @@
 (deftest compliance-tests
   (clojure.core.matrix.compliance-tester/instance-test (int-array [1 2 3]))
   (clojure.core.matrix.compliance-tester/instance-test (float-array [1 2 3]))
-  (clojure.core.matrix.compliance-tester/instance-test (char-array [\a \b \c])))
+  (clojure.core.matrix.compliance-tester/instance-test (char-array [\a \b \c]))
+  (clojure.core.matrix.compliance-tester/instance-test (object-array [(short-array (map short [1 2 3]))])))
