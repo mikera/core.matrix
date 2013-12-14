@@ -18,7 +18,9 @@
   (clojure.core.matrix.compliance-tester/instance-test (float-array [1 2 3]))
   (clojure.core.matrix.compliance-tester/instance-test (long-array []))
   (clojure.core.matrix.compliance-tester/instance-test (char-array [\a \b \c]))
-  (clojure.core.matrix.compliance-tester/instance-test (object-array [(short-array (map short [1 2 3]))]))
+  (clojure.core.matrix.compliance-tester/instance-test (object-array [(double-array [1 2 3])]))
+  ;; TODO: reinstante once Clojure bug CLJ-1306 is fixed
+  ;; (clojure.core.matrix.compliance-tester/instance-test (object-array [(short-array (map short [1 2 3]))]))
   (clojure.core.matrix.compliance-tester/instance-test 
     (into-array (Class/forName "[D") 
                 [(double-array [1 2])

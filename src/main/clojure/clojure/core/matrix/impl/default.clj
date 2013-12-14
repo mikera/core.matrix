@@ -933,10 +933,13 @@
         (f init m)))
   Object
     (element-seq [m]
-      (let [dims (long (mp/dimensionality m))]
+      (let [c (.getClass m)
+            dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
             (list (mp/get-0d m))
+          (and (.isArray c) (.isPrimitive (.getComponentType c)))
+            (seq m)            
           (== 1 dims)
             (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           (array? m)
