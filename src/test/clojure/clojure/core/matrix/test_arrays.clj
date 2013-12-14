@@ -10,4 +10,8 @@
 (deftest int-array-test
   (let [a (int-array [1 2 3])]
     (is (== 1 (dimensionality a)))
+    (is (vec? a))
     (is (== 6 (esum a)))))
+
+(deftest compliance-tests
+  (clojure.core.matrix.compliance-tester/instance-test (int-array [1 2 3])))

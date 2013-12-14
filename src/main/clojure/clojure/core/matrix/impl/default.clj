@@ -68,6 +68,23 @@
 ;;   implement in terms of simpler operations, on assumption that
 ;;   we have fallen through to the default implementation
 
+;; default overall implementation
+
+(extend-protocol mp/PImplementation
+  Object
+    (implementation-key [m] :default)
+    (meta-info [m] {})
+    (construct-matrix [m data] 
+      (mp/construct-matrix [] data))
+    (new-vector [m length]
+      (mp/new-vector [] length))
+    (new-matrix [m rows columns]
+      (mp/new-matrix [] rows columns))
+    (new-matrix-nd [m shape]
+      (mp/new-matrix-nd [] shape))
+    (supports-dimensionality? [m dimensions]
+      true))
+
 ;; default implementation for matrix ops
 
 (extend-protocol mp/PIndexedAccess
@@ -386,7 +403,7 @@
       (cond 
         (.isArray (.getClass m)) 
           (let [n (count m)]
-            (or (== n 0) (== 1 (mp/dimensionality (nth m 0)))))
+            (or (== n 0) (== 0 (mp/dimensionality (nth m 0)))))
         :else false))
     (is-scalar? [m] 
       (cond
