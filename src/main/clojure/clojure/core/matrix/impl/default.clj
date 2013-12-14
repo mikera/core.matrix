@@ -1020,11 +1020,15 @@
 (extend-protocol mp/PMatrixSlices
   Object
     (get-row [m i]
-      (mp/get-major-slice m i))
+      (if (java-array? m)
+        (nth m i)
+        (mp/get-major-slice m i)))
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
-      (clojure.core.matrix.impl.wrappers/wrap-slice m i))
+      (if (java-array? m)
+        (nth m i)
+        (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
     (get-slice [m dimension i]
       (mp/get-slice (mp/convert-to-nested-vectors m) dimension i)))
 
