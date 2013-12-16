@@ -267,16 +267,22 @@
              (dotimes [i (alength m)]
                (aset m i (/ 1.0 / (aget m i))))
              nil))
-    ([m a] (let [^doubles m m]
-             (dotimes [i (alength m)]
-               (aset m i (/ (aget m i) a)))))))
+    ([m a] (if (number? a)
+             (let [^doubles m m]
+               (dotimes [i (alength m)]
+                 (aset m i (/ (aget m i) a))))
+             (let [[^doubles m ^doubles a] (mp/broadcast-compatible m a)]
+               (dotimes [i (alength m)]
+                 (aset m i (/ (aget m i) (aget a i)))))))))
 
 (extend-protocol mp/PMatrixDivide
   (Class/forName "[D")
   (element-divide
     ([m] (mp/element-map m #(/ %)))
-    ([m a] (let [[m a] (mp/broadcast-compatible m a)]
-             (mp/element-map m #(/ %1 %2) a)))))
+    ([m a] (if (number? a)
+             (mp/element-map m #(/ % a))
+             (let [[m a] (mp/broadcast-compatible m a)]
+               (mp/element-map m #(/ %1 %2) a))))))
 
 ;; registration
 
