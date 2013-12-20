@@ -1336,15 +1336,19 @@
           (mp/set-2d! r i (v i) 1.0))
         r)))
 
-;; helper function for symmetric? predicate in PMatrixPredicates  
+;; Helper function for symmetric? predicate in PMatrixPredicates.
+;; Note loop/recur instead of letfn/recur is 20-25% slower.
 (defn- symmetric-matrix-entries?
   [m]
-  (every? (fn [[i j]] (= (mp/get-2d m i j) (mp/get-2d m j i)))
-          (let [dim (first (mp/get-shape m))]
-            (for [i (range dim)
-                  j (range dim)
-                  :when (> j i)]
-              [i j]))))
+  (let [dim (first (mp/get-shape m))]
+    (letfn [(f [i j]
+              (cond 
+                (>= i dim) true                         ; all entries match: symmetric
+                (>= j dim) (recur (+ 1 i) (+ 2 i))      ; all j's OK: restart with new i
+                (= (mp/get-2d m i j) 
+                   (mp/get-2d m j i)) (recur i (inc j)) ; OK, so check next pair
+                :else false))]                          ; not same, not symmetric
+      (f 0 1))))
 
 (extend-protocol mp/PMatrixPredicates
   Object
