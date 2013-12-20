@@ -68,6 +68,23 @@
 ;;   implement in terms of simpler operations, on assumption that
 ;;   we have fallen through to the default implementation
 
+;; default overall implementation
+
+(extend-protocol mp/PImplementation
+  Object
+    (implementation-key [m] :default)
+    (meta-info [m] {})
+    (construct-matrix [m data] 
+      (mp/construct-matrix [] data))
+    (new-vector [m length]
+      (mp/new-vector [] length))
+    (new-matrix [m rows columns]
+      (mp/new-matrix [] rows columns))
+    (new-matrix-nd [m shape]
+      (mp/new-matrix-nd [] shape))
+    (supports-dimensionality? [m dimensions]
+      true))
+
 ;; default implementation for matrix ops
 
 (extend-protocol mp/PIndexedAccess
@@ -90,11 +107,19 @@
         (error "Can't do ND get on a scalar number with indexes: " s)
         m))
   Object
-    (get-1d [m x] (mp/get-nd m [x]))
-    (get-2d [m x y] (mp/get-nd m [x y]))
+    (get-1d [m x] 
+      (cond
+        (java-array? m) (mp/get-0d (nth m x))
+        :else (mp/get-nd m [x])))
+    (get-2d [m x y] 
+      (cond
+        (java-array? m) (mp/get-1d (nth m x) y)
+        :else (mp/get-nd m [x y])))
     (get-nd [m indexes]
       (if (seq indexes)
-        (error "Indexed get failed, not defined for:" (class m))
+        (cond
+          (java-array? m) (mp/get-nd (nth m (first indexes)) (next indexes))
+          :else (error "Indexed get failed, not defined for:" (class m)))
         (mp/get-0d m))))
 
 (extend-protocol mp/PArrayMetrics
@@ -368,11 +393,33 @@
     (get-shape [m] nil)
     (dimension-count [m i] (error "Number has zero dimensionality, cannot get dimension count"))
   Object
-    (dimensionality [m] 0)
-    (is-vector? [m] false)
-    (is-scalar? [m] true) ;; assume objects are scalars unless told otherwise
-    (get-shape [m] nil)
-    (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
+    (dimensionality [m] 
+      (cond 
+        (.isArray (.getClass m)) 
+          (let [n (count m)]
+            (if (> n 0) (inc (mp/dimensionality (nth m 0))) 1))
+        :else 0))
+    (is-vector? [m] 
+      (cond 
+        (.isArray (.getClass m)) 
+          (let [n (count m)]
+            (or (== n 0) (== 0 (mp/dimensionality (nth m 0)))))
+        :else false))
+    (is-scalar? [m] 
+      (cond
+        (.isArray (.getClass m)) false
+        :else true)) ;; assume objects are scalars unless told otherwise
+    (get-shape [m] 
+      (cond
+        (.isArray (.getClass m)) 
+          (let [n (count m)]
+            (if (== n 0) [0] (cons n (mp/get-shape (nth m 0))))) 
+        :else nil))
+    (dimension-count [m i] 
+      (cond
+        (.isArray (.getClass m))
+          (if (== i 0) (count m) (mp/dimension-count (nth m 0) (dec i)))
+        :else (error "Can't determine count of dimension " i " on Object: " (class m)))))
 
 (extend-protocol mp/PSameShape
   nil
@@ -886,10 +933,13 @@
         (f init m)))
   Object
     (element-seq [m]
-      (let [dims (long (mp/dimensionality m))]
+      (let [c (.getClass m)
+            dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
             (list (mp/get-0d m))
+          (and (.isArray c) (.isPrimitive (.getComponentType c)))
+            (seq m)            
           (== 1 dims)
             (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           (array? m)
@@ -970,11 +1020,15 @@
 (extend-protocol mp/PMatrixSlices
   Object
     (get-row [m i]
-      (mp/get-major-slice m i))
+      (if (java-array? m)
+        (nth m i)
+        (mp/get-major-slice m i)))
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
-      (clojure.core.matrix.impl.wrappers/wrap-slice m i))
+      (if (java-array? m)
+        (nth m i)
+        (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
     (get-slice [m dimension i]
       (mp/get-slice (mp/convert-to-nested-vectors m) dimension i)))
 
@@ -989,6 +1043,7 @@
       (let [dims (long (mp/dimensionality m))]
         (cond
           (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object")
+          (.isArray (.getClass m)) (seq m) 
           (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           :else (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0)))))))
 
@@ -1212,11 +1267,14 @@
 (extend-protocol mp/PExponent
   Number
     (element-pow [m exponent]
-      (Math/pow (.doubleValue m) (double exponent)))
+      (if (array? exponent)
+        (mp/element-map exponent #(Math/pow (.doubleValue m) (.doubleValue ^Number %)))
+        (Math/pow (.doubleValue m) (double exponent))))
   Object
     (element-pow [m exponent]
-      (let [x (double exponent)]
-        (mp/element-map m #(Math/pow (.doubleValue ^Number %) x)))))
+      (if (array? exponent)
+        (mp/element-map m #(Math/pow (.doubleValue ^Number %1) (.doubleValue ^Number %2)) exponent)
+        (mp/element-map m #(Math/pow (.doubleValue ^Number %) exponent)))))
 
 (extend-protocol mp/PSquare
   Number
