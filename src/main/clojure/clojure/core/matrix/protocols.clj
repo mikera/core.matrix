@@ -282,6 +282,13 @@
    The default implementation uses get-major-slice-view to obtain the slices."
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
 
+(defprotocol PSliceViewSeq
+  "Returns the row-major slice views of the array. 
+
+   These must be arrays if the array is mutable, i.e. slices of a 1D vector
+   must be 0-dimensional mutable arrays."
+  (get-major-slice-view-seq [m] "Gets a sequence of all major array slices"))
+
 (defprotocol PSliceJoin
   "Protocol for concatenating / joining arrays."
   (join [m a] "Concatenates a to m, along the major slice dimension"))

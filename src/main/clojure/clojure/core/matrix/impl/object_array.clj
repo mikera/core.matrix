@@ -236,7 +236,11 @@
 (extend-protocol mp/PSliceView
   (Class/forName "[Ljava.lang.Object;")
     (get-major-slice-view [m i] 
-      (aget ^objects m i)))
+      (let [^objects m m
+            v (aget m i)]
+        (if (mp/is-scalar? v)
+          (clojure.core.matrix.impl.wrappers/wrap-slice m i)
+          v))))
 
 (extend-protocol mp/PSliceSeq
   (Class/forName "[Ljava.lang.Object;")

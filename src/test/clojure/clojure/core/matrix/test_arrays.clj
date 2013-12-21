@@ -16,7 +16,9 @@
 
 (deftest array-slicing
   (let [a (long-array [1 2 3])]
-    (is (== 1 (first (slices a)))))) 
+    (is (== 1 (first (slices a)))))
+  (let [a (object-array [1 2 3])]
+    (is (array? (first (slice-views a)))))) 
 
 (deftest compliance-tests
   (clojure.core.matrix.compliance-tester/instance-test (int-array [1 2 3]))

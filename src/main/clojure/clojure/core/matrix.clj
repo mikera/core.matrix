@@ -658,7 +658,7 @@
    for the 0-dimensional case. Hence it will return a sequence of 0-dimensional scalar arrays if
    the array is 1-dimensional."
   ([m]
-    (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0))))
+    (mp/get-major-slice-view-seq m))
   ([m dimension]
     (if (== 0 dimension)
       (slice-views m)
