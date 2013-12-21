@@ -16,8 +16,6 @@
 ;;
 ;; ## Generators
 
-;; TODO: we can't use vectorz or doubles here until simple-check is updated,
-;; because now 2.0 != 2
 (def gen-impl
   (gen/elements [:ndarray :persistent-vector :vectorz :object-array]))
 
