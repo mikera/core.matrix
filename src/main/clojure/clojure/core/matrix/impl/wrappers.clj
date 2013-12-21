@@ -369,6 +369,7 @@
           (ScalarWrapper. (mp/get-0d m)))))
 
 ;; note we construct these types directly because default implementations are not yet loaded
+;; i.e. the wrap-xxxx functions will probably not yet work
 (imp/register-implementation (ScalarWrapper. 13))
 
 (imp/register-implementation (NDWrapper. [1]
