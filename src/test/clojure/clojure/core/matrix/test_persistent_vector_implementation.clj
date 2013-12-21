@@ -143,7 +143,9 @@
   (is (equals [[1 2] [5 6]] (set-row [[1 2] [3 4]] 1 [5 6]))))
 
 (deftest test-slices
-  (is (= [1 2] (slices [1 2]))))
+  (is (= [1 2] (slices [1 2])))
+  (is (== 1 (first (slices [1 2]))))
+  (is (error? (slice [1 2 3] 1 1))))
 
 (deftest test-sum
   (testing "summing"

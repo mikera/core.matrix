@@ -627,6 +627,7 @@
 (defn slice
   "Gets a slice of an array along a specific dimension.
    The returned array will have one less dimension.
+
    Slicing a 1D vector will return a scalar.
 
    Slicing on the first dimension (dimension 0) is likely to perform better
@@ -645,6 +646,7 @@
   ([m]
     (mp/get-major-slice-seq m))
   ([m dimension]
+    ;; TODO: should go via protocols
     (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
 
 (defn slice-views

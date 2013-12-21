@@ -212,11 +212,10 @@
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
-      (let [sl (m i)]
+      (let [sl (.nth m (long i))]
         sl))
     (get-slice [m dimension i]
-      (let [i (long i)
-            dimension (long dimension)]
+      (let [dimension (long dimension)]
         (if (== dimension 0)
           (mp/get-major-slice m i)
           (let [sd (dec dimension)]
