@@ -201,9 +201,7 @@
               (assoc m fi (mp/set-nd (m fi) (next indexes) v))))
         (error "Trying to set on a persistent vector with insufficient indexes?")))
     (is-mutable? [m]
-      (if (vector-1d? m)
-        false
-        (mp/is-mutable? (m 0)))))
+      false))
 
 (extend-protocol mp/PMatrixSlices
   IPersistentVector

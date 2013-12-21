@@ -108,7 +108,7 @@
 (deftest test-nested-implementation
   (testing "nested double arrays"
     (let [m [(double-array [1 2]) (double-array [3 4])]]
-      (is (mutable? m))
+      (is (not (mutable? m))) ;; persistent vector should not be mutable, even if components are
       (is (== 2 (dimensionality m)))
       (is (equals [3 7] (mmul m [1 1])))
       (is (equals [2 4] (get-column m 1))))))
