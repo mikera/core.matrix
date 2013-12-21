@@ -27,10 +27,6 @@
 
 ;; TODO: write N-Dimensional array generator
 
-;; TODO: submit this to simple-check
-(def gen-strictly-pos-int
-  (gen/such-that pos? gen/nat))
-
 ;; ## Predicates
 
 (defn proper-matrix?
@@ -73,8 +69,8 @@
 ;; Check if new-matrix returns zero- or null- filled matrix of given size
 (defspec new-matrix-zero-filled num-tests
   (prop/for-all [impl gen-impl
-                 rows gen-strictly-pos-int
-                 cols gen-strictly-pos-int]
+                 rows gen/s-pos-int
+                 cols gen/s-pos-int]
     (let [mtx (new-matrix rows cols)
           vec-mtx (to-nested-vectors mtx)]
       (and (every? #(or (nil? %) (== 0 %))
