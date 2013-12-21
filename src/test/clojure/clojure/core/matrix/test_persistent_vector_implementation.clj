@@ -108,7 +108,7 @@
 (deftest test-nested-implementation
   (testing "nested double arrays"
     (let [m [(double-array [1 2]) (double-array [3 4])]]
-      (is (mutable? m))
+      (is (not (mutable? m))) ;; persistent vector should not be mutable, even if components are
       (is (== 2 (dimensionality m)))
       (is (equals [3 7] (mmul m [1 1])))
       (is (equals [2 4] (get-column m 1))))))
@@ -143,7 +143,9 @@
   (is (equals [[1 2] [5 6]] (set-row [[1 2] [3 4]] 1 [5 6]))))
 
 (deftest test-slices
-  (is (= [1 2] (slices [1 2]))))
+  (is (= [1 2] (slices [1 2])))
+  (is (== 1 (first (slices [1 2]))))
+  (is (error? (slice [1 2 3] 1 1))))
 
 (deftest test-sum
   (testing "summing"

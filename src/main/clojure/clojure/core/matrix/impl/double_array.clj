@@ -13,10 +13,10 @@
 ;;
 ;; Useful as a fast, mutable 1D vector implementation.
 
-(def DOUBLE-ARRAY-CLASS (Class/forName "[D"))
+(def ^:const DOUBLE-ARRAY-CLASS (Class/forName "[D"))
 
 (def array-magic-data 
-  {:double {:class (Class/forName "[D")
+  {:double {:class DOUBLE-ARRAY-CLASS
             :regname :ndarray-double
             :fn-suffix 'double
             :array-tag 'doubles
@@ -259,6 +259,30 @@
       ([m f init]
         (let [^doubles m m]
           (reduce f init m)))))
+
+(extend-protocol mp/PMatrixDivideMutable
+  (Class/forName "[D")
+  (element-divide!
+    ([m] (let [^doubles m m]
+             (dotimes [i (alength m)]
+               (aset m i (/ 1.0 / (aget m i))))
+             nil))
+    ([m a] (if (number? a)
+             (let [^doubles m m]
+               (dotimes [i (alength m)]
+                 (aset m i (/ (aget m i) a))))
+             (let [[^doubles m ^doubles a] (mp/broadcast-compatible m a)]
+               (dotimes [i (alength m)]
+                 (aset m i (/ (aget m i) (aget a i)))))))))
+
+(extend-protocol mp/PMatrixDivide
+  (Class/forName "[D")
+  (element-divide
+    ([m] (mp/element-map m #(/ %)))
+    ([m a] (if (number? a)
+             (mp/element-map m #(/ % a))
+             (let [[m a] (mp/broadcast-compatible m a)]
+               (mp/element-map m #(/ %1 %2) a))))))
 
 ;; registration
 

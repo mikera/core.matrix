@@ -264,12 +264,6 @@
   (get-major-slice [m i])
   (get-slice [m dimension i]))
 
-(defprotocol PSubVector
-  "Protocol for getting a sub-vector view of a vector. Must return a mutable view
-   if the original vector is mutable. Should throw an exception if the specified
-   subvector is out of bounds for the target vector."
-  (subvector [m start length]))
-
 (defprotocol PSliceView
   "Protocol for quick view access into a row-major slices of an array. If implemented, must return
    either a view or an immutable sub-matrix: it must *not* return copied data.
@@ -280,13 +274,30 @@
   (get-major-slice-view [m i] "Gets a view of a major array slice"))
 
 (defprotocol PSliceSeq
-  "Returns the row-major slices of the array as a sequence. These must be views or immutable sub-arrays.
+  "Returns the row-major slices of the array as a sequence. 
+
+   These must be views or immutable sub-arrays for higher order slices, or scalars
+   for the slices of a 1D vector.
+
    The default implementation uses get-major-slice-view to obtain the slices."
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
+
+(defprotocol PSliceViewSeq
+  "Returns the row-major slice views of the array. 
+
+   These must be arrays if the array is mutable, i.e. slices of a 1D vector
+   must be 0-dimensional mutable arrays."
+  (get-major-slice-view-seq [m] "Gets a sequence of all major array slices"))
 
 (defprotocol PSliceJoin
   "Protocol for concatenating / joining arrays."
   (join [m a] "Concatenates a to m, along the major slice dimension"))
+
+(defprotocol PSubVector
+  "Protocol for getting a sub-vector view of a vector. Must return a mutable view
+   if the original vector is mutable. Should throw an exception if the specified
+   subvector is out of bounds for the target vector."
+  (subvector [m start length]))
 
 ;; TODO: should return either an immutable sub-matrix or a mutable view
 (defprotocol PMatrixSubComponents

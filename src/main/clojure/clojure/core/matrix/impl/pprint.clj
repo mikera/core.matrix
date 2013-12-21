@@ -45,7 +45,7 @@
     (empty? mat)
       (str acc "]")
     (== 1 (mp/dimensionality head))
-      (recur tail (str "\n" acc " " (str-row head len)) len)
+      (recur tail (str acc "\n " (str-row head len)) len)
     :else 
       (error "Printing of higher dimensional arrays not yet supported")))
 

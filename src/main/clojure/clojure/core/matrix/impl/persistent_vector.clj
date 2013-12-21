@@ -201,9 +201,7 @@
               (assoc m fi (mp/set-nd (m fi) (next indexes) v))))
         (error "Trying to set on a persistent vector with insufficient indexes?")))
     (is-mutable? [m]
-      (if (vector-1d? m)
-        false
-        (mp/is-mutable? (m 0)))))
+      false))
 
 (extend-protocol mp/PMatrixSlices
   IPersistentVector
@@ -212,11 +210,10 @@
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
-      (let [sl (m i)]
+      (let [sl (.nth m (long i))]
         sl))
     (get-slice [m dimension i]
-      (let [i (long i)
-            dimension (long dimension)]
+      (let [dimension (long dimension)]
         (if (== dimension 0)
           (mp/get-major-slice m i)
           (let [sd (dec dimension)]

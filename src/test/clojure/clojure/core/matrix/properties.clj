@@ -16,30 +16,14 @@
 ;;
 ;; ## Generators
 
-;; TODO: we can't use vectorz or doubles here until simple-check is updated,
-;; because now 2.0 != 2
 (def gen-impl
-  (gen/elements [:ndarray :persistent-vector]))
-
-;; TODO: remove this as soon as simple-check is updated
-(defn gen-vector
-  "Create a generator whose elements are chosen from `gen`. The size of the
-  vector will be bounded by the `size` generator parameter."
-  [gen num-elements]
-  [:gen (fn [rand-seed size]
-          (vec (repeatedly num-elements #(gen/call-gen gen rand-seed size))))])
+  (gen/elements [:ndarray :persistent-vector :vectorz :object-array :double-array]))
 
 ;; TODO: n should be generated as well
 (defn gen-vec-mtx [n]
-  (gen-vector (gen-vector gen/int n) n))
+  (gen/vector (gen/vector gen/int n) n))
 
 ;; TODO: write N-Dimensional array generator
-
-;; TODO: submit this to simple-check
-(def gen-strictly-pos-int
-  [:gen (fn [rand-seed size]
-          (gen/call-gen (gen/choose 1 (inc size))
-                        rand-seed size))])
 
 ;; ## Predicates
 
@@ -60,7 +44,7 @@
   (prop/for-all [impl gen-impl
                  vec-mtx (gen-vec-mtx 5)]
     (let [mtx (matrix impl vec-mtx)]
-      (= vec-mtx (to-nested-vectors mtx)))))
+      (equals vec-mtx (to-nested-vectors mtx)))))
 
 ;; Check if we can construct an array and get nested vectors back
 ;; TODO: here we should use N-Dimensional array
@@ -68,7 +52,7 @@
   (prop/for-all [impl gen-impl
                  vec-mtx (gen-vec-mtx 5)]
     (let [mtx (array impl vec-mtx)]
-      (= vec-mtx (to-nested-vectors mtx)))))
+      (equals vec-mtx (to-nested-vectors mtx)))))
 
 ;; Check if new-vector returns zero- or null- filled vector of given size
 (defspec new-vector-zero-filled num-tests
@@ -83,8 +67,8 @@
 ;; Check if new-matrix returns zero- or null- filled matrix of given size
 (defspec new-matrix-zero-filled num-tests
   (prop/for-all [impl gen-impl
-                 rows gen-strictly-pos-int
-                 cols gen-strictly-pos-int]
+                 rows gen/s-pos-int
+                 cols gen/s-pos-int]
     (let [mtx (new-matrix rows cols)
           vec-mtx (to-nested-vectors mtx)]
       (and (every? #(or (nil? %) (== 0 %))
@@ -109,7 +93,7 @@
 (defspec householder-matrix-props num-tests
   (prop/for-all [;; shrinking of keywords is broken in current simple-check
                  ;; impl (gen/elements [:vectorz])
-                 v (gen-vector gen/int 5)]
+                 v (gen/vector gen/int 5)]
     (let [v (->> v (array :vectorz) normalise)
           i (array :vectorz (identity-matrix 5))
           m (sub i (emul 2.0 (outer-product v v)))]
