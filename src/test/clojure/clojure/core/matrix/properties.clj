@@ -19,7 +19,7 @@
 ;; TODO: we can't use vectorz or doubles here until simple-check is updated,
 ;; because now 2.0 != 2
 (def gen-impl
-  (gen/elements [:ndarray :persistent-vector]))
+  (gen/elements [:ndarray :persistent-vector :vectorz :object-array]))
 
 ;; TODO: n should be generated as well
 (defn gen-vec-mtx [n]
@@ -46,7 +46,7 @@
   (prop/for-all [impl gen-impl
                  vec-mtx (gen-vec-mtx 5)]
     (let [mtx (matrix impl vec-mtx)]
-      (= vec-mtx (to-nested-vectors mtx)))))
+      (equals vec-mtx (to-nested-vectors mtx)))))
 
 ;; Check if we can construct an array and get nested vectors back
 ;; TODO: here we should use N-Dimensional array
@@ -54,7 +54,7 @@
   (prop/for-all [impl gen-impl
                  vec-mtx (gen-vec-mtx 5)]
     (let [mtx (array impl vec-mtx)]
-      (= vec-mtx (to-nested-vectors mtx)))))
+      (equals vec-mtx (to-nested-vectors mtx)))))
 
 ;; Check if new-vector returns zero- or null- filled vector of given size
 (defspec new-vector-zero-filled num-tests
