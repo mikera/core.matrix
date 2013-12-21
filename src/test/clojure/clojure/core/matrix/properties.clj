@@ -17,7 +17,7 @@
 ;; ## Generators
 
 (def gen-impl
-  (gen/elements [:ndarray :persistent-vector :vectorz :object-array]))
+  (gen/elements [:ndarray :persistent-vector :vectorz :object-array :double-array]))
 
 ;; TODO: n should be generated as well
 (defn gen-vec-mtx [n]
