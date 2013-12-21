@@ -21,25 +21,15 @@
 (def gen-impl
   (gen/elements [:ndarray :persistent-vector]))
 
-;; TODO: remove this as soon as simple-check is updated
-(defn gen-vector
-  "Create a generator whose elements are chosen from `gen`. The size of the
-  vector will be bounded by the `size` generator parameter."
-  [gen num-elements]
-  [:gen (fn [rand-seed size]
-          (vec (repeatedly num-elements #(gen/call-gen gen rand-seed size))))])
-
 ;; TODO: n should be generated as well
 (defn gen-vec-mtx [n]
-  (gen-vector (gen-vector gen/int n) n))
+  (gen/vector (gen/vector gen/int n) n))
 
 ;; TODO: write N-Dimensional array generator
 
 ;; TODO: submit this to simple-check
 (def gen-strictly-pos-int
-  [:gen (fn [rand-seed size]
-          (gen/call-gen (gen/choose 1 (inc size))
-                        rand-seed size))])
+  (gen/such-that pos? gen/nat))
 
 ;; ## Predicates
 
@@ -109,7 +99,7 @@
 (defspec householder-matrix-props num-tests
   (prop/for-all [;; shrinking of keywords is broken in current simple-check
                  ;; impl (gen/elements [:vectorz])
-                 v (gen-vector gen/int 5)]
+                 v (gen/vector gen/int 5)]
     (let [v (->> v (array :vectorz) normalise)
           i (array :vectorz (identity-matrix 5))
           m (sub i (emul 2.0 (outer-product v v)))]

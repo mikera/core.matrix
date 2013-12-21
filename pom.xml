@@ -49,13 +49,13 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>vectorz-clj</artifactId>
-			<version>0.17.0</version>
+			<version>0.17.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>reiddraper</groupId>
 			<artifactId>simple-check</artifactId>
-			<version>0.4.1</version>
+			<version>0.5.3</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
