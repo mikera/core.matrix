@@ -14,6 +14,10 @@
     (is (== 6 (esum a)))
     (is (equals (pow a a) [1 4 27]))))
 
+(deftest array-slicing
+  (let [a (long-array [1 2 3])]
+    (is (== 1 (first (slices a)))))) 
+
 (deftest compliance-tests
   (clojure.core.matrix.compliance-tester/instance-test (int-array [1 2 3]))
   (clojure.core.matrix.compliance-tester/instance-test (float-array [1 2 3]))
