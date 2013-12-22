@@ -37,6 +37,7 @@
 (declare current-implementation)
 (declare implementation-check)
 (declare current-implementation-object)
+(declare to-nested-vectors)
 (def ^:dynamic *matrix-implementation* imp/DEFAULT-IMPLEMENTATION)
 
 (defn matrix
@@ -197,6 +198,18 @@
         (clojure.core.matrix.impl.default/construct-mutable-matrix data))
     ;; TODO: support creation with specific element types
     ))
+
+(defn immutable
+  "Constructs an immutable copy of the given array data.
+
+   If the implementation does not support immutable matrices, will return an immutable array
+   from another core.matrix implementation that supports either the same element type or a broader type."
+  ([data]
+    (or (mp/immutable-matrix data)
+        (to-nested-vectors data))) 
+  ([data type]
+    (or (mp/immutable-matrix data)
+        (to-nested-vectors data))))
 
 (defn ^{:deprecated true} mutable-matrix
   "Constructs a mutable copy of the given matrix.

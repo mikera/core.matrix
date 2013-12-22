@@ -153,6 +153,13 @@
    The default implementation will attempt to choose a suitable mutable matrix implementation."
   (mutable-matrix [m]))
 
+(defprotocol PImmutableMatrixConstruction
+  "Protocol for creating an immutable copy of a matrix. If implemented, must return a fully immutable
+   copy of the given matrix.
+
+   The default implementation will attempt to choose a suitable immutable matrix implementation."
+  (immutable-matrix [m]))
+
 (defprotocol PZeroDimensionConstruction
   (new-scalar-array
     [m]
@@ -312,7 +319,6 @@
 (defprotocol PZeroCount
   "Protocol for counting the number of zeros in an array"
   (zero-count [m]))
-
 
 (defprotocol PAssignment
   "Protocol for assigning values element-wise to mutable arrays."
