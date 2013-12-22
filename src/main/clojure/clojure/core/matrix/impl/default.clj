@@ -1369,6 +1369,17 @@
                 :else false))]                          ; not same, not symmetric
       (f 0 1))))
 
+(defn- loop-symmetric-matrix-entries?
+  [m]
+  (let [dim (first (mp/get-shape m))]
+    (loop [i 0 j 1]
+      (cond 
+        (>= i dim) true                         ; all entries match: symmetric
+        (>= j dim) (recur (+ 1 i) (+ 2 i))      ; all j's OK: restart with new i
+        (= (mp/get-2d m i j) 
+           (mp/get-2d m j i)) (recur i (inc j)) ; OK, so check next pair
+        :else false))))                         ; not same, not symmetric
+
 (extend-protocol mp/PMatrixPredicates
   Object
   (identity-matrix? [m]
@@ -1395,6 +1406,9 @@
   (symmetric? [m]
     (and (square? m)
          (symmetric-matrix-entries? m)))
+  (loop-symmetric? [m]
+    (and (square? m)
+         (loop-symmetric-matrix-entries? m)))
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false)

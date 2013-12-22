@@ -668,6 +668,9 @@
   (zero-matrix?
     [m]
     "returns true if all the elements of matrix m are zeros")
+  (loop-symmetric?
+    [m]
+    "FOR TESTING ONLY. returns true if matrix m is symmetric")
   (symmetric?
     [m]
     "returns true if matrix m is symmetric"))
