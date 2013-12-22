@@ -11,12 +11,13 @@
 (set! *unchecked-math* true)
 
 ;; clojure.core.matrix implementation for Java Object arrays
+
 ;; general arrays are represented as nested arrays wrapped by a Java Object[] array
-;; all sub-arrays must have the same shape.
+;; in which case all sub-arrays must have the same shape.
 ;;
 ;; Useful as a fast, mutable implementation.
 
-(def OBJECT-ARRAY-CLASS (Class/forName "[Ljava.lang.Object;"))
+(def ^:const OBJECT-ARRAY-CLASS (Class/forName "[Ljava.lang.Object;"))
 
 (defn construct-object-array ^objects [data]
   (let [dims (long (mp/dimensionality data))]
@@ -236,7 +237,11 @@
 (extend-protocol mp/PSliceView
   (Class/forName "[Ljava.lang.Object;")
     (get-major-slice-view [m i] 
-      (aget ^objects m i)))
+      (let [^objects m m
+            v (aget m i)]
+        (if (mp/is-scalar? v)
+          (clojure.core.matrix.impl.wrappers/wrap-slice m i)
+          v))))
 
 (extend-protocol mp/PSliceSeq
   (Class/forName "[Ljava.lang.Object;")

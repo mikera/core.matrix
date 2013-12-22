@@ -13,10 +13,10 @@
 ;;
 ;; Useful as a fast, mutable 1D vector implementation.
 
-(def DOUBLE-ARRAY-CLASS (Class/forName "[D"))
+(def ^:const DOUBLE-ARRAY-CLASS (Class/forName "[D"))
 
 (def array-magic-data 
-  {:double {:class (Class/forName "[D")
+  {:double {:class DOUBLE-ARRAY-CLASS
             :regname :ndarray-double
             :fn-suffix 'double
             :array-tag 'doubles

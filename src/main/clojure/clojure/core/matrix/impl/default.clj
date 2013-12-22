@@ -419,6 +419,8 @@
       (cond
         (.isArray (.getClass m))
           (if (== i 0) (count m) (mp/dimension-count (nth m 0) (dec i)))
+        (== 0 i)
+          (count i)
         :else (error "Can't determine count of dimension " i " on Object: " (class m)))))
 
 (extend-protocol mp/PSameShape
@@ -1026,16 +1028,26 @@
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
-      (if (java-array? m)
-        (nth m i)
-        (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
+      (cond 
+        (java-array? m) (nth m i)
+        :else (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
     (get-slice [m dimension i]
-      (mp/get-slice (mp/convert-to-nested-vectors m) dimension i)))
+      (cond
+        (< dimension 0) (error "Can't take slice on negative dimension: " dimension)
+        (== 0 dimension) (mp/get-major-slice m i)
+        :else (mp/get-slice (mp/convert-to-nested-vectors m) dimension i))))
 
 (extend-protocol mp/PSliceView
   Object
     ;; default implementation uses a lightweight wrapper object
-    (get-major-slice-view [m i] (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
+    (get-major-slice-view [m i] 
+      (cond
+        (java-array? m) 
+          (let [ss (nth m i)]
+            (if (array? ss)
+              ss
+              (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
+        :else (clojure.core.matrix.impl.wrappers/wrap-slice m i))))
 
 (extend-protocol mp/PSliceSeq
   Object
@@ -1045,7 +1057,14 @@
           (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object")
           (.isArray (.getClass m)) (seq m) 
           (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
-          :else (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0)))))))
+          :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
+
+(extend-protocol mp/PSliceViewSeq
+  Object
+    (get-major-slice-view-seq [m] 
+      (let [n (mp/dimension-count m 0)]
+        (for [i (range n)]
+          (mp/get-major-slice-view m i)))))
 
 (extend-protocol mp/PSliceJoin
   nil

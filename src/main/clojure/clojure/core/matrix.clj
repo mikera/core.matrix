@@ -37,6 +37,7 @@
 (declare current-implementation)
 (declare implementation-check)
 (declare current-implementation-object)
+(declare to-nested-vectors)
 (def ^:dynamic *matrix-implementation* imp/DEFAULT-IMPLEMENTATION)
 
 (defn matrix
@@ -197,6 +198,18 @@
         (clojure.core.matrix.impl.default/construct-mutable-matrix data))
     ;; TODO: support creation with specific element types
     ))
+
+(defn immutable
+  "Constructs an immutable copy of the given array data.
+
+   If the implementation does not support immutable matrices, will return an immutable array
+   from another core.matrix implementation that supports either the same element type or a broader type."
+  ([data]
+    (or (mp/immutable-matrix data)
+        (to-nested-vectors data))) 
+  ([data type]
+    (or (mp/immutable-matrix data)
+        (to-nested-vectors data))))
 
 (defn ^{:deprecated true} mutable-matrix
   "Constructs a mutable copy of the given matrix.
@@ -466,7 +479,7 @@
       (double (/ (- elems zeros) elems)))))
 
 (defn mutable?
-  "Returns true if the matrix is mutable, i.e. supports setting of values"
+  "Returns true if the matrix is mutable, i.e. supports setting of values."
   ([m]
     (mp/is-mutable? m)))
 
@@ -502,7 +515,9 @@
 ;; Conversions
 
 (defn to-double-array
-   "Returns a Java double[] array containing the values of a numerical array m in row-major order.
+   "Returns a Java double[] array containing the values of a numerical array m in row-major order. Will 
+    throw an error if any of the array elements cannot be converted to doubles.
+
     If want-copy? is true, will guarantee a new double array (defensive copy).
     If want-copy? is false, will return the internal array used by m, or nil if not supported
     by the implementation.
@@ -517,6 +532,7 @@
 
 (defn to-object-array
    "Returns a Java Object[] array containing the values of an array m in row-major order.
+
     If want-copy? is true, will guarantee a new Object array (defensive copy).
     If want-copy? is false, will return the internal array used by m, or nil if not supported
     by the implementation.
@@ -568,7 +584,10 @@
 
 (defn mset!
   "Sets a scalar value in an array at the specified position. Supports any number of dimensions.
-   Will throw an exception if the matrix is not mutable.
+   
+   Will throw an exception if the matrix is not mutable at the specified position. Note that it
+   is possible for some arrays to be mutable in places and immutable in others (e.g. sparse arrays)
+   
    Returns the modified matrix (it is guaranteed to return the same instance)"
   {:inline (fn 
              ([m v] `(mp/set-0d! ~m ~v))
@@ -632,6 +651,7 @@
 (defn slice
   "Gets a slice of an array along a specific dimension.
    The returned array will have one less dimension.
+
    Slicing a 1D vector will return a scalar.
 
    Slicing on the first dimension (dimension 0) is likely to perform better
@@ -650,6 +670,7 @@
   ([m]
     (mp/get-major-slice-seq m))
   ([m dimension]
+    ;; TODO: should go via protocols
     (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
 
 (defn slice-views
@@ -661,7 +682,7 @@
    for the 0-dimensional case. Hence it will return a sequence of 0-dimensional scalar arrays if
    the array is 1-dimensional."
   ([m]
-    (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0))))
+    (mp/get-major-slice-view-seq m))
   ([m dimension]
     (if (== 0 dimension)
       (slice-views m)
@@ -687,7 +708,7 @@
         0 (error "Can't get columns of a 0-dimensional object")
         1 (error "Can't get columns of a 1-dimensional object") ;; TODO: consider scalar or length 1 vector results?
         2 (slices m 1)
-        (mapcat rows (slices m)))))
+        (mapcat columns (slices m)))))
 
 (defn main-diagonal
   "Returns the main diagonal of a matrix or general array, as a vector.
