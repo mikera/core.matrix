@@ -36,12 +36,6 @@
       (== 2 (mp/dimensionality m))
       (== (mp/dimension-count m 0) (mp/dimension-count m 1)))))
 
-;; NEW - Marshall Abrams
-(defn- hypercubic?
-  "Returns true if array has same number of indexes in each dimension."
-  [a]
-  (apply = (mp/get-shape a)))
-
 (defn- calc-element-count
   "Returns the total count of elements in an array"
   ([m]
@@ -1361,7 +1355,6 @@
           (mp/set-2d! r i (v i) 1.0))
         r)))
 
-;; NEW - Marshall Abrams
 ;; Helper function for symmetric? predicate in PMatrixPredicates.
 ;; Note loop/recur instead of letfn/recur is 20-25% slower.
 (defn- symmetric-matrix-entries?
@@ -1376,38 +1369,6 @@
                    (mp/get-2d m j i)) (recur i (inc j)) ; OK, so check next pair
                 :else false))]                          ; not same, not symmetric
       (f 0 1))))
-
-;; NEW - Marshall Abrams
-;; CompilerException java.lang.IllegalArgumentException: No single method: get_nd of interface: clojure.core.matrix.protocols.PIndexedAccess found for function: get-nd of protocol: PIndexedAccess, compiling:(clojure/core/matrix/impl/default.clj:1393:20) 
-(defn- symmetric-array-entries? [a] "unimplemented")
-; (defn- symmetric-array-entries?
-;   "Returns true iff hypercubic matrix m is symmetric."
-;   [a]
-;   (let [dim (first (mp/get-shape a))
-;         max-args 3
-;         ndims (mp/dimensionality a)
-;         loop-args (concat (range ndims) (repeat (- max-args ndims) 0))]
-;     (letfn [(f [i j k] ; TODO add addl dims
-;               (cond 
-;                 (>= i dim) true                             ; all entries match: symmetric
-;                 (>= j dim) (recur i (+ 1 i) (+ i 2))        ; all j's OK: restart with new i
-;                 (>= k dim) (recur (+ 1 i) (+ 2 i) (+ i 3))  ; all k's OK: restart with new i, j
-;                 (= (mp/get-nd a i j k) 
-;                    (mp/get-nd a k j i)) (recur i j (inc k)) ; OK, so check next pair
-;                 :else false))]                          ; not same, not symmetric
-;       (apply f loop-args))))
-
-;; NEW - Marshall Abrams
-(defn- loop-symmetric-matrix-entries?
-  [m]
-  (let [dim (first (mp/get-shape m))]
-    (loop [i 0 j 1]
-      (cond 
-        (>= i dim) true                         ; all entries match: symmetric
-        (>= j dim) (recur (+ 1 i) (+ 2 i))      ; all j's OK: restart with new i
-        (= (mp/get-2d m i j) 
-           (mp/get-2d m j i)) (recur i (inc j)) ; OK, so check next pair
-        :else false))))                         ; not same, not symmetric
 
 (extend-protocol mp/PMatrixPredicates
   Object
@@ -1432,17 +1393,15 @@
         false)))
   (zero-matrix? [m]
     (every? #(and (number? %) (zero? %)) (mp/element-seq m)))
-  ;; NEW - Marshall Abrams
   (symmetric? [m]
     (case (long (mp/dimensionality m))
-      0 m
-      1 m
+      0 true
+      1 true
       2 (and (square? m) (symmetric-matrix-entries? m))
-      (and (hypercubic? m) (symmetric-array-entries? m))))
+      (throw (java.lang.UnsupportedOperationException. "Not yet implemented for arrays with more than 2 dimensions."))))
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false)
-  ;; NEW - Marshall Abrams
   (symmetric? [m] false))
 
 
