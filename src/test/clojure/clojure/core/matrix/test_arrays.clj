@@ -7,6 +7,10 @@
   (:refer-clojure :exclude [vector?])
   (:use clojure.test))
 
+;; This namespace is intended for tests of core.matrix functions on arbitrary Java arrays
+;;
+;; should use ints, floats etc. where possible (since doubles and Objects are tested elsewhere)
+
 (deftest int-array-test
   (let [a (int-array [1 2 3])]
     (is (== 1 (dimensionality a)))

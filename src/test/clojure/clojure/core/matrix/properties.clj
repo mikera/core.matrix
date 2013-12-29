@@ -6,6 +6,8 @@
             [simple-check.properties :as prop]
             [simple-check.clojure-test :as ct :refer (defspec)]))
 
+;; Property based testing of randomly generated core.matrix arrays
+
 ;; # Global constants
 ;;
 ;; This constant defines a number of tests for each of properties

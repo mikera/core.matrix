@@ -7,6 +7,11 @@
   (:require [clojure.core.matrix.compliance-tester])
   (:require clojure.core.matrix.impl.double-array))
 
+;; Tests for core.matrix functions on Java Object [] arrays
+;;
+;; This is an important implementation because it provides efficient support
+;; for mutable vectors of arbitrary objects on the JVM
+
 (deftest regressions
   (is (= [2] (seq (emap inc (object-array [1]))))))
 

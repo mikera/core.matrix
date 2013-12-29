@@ -7,6 +7,11 @@
   (:require [clojure.core.matrix.compliance-tester])
   (:require clojure.core.matrix.impl.double-array))
 
+;; This namespace contains tests for the Java double[] array implementation
+;;
+;; This is an important implementation, as it provides maximum efficiency for many
+;; numerical vector operations with mutable vectors
+
 (deftest misc-regressions
   (testing "shape sequnces"
     (is (= [0] (shape (double-array []))))

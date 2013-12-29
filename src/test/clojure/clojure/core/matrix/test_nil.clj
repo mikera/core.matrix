@@ -7,6 +7,8 @@
   (:refer-clojure :exclude [vector?])
   (:use clojure.test))
 
+;; Tests for the specific behaviour of core.matrix functions on the nil value (a scalar)
+
 (deftest test-scalar-properties
   (is (not (array? nil)))
   (is (nil? (shape nil)))

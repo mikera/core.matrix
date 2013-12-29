@@ -9,6 +9,8 @@
   (:refer-clojure :exclude [vector?])
   (:use clojure.test))
 
+;; This namespace is intended for general purpose tests og the core.matrix API functions
+
 (deftest test-indexed-access
   (testing "clojure vector indexed access"
     (is (== 1 (mget [1 2 3] 0)))
