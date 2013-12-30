@@ -11,6 +11,8 @@
   (:require [clojure.core.matrix.impl.ndarray-macro :as macro])
   (:use clojure.core.matrix.impl.ndarray))
 
+;; Tests for the NDArray implementation
+
 (defn magic1 [a b]
   (let [c (mp/clone a)]
     (magic/specialize :double
