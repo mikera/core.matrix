@@ -1399,11 +1399,12 @@
       1 true
       2 (and (square? m) (symmetric-matrix-entries? m))
       (throw 
-        (java.lang.UnsupportedOperationException. "Not yet implemented for arrays with more than 2 dimensions."))))
+        (java.lang.UnsupportedOperationException. "symmetric? is not yet implemented for arrays with more than 2 dimensions."))))
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false)
-  (symmetric? [m] false))
+  (symmetric? [m] 
+    false))
 
 
 ;; =======================================================

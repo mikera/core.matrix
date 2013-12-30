@@ -17,7 +17,7 @@
   <scm>
     <connection>scm:git:git://github.com//.git</connection>
     <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
-    <tag>655aea46935cf2d3a8fedbafd46523e1c22f4989
+    <tag>970a4168e2a2a8bd9eb14a0e43204a62e67831e9
 </tag>
     <url>https://github.com//</url>
   </scm>
