@@ -472,7 +472,11 @@
     (is (symmetric? (array [1 2 3 4])))
     (is (symmetric? (array [[1 3][3 2]])))
     (is (not (symmetric? (array [[1 3][4 2]]))))
-    ;(is (symmetric? (array [ [[1 2][3 4]] [[5 6][7 8]] ] ))) ; should throw UnsupportedOperationException 
+    (is (try
+          (symmetric? (array [ [[1 2][3 4]] [[5 6][7 8]] ] )) ; symmetric? not yet implemented for 3-D arrays and clatrix doesn't support them.
+          (catch java.lang.UnsupportedOperationException e
+            (println (str "Caught expected exception: " (.getMessage e)))
+            true)))
     (is (symmetric? '(1 2 3)))
     (is (symmetric? ()))
     (is (not (symmetric? nil)))))
