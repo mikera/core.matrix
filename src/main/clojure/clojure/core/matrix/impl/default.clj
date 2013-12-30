@@ -1403,8 +1403,7 @@
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false)
-  (symmetric? [m] 
-    false))
+  (symmetric? [m] true))
 
 
 ;; =======================================================
