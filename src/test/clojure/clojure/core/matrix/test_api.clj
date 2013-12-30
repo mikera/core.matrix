@@ -458,4 +458,21 @@
     (is (not (row-matrix? [1 2]))))
   (testing "mutability"
     (is (not (mutable? [1 2])))
-    (is (mutable? (double-array [1 2])))))
+    (is (mutable? (double-array [1 2]))))
+  (testing "symmetry"
+    (is (symmetric? (matrix [[1 3][3 2]])))
+    (is (not (symmetric? (matrix [[1 3][4 2]]))))
+    (is (symmetric? (matrix [[1 2 3][2 5 -6][3 -6 9]])))
+    (is (not (symmetric? (matrix [[1 2 3][4 5 6][7 8 9]]))))
+    (is (not (symmetric? (matrix [[1 2 3 4]]))))
+    (is (not (symmetric? (matrix [[1][2][3][4]]))))
+    (is (symmetric? (matrix [1 2 3 4])))
+    (is (symmetric? (double-array [1 2 3 4])))
+    (is (symmetric? 2))
+    (is (symmetric? (array [1 2 3 4])))
+    (is (symmetric? (array [[1 3][3 2]])))
+    (is (not (symmetric? (array [[1 3][4 2]]))))
+    ;(is (symmetric? (array [ [[1 2][3 4]] [[5 6][7 8]] ] ))) ; should throw UnsupportedOperationException 
+    (is (symmetric? '(1 2 3)))
+    (is (symmetric? ()))
+    (is (not (symmetric? nil)))))
