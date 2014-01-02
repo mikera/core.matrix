@@ -1157,10 +1157,12 @@
 (eval
   `(do ~@(map (fn [[name func]]
            `(defn ~name
+              ~(str "Computes the " name " function on all elements of an array, using double precision values. Returns a new array.") 
               ([~'m]
                 (~(symbol "clojure.core.matrix.protocols" (str name)) ~'m)))) mops/maths-ops)
      ~@(map (fn [[name func]]
            `(defn ~(symbol (str name "!"))
+              ~(str "Computes the " name " function on all elements of an array, using double precision values. Mutates the array in-place.") 
               ([~'m]
                 (~(symbol "clojure.core.matrix.protocols" (str name "!")) ~'m)
                 ~'m))) mops/maths-ops))
