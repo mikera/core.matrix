@@ -85,6 +85,18 @@
     (supports-dimensionality? [m dimensions]
       true))
 
+(extend-protocol mp/PSparse
+  nil
+    (sparse-coerce [m data]
+      (mp/sparse data))
+    (sparse [m]
+      nil)
+  Object
+    (sparse-coerce [m data]
+      nil)
+    (sparse [m]
+      m)) 
+
 ;; default implementation for matrix ops
 
 (extend-protocol mp/PIndexedAccess

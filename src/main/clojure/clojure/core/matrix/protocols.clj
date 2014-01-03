@@ -153,6 +153,12 @@
    The default implementation will attempt to choose a suitable mutable matrix implementation."
   (mutable-matrix [m]))
 
+(defprotocol PSparse
+  "Protocol for constructing a sparse array from the given data. 
+   May return nil if no sparse conversion is available."
+  (sparse-coerce [m data] "Attempts coercion to a sparse array of implementation m. May return nil if not supported")
+  (sparse [m] "Attempts to make array into a sparse format. Must return the same array uinchanged if not possible."))
+
 (defprotocol PImmutableMatrixConstruction
   "Protocol for creating an immutable copy of a matrix. If implemented, must return a fully immutable
    copy of the given matrix.

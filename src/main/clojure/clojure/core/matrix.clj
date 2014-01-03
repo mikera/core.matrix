@@ -256,7 +256,18 @@
   ([data]
     (sparse-matrix (current-implementation-object) data))
   ([implementation data]
-    (TODO)))
+    (or (mp/sparse-coerce implementation data)
+        (error "Sparse implementation not available"))))
+
+(defn sparse
+  "Coerces an array to a sparse format if possible. Sparse arrays are expected to
+   minimise space usage for zero elements.
+
+   Returns the array unchanged if such coercion is not possible, or if the array is already sparse."
+  ([data]
+    (sparse (current-implementation-object) data))
+  ([implementation data]
+    (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
 
 (defmacro with-implementation [impl & body]
   "Runs a set of expressions using a specified matrix implementation.
