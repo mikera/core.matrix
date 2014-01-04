@@ -1323,16 +1323,12 @@
 (defn emin
   "Gets the minimum element value from a numerical array"
   ([m]
-    (mp/element-reduce m 
-                       (fn [best v] (if (or (not best) (< v best)) v best)) 
-                       nil)))
+    (mp/element-min m)))
 
 (defn emax
   "Gets the maximum element value from a numerical array"
   ([m]
-    (mp/element-reduce m 
-                       (fn [best v] (if (or (not best) (> v best)) v best)) 
-                       nil)))
+    (mp/element-max m)))
 
 (defn e=
   "Returns true if all array elements are equal (using the semantics of clojure.core/=).

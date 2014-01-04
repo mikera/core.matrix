@@ -675,6 +675,20 @@
     (element-sum [a]
       (mp/element-reduce a +)))
 
+(extend-protocol mp/PElementMinMax
+  Number
+    (element-min [m] m)
+    (element-max [m] m)
+  Object
+    (element-min [m] 
+      (mp/element-reduce m 
+                       (fn [best v] (if (or (not best) (< v best)) v best)) 
+                       nil))
+    (element-max [m] 
+      (mp/element-reduce m 
+                       (fn [best v] (if (or (not best) (> v best)) v best)) 
+                       nil)))
+
 ;; add-product operations
 (extend-protocol mp/PAddProduct
   Number
