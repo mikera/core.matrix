@@ -186,7 +186,7 @@
     (mp/permutation-matrix (implementation-check implementation) permutation)))
 
 (defn mutable
-  "Constructs a mutable copy of the given array data.
+  "Constructs a fully mutable copy of the given array data.
 
    If the implementation does not support mutable matrices, will return a mutable array
    from another core.matrix implementation that supports either the same element type or a broader type."
