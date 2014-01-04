@@ -13,6 +13,10 @@
   (is (not (array? 1)))
   (is (nil? (shape 1))))
 
+(deftest test-sparse-dense
+  (is (== 1 (sparse 1)))
+  (is (== 2 (dense 2)))) 
+
 (deftest test-arithmentic
   (is (== 2 (add 1 1)))
   (is (== 2 (sub 5 3)))

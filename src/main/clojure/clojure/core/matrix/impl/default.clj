@@ -97,6 +97,18 @@
     (sparse [m]
       m)) 
 
+(extend-protocol mp/PDense
+  nil
+    (dense-coerce [m data]
+      (mp/dense data))
+    (dense [m]
+      nil)
+  Object
+    (dense-coerce [m data]
+      nil)
+    (dense [m]
+      m)) 
+
 ;; default implementation for matrix ops
 
 (extend-protocol mp/PIndexedAccess

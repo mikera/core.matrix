@@ -269,6 +269,16 @@
   ([implementation data]
     (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
 
+(defn dense
+  "Coerces an array to a dense format if possible. Dense arrays are expected to
+   allocate contiguous storage space for all elements.
+
+   Returns the array unchanged if such coercion is not possible, or if the array is already dense."
+  ([data]
+    (mp/dense data))
+  ([implementation data]
+    (or (mp/dense-coerce implementation data) (mp/coerce-param implementation data))))
+
 (defmacro with-implementation [impl & body]
   "Runs a set of expressions using a specified matrix implementation.
 
