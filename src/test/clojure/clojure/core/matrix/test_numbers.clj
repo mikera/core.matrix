@@ -44,6 +44,10 @@
   (is (== 1 (ecount 13)))
   (is (nil? (shape 13)))) 
 
+(deftest test-min-max
+  (is (== 3 (emin 3)))
+  (is (== 2 (emax 2)))) 
+
 (deftest test-compute-matrix
   (is (equals 3 (compute-matrix [] (fn [] 3)))))
 
