@@ -147,6 +147,12 @@
     (is (equals [2.0 6.0] (vec a)))
     (is (equals [2.0 6.0] a))))
 
+(deftest test-element-ops
+  (let [a (double-array [5 1 7 8 4])]
+    (is (== 1 (emin a)))
+    (is (== 8 (emax a)))
+    (is (== 25 (esum a)))))
+
 (deftest test-maths-ops
   (testing "basic ops"
     (let [da (double-array [1.2 2.3])]

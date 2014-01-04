@@ -153,6 +153,20 @@
    The default implementation will attempt to choose a suitable mutable matrix implementation."
   (mutable-matrix [m]))
 
+(defprotocol PSparse
+  "Protocol for constructing a sparse array from the given data. Implementations should
+   consider the possibility that data may be a large lazy sequence, possibly larger than memory, so should ideally
+   attempt to construct the sparse matrix incrementally without realising the whole sequence at once.
+
+   May return nil if no sparse conversion is available."
+  (sparse-coerce [m data] "Attempts to coerce data to a sparse array of implementation m. May return nil if not supported")
+  (sparse [m] "Attempts to make array into a sparse format. Must return the same array unchanged if not possible."))
+
+(defprotocol PDense
+  "Protocol for constructing a dense array from the given data."
+  (dense-coerce [m data] "Attempts to coerce data to a dense array of implementation m. May return nil if not supported")
+  (dense [m] "Attempts to make array into a dense format. Must return the same array unchanged if not possible."))
+
 (defprotocol PImmutableMatrixConstruction
   "Protocol for creating an immutable copy of a matrix. If implemented, must return a fully immutable
    copy of the given matrix.
@@ -254,7 +268,7 @@
    1. Must not change the value of the array for comparison purposes
    2. Must not change the shape of the array
    3. May preserve sparse representation
-   4. Should convert most efficient format for common operations (e.g. mget, inner-product)"
+   4. Should convert to most efficient format for common operations (e.g. mget, inner-product)"
   (pack [m])) 
 
 (defprotocol PSameShape
@@ -313,7 +327,9 @@
   (main-diagonal [m]))
 
 (defprotocol PSparseArray
-  "Protocol for determining if an array is sparse"
+  "Protocol for determining if an array is in a sparse format. It is up to the implementation to define
+   its own sparse formats, but in general the intention should be that a sparse array uses significantly
+   less storage than an equivalent dense array, assuming a high proportion of zero values in the array."
   (is-sparse? [m]))
 
 (defprotocol PZeroCount
@@ -635,6 +651,12 @@
   "Protocol to return the total count of elements in matrix. Result may be any integer type,
    typically a java.lang.Long"
   (element-count [m]))
+
+(defprotocol PElementMinMax
+  "Protocol to return the minimum and maximum elements in a numerical array. Must throw an exception 
+   if the array is not numerical."
+  (element-min [m])
+  (element-max [m]))
 
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."

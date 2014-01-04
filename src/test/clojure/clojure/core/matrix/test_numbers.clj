@@ -13,6 +13,10 @@
   (is (not (array? 1)))
   (is (nil? (shape 1))))
 
+(deftest test-sparse-dense
+  (is (== 1 (sparse 1)))
+  (is (== 2 (dense 2)))) 
+
 (deftest test-arithmentic
   (is (== 2 (add 1 1)))
   (is (== 2 (sub 5 3)))
@@ -39,6 +43,10 @@
 (deftest test-shape
   (is (== 1 (ecount 13)))
   (is (nil? (shape 13)))) 
+
+(deftest test-min-max
+  (is (== 3 (emin 3)))
+  (is (== 2 (emax 2)))) 
 
 (deftest test-compute-matrix
   (is (equals 3 (compute-matrix [] (fn [] 3)))))
