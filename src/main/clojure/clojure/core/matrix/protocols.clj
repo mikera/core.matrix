@@ -652,6 +652,12 @@
    typically a java.lang.Long"
   (element-count [m]))
 
+(defprotocol PElementMinMax
+  "Protocol to return the minimum and maximum elements in a numerical array. Must throw an exception 
+   if the array is not numerical."
+  (element-min [m])
+  (element-max [m]))
+
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."
   ;; note that protocols don't like variadic args, so we convert to regular args
