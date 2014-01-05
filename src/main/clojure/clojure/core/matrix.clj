@@ -399,6 +399,11 @@
   [m]
   (mp/zero-matrix? m))
 
+(defn symmetric?
+  "Returns true if the parameter is a symmetric matrix"
+  [m]
+  (mp/symmetric? m))
+
 (defn sparse?
   "Returns true if an array is sparse, i.e. the implementation supports storage of the entire
    array in less memory than would normally be implied by the number of elements. 

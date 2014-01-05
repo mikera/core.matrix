@@ -1393,6 +1393,21 @@
           (mp/set-2d! r i (v i) 1.0))
         r)))
 
+;; Helper function for symmetric? predicate in PMatrixPredicates.
+;; Note loop/recur instead of letfn/recur is 20-25% slower.
+(defn- symmetric-matrix-entries?
+  "Returns true iff square matrix m is symmetric."
+  [m]
+  (let [dim (first (mp/get-shape m))]
+    (letfn [(f [i j]
+              (cond 
+                (>= i dim) true                         ; all entries match: symmetric
+                (>= j dim) (recur (+ 1 i) (+ 2 i))      ; all j's OK: restart with new i
+                (= (mp/get-2d m i j) 
+                   (mp/get-2d m j i)) (recur i (inc j)) ; OK, so check next pair
+                :else false))]                          ; not same, not symmetric
+      (f 0 1))))
+
 (extend-protocol mp/PMatrixPredicates
   Object
   (identity-matrix? [m]
@@ -1416,9 +1431,17 @@
         false)))
   (zero-matrix? [m]
     (every? #(and (number? %) (zero? %)) (mp/element-seq m)))
+  (symmetric? [m]
+    (case (long (mp/dimensionality m))
+      0 true
+      1 true
+      2 (and (square? m) (symmetric-matrix-entries? m))
+      (throw 
+        (java.lang.UnsupportedOperationException. "symmetric? is not yet implemented for arrays with more than 2 dimensions."))))
   nil
   (identity-matrix? [m] false)
-  (zero-matrix? [m] false))
+  (zero-matrix? [m] false)
+  (symmetric? [m] true))
 
 
 ;; =======================================================

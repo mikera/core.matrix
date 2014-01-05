@@ -689,7 +689,10 @@
     "returns true if the matrix m is an identity-matrix")
   (zero-matrix?
     [m]
-    "returns true if all the elements of matrix m are zeros"))
+    "returns true if all the elements of matrix m are zeros")
+  (symmetric?
+    [m]
+    "returns true if matrix m is symmetric"))
 
 ;; ============================================================
 ;; Generic values and functions
