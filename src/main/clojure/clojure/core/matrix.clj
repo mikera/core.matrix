@@ -260,7 +260,8 @@
         (error "Sparse implementation not available"))))
 
 (defn sparse
-  "Coerces an array to a sparse format if possible. Sparse arrays are expected to
+  "EXPERIMENTAL:
+   Coerces an array to a sparse format if possible. Sparse arrays are expected to
    minimise space usage for zero elements.
 
    Returns the array unchanged if such coercion is not possible, or if the array is already sparse."
@@ -270,8 +271,12 @@
     (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
 
 (defn dense
-  "Coerces an array to a dense format if possible. Dense arrays are expected to
+  "EXPERIMENTAL:
+   Coerces an array to a dense format if possible. Dense arrays are expected to
    allocate contiguous storage space for all elements.
+
+   'dense' should not be used with very large arrays, and may throw an OutOfMemoryError 
+    if the dense array is too large to fit in available memory.
 
    Returns the array unchanged if such coercion is not possible, or if the array is already dense."
   ([data]
