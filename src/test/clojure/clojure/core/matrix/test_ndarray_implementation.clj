@@ -162,6 +162,7 @@
                first
                (mget 1))))
   (is (equals [10] (add-product! (array :ndarray [4]) [2] [3])))
+  (is (equals [30 70 110] (mmul (array :ndarray-double [[1 2 3 4] [5 6 7 8] [9 10 11 12]]) [1 2 3 4]))) 
   (is (equals [10] (add-product (array :ndarray [4]) [2] [3]))))
 
 (deftest ndarray-test
