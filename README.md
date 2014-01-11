@@ -17,11 +17,11 @@ idiomatic, elegant and fast in Clojure.
 
 Key goals of `core.matrix`:
 
- - Provide a clear, standard API / abstraction for matrix and array programming in Clojure
- - Enable plugable support for different underlying matrix library implementations
- - Provide a general purpose n-dimensional array implementation (NDArray)
- - Provide a foundation layer for other projects (e.g. Incanter)
- - Maintain high performance throughout
+ - Provide a clear, standard API / abstraction for **matrix and array programming** in Clojure
+ - Enable **plugable** support for different underlying matrix library implementations
+ - Provide a general purpose **n-dimensional array** implementation (NDArray)
+ - Provide a **foundation** library for other projects (e.g. Incanter)
+ - Enable **high performance** numerical computing
 
 ### Getting Started
 
