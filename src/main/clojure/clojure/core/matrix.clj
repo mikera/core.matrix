@@ -892,7 +892,11 @@
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
 (defn mmul
-  "Performs matrix multiplication (equivalent to inner-product)."
+  "Performs matrix multiplication.  (Equivalent to inner-product when applied to 
+  vectors: A 1D vector as the first argument is treated roughly like a 1xN matrix,
+  i.e. a row vector, while as the second argument, a 1D vector is treated roughly 
+  like an Nx1 matrix, i.e. a column vector.  However, the shape of the result differs 
+  depending on the shape of the vector representations passed to mmul.)"
   ([] 1.0)
   ([a] a)
   ([a b]
