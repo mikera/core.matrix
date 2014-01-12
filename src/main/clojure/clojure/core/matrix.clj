@@ -1094,6 +1094,8 @@
 (defn inner-product
   "Computes the inner product of numerical arrays.
 
+   For matrix/matrix and matrix/vector arguments, this is equivalent to matrix multiplication.
+
    The inner product of two arrays with indexed dimensions {..i j} and {j k..} has dimensions {..i k..}. The inner-product of two vectors will be scalar."
   ([] 1.0)
   ([a]
@@ -1138,6 +1140,7 @@
 
 (defn inverse
   "Calculates the inverse of a 2D numerical matrix."
+  ;; TODO: document behaviour for singular matrix?
   ([m]
     (mp/inverse m)))
 
@@ -1152,7 +1155,9 @@
     (mp/scale! m -1.0)))
 
 (defn trace
-  "Calculates the trace of a 2D numerical matrix (sum of elements on main diagonal)"
+  "Calculates the trace of a 2D numerical matrix (sum of elements on main diagonal).
+
+   The matrix need not be square."
   ([a]
     (mp/trace a)))
 
@@ -1204,7 +1209,7 @@
 ;;
 
 (defn swap-rows
-  "Swap row i with row j in a matrix"
+  "Swap row i with row j in a matrix, returning a new matrix"
   [m i j]
   (mp/swap-rows m i j))
 
