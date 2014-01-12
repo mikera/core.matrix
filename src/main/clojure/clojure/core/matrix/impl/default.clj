@@ -85,6 +85,30 @@
     (supports-dimensionality? [m dimensions]
       true))
 
+(extend-protocol mp/PSparse
+  nil
+    (sparse-coerce [m data]
+      (mp/sparse data))
+    (sparse [m]
+      nil)
+  Object
+    (sparse-coerce [m data]
+      nil)
+    (sparse [m]
+      m)) 
+
+(extend-protocol mp/PDense
+  nil
+    (dense-coerce [m data]
+      (mp/dense data))
+    (dense [m]
+      nil)
+  Object
+    (dense-coerce [m data]
+      nil)
+    (dense [m]
+      m)) 
+
 ;; default implementation for matrix ops
 
 (extend-protocol mp/PIndexedAccess
@@ -650,6 +674,20 @@
   Object
     (element-sum [a]
       (mp/element-reduce a +)))
+
+(extend-protocol mp/PElementMinMax
+  Number
+    (element-min [m] m)
+    (element-max [m] m)
+  Object
+    (element-min [m] 
+      (mp/element-reduce m 
+                       (fn [best v] (if (or (not best) (< v best)) v best)) 
+                       nil))
+    (element-max [m] 
+      (mp/element-reduce m 
+                       (fn [best v] (if (or (not best) (> v best)) v best)) 
+                       nil)))
 
 ;; add-product operations
 (extend-protocol mp/PAddProduct
@@ -1355,6 +1393,21 @@
           (mp/set-2d! r i (v i) 1.0))
         r)))
 
+;; Helper function for symmetric? predicate in PMatrixPredicates.
+;; Note loop/recur instead of letfn/recur is 20-25% slower.
+(defn- symmetric-matrix-entries?
+  "Returns true iff square matrix m is symmetric."
+  [m]
+  (let [dim (first (mp/get-shape m))]
+    (letfn [(f [i j]
+              (cond 
+                (>= i dim) true                         ; all entries match: symmetric
+                (>= j dim) (recur (+ 1 i) (+ 2 i))      ; all j's OK: restart with new i
+                (= (mp/get-2d m i j) 
+                   (mp/get-2d m j i)) (recur i (inc j)) ; OK, so check next pair
+                :else false))]                          ; not same, not symmetric
+      (f 0 1))))
+
 (extend-protocol mp/PMatrixPredicates
   Object
   (identity-matrix? [m]
@@ -1378,9 +1431,17 @@
         false)))
   (zero-matrix? [m]
     (every? #(and (number? %) (zero? %)) (mp/element-seq m)))
+  (symmetric? [m]
+    (case (long (mp/dimensionality m))
+      0 true
+      1 true
+      2 (and (square? m) (symmetric-matrix-entries? m))
+      (throw 
+        (java.lang.UnsupportedOperationException. "symmetric? is not yet implemented for arrays with more than 2 dimensions."))))
   nil
   (identity-matrix? [m] false)
-  (zero-matrix? [m] false))
+  (zero-matrix? [m] false)
+  (symmetric? [m] true))
 
 
 ;; =======================================================

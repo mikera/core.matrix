@@ -6,6 +6,8 @@
   (:require [clojure.core.matrix.compliance-tester])
   (:require clojure.core.matrix.impl.sequence))
 
+;; Tests for core.matrix implementation for arbitray sequences (ISeq)
+
 (deftest regressions
   (is (== 3 (ereduce (fn [acc _] (inc acc)) 0 '(nil nil nil))))
   (is (e== [-1 -2] (negate '(1 2))))

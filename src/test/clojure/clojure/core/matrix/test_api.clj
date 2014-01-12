@@ -9,6 +9,8 @@
   (:refer-clojure :exclude [vector?])
   (:use clojure.test))
 
+;; This namespace is intended for general purpose tests og the core.matrix API functions
+
 (deftest test-indexed-access
   (testing "clojure vector indexed access"
     (is (== 1 (mget [1 2 3] 0)))
@@ -458,4 +460,23 @@
     (is (not (row-matrix? [1 2]))))
   (testing "mutability"
     (is (not (mutable? [1 2])))
-    (is (mutable? (double-array [1 2])))))
+    (is (mutable? (double-array [1 2]))))
+  (testing "symmetry"
+    (is (symmetric? (matrix [[1 -3][-3 2]])))
+    (is (not (symmetric? (matrix [[1 -3][-10 2]]))))
+    (is (symmetric? (matrix [[1 -4 -5][-4 2 -6][-5 -6 3]])))
+    (is (not (symmetric? (matrix [[1 -4 -5][-4 2 -6][-5 -10 3]]))))
+    (is (not (symmetric? (matrix [[1 2 3 4]]))))
+    (is (not (symmetric? (matrix [[1][2][3][4]]))))
+    (is (symmetric? (matrix [1 2 3 4])))
+    (is (symmetric? 2))
+    (is (symmetric? nil))
+    (is (symmetric? (double-array [1 2 3 4])))
+    (is (symmetric? (array [1 2 3 4])))
+    (is (symmetric? (array [[1 -3][-3 2]])))
+    (is (not (symmetric? (array [[1 -3][-10 2]]))))
+    (is (try    ; symmetric? isn't yet implemented for 3-D, 4-D, etc., and clatrix doesn't support them at all.
+          (symmetric? (array [  [[1 2][3 4]]  [[5 6][7 8]]  ] )) ; 2x2x2
+          (catch java.lang.UnsupportedOperationException e       ; default, vectorz-clj, clatrix all throw this
+            (println (str "[Caught expected exception: \"" (.getMessage e) "\"]" ))
+            true)))))

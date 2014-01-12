@@ -795,9 +795,10 @@
             (mp/reshape (mp/matrix-multiply (mp/reshape a [1 b-rows]) b)
                         [b-rows]))
           (and (== a-ndims 2) (== b-ndims 1))
-          (let [a-cols (aget shape (int 1))]
+          (let [a-cols (aget shape (int 1))
+                a-rows (aget shape (int 0))]
             (mp/reshape (mp/matrix-multiply a (mp/reshape b [a-cols 1]))
-                        [a-cols]))
+                        [a-rows]))
           (and (== a-ndims 2) (== b-ndims 2))
           (let [^typename# c (empty-ndarray-zeroed#t
                               [(aget shape (int 0))

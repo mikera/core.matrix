@@ -37,6 +37,7 @@
 (declare current-implementation)
 (declare implementation-check)
 (declare current-implementation-object)
+(declare to-nested-vectors)
 (def ^:dynamic *matrix-implementation* imp/DEFAULT-IMPLEMENTATION)
 
 (defn matrix
@@ -185,7 +186,7 @@
     (mp/permutation-matrix (implementation-check implementation) permutation)))
 
 (defn mutable
-  "Constructs a mutable copy of the given array data.
+  "Constructs a fully mutable copy of the given array data.
 
    If the implementation does not support mutable matrices, will return a mutable array
    from another core.matrix implementation that supports either the same element type or a broader type."
@@ -197,6 +198,18 @@
         (clojure.core.matrix.impl.default/construct-mutable-matrix data))
     ;; TODO: support creation with specific element types
     ))
+
+(defn immutable
+  "Constructs an immutable copy of the given array data.
+
+   If the implementation does not support immutable matrices, will return an immutable array
+   from another core.matrix implementation that supports either the same element type or a broader type."
+  ([data]
+    (or (mp/immutable-matrix data)
+        (to-nested-vectors data))) 
+  ([data type]
+    (or (mp/immutable-matrix data)
+        (to-nested-vectors data))))
 
 (defn ^{:deprecated true} mutable-matrix
   "Constructs a mutable copy of the given matrix.
@@ -243,7 +256,33 @@
   ([data]
     (sparse-matrix (current-implementation-object) data))
   ([implementation data]
-    (TODO)))
+    (or (mp/sparse-coerce implementation data)
+        (error "Sparse implementation not available"))))
+
+(defn sparse
+  "EXPERIMENTAL:
+   Coerces an array to a sparse format if possible. Sparse arrays are expected to
+   minimise space usage for zero elements.
+
+   Returns the array unchanged if such coercion is not possible, or if the array is already sparse."
+  ([data]
+    (sparse (current-implementation-object) data))
+  ([implementation data]
+    (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
+
+(defn dense
+  "EXPERIMENTAL:
+   Coerces an array to a dense format if possible. Dense arrays are expected to
+   allocate contiguous storage space for all elements.
+
+   'dense' should not be used with very large arrays, and may throw an OutOfMemoryError 
+    if the dense array is too large to fit in available memory.
+
+   Returns the array unchanged if such coercion is not possible, or if the array is already dense."
+  ([data]
+    (mp/dense data))
+  ([implementation data]
+    (or (mp/dense-coerce implementation data) (mp/coerce-param implementation data))))
 
 (defmacro with-implementation [impl & body]
   "Runs a set of expressions using a specified matrix implementation.
@@ -364,6 +403,11 @@
   "Returns true if all the elements of the parameter are zeros."
   [m]
   (mp/zero-matrix? m))
+
+(defn symmetric?
+  "Returns true if the parameter is a symmetric matrix"
+  [m]
+  (mp/symmetric? m))
 
 (defn sparse?
   "Returns true if an array is sparse, i.e. the implementation supports storage of the entire
@@ -1144,10 +1188,12 @@
 (eval
   `(do ~@(map (fn [[name func]]
            `(defn ~name
+              ~(str "Computes the " name " function on all elements of an array, using double precision values. Returns a new array.") 
               ([~'m]
                 (~(symbol "clojure.core.matrix.protocols" (str name)) ~'m)))) mops/maths-ops)
      ~@(map (fn [[name func]]
            `(defn ~(symbol (str name "!"))
+              ~(str "Computes the " name " function on all elements of an array, using double precision values. Mutates the array in-place.") 
               ([~'m]
                 (~(symbol "clojure.core.matrix.protocols" (str name "!")) ~'m)
                 ~'m))) mops/maths-ops))
@@ -1287,16 +1333,12 @@
 (defn emin
   "Gets the minimum element value from a numerical array"
   ([m]
-    (mp/element-reduce m 
-                       (fn [best v] (if (or (not best) (< v best)) v best)) 
-                       nil)))
+    (mp/element-min m)))
 
 (defn emax
   "Gets the maximum element value from a numerical array"
   ([m]
-    (mp/element-reduce m 
-                       (fn [best v] (if (or (not best) (> v best)) v best)) 
-                       nil)))
+    (mp/element-max m)))
 
 (defn e=
   "Returns true if all array elements are equal (using the semantics of clojure.core/=).

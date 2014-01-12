@@ -8,6 +8,11 @@
   (:require clojure.core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
+;; Tests for the implementation of core.matrix on Clojure persistent vectors
+;;
+;; This is an important implementation because of the prevalence of vectors
+;; in idiomatic Clojure code. It is also the primary immutable array implementation
+
 (deftest test-regressions
   (testing "vector 3D transpose"
     (is (= [[[1]]] (transpose [[[1]]]))))
