@@ -1,8 +1,10 @@
 core.matrix
 ===========
 
+core.matrix provides array programming as a language extension for Clojure, with a focus on numerical computing.
+
 The central objective of `core.matrix` is to make matrix and array programming
-idiomatic, elegant and fast in Clojure.
+idiomatic, productive, elegant and fast in the Clojure environment.
 
 ```clojure
 (+ [[1 2]
