@@ -9,6 +9,8 @@
   (:require clojure.core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
+;; Tests for clojure.core.matrix.utils functions and macros
+
 (deftest test-long-array
   (is (= (type (long-array 0)) (type (long-array nil))))
   (is (= (count (long-array 0)) (count (long-array nil)))))

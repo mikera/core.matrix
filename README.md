@@ -19,11 +19,11 @@ idiomatic, productive, elegant and fast in the Clojure environment.
 
 Key goals of `core.matrix`:
 
- - Provide a clear, standard API / abstraction for matrix and array programming in Clojure
- - Enable plugable support for different underlying matrix library implementations
- - Provide a general purpose n-dimensional array implementation (NDArray)
- - Provide a foundation layer for other projects (e.g. Incanter)
- - Maintain high performance throughout
+ - Provide a clear, standard API / abstraction for **matrix and array programming** in Clojure
+ - Enable **plugable** support for different underlying matrix library implementations
+ - Provide a general purpose **n-dimensional array** implementation (NDArray)
+ - Provide a **foundation** library for other projects (e.g. Incanter)
+ - Enable **high performance** numerical computing
 
 ### Getting Started
 
@@ -37,7 +37,12 @@ For code examples see:
 
 ### Documentation
 
-For documentation and further examples see the Wiki:
+For a general introduction, the slide and video from the 2013 Clojure Conj talk are available here:
+
+ - http://www.slideshare.net/mikeranderson/2013-1114-enter-thematrix
+ - http://www.youtube.com/watch?v=_h9TLJtjSJo
+
+For `core.matrix` documentation and further examples see the Wiki:
 
  - https://github.com/mikera/core.matrix/wiki
 
@@ -82,3 +87,11 @@ If you are interested in writing a `core.matrix` implementation, see:
 You can also find a protocol implementation summary here:
 
  - http://mikera.github.io/core.matrix/summary.html
+
+### Thanks
+
+YourKit is kindly supporting this open source project with its full-featured Java Profiler.
+YourKit, LLC is the creator of innovative and intelligent tools for profiling
+Java and .NET applications. Take a look at YourKit's leading software products:
+<a href="http://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a> and
+<a href="http://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a>.

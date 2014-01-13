@@ -43,18 +43,22 @@
   ([f m]
     (let [dims (long (mp/dimensionality m))]
       (cond
-        (== 0 dims) (f (mp/get-0d m))
-        (== 1 dims) (mapv f (mp/element-seq m))
+        (== 0 dims) (f (scalar-coerce m))
+        (== 1 dims) (mapv #(f (scalar-coerce %)) m)
         :else (mapv (partial mapmatrix f) m))))
   ([f m1 m2]
-    (if (mp/is-vector? m1)
-      (let [dim2 (long (mp/dimensionality m2))]
-        (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
-        (when (and (== 1 dim2) (not= (mp/dimension-count m1 0) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
-        (if (== 0 dim2)
-          (let [v (mp/get-0d m2)] (mapv #(f % v) m1 ))
-          (mapv f m1 (mp/element-seq m2))))
-      (mapv (partial mapmatrix f) m1 (mp/get-major-slice-seq  m2))))
+    (let [dim2 (long (mp/dimensionality m2))]
+      (cond (mp/is-vector? m1)
+        (do
+          (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
+          (when (and (== 1 dim2) (not= (mp/dimension-count m1 0) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
+          (if (== 0 dim2)
+            (let [v (scalar-coerce m2)] (mapv #(f % v) m1 ))
+            (mapv f m1 (mp/element-seq m2))))
+        :else
+          (mapv (partial mapmatrix f) 
+                m1 
+                (mp/get-major-slice-seq m2)))))
   ([f m1 m2 & more]
     (if (mp/is-vector? m1)
       (apply mapv f m1 m2 more)
@@ -72,18 +76,29 @@
             (recur (inc i) (if (identical? x y) v (assoc v i y))))
           v)))))
 
+(defn- check-vector-shape
+  ([v shape]
+    (and
+      (instance? IPersistentVector v)
+      (== (count v) (first shape))
+      (if-let [ns (next shape)]
+        (every? #(check-vector-shape % ns) v)
+        (every? #(not (instance? IPersistentVector %)) v)))))
+
 (defn is-nested-persistent-vectors? 
-  "Test if array is already in nested persistent vector format."
+  "Test if array is already in nested persistent vector array format."
   ([x]
     (cond
       (number? x) true
       (mp/is-scalar? x) true
       (not (instance? clojure.lang.IPersistentVector x)) false
-      :else (every? is-nested-persistent-vectors? x))))
+      :else (and 
+              (every? is-nested-persistent-vectors? x)
+              (check-vector-shape x (mp/get-shape x))))))
 
 (defn persistent-vector-coerce [x]
   "Coerces to nested persistent vectors"
-  (let [dims (mp/dimensionality x)]
+  (let [dims (long (mp/dimensionality x))]
     (cond
       (> dims 0) (mp/convert-to-nested-vectors x) ;; any array with 1 or more dimensions
       (and (== dims 0) (not (mp/is-scalar? x))) (mp/get-0d x) ;; array with zero dimensionality
@@ -164,10 +179,12 @@
       (let [row (.nth m (int x))]
         (mp/get-1d row y)))
     (get-nd [m indexes]
-      (if-let [next-indexes (next indexes)]
-        (let [m (.nth m (int (first indexes)))]
-          (mp/get-nd m next-indexes))
-        (scalar-coerce (.nth m (int (first indexes)))))))
+      (if-let [indexes (seq indexes)]
+        (if-let [next-indexes (next indexes)]
+          (let [m (.nth m (int (first indexes)))]
+            (mp/get-nd m next-indexes))
+          (.nth m (int (first indexes))))
+        m)))
 
 ;; we extend this so that nested mutable implementions are possible
 (extend-protocol mp/PIndexedSetting
@@ -184,9 +201,7 @@
               (assoc m fi (mp/set-nd (m fi) (next indexes) v))))
         (error "Trying to set on a persistent vector with insufficient indexes?")))
     (is-mutable? [m]
-      (if (vector-1d? m)
-        false
-        (mp/is-mutable? (m 0)))))
+      false))
 
 (extend-protocol mp/PMatrixSlices
   IPersistentVector
@@ -195,11 +210,10 @@
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
-      (let [sl (m i)]
+      (let [sl (.nth m (long i))]
         sl))
     (get-slice [m dimension i]
-      (let [i (long i)
-            dimension (long dimension)]
+      (let [dimension (long dimension)]
         (if (== dimension 0)
           (mp/get-major-slice m i)
           (let [sd (dec dimension)]
@@ -229,10 +243,28 @@
           :else
             (error "Joining with array of incompatible size")))))
 
+(extend-protocol mp/PRotate
+  IPersistentVector
+    (rotate [m dim places]
+      (if (== 0 dim)
+        (let [c (count m)
+              sh (if (> c 0) (mod places c) 0)]
+          (if (== sh 0)
+            m
+            (vec (concat (subvec m sh c) (subvec m 0 sh)))))
+        (mapv (fn [s] (mp/rotate s (dec dim) places)) m))))
+
 (extend-protocol mp/PSubVector
   IPersistentVector
     (subvector [m start length]
       (subvec m start (+ start length))))
+
+(extend-protocol mp/PValidateShape
+  IPersistentVector
+    (validate-shape [m]
+      (if (mp/same-shapes? m)
+        (mp/get-shape m)
+        (error "Inconsistent shape for persistent vector array.")))) 
 
 (extend-protocol mp/PMatrixAdd
   IPersistentVector
@@ -246,9 +278,16 @@
 (extend-protocol mp/PVectorOps
   IPersistentVector
     (vector-dot [a b]
-      (let [b (persistent-vector-coerce b)]
-        (when-not (== (count a) (count b)) (error "Mismatched vector sizes"))
-        (reduce + 0 (map * a b))))
+      (let [dims (long (mp/dimensionality b))
+            ;; b (persistent-vector-coerce b)
+            ]
+        (cond
+          (and (== dims 1) (instance? clojure.lang.Indexed b))
+            (do 
+              (when-not (== (count a) (count b)) (error "Mismatched vector sizes"))
+              (reduce + 0 (map * a b)))
+          (== dims 0) (mp/scale a b)
+          :else (mp/inner-product a b))))
     (length [a]
       (Math/sqrt (double (reduce + (map #(* % %) a)))))
     (length-squared [a]
@@ -420,7 +459,12 @@
 (extend-protocol mp/PConversion
   IPersistentVector
     (convert-to-nested-vectors [m]
-      (mapv-identity-check mp/convert-to-nested-vectors m)))
+      (if (is-nested-persistent-vectors? m)
+        m
+        (let [m (mapv-identity-check mp/convert-to-nested-vectors m)]
+          (if (reduce = (map mp/get-shape m))
+            m
+            (error "Can't convert to persistent vector array: inconsistent shape."))))))
 
 (extend-protocol mp/PFunctionalOperations
   IPersistentVector
@@ -436,12 +480,13 @@
       ([m f]
         (mapmatrix f m))
       ([m f a]
-        (mapmatrix f m a))
+        (mapmatrix f m (mp/broadcast-like m a)))
       ([m f a more]
         (apply mapmatrix f m a more)))
     (element-map!
       ([m f]
-        (doseq [s m] (mp/element-map! s f))
+        (doseq [s m] 
+          (mp/element-map! s f))
         m)
       ([m f a]
         (dotimes [i (count m)]

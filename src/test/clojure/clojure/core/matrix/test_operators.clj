@@ -5,6 +5,8 @@
   (:require clojure.core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [* - + / ==]))
 
+;; Tests for the clojure.core.matrix.operators namespace
+
 (deftest test-multiply
   (testing "scalars"
     (is (== 6 (* 3 2)))

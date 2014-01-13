@@ -60,12 +60,54 @@
         :else
           (mp/coerce-param (imp/get-canonical-object :ndarray) m)))))
 
+
 ;; ============================================================
 ;; Default implementations
 ;; - default behaviour for java.lang.Number scalars
 ;; - for stuff we don't recognise (java.lang.Object) we should try to
 ;;   implement in terms of simpler operations, on assumption that
 ;;   we have fallen through to the default implementation
+
+;; default overall implementation
+
+(extend-protocol mp/PImplementation
+  Object
+    (implementation-key [m] :default)
+    (meta-info [m] {})
+    (construct-matrix [m data] 
+      (mp/construct-matrix [] data))
+    (new-vector [m length]
+      (mp/new-vector [] length))
+    (new-matrix [m rows columns]
+      (mp/new-matrix [] rows columns))
+    (new-matrix-nd [m shape]
+      (mp/new-matrix-nd [] shape))
+    (supports-dimensionality? [m dimensions]
+      true))
+
+(extend-protocol mp/PSparse
+  nil
+    (sparse-coerce [m data]
+      (mp/sparse data))
+    (sparse [m]
+      nil)
+  Object
+    (sparse-coerce [m data]
+      nil)
+    (sparse [m]
+      m)) 
+
+(extend-protocol mp/PDense
+  nil
+    (dense-coerce [m data]
+      (mp/dense data))
+    (dense [m]
+      nil)
+  Object
+    (dense-coerce [m data]
+      nil)
+    (dense [m]
+      m)) 
 
 ;; default implementation for matrix ops
 
@@ -89,11 +131,19 @@
         (error "Can't do ND get on a scalar number with indexes: " s)
         m))
   Object
-    (get-1d [m x] (mp/get-nd m [x]))
-    (get-2d [m x y] (mp/get-nd m [x y]))
+    (get-1d [m x] 
+      (cond
+        (java-array? m) (mp/get-0d (nth m x))
+        :else (mp/get-nd m [x])))
+    (get-2d [m x y] 
+      (cond
+        (java-array? m) (mp/get-1d (nth m x) y)
+        :else (mp/get-nd m [x y])))
     (get-nd [m indexes]
       (if (seq indexes)
-        (error "Indexed get failed, not defined for:" (class m))
+        (cond
+          (java-array? m) (mp/get-nd (nth m (first indexes)) (next indexes))
+          :else (error "Indexed get failed, not defined for:" (class m)))
         (mp/get-0d m))))
 
 (extend-protocol mp/PArrayMetrics
@@ -198,7 +248,7 @@
 
 (extend-protocol mp/PVectorOps
   Number
-    (vector-dot [a b] (* a b))
+    (vector-dot [a b] (mp/pre-scale b a))
     (length [a] (double a))
     (length-squared [a] (Math/sqrt (double a)))
     (normalise [a]
@@ -257,6 +307,7 @@
     (assign! [m x]
       (let [dims (long (mp/dimensionality m))]
         (cond
+          (== 0 dims) (mp/set-0d! m (mp/get-0d x))
           (== 1 dims)
               (let [xdims (long (mp/dimensionality x))
                     msize (long (mp/dimension-count m 0))]
@@ -264,14 +315,15 @@
                   (let [value (mp/get-0d x)]
                     (dotimes [i msize] (mp/set-1d! m i value)))
                   (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
-          (== 0 dims) (mp/set-0d! m (mp/get-0d x))
-            (array? m)
+          (array? m)
             (let [xdims (long (mp/dimensionality x))]
               (if (> xdims 0)
-                (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) (mp/get-major-slice-seq x)))
+                (let [xss (mp/get-major-slice-seq x)
+                      _ (or (mp/same-shapes? xss) (error "Inconsistent slice shapes for assign!"))]
+                  (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) xss)))
                 (let [value (mp/get-0d x)]
                   (doseq [ms (mp/get-major-slice-seq m)] (mp/assign! ms value)))))
-            :else
+           :else
               (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
       ([m arr]
@@ -365,11 +417,35 @@
     (get-shape [m] nil)
     (dimension-count [m i] (error "Number has zero dimensionality, cannot get dimension count"))
   Object
-    (dimensionality [m] 0)
-    (is-vector? [m] false)
-    (is-scalar? [m] true) ;; assume objects are scalars unless told otherwise
-    (get-shape [m] nil)
-    (dimension-count [m i] (error "Can't determine count of dimension " i " on Object: " (class m))))
+    (dimensionality [m] 
+      (cond 
+        (.isArray (.getClass m)) 
+          (let [n (count m)]
+            (if (> n 0) (inc (mp/dimensionality (nth m 0))) 1))
+        :else 0))
+    (is-vector? [m] 
+      (cond 
+        (.isArray (.getClass m)) 
+          (let [n (count m)]
+            (or (== n 0) (== 0 (mp/dimensionality (nth m 0)))))
+        :else false))
+    (is-scalar? [m] 
+      (cond
+        (.isArray (.getClass m)) false
+        :else true)) ;; assume objects are scalars unless told otherwise
+    (get-shape [m] 
+      (cond
+        (.isArray (.getClass m)) 
+          (let [n (count m)]
+            (if (== n 0) [0] (cons n (mp/get-shape (nth m 0))))) 
+        :else nil))
+    (dimension-count [m i] 
+      (cond
+        (.isArray (.getClass m))
+          (if (== i 0) (count m) (mp/dimension-count (nth m 0) (dec i)))
+        (== 0 i)
+          (count i)
+        :else (error "Can't determine count of dimension " i " on Object: " (class m)))))
 
 (extend-protocol mp/PSameShape
   nil
@@ -438,6 +514,38 @@
               (mp/set-2d! m i j (mp/get-2d m j i))
               (mp/set-2d! m j i t)))))))
 
+(extend-protocol mp/PRotate
+  nil
+    (rotate [m dim places] nil)
+  Number
+    (rotate [m dim places] m)
+  Object
+    (rotate [m dim places]
+      (cond 
+        (<= (mp/dimensionality m) 0)
+          m
+        (== 0 dim)
+          (let [ss (mp/get-major-slice-seq m)
+                c (long (mp/dimension-count m 0))
+                sh (long (if (> c 0) (long (mod places c)) 0))]
+            (if (== sh 0)
+              m
+              (vec (concat (take-last (- c sh) ss) (take sh ss)))))
+        :else
+          (mp/rotate (mp/convert-to-nested-vectors m) dim places))))
+
+
+(extend-protocol mp/PRotateAll
+  nil
+    (rotate-all [m shifts] nil)
+  Number
+    (rotate-all [m shifts] m)
+  Object
+    (rotate-all [m shifts] 
+      (reduce (fn [m [dim shift]] (mp/rotate m dim shift)) 
+         m 
+         (map-indexed (fn [i v] [i v]) shifts))))
+
 (extend-protocol mp/PMatrixProducts
   Number
     (inner-product [m a]
@@ -456,9 +564,11 @@
         (mp/is-scalar? a)
           (mp/scale m a)
         (== 1 (mp/dimensionality m))
-          (reduce mp/matrix-add (map (fn [sl x] (mp/scale sl x))
-                                     (mp/get-major-slice-seq a)
-                                     (mp/get-major-slice-seq m))) ;; TODO: implement with mutable accumulation
+          (if (== 1 (mp/dimensionality a))
+            (mp/element-sum (mp/element-multiply m a))
+            (reduce mp/matrix-add (map (fn [sl x] (mp/scale sl x))
+                                       (mp/get-major-slice-seq a)
+                                       (mp/get-major-slice-seq m)))) ;; TODO: implement with mutable accumulation
         :else
           (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m))))
     (outer-product [m a]
@@ -507,7 +617,7 @@
                (c-for [i (long 0) (< i mrows) (inc i)
                        j (long 0) (< j acols) (inc j)]
                  (mp/set-2d! new-m i j 0))
-               (c-for [i (long 0) (< i mrows) (inc i)
+                (c-for [i (long 0) (< i mrows) (inc i)
                        j (long 0) (< j acols) (inc j)
                        k (long 0) (< k mcols) (inc k)]
                  (mp/set-2d! new-m i j (+ (mp/get-2d new-m i j)
@@ -545,6 +655,18 @@
         (let [[m a] (mp/broadcast-compatible m a)]
           (mp/element-map m #(/ %1 %2) a)))))
 
+(extend-protocol mp/PMatrixDivideMutable
+  Number
+  (element-divide!
+    ([m] (error "Can't do mutable divide on a scalar number"))
+    ([m a] (error "Can't do mutable divide on a scalar numer")))
+  Object
+  (element-divide!
+    ([m] (mp/element-map! m #(/ %)))
+    ([m a]
+       (let [[m a] (mp/broadcast-compatible m a)]
+         (mp/element-map! m #(/ %1 %2) a)))))
+
 ;; matrix element summation
 (extend-protocol mp/PSummable
   Number
@@ -552,6 +674,20 @@
   Object
     (element-sum [a]
       (mp/element-reduce a +)))
+
+(extend-protocol mp/PElementMinMax
+  Number
+    (element-min [m] m)
+    (element-max [m] m)
+  Object
+    (element-min [m] 
+      (mp/element-reduce m 
+                       (fn [best v] (if (or (not best) (< v best)) v best)) 
+                       nil))
+    (element-max [m] 
+      (mp/element-reduce m 
+                       (fn [best v] (if (or (not best) (> v best)) v best)) 
+                       nil)))
 
 ;; add-product operations
 (extend-protocol mp/PAddProduct
@@ -714,7 +850,7 @@
     (matrix-equals [a b]
       (cond
         (number? b) (== a b)
-        (== 0 (mp/dimensionality b)) (== a (mp/get-0d b))
+        (== 0 (mp/dimensionality b)) (== a (scalar-coerce b))
         :else false))
   Object
     (matrix-equals [a b]
@@ -722,16 +858,18 @@
         (identical? a b) true
         (mp/same-shape? a b)
           (if (== 0 (mp/dimensionality a))
-            (== (mp/get-0d a) (mp/get-0d b))
+            (== (mp/get-0d a) (scalar-coerce b))
             (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
         :else false)))
 
 (extend-protocol mp/PValueEquality
   nil
     (value-equals [a b]
-      (and 
-        (== 0 (mp/dimensionality b))
-        (nil? (mp/get-0d b))))
+      (or 
+        (nil? b)
+        (and 
+          (== 0 (mp/dimensionality b))
+          (nil? (mp/get-0d b)))))
   Object
     (value-equals [a b]
       (and
@@ -763,12 +901,27 @@
 
 (extend-protocol mp/PDoubleArrayOutput
   Number
-    (to-double-array [m] (aset (double-array 1) 0 (double m)))
+    (to-double-array [m] 
+      (let [arr (double-array 1)] (aset arr 0 (double m)) arr))
     (as-double-array [m] nil)
   Object
     (to-double-array [m]
       (double-array (mp/element-seq m)))
     (as-double-array [m] nil))
+
+(extend-protocol mp/PObjectArrayOutput
+  nil
+    (to-object-array [m] 
+      (let [arr (object-array 1)] arr))
+    (as-object-array [m] nil)
+  Number
+    (to-object-array [m] 
+      (let [arr (object-array 1)] (aset arr 0 m) arr))
+    (as-object-array [m] nil)
+  Object
+    (to-object-array [m]
+      (object-array (mp/element-seq m)))
+    (as-object-array [m] nil))
 
 ;; row operations
 (extend-protocol mp/PRowOperations
@@ -801,9 +954,11 @@
       ([m f]
         (f m))
       ([m f a]
-        (f m (mp/get-0d a)))
+        (mp/element-map a #(f m %)))
       ([m f a more]
-        (apply f m (mp/get-0d a) (map mp/get-0d more))))
+        (if-let [moremore (next more)]
+          (mp/element-map a #(apply f m %1 %2 %&) (first more) moremore)
+          (mp/element-map a #(f m %1 %2) (first more)))))
     (element-map!
       ([m f]
         (error "java.lang.Number instance is not mutable!"))
@@ -818,10 +973,13 @@
         (f init m)))
   Object
     (element-seq [m]
-      (let [dims (long (mp/dimensionality m))]
+      (let [c (.getClass m)
+            dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
             (list (mp/get-0d m))
+          (and (.isArray c) (.isPrimitive (.getComponentType c)))
+            (seq m)            
           (== 1 dims)
             (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           (array? m)
@@ -829,13 +987,19 @@
           :else (error "Don't know how to create element-seq from: " m))))
     (element-map
       ([m f]
-        (let [s (map f (mp/element-seq m))]
-          (mp/reshape (mp/coerce-param m s)
-                      (mp/get-shape m))))
+        (if (== 0 (mp/dimensionality m))
+          (f (mp/get-0d m)) ;; handle case of single element
+          (let [s (map f (mp/element-seq m))]
+            (mp/reshape (mp/coerce-param m s)
+                        (mp/get-shape m)))))
       ([m f a]
-        (let [s (map f (mp/element-seq m) (mp/element-seq a))]
-          (mp/reshape (mp/coerce-param m s)
-                      (mp/get-shape m))))
+        (if (== 0 (mp/dimensionality m))
+          (let [v (mp/get-0d m)]
+            (mp/element-map a #(f v %)))
+          (let [[m a] (mp/broadcast-compatible m a)
+                s (map f (mp/element-seq m) (mp/element-seq a))]
+            (mp/reshape (mp/coerce-param m s) ;; TODO: faster construction method?
+                        (mp/get-shape m)))))
       ([m f a more]
         (let [s (map f (mp/element-seq m) (mp/element-seq a))
               s (apply map f (list* (mp/element-seq m)
@@ -877,30 +1041,68 @@
                          (calc-element-count m)
                          1)))
 
+(extend-protocol mp/PValidateShape
+  nil
+    (validate-shape [m]
+      nil)
+  Object
+    (validate-shape [m]
+      (cond
+        (== 0 (mp/dimensionality m))
+          (if (mp/is-scalar? m) nil [])
+        :else 
+          (let [shapes (map mp/validate-shape (mp/get-major-slice-seq m))]
+            (if (mp/same-shapes? shapes)
+              (cons (mp/dimension-count m 0) (first shapes))
+              (error "Inconsistent shapes for sub arrays in " (class m))))))) 
+
+
 (extend-protocol mp/PMatrixSlices
   Object
     (get-row [m i]
-      (mp/get-major-slice m i))
+      (if (java-array? m)
+        (nth m i)
+        (mp/get-major-slice m i)))
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
-      (clojure.core.matrix.impl.wrappers/wrap-slice m i))
+      (cond 
+        (java-array? m) (nth m i)
+        :else (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
     (get-slice [m dimension i]
-      (mp/get-slice (mp/convert-to-nested-vectors m) dimension i)))
+      (cond
+        (< dimension 0) (error "Can't take slice on negative dimension: " dimension)
+        (== 0 dimension) (mp/get-major-slice m i)
+        :else (mp/get-slice (mp/convert-to-nested-vectors m) dimension i))))
 
 (extend-protocol mp/PSliceView
   Object
     ;; default implementation uses a lightweight wrapper object
-    (get-major-slice-view [m i] (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
+    (get-major-slice-view [m i] 
+      (cond
+        (java-array? m) 
+          (let [ss (nth m i)]
+            (if (array? ss)
+              ss
+              (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
+        :else (clojure.core.matrix.impl.wrappers/wrap-slice m i))))
 
 (extend-protocol mp/PSliceSeq
   Object
     (get-major-slice-seq [m]
       (let [dims (long (mp/dimensionality m))]
         (cond
-          (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object: " m)
+          (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object")
+          (.isArray (.getClass m)) (seq m) 
           (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
-          :else (map #(mp/get-major-slice-view m %) (range (mp/dimension-count m 0)))))))
+          :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
+
+(extend-protocol mp/PSliceViewSeq
+  Object
+    (get-major-slice-view-seq [m] 
+      (let [n (mp/dimension-count m 0)]
+        (for [i (range n)]
+          (mp/get-major-slice-view m i)))))
 
 (extend-protocol mp/PSliceJoin
   nil
@@ -985,6 +1187,14 @@
     (broadcast-coerce [m a]
       (mp/coerce-param m (mp/broadcast-like m a))))
 
+(extend-protocol mp/PPack
+  nil
+    (pack [m]
+      nil)
+  Object
+    (pack [m]
+      m))
+
 ;; attempt conversion to nested vectors
 (extend-protocol mp/PConversion
   nil
@@ -1016,6 +1226,20 @@
               (mapv mp/convert-to-nested-vectors m)
           :default
               (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
+
+(extend-protocol mp/PRowColMatrix
+  nil
+    (column-matrix [m data] (error "Can't create a column matrix from nil"))
+    (row-matrix [m data] (error "Can't create a column matrix from nil"))
+  Object
+    (column-matrix [m data] 
+      (if (== 1 (mp/dimensionality data))
+        (mp/coerce-param m (mapv vector (mp/element-seq data)))
+        (error "Can't create a column matrix: input must be 1D vector")))
+    (row-matrix [m data] 
+      (if (== 1 (mp/dimensionality data))
+        (mp/coerce-param m (vector data))
+        (error "Can't create a row matrix: input must be 1D vector")))) 
 
 (extend-protocol mp/PVectorView
   nil
@@ -1100,11 +1324,14 @@
 (extend-protocol mp/PExponent
   Number
     (element-pow [m exponent]
-      (Math/pow (.doubleValue m) (double exponent)))
+      (if (array? exponent)
+        (mp/element-map exponent #(Math/pow (.doubleValue m) (.doubleValue ^Number %)))
+        (Math/pow (.doubleValue m) (double exponent))))
   Object
     (element-pow [m exponent]
-      (let [x (double exponent)]
-        (mp/element-map m #(Math/pow (.doubleValue ^Number %) x)))))
+      (if (array? exponent)
+        (mp/element-map m #(Math/pow (.doubleValue ^Number %1) (.doubleValue ^Number %2)) exponent)
+        (mp/element-map m #(Math/pow (.doubleValue ^Number %) exponent)))))
 
 (extend-protocol mp/PSquare
   Number
@@ -1166,6 +1393,21 @@
           (mp/set-2d! r i (v i) 1.0))
         r)))
 
+;; Helper function for symmetric? predicate in PMatrixPredicates.
+;; Note loop/recur instead of letfn/recur is 20-25% slower.
+(defn- symmetric-matrix-entries?
+  "Returns true iff square matrix m is symmetric."
+  [m]
+  (let [dim (first (mp/get-shape m))]
+    (letfn [(f [i j]
+              (cond 
+                (>= i dim) true                         ; all entries match: symmetric
+                (>= j dim) (recur (+ 1 i) (+ 2 i))      ; all j's OK: restart with new i
+                (= (mp/get-2d m i j) 
+                   (mp/get-2d m j i)) (recur i (inc j)) ; OK, so check next pair
+                :else false))]                          ; not same, not symmetric
+      (f 0 1))))
+
 (extend-protocol mp/PMatrixPredicates
   Object
   (identity-matrix? [m]
@@ -1189,9 +1431,17 @@
         false)))
   (zero-matrix? [m]
     (every? #(and (number? %) (zero? %)) (mp/element-seq m)))
+  (symmetric? [m]
+    (case (long (mp/dimensionality m))
+      0 true
+      1 true
+      2 (and (square? m) (symmetric-matrix-entries? m))
+      (throw 
+        (java.lang.UnsupportedOperationException. "symmetric? is not yet implemented for arrays with more than 2 dimensions."))))
   nil
   (identity-matrix? [m] false)
-  (zero-matrix? [m] false))
+  (zero-matrix? [m] false)
+  (symmetric? [m] true))
 
 
 ;; =======================================================

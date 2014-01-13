@@ -8,6 +8,11 @@
   (:require clojure.core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?]))
 
+;; Tests for the implementation of core.matrix on Clojure persistent vectors
+;;
+;; This is an important implementation because of the prevalence of vectors
+;; in idiomatic Clojure code. It is also the primary immutable array implementation
+
 (deftest test-regressions
   (testing "vector 3D transpose"
     (is (= [[[1]]] (transpose [[[1]]]))))
@@ -26,7 +31,10 @@
     (is (e= [] (coerce [] [])))
     (is (e= [] (assign [] 1.0)))
     (is (empty? (eseq [])))
-    (is (nil? (coerce [] nil)))))
+    (is (nil? (coerce [] nil))))
+  (testing "broadcast on emap"
+    (is (equals [[6 7] [8 9]] (emap + [[1 2] [3 4]] 5)))
+    (is (equals [[6 7] [8 9]] (emap + 5 [[1 2] [3 4]])))))
 
 (deftest test-assign 
   (is (= [[1 2] [1 2]] (assign [[1 2] [3 4]] [1 2])))
@@ -60,6 +68,12 @@
 
 (deftest test-rotate
   (is (equals [2 3 1] (rotate [1 2 3] 0 1))))
+
+(deftest test-dot
+  (is (equals [2 4 6] (dot 2 [1 2 3])))
+  (is (equals [2 4 6] (dot [1 2 3] 2)))
+  (is (equals 20 (dot [1 2 3] [2 3 4])))
+  (is (equals [[1 2] [6 8]] (dot [[1 0] [0 2]] [[1 2] [3 4]])))) 
 
 (deftest test-incompatible
   (is (error? (add [1 2] [3 4 5])))
@@ -99,7 +113,7 @@
 (deftest test-nested-implementation
   (testing "nested double arrays"
     (let [m [(double-array [1 2]) (double-array [3 4])]]
-      (is (mutable? m))
+      (is (not (mutable? m))) ;; persistent vector should not be mutable, even if components are
       (is (== 2 (dimensionality m)))
       (is (equals [3 7] (mmul m [1 1])))
       (is (equals [2 4] (get-column m 1))))))
@@ -134,7 +148,9 @@
   (is (equals [[1 2] [5 6]] (set-row [[1 2] [3 4]] 1 [5 6]))))
 
 (deftest test-slices
-  (is (= [1 2] (slices [1 2]))))
+  (is (= [1 2] (slices [1 2])))
+  (is (== 1 (first (slices [1 2]))))
+  (is (error? (slice [1 2 3] 1 1))))
 
 (deftest test-sum
   (testing "summing"
@@ -160,6 +176,12 @@
       (is (= (matrix [[0 2 4]]) (multiply-row (matrix [[0 1 2]]) 0 2))))
     (testing "add row j to i and replace i with the result"
       (is (= (matrix [[3 3] [1 1]]) (add-row (matrix [[1 1] [1 1]]) 0 1 2)))))
+
+(deftest test-bad-shapes
+  (is (error? (array [1 [2 3]])))
+  (is (error? (array [[1 2] [2 3 4]])))
+  (is (error? (array [[1 2 3 4] [2 3 4]])))
+  (is (error? (array [[1 2 3 4] 5]))))
 
 ;; run complicance tests
 

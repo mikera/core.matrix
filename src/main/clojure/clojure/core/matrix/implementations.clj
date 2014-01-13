@@ -58,7 +58,9 @@
   ([k]
     (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
       (try
-        (do (require ns-sym) :ok)
+        (do 
+          (require ns-sym) 
+          (if (@canonical-objects k) :ok :warning-implementation-not-registered?))
         (catch Throwable t nil)))))
 
 (defn get-canonical-object
@@ -71,5 +73,6 @@
       (if k 
         (or obj
            (if (try-load-implementation k) (@canonical-objects k))
+           (when-not (keyword? m) m)
            (error "Unable to find implementation: [" k "]"))
         nil))))

@@ -9,6 +9,8 @@
   (:refer-clojure :exclude [vector?])
   (:use clojure.test))
 
+;; This namespace is intended for general purpose tests og the core.matrix API functions
+
 (deftest test-indexed-access
   (testing "clojure vector indexed access"
     (is (== 1 (mget [1 2 3] 0)))
@@ -42,6 +44,7 @@
 
 (deftest test-products
   (is (equals 1 (inner-product [0 1 1] [1 1 0])))
+  (is (equals 110 (inner-product [0 2 3] 5 [7 11 0])))
   (is (equals [[2 4] [6 8]] (inner-product [[2 0] [0 2]] [[1 2] [3 4]])))
   (is (equals [3 6] (outer-product 3 [1 2])))
   (is (equals [3 6] (outer-product [1 2] 3)))
@@ -51,6 +54,9 @@
   (is (equals 7 (add-product 1 2 3)))
   (is (equals [7] (add-product [1] 2 3)))
   (is (equals [3 8] (add-product [0 0] [1 2] [3 4]))))
+
+(deftest test-reshape
+  (is (equals [[0 1] [2 3] [4 5]] (reshape (range 6) [3 2])))) 
 
 (deftest test-square
   (is (equals 81 (square 9)))
@@ -97,9 +103,20 @@
   )
 
 (deftest test-pow
-  (is (== 8 (pow 2 3)))
-  (is (== 8 (clojure.core.matrix.operators/** 2 3))) 
-  )
+  (let [a (array :persistent-vector [1 2 3])
+        m (matrix :persistent-vector [[1 2 3] [4 5 6] [7 8 9]])]
+    (testing "pow works on scalars"
+      (is (== 8 (pow 2 3)))
+      (is (== 8 (clojure.core.matrix.operators/** 2 3))))
+    (testing "pow works when base is an array and exponent is a scalar"
+      (is (equals [1.0 4.0 9.0] (pow a 2)))
+      (is (equals [[1.0 4.0 9.0] [16.0 25.0 36.0] [49.0 64.0 81.0]] (pow m 2))))
+    (testing "pow works when base is a scalar and exponent is an array"
+      (is (equals [5.0 25.0 125.0] (pow 5 a))
+          (equals [[2.0 4.0 8.0] [16.0 32.0 64.0] [128.0 256.0 512.0]] (pow 2 m))))
+    (testing "pow works when both the base and the exponent are arrays"
+      (is (equals [1.0 4.0 27.0] (pow a a)))
+      (is (equals [[1.0 2.0 3.0] [16.0 25.0 36.0] [343.0 512.0 729.0]] (pow m a))))))
 
 (deftest test-slices
   (testing "rows and columns of clojure vector matrix"
@@ -115,6 +132,7 @@
   (is (equals [[3]] (submatrix (array [[1 2] [3 4]]) [[1 1] [0 1]])))
   (is (equals [[2] [4]] (submatrix (array [[1 2] [3 4]]) 1 [1 1])))
   (is (equals [2 3] (submatrix (array [1 2 3 4]) [[1 2]])))
+  (is (equals [[4]] (submatrix [[1 2] [3 4]] 1 1 1 1))) 
   (is (equals [2 3] (submatrix (array [1 2 3 4]) 0 [1 2]))))
 
 (deftest test-element-seq
@@ -264,7 +282,9 @@
   (testing "mutable sub"
     (let [v (mutable-matrix [10 10])]
       (sub! v [1 2] [1 2])
-      (is (equals [8 6] v)))))
+      (is (equals [8 6] v))))
+  (testing "arity 3 sub regression"
+    (is (equals [-1 -2] (sub [1 2] [1 2] [1 2])))))
 
 (deftest test-transpose
   (testing "transpose different dimensionalities"
@@ -440,4 +460,23 @@
     (is (not (row-matrix? [1 2]))))
   (testing "mutability"
     (is (not (mutable? [1 2])))
-    (is (mutable? (double-array [1 2])))))
+    (is (mutable? (double-array [1 2]))))
+  (testing "symmetry"
+    (is (symmetric? (matrix [[1 -3][-3 2]])))
+    (is (not (symmetric? (matrix [[1 -3][-10 2]]))))
+    (is (symmetric? (matrix [[1 -4 -5][-4 2 -6][-5 -6 3]])))
+    (is (not (symmetric? (matrix [[1 -4 -5][-4 2 -6][-5 -10 3]]))))
+    (is (not (symmetric? (matrix [[1 2 3 4]]))))
+    (is (not (symmetric? (matrix [[1][2][3][4]]))))
+    (is (symmetric? (matrix [1 2 3 4])))
+    (is (symmetric? 2))
+    (is (symmetric? nil))
+    (is (symmetric? (double-array [1 2 3 4])))
+    (is (symmetric? (array [1 2 3 4])))
+    (is (symmetric? (array [[1 -3][-3 2]])))
+    (is (not (symmetric? (array [[1 -3][-10 2]]))))
+    (is (try    ; symmetric? isn't yet implemented for 3-D, 4-D, etc., and clatrix doesn't support them at all.
+          (symmetric? (array [  [[1 2][3 4]]  [[5 6][7 8]]  ] )) ; 2x2x2
+          (catch java.lang.UnsupportedOperationException e       ; default, vectorz-clj, clatrix all throw this
+            (println (str "[Caught expected exception: \"" (.getMessage e) "\"]" ))
+            true)))))

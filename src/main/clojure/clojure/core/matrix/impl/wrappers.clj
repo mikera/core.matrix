@@ -181,7 +181,7 @@
     (clone [m] (wrap-slice (mp/clone array) slice))
 
   java.lang.Object
-    (toString [m] (str (mp/persistent-vector-coerce m))))
+    (toString [m] (str (mp/convert-to-nested-vectors m))))
 
 
 ;; =============================================
@@ -299,8 +299,7 @@
   "Creates a view of a major slice of an array."
   ([m slice]
     (let [slice (long slice)]
-      ;; (assert (> (mp/dimensionality m) 0))
-      ;; (assert (> (mp/dimension-count m 0) slice -1))
+      (when (>= slice (mp/dimension-count m 0)) (error "Slice " slice " does not exist on " (class m)))
       (SliceWrapper. m slice))))
 
 (defn wrap-nd
@@ -369,6 +368,8 @@
         :else
           (ScalarWrapper. (mp/get-0d m)))))
 
+;; note we construct these types directly because default implementations are not yet loaded
+;; i.e. the wrap-xxxx functions will probably not yet work
 (imp/register-implementation (ScalarWrapper. 13))
 
 (imp/register-implementation (NDWrapper. [1]
@@ -377,4 +378,4 @@
                                          (object-array 0)
                                          (long-array [0])))
 
-(imp/register-implementation (wrap-slice [1 2] 0))
+(imp/register-implementation (SliceWrapper. [1 2] 0))

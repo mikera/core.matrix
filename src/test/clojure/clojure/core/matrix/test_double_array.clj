@@ -7,6 +7,11 @@
   (:require [clojure.core.matrix.compliance-tester])
   (:require clojure.core.matrix.impl.double-array))
 
+;; This namespace contains tests for the Java double[] array implementation
+;;
+;; This is an important implementation, as it provides maximum efficiency for many
+;; numerical vector operations with mutable vectors
+
 (deftest misc-regressions
   (testing "shape sequnces"
     (is (= [0] (shape (double-array []))))
@@ -124,6 +129,14 @@
     (emap! clojure.core/+ v [10 10 10])
     (is (equals v [11 12 13]))))
 
+(deftest test-div
+  (is (equals [1 2] (div (double-array [2 4]) 2))))
+
+(deftest test-div!
+  (let [da (double-array [2 4])]
+    (div! da 2)
+    (is (equals [1 2] da))))
+
 (deftest test-broadcast-coerce
   (is (= [1.0 2.0] (mp/broadcast-coerce [0 0] (double-array [1 2])))))
 
@@ -133,6 +146,12 @@
     (is (identical? a (emul! a b)))
     (is (equals [2.0 6.0] (vec a)))
     (is (equals [2.0 6.0] a))))
+
+(deftest test-element-ops
+  (let [a (double-array [5 1 7 8 4])]
+    (is (== 1 (emin a)))
+    (is (== 8 (emax a)))
+    (is (== 25 (esum a)))))
 
 (deftest test-maths-ops
   (testing "basic ops"
