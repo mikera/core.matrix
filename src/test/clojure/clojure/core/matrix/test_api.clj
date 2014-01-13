@@ -480,3 +480,17 @@
           (catch java.lang.UnsupportedOperationException e       ; default, vectorz-clj, clatrix all throw this
             (println (str "[Caught expected exception: \"" (.getMessage e) "\"]" ))
             true)))))
+
+(deftest test-inplace-operators
+  (is (op/== (matrix [5 7])
+             (op/+= (mutable (matrix [1 2]))
+                    (matrix [4 5]))))
+  (is (op/== (matrix [-4 6]))
+             (op/-= (mutable (matrix [5 8]))
+                    (matrix [9 2])))
+  (is (op/== (matrix [6 8])
+             (op/*= (mutable (matrix [3 2]))
+                    (matrix [2 4]))))
+  (is (op/== (matrix [2 0.5])
+             (op/div= (mutable (matrix [4 2]))
+                    (matrix [2 4])))))

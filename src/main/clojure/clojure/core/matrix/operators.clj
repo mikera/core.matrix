@@ -55,3 +55,25 @@
   ([a] true)
   ([a b] (m/equals a b))
   ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more)))
+
+;; inplace operators
+(defn +=
+  "Inplace matrix addition operator"
+  ([a] a)
+  ([a b] (m/add! a b)))
+
+(defn -=
+  "Inplace matrix subtraction operator"
+  ([a] a)
+  ([a b] (m/sub! a b)))
+
+(defn *=
+  "Inplace matrix multiplication operator"
+  ([a] a)
+  ([a b] (m/mul! a b)))
+
+;; TODO can't use /= due to clojure namespace issues
+(defn div=
+  "Inplace matrix division operator"
+  ([a] a)
+  ([a b] (m/div! a b)))
