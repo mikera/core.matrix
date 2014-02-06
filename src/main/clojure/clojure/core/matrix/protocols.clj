@@ -694,6 +694,10 @@
     [m]
     "returns true if matrix m is symmetric"))
 
+(defprotocol PTriangular
+  (upper-triangular? [m] "Returns true if the matrix m is upper triangualar")
+  (lower-triangular? [m] "Returns true if the matrix m is lower triangualar"))
+
 ;; ============================================================
 ;; Generic values and functions
 ;;
