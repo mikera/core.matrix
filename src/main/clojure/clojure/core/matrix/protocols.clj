@@ -694,9 +694,12 @@
     [m]
     "returns true if matrix m is symmetric"))
 
-(defprotocol PTriangular
+(defprotocol PMatrixTypes
+  (diagonal? [m] "Returns true if the matrix is diagonal")
   (upper-triangular? [m] "Returns true if the matrix m is upper triangualar")
-  (lower-triangular? [m] "Returns true if the matrix m is lower triangualar"))
+  (lower-triangular? [m] "Returns true if the matrix m is lower triangualar")
+  (positive-definite? [m] "Returns true is the matrix is positive definite")
+  (positive-semidefinite? [m] "Returns true is the matrix is positive semidefinite"))
 
 ;; ============================================================
 ;; Generic values and functions
