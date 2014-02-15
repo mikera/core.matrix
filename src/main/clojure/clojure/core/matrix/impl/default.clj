@@ -1097,6 +1097,13 @@
           (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
 
+(extend-protocol mp/PSliceSeq2
+  Object
+    (get-slice-seq [m dimension]
+      (if (== dimension 0)
+        (mp/get-major-slice-seq m)
+        (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
+
 (extend-protocol mp/PSliceViewSeq
   Object
     (get-major-slice-view-seq [m] 
@@ -1436,8 +1443,7 @@
       0 true
       1 true
       2 (and (square? m) (symmetric-matrix-entries? m))
-      (throw 
-        (java.lang.UnsupportedOperationException. "symmetric? is not yet implemented for arrays with more than 2 dimensions."))))
+      (= m (mp/transpose m))))
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false)

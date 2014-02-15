@@ -474,9 +474,18 @@
     (is (symmetric? (double-array [1 2 3 4])))
     (is (symmetric? (array [1 2 3 4])))
     (is (symmetric? (array [[1 -3][-3 2]])))
-    (is (not (symmetric? (array [[1 -3][-10 2]]))))
-    (is (try    ; symmetric? isn't yet implemented for 3-D, 4-D, etc., and clatrix doesn't support them at all.
-          (symmetric? (array [  [[1 2][3 4]]  [[5 6][7 8]]  ] )) ; 2x2x2
-          (catch java.lang.UnsupportedOperationException e       ; default, vectorz-clj, clatrix all throw this
-            (println (str "[Caught expected exception: \"" (.getMessage e) "\"]" ))
-            true)))))
+    (is (not (symmetric? (array [[1 -3][-10 2]]))))))
+
+(deftest test-inplace-operators
+  (is (op/== (matrix [5 7])
+             (op/+= (mutable (matrix [1 2]))
+                    (matrix [4 5]))))
+  (is (op/== (matrix [-4 6]))
+             (op/-= (mutable (matrix [5 8]))
+                    (matrix [9 2])))
+  (is (op/== (matrix [6 8])
+             (op/*= (mutable (matrix [3 2]))
+                    (matrix [2 4]))))
+  (is (op/== (matrix [2 0.5])
+             (op/div= (mutable (matrix [4 2]))
+                    (matrix [2 4])))))

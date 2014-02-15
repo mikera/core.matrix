@@ -646,8 +646,11 @@
     (mp/get-column m y)))
 
 (defn coerce
-  "Coerces param into a format preferred by a specific matrix implementation.
-   If param is already in a format deemed usable by the implementation, returns it unchanged."
+  "Coerces param (which may be any array) into a format preferred by a specific matrix implementation.
+   If param is already in a format deemed usable by the implementation, may return it unchanged.
+
+   coerce should never alter the shape of the array, but may convert element types where necessary
+   (e.g. turning real values into complex values when converting to a complex array type)."
   ([matrix-or-implementation param]
     (let [m (if (keyword? matrix-or-implementation) (imp/get-canonical-object matrix-or-implementation) matrix-or-implementation)]
       (or
@@ -696,8 +699,7 @@
   ([m]
     (mp/get-major-slice-seq m))
   ([m dimension]
-    ;; TODO: should go via protocols
-    (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
+    (mp/get-slice-seq m dimension)))
 
 (defn slice-views
   "Gets a sequence of views of the slices of an array. If dimension is supplied, slices along a given dimension,
@@ -892,7 +894,11 @@
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
 (defn mmul
-  "Performs matrix multiplication (equivalent to inner-product)."
+  "Performs matrix multiplication on matrices or vectors.  Equivalent to
+  inner-product when applied to vectors.  Will treat a 1D vector roughly as a
+  1xN matrix (row vector) when it's the first argument, or as an Nx1 matrix 
+  (column vector) when it's the second argument--except that the dimensionality 
+  of the result will be different from what it would be with matrix arguments."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -1094,6 +1100,8 @@
 (defn inner-product
   "Computes the inner product of numerical arrays.
 
+   For matrix/matrix and matrix/vector arguments, this is equivalent to matrix multiplication.
+
    The inner product of two arrays with indexed dimensions {..i j} and {j k..} has dimensions {..i k..}. The inner-product of two vectors will be scalar."
   ([] 1.0)
   ([a]
@@ -1138,6 +1146,7 @@
 
 (defn inverse
   "Calculates the inverse of a 2D numerical matrix."
+  ;; TODO: document behaviour for singular matrix?
   ([m]
     (mp/inverse m)))
 
@@ -1152,7 +1161,9 @@
     (mp/scale! m -1.0)))
 
 (defn trace
-  "Calculates the trace of a 2D numerical matrix (sum of elements on main diagonal)"
+  "Calculates the trace of a 2D numerical matrix (sum of elements on main diagonal).
+
+   The matrix need not be square."
   ([a]
     (mp/trace a)))
 
@@ -1204,7 +1215,7 @@
 ;;
 
 (defn swap-rows
-  "Swap row i with row j in a matrix"
+  "Swap row i with row j in a matrix, returning a new matrix"
   [m i j]
   (mp/swap-rows m i j))
 
