@@ -1100,7 +1100,9 @@
 (extend-protocol mp/PSliceSeq2
   Object
     (get-slice-seq [m dimension]
-      (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
+      (if (== dimension 0)
+        (mp/get-major-slice-seq m)
+        (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
 
 (extend-protocol mp/PSliceViewSeq
   Object
