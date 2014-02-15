@@ -699,8 +699,7 @@
   ([m]
     (mp/get-major-slice-seq m))
   ([m dimension]
-    ;; TODO: should go via protocols
-    (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
+    (mp/get-slice-seq m dimension)))
 
 (defn slice-views
   "Gets a sequence of views of the slices of an array. If dimension is supplied, slices along a given dimension,

@@ -1097,6 +1097,11 @@
           (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
 
+(extend-protocol mp/PSliceSeq2
+  Object
+    (get-slice-seq [m dimension]
+      (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
+
 (extend-protocol mp/PSliceViewSeq
   Object
     (get-major-slice-view-seq [m] 

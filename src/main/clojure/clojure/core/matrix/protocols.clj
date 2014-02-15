@@ -303,6 +303,13 @@
    The default implementation uses get-major-slice-view to obtain the slices."
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
 
+(defprotocol PSliceSeq2
+  "Returns slices of the array as a sequence. 
+
+   These must be views or immutable sub-arrays for higher order slices, or scalars
+   for the slices of a 1D vector."
+  (get-slice-seq [m dim] "Gets a sequence of all array slices"))
+
 (defprotocol PSliceViewSeq
   "Returns the row-major slice views of the array. 
 
