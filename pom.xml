@@ -27,7 +27,7 @@
 		<dependency>
 			<groupId>criterium</groupId>
 			<artifactId>criterium</artifactId>
-			<version>0.4.2</version>
+			<version>0.4.3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -43,19 +43,19 @@
 		<dependency>
 			<groupId>hiccup</groupId>
 			<artifactId>hiccup</artifactId>
-			<version>1.0.4</version>
+			<version>1.0.5</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>vectorz-clj</artifactId>
-			<version>0.17.1</version>
+			<version>0.19.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>reiddraper</groupId>
 			<artifactId>simple-check</artifactId>
-			<version>0.5.3</version>
+			<version>0.5.6</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
