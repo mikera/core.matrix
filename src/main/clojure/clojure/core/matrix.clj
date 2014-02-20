@@ -508,7 +508,7 @@
 
 (defn index?
   "Returns true if the parameter is a valid array index type. An index should be a seq-able list 
-   of non-negative integer values."
+   of integer values."
   ([m] 
     (TODO))) 
 
@@ -1244,6 +1244,15 @@
   "Sets a row in a matrix using a specified vector."
   [m i row]
   (mp/set-row! m i row))
+
+;; ===================================
+;; Sparse matrix functions
+
+(defn non-zero-indices
+  "Gets the non-zero indices of an array.
+   - For a 1D vector, returns an ordered index list.
+   - For a higher dimensional array, returns the non-zero-indices for each slice in row-major order."
+  ([m] (TODO))) 
 
 ;; ===================================
 ;; Linear algebra algorithms
