@@ -506,6 +506,12 @@
   ([m]
     (mp/is-mutable? m)))
 
+(defn index?
+  "Returns true if the parameter is a valid array index type. An index should be a seq-able list 
+   of non-negative integer values."
+  ([m] 
+    (TODO))) 
+
 (defn conforming?
   "Returns true if two arrays have a conforming shape. Two arrays are conforming if there
    exists a common shape that both can broadcast to. This is a requirement for element-wise
