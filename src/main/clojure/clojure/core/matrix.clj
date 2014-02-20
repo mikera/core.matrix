@@ -82,8 +82,7 @@
       (mp/coerce-param [] data))))
 
 (defn zero-vector
-  "Constructs a new zero-filled numerical vector with the given length.
-   If the implementation supports mutable vectors, then the new vector will be fully mutable."
+  "Constructs a new zero-filled numerical vector with the given length."
   ([length]
     (mp/new-vector (implementation-check) length))
   ([implementation length]
@@ -99,8 +98,7 @@
     (mp/new-vector (implementation-check implementation) length)))
 
 (defn zero-matrix
-  "Constructs a new zero-filled numerical matrix with the given dimensions.
-   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+  "Constructs a new zero-filled numerical matrix with the given dimensions."
   ([rows columns]
     (mp/new-matrix (implementation-check) rows columns))
   ([implementation rows columns]
@@ -116,8 +114,7 @@
     (mp/new-matrix (implementation-check implementation) rows columns)))
 
 (defn zero-array
-  "Creates a new zero-filled numerical array with the given shape.
-   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+  "Creates a new zero-filled numerical array with the given shape."
   ([shape]
     (mp/new-matrix-nd (implementation-check) shape))
   ([implementation shape]
