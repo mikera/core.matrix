@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.impl.dataset
   (:use clojure.core.matrix.utils)
   (:require [clojure.core.matrix.implementations :as imp])
+  (:require [clojure.core.matrix.impl.wrappers :as wrap])
   (:require [clojure.core.matrix.protocols :as mp])
   (:import [clojure.lang IPersistentVector]))
 
@@ -12,11 +13,21 @@
   [^IPersistentVector column-names
    ^IPersistentVector columns])
 
-(defmacro row-count [d]
+(defmacro row-count [^DataSet d]
   `(mp/dimension-count (first (.columns ~d)) 0))
 
-(defmacro column-count [d]
+(defmacro column-count [^DataSet d]
   `(count (.column-names ~d)))
+
+(defmacro row [^DataSet d i]
+  `(wrap/wrap-slice ~d ~i))
+
+(defmacro column [^DataSet d i]
+  `(.nth (.columns ~d) (int ~i)))
+
+(defmacro element [^DataSet d i j]
+  ;; note we use get-slice here, because column may have more than one dimension
+  `(mp/get-major-slice (column ~d ~j) ~i))
 
 (defn- dataset [^IPersistentVector column-names ^IPersistentVector columns]
   (let [cc (count column-names)]
@@ -71,18 +82,15 @@
 (extend-protocol mp/PIndexedAccess
   DataSet
     (get-1d [m x]
-      (aget ^objects m (int x)))
+      (row m x))
     (get-2d [m x y]
-      (mp/get-1d (aget ^objects m (int x)) y))
+      (element m x y))
     (get-nd [m indexes]
-      (let [^objects m m
-            dims (long (count indexes))]
+      (let [dims (long (count indexes))]
         (cond
-          (== 1 dims)
-            (aget m (int (first indexes)))
-          (> dims 1) 
-            (mp/get-nd (aget m (int (first indexes))) (next indexes)) 
-          (== 0 dims) m
+          (== 1 dims) (row m (first indexes))
+          (== 2 dims) (element m (first indexes) (second indexes)) 
+          (< 2 dims) (mp/get-nd (element m (first indexes) (second indexes)) (nnext indexes)) 
           :else
             (error "Invalid dimensionality access with index: " (vec indexes))))))
 
