@@ -308,13 +308,24 @@
       (let [dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
-          (== 1 dims)
-              (let [xdims (long (mp/dimensionality x))
+          (== 1 dims) 
+            (if (instance? clojure.lang.ISeq x)
+              (let [x (seq x)
+                    msize (long (mp/dimension-count m 0))]
+                (loop [i 0 s (seq x)]
+                  (if (>= i msize)
+                    (when s (error "Mismatches size of sequence in assign!"))
+                    (do 
+                      (mp/set-1d! m i (first s))
+                      (recur (inc i) (next s))))))
+             (let [xdims (long (mp/dimensionality x))
                     msize (long (mp/dimension-count m 0))]
                 (if (== 0 xdims)
                   (let [value (mp/get-0d x)]
                     (dotimes [i msize] (mp/set-1d! m i value)))
-                  (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
+                  (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i))))))
+          
+              
           (array? m)
             (let [xdims (long (mp/dimensionality x))]
               (if (> xdims 0)
@@ -1328,8 +1339,9 @@
   Object
     (coerce-param [m param]
       ;; NOTE: leave param unchanged if coercion not possible (probably an invalid shape for implementation)
-      (or (mp/construct-matrix m param) 
-          param))) 
+      (let [param (if (instance? clojure.lang.ISeq param) (vec param) param)] ;; ISeqs can be slow, so convert to vectors
+        (or (mp/construct-matrix m param) 
+           param)))) 
 
 (extend-protocol mp/PExponent
   Number
