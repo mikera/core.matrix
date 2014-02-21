@@ -120,7 +120,7 @@
           :else
             (error "Invalid dimension: " x)))))
 
-;; explicitly specify we use a primitive type
+;; explicitly specify we use the Object type
 (extend-protocol mp/PTypeInfo
   (Class/forName "[Ljava.lang.Object;")
     (element-type [m]
