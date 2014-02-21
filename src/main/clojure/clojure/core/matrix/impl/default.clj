@@ -598,6 +598,7 @@
             adims (long (mp/dimensionality a))]
         (cond
          (== adims 0) (mp/scale m a)
+         (and (== mdims 1) (== adims 1)) (mp/vector-dot m a)
          (and (== mdims 1) (== adims 2))
            (let [[arows acols] (mp/get-shape a)]
              (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
