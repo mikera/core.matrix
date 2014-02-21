@@ -1248,6 +1248,14 @@
 ;; ===================================
 ;; Sparse matrix functions
 
+(defn non-zero-count
+  "Counts the number of non-zero values in a numerical array. 
+   May perform a full array scan, but will often be quicker for specialised
+   sparse matrices - sometimes as fast as O(1)"
+  ([m]
+    ;; TODO fast protocol implementation?
+    (- (mp/element-count) (mp/zero-count))))
+
 (defn non-zero-indices
   "Gets the non-zero indices of an array.
    - For a 1D vector, returns an ordered index list.
