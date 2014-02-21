@@ -1254,7 +1254,7 @@
    sparse matrices - sometimes as fast as O(1)"
   ([m]
     ;; TODO fast protocol implementation?
-    (- (mp/element-count) (mp/zero-count))))
+    (- (mp/element-count m) (mp/zero-count m))))
 
 (defn non-zero-indices
   "Gets the non-zero indices of an array.
