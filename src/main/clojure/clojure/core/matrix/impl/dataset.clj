@@ -12,6 +12,9 @@
   [^IPersistentVector column-names
    ^IPersistentVector columns])
 
+(defn- dataset [^IPersistentVector column-names ^IPersistentVector columns]
+  (DataSet. column-names columns))
+
 (defn- dataset-from-array 
   ([m]
     (when (not (mp/is-scalar? m)) (error "Don't know how to construct DataSet from type: " (class m)))
@@ -19,9 +22,15 @@
     (let [row-count (mp/dimension-count m 0)
           col-count (mp/dimension-count m 1)
           col-indexes (range col-count)]
-      (DataSet. (mapv keyword col-indexes)
+      (dataset (mapv keyword col-indexes)
                 (vec (for [i col-indexes]
                       (mp/get-slice m 1 i)))))))
+
+(defmacro row-count [d]
+  `(mp/dimension-count (first (.columns ~d)) 0))
+
+(defmacro column-count [d]
+  `(count (.column-names ~d)))
 
 (extend-protocol mp/PImplementation
   DataSet
@@ -40,5 +49,21 @@
       (dataset-from-array data))
     (supports-dimensionality? [m dims]
       (== dims 2)))
+
+
+(extend-protocol mp/PDimensionInfo
+  DataSet
+    (dimensionality [m] 
+      2)
+    (is-vector? [m] 
+      false)
+    (is-scalar? [m] false)
+    (get-shape [m] 
+      [(row-count m) (column-count m)])
+    (dimension-count [m x]
+      (cond 
+          (== x 0) (row-count m) 
+          (== x 1) (column-count m)
+          :else (error "Invalid dimension: " x))))
 
 (imp/register-implementation (DataSet. [:0] [["Foo"]]))
