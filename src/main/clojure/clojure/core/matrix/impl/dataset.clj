@@ -12,8 +12,16 @@
   [^IPersistentVector column-names
    ^IPersistentVector columns])
 
+(defmacro row-count [d]
+  `(mp/dimension-count (first (.columns ~d)) 0))
+
+(defmacro column-count [d]
+  `(count (.column-names ~d)))
+
 (defn- dataset [^IPersistentVector column-names ^IPersistentVector columns]
-  (DataSet. column-names columns))
+  (let [cc (count column-names)]
+    (when (not= cc (count columns)) (error "Mismatched number of columns, have: " cc " column names"))
+    (DataSet. column-names columns)))
 
 (defn- dataset-from-array 
   ([m]
@@ -25,12 +33,6 @@
       (dataset (mapv keyword col-indexes)
                 (vec (for [i col-indexes]
                       (mp/get-slice m 1 i)))))))
-
-(defmacro row-count [d]
-  `(mp/dimension-count (first (.columns ~d)) 0))
-
-(defmacro column-count [d]
-  `(count (.column-names ~d)))
 
 (extend-protocol mp/PImplementation
   DataSet
@@ -66,4 +68,22 @@
           (== x 1) (column-count m)
           :else (error "Invalid dimension: " x))))
 
-(imp/register-implementation (DataSet. [:0] [["Foo"]]))
+(extend-protocol mp/PIndexedAccess
+  DataSet
+    (get-1d [m x]
+      (aget ^objects m (int x)))
+    (get-2d [m x y]
+      (mp/get-1d (aget ^objects m (int x)) y))
+    (get-nd [m indexes]
+      (let [^objects m m
+            dims (long (count indexes))]
+        (cond
+          (== 1 dims)
+            (aget m (int (first indexes)))
+          (> dims 1) 
+            (mp/get-nd (aget m (int (first indexes))) (next indexes)) 
+          (== 0 dims) m
+          :else
+            (error "Invalid dimensionality access with index: " (vec indexes))))))
+
+(imp/register-implementation (dataset [:0] [["Foo"]]))
