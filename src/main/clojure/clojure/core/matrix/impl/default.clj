@@ -1339,7 +1339,7 @@
   Object
     (coerce-param [m param]
       ;; NOTE: leave param unchanged if coercion not possible (probably an invalid shape for implementation)
-      (let [param (if (instance? clojure.lang.ISeq param) (vec param) param)] ;; ISeqs can be slow, so convert to vectors
+      (let [param (if (instance? clojure.lang.ISeq param) (mp/convert-to-nested-vectors param) param)] ;; ISeqs can be slow, so convert to vectors
         (or (mp/construct-matrix m param) 
            param)))) 
 
