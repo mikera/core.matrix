@@ -127,7 +127,9 @@
   ([shape]
     (mp/new-matrix-nd (implementation-check) shape))
   ([implementation shape]
-    (mp/new-matrix-nd (implementation-check implementation) shape)))
+    (or (mp/new-matrix-nd (implementation-check implementation) shape)
+        (mp/new-matrix-nd (implementation-check) shape)
+        (error "Implementation unable to create array of shape: " (vec shape)))))
 
 (defn new-scalar-array
   "Returns a new mutable scalar array containing the scalar value zero."

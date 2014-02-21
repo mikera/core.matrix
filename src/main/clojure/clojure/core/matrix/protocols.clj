@@ -40,6 +40,7 @@
     "Returns a new matrix (regular 2D matrix) with the given number of rows and columns, filled with numeric zero.")
   (new-matrix-nd [m shape]
     "Returns a new general matrix of the given shape.
+     Must return nil if the shape is not supported by the implementation.
      Shape must be a sequence of dimension sizes.")
   (supports-dimensionality? [m dimensions]
     "Returns true if the implementation supports matrices with the given number of dimensions."))

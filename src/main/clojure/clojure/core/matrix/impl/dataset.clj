@@ -29,14 +29,16 @@
   ;; note we use get-slice here, because column may have more than one dimension
   `(mp/get-major-slice (column ~d ~j) ~i))
 
-(defn- dataset [^IPersistentVector column-names ^IPersistentVector columns]
-  (let [cc (count column-names)]
+(defn dataset [column-names columns]
+  (let [^IPersistentVector column-names (vec column-names)
+        ^IPersistentVector columns (vec columns)
+        cc (count column-names)]
     (when (not= cc (count columns)) (error "Mismatched number of columns, have: " cc " column names"))
     (DataSet. column-names columns)))
 
 (defn- dataset-from-array 
   ([m]
-    (when (not (mp/is-scalar? m)) (error "Don't know how to construct DataSet from type: " (class m)))
+    (when (mp/is-scalar? m) (error "Don't know how to construct DataSet from type: " (class m)))
     (when (< (mp/dimensionality m) 2) (error "Can't construct dataset from array with shape: " (mp/get-shape m)))
     (let [row-count (mp/dimension-count m 0)
           col-count (mp/dimension-count m 1)
@@ -53,13 +55,15 @@
     (new-vector [m length] (error "Can't construct a Dataset as a 1D vector, only 2D supported"))
     (new-matrix [m rows columns] 
       (let [col-indexes (range columns)] 
-        (DataSet. (mapv keyword col-indexes) (for [i (col-indexes)] (mp/new-vector @#'clojure.core.matrix/*matrix-implementation* rows)))))
+        (dataset (mapv keyword col-indexes) (for [i col-indexes] (mp/new-vector @#'clojure.core.matrix/*matrix-implementation* rows)))))
     (new-matrix-nd [m shape]
       (if (== 2 (count shape))
         (mp/new-matrix m (first shape) (second shape))
-        (error "Can't construct a new DataSet with shape: " shape)))
+        nil))
     (construct-matrix [m data]
-      (dataset-from-array data))
+      (if (== 2 (mp/dimensionality data)) 
+        (dataset-from-array data)
+        nil))
     (supports-dimensionality? [m dims]
       (== dims 2)))
 
@@ -94,4 +98,20 @@
           :else
             (error "Invalid dimensionality access with index: " (vec indexes))))))
 
-(imp/register-implementation (dataset [:0] [["Foo"]]))
+(extend-protocol mp/PIndexedSetting
+  DataSet
+    (set-1d [m x v]
+      (error "Can't do 1D set on a DataSet"))
+    (set-2d [m x y v]
+      (let [col (column m y)]
+        (dataset (.column-names m) (assoc (.columns m) (assoc col x v)))))
+    (set-nd [m indexes v]
+      (let [dims (long (count indexes))]
+        (cond 
+          (== 2 dims) (mp/set-2d m (first indexes) (second indexes) v) 
+          :else (error "Can't set on DataSet array with index: " (vec indexes)))))
+    (is-mutable? [m] false))
+
+(def CANONICAL-OBJECT (dataset [:0] [[1.0 2.0]]))
+
+(imp/register-implementation CANONICAL-OBJECT)

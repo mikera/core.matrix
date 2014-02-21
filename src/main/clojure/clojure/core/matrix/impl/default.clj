@@ -1327,7 +1327,9 @@
       param)
   Object
     (coerce-param [m param]
-      (mp/construct-matrix m param)))
+      ;; NOTE: leave param unchanged if coercion not possible (probably an invalid shape for implementation)
+      (or (mp/construct-matrix m param) 
+          param))) 
 
 (extend-protocol mp/PExponent
   Number
@@ -1375,8 +1377,9 @@
     (main-diagonal [m]
       (let [sh (mp/get-shape m)
             rank (count sh)
-            dims (apply min sh)]
-        (mp/construct-matrix m (for [i (range dims)] (mp/get-nd m (repeat rank i)))))))
+            dims (apply min sh)
+            diag-vals (for [i (range dims)] (mp/get-nd m (repeat rank i)))]
+        (imp/construct m diag-vals))))
 
 (extend-protocol mp/PSpecialisedConstructors
   Object
