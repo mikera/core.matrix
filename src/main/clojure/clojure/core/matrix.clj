@@ -184,6 +184,16 @@
   ([implementation permutation]
     (mp/permutation-matrix (implementation-check implementation) permutation)))
 
+; prasant chidella : mar 4, 14 - 19:25
+(defn block-diagonal-matrix
+  "Constructs a block diagonal matrix for a given vector of 2D square matrices and arranges
+  the matrics along the main diagonal of the 2D matrix"
+  ([blocks]
+    (mp/block-diagonal-matrix (implementation-check) blocks))
+  ([implementation blocks]
+    (mp/block-diagonal-matrix (implementation-check implementation) blocks)))
+; ----- done -----
+
 (defn mutable
   "Constructs a fully mutable copy of the given array data.
 
