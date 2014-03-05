@@ -402,6 +402,11 @@
   (is (equals [[1 0] [0 1]] (permutation-matrix [0 1])))
   (is (equals [[0 1 0] [0 0 1] [1 0 0]] (permutation-matrix [1 2 0]))))
 
+(deftest test-block-diagonal
+  (is (= [[1]] (block-diagonal-matrix [[[1]]])))
+  (is (= [[1 0.0] [0.0 2]] (block-diagonal-matrix [[[1]][[2]]])))
+  (is (= [[1 0.0 0.0] [0.0 2 3] [0.0 4 5]] (block-diagonal-matrix [[[1]][[2 3][4 5]]]))))
+
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]
     (testing "example code"
