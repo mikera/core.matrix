@@ -203,6 +203,10 @@
   "Protocol for construction of a permutation matrix."
   (permutation-matrix [m permutation]))
 
+(defprotocol PBlockDiagonalMatrix
+  "Protocol for construction of a block diagonal matrix."
+  (block-diagonal-matrix [m blocks]))
+
 (defprotocol PCoercion
   "Protocol to coerce a parameter to a format used by a specific implementation. It is
    up to the implementation to determine what parameter types they support.
