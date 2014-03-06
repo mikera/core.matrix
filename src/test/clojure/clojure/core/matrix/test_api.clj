@@ -309,11 +309,12 @@
 (deftest test-main-diagonal
   (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]]))))
 
-(deftest test-kth-diagonal
-  (is (= [1 4] (mp/kth-diagonal [[1 2] [3 4] [5 6]]  0)))
-  (is (= [2]   (mp/kth-diagonal [[1 2] [3 4] [5 6]]  1)))
-  (is (= [3 6] (mp/kth-diagonal [[1 2] [3 4] [5 6]] -1)))
-  (is (= [5]   (mp/kth-diagonal [[1 2] [3 4] [5 6]] -2))))
+(deftest test-diagonal
+  (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]   )))
+  (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]  0)))
+  (is (= [2]   (diagonal [[1 2] [3 4] [5 6]]  1)))
+  (is (= [3 6] (diagonal [[1 2] [3 4] [5 6]] -1)))
+  (is (= [5]   (diagonal [[1 2] [3 4] [5 6]] -2))))
 
 (deftest test-normalise
   (testing "vector normalise"
