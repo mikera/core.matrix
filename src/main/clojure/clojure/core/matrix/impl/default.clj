@@ -1391,11 +1391,7 @@
             rank (count sh)
             dims (apply min sh)
             diag-vals (for [i (range dims)] (mp/get-nd m (repeat rank i)))]
-        (imp/construct m diag-vals)))
-    (kth-diagonal [m k]
-      (if (<= k 0)
-        (mp/main-diagonal (subvec m (- k)))
-        (mp/main-diagonal (subvec (mp/transpose m) k)))))
+        (imp/construct m diag-vals))))
 
 (extend-protocol mp/PSpecialisedConstructors
   Object

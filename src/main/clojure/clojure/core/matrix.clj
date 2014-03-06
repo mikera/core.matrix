@@ -767,7 +767,7 @@
   ([m]
     (mp/main-diagonal m))
   ([m k]
-    (mp/kth-diagonal m k)))
+    (TODO)))
 
 (defn join
   "Joins arrays together, along dimension 0. Other dimensions must be compatible"

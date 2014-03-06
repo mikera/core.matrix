@@ -336,8 +336,7 @@
 (defprotocol PMatrixSubComponents
   "Protocol for picking out subsections of a 2D matrix. Should return a mutable view if possible.
    The default implementation creates a new vector containing the diagonal values."
-  (main-diagonal [m])
-  (kth-diagonal [m k]))
+  (main-diagonal [m]))
 
 (defprotocol PSparseArray
   "Protocol for determining if an array is in a sparse format. It is up to the implementation to define
