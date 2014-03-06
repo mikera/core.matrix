@@ -765,9 +765,9 @@
    If k<0, returns a diagonal below the main diagonal.
    Works on both square and rectangular matrices."
   ([m]
-    (mp/main-diagonal [m]))
+    (mp/main-diagonal m))
   ([m k]
-    (mp/kth-diagonal [m k])))
+    (mp/kth-diagonal m k)))
 
 (defn join
   "Joins arrays together, along dimension 0. Other dimensions must be compatible"
