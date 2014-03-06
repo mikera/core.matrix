@@ -1416,6 +1416,25 @@
           (mp/set-2d! r i (v i) 1.0))
         r)))
 
+(extend-protocol mp/PBlockDiagonalMatrix
+  Object
+    (block-diagonal-matrix [m blocks]
+      (let [aux (fn aux [acc blocks]
+                  (if (empty? blocks)
+                      acc
+                      (let [acc-dim (mp/dimension-count acc 0)
+                            new-block (blocks 0)
+                            new-block-dim (mp/dimension-count new-block 0)
+                            new-dim (+ acc-dim new-block-dim)
+                            dm (vec (for [i (range new-dim)]
+                                         (if (< i acc-dim)
+                                             (into [] (concat (acc i)
+                                                              (mp/new-vector [] new-block-dim)))
+                                             (into [] (concat (mp/new-vector [] acc-dim)
+                                                              (new-block (- i acc-dim)))))))]
+                            (aux dm (subvec blocks 1)))))]
+        (aux [] blocks))))
+
 ;; Helper function for symmetric? predicate in PMatrixPredicates.
 ;; Note loop/recur instead of letfn/recur is 20-25% slower.
 (defn- symmetric-matrix-entries?
