@@ -1416,6 +1416,7 @@
           (mp/set-2d! r i (v i) 1.0))
         r)))
 
+;; TODO: can this implementation be improved?
 (extend-protocol mp/PBlockDiagonalMatrix
   Object
     (block-diagonal-matrix [m blocks]
