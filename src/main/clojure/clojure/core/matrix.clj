@@ -764,8 +764,7 @@
    If k>0, returns a diagonal above the main diagonal.
    If k<0, returns a diagonal below the main diagonal.
    Works on both square and rectangular matrices.
-   returns empty vector if value of k is out of 
-   range (outside matrix)"
+   Returns empty vector if value of k is out of range (outside matrix)"
   ([m]
     (mp/main-diagonal m))
   ([m k]
