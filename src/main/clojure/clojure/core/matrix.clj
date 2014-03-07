@@ -765,7 +765,7 @@
    If k<0, returns a diagonal below the main diagonal.
    Works on both square and rectangular matrices."
   ([m]
-    (mp/main-diagonal [m]))
+    (mp/main-diagonal m))
   ([m k]
     (TODO)))
 
