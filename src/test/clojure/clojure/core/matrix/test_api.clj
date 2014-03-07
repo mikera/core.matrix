@@ -307,7 +307,15 @@
   (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]]))))
 
 (deftest test-main-diagonal
-  (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]]))))
+  (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]])))
+  (is (e== [1 4] (diagonal [[1 2] [3 4]]))))
+
+(deftest test-diagonals
+  ;; TODO: enable once diagonal function is complete
+  ;; (is (e== [1 4] (diagonal [[1 2] [3 4]] 0)))
+  ;; (is (e== [2] (diagonal [[1 2] [3 4]] 1)))
+  ;; (is (e== [3] (diagonal [[1 2] [3 4]] -1)))
+  ) 
 
 (deftest test-normalise
   (testing "vector normalise"
