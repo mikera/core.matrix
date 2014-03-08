@@ -254,6 +254,14 @@
             (vec (concat (subvec m sh c) (subvec m 0 sh)))))
         (mapv (fn [s] (mp/rotate s (dec dim) places)) m))))
 
+(extend-protocol mp/POrder
+  IPersistentVector
+  (order
+    ([m cols]
+       (mp/order m 0 cols))
+    ([m dimension cols]
+       (mapmatrix #(mp/get-slice m dimension %) cols))))
+
 (extend-protocol mp/PSubVector
   IPersistentVector
     (subvector [m start length]
