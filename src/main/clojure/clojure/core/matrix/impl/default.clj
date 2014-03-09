@@ -1386,7 +1386,7 @@
                                                   (merge-sort (mp/subvector x half (- len half)))))))]
                     (merge-sort m))
         :else (vec (for [i (range (mp/dimension-count m 0))]
-            (sort-array (m i) order))))
+            (sort-array (mp/get-1d m i) order))))
       (error "Invalid value of order. For ascending use order='asc, for descending use order='desc"))))
 
 ;; define standard Java maths functions for numbers
