@@ -1361,33 +1361,33 @@
   Object
    (square [m] (mp/element-multiply m m)))
 
-(extend-protocol mp/PSortArray
-  Object
-    (sort-array [m order]
-      (if (or (= order 'asc) (= order 'desc))
-        (cond 
-          (mp/is-vector? m)
-                (let [compare-e (fn [i j] (if (= order 'asc)
-                                            (if (<= i j) true false)
-                                            (if (>= i j) true false)))
-                      merge-vec (fn merge-vec [a b] 
-                                (cond
-                                  (== 0 (mp/dimension-count a 0)) b
-                                  (== 0 (mp/dimension-count b 0)) a
-                                  (compare-e (mp/get-1d a 0) (mp/get-1d b 0))
-                                    (vec (concat [(mp/get-1d a 0)] (merge-vec (mp/subvector a 1 (dec (mp/dimension-count a 0))) b)))
-                                  :else (vec (concat [(mp/get-1d b 0)] (merge-vec a (mp/subvector b 1 (dec (mp/dimension-count b 0))))))))
-                      merge-sort (fn merge-sort [x]
-                                    (let [len (mp/dimension-count x 0)
-                                          half (quot len 2)]
-                                      (if (< len 2)
-                                          x
-                                          (merge-vec (merge-sort (mp/subvector x 0 half))
-                                                    (merge-sort (mp/subvector x half (- len half)))))))]
-                  (merge-sort m))
-          :else (vec (for [i (range (mp/dimension-count m 0))]
-              (sort-array (mp/get-1d m i) order))))
-        (error "Invalid value of order. For ascending use order='asc, for descending use order='desc"))))
+; (extend-protocol mp/PSortArray
+;   Object
+;     (sort-array [m order]
+;       (if (or (= order 'asc) (= order 'desc))
+;         (cond 
+;           (mp/is-vector? m)
+;                 (let [compare-e (fn [i j] (if (= order 'asc)
+;                                             (if (<= i j) true false)
+;                                             (if (>= i j) true false)))
+;                       merge-vec (fn merge-vec [a b] 
+;                                 (cond
+;                                   (== 0 (mp/dimension-count a 0)) b
+;                                   (== 0 (mp/dimension-count b 0)) a
+;                                   (compare-e (mp/get-1d a 0) (mp/get-1d b 0))
+;                                     (vec (concat [(mp/get-1d a 0)] (merge-vec (mp/subvector a 1 (dec (mp/dimension-count a 0))) b)))
+;                                   :else (vec (concat [(mp/get-1d b 0)] (merge-vec a (mp/subvector b 1 (dec (mp/dimension-count b 0))))))))
+;                       merge-sort (fn merge-sort [x]
+;                                     (let [len (mp/dimension-count x 0)
+;                                           half (quot len 2)]
+;                                       (if (< len 2)
+;                                           x
+;                                           (merge-vec (merge-sort (mp/subvector x 0 half))
+;                                                     (merge-sort (mp/subvector x half (- len half)))))))]
+;                   (merge-sort m))
+;           :else (vec (for [i (range (mp/dimension-count m 0))]
+;               (sort-array (mp/get-1d m i) order))))
+;         (error "Invalid value of order. For ascending use order='asc, for descending use order='desc"))))
 
 ;; define standard Java maths functions for numbers
 (eval
