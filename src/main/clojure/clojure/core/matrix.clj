@@ -763,11 +763,17 @@
   "Returns the specified diagonal of a 2D matrix as a vector.
    If k>0, returns a diagonal above the main diagonal.
    If k<0, returns a diagonal below the main diagonal.
-   Works on both square and rectangular matrices."
+   Works on both square and rectangular matrices.
+   Returns empty vector if value of k is out of range (outside matrix)"
   ([m]
     (mp/main-diagonal m))
   ([m k]
-    (TODO)))
+    (cond
+     (< k 0) (mp/main-diagonal (mp/submatrix m [[(- k) (+ (mp/dimension-count m 0) k)] 
+                                                 [0 (mp/dimension-count m 1)]]))
+     (> k 0) (mp/main-diagonal (mp/submatrix m [[0 (mp/dimension-count m 0)]       
+                                                 [k (- (mp/dimension-count m 1) k)]]))
+     :else   (mp/main-diagonal m))))
 
 (defn join
   "Joins arrays together, along dimension 0. Other dimensions must be compatible"

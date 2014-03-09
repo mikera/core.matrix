@@ -317,6 +317,14 @@
   ;; (is (e== [3] (diagonal [[1 2] [3 4]] -1)))
   ) 
 
+(deftest test-diagonal
+  (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]   )))
+  (is (= [] (diagonal [[1 2] [3 4] [5 6]]  8)))
+  (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]  0)))
+  (is (= [2]   (diagonal [[1 2] [3 4] [5 6]]  1)))
+  (is (= [3 6] (diagonal [[1 2] [3 4] [5 6]] -1)))
+  (is (= [5]   (diagonal [[1 2] [3 4] [5 6]] -2))))
+
 (deftest test-normalise
   (testing "vector normalise"
     (is (e== [1.0] (normalise (array [1.0]))))
