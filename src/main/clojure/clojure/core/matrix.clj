@@ -794,6 +794,13 @@
   ([m shifts]
     (mp/rotate-all m shifts)))
 
+(defn order
+  "Reorders columns of an array along specified dimension."
+  ([m cols]
+     (mp/order m cols))
+  ([m dimension cols]
+     (mp/order m dimension cols)))
+
 (defn as-vector
   "Creates a view of an array as a single flattened vector.
    Returns nil if this is not supported by the implementation."

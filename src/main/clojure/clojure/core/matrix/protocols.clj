@@ -543,6 +543,12 @@
   (transpose! [m]
     "Transposes a mutable 2D matrix in place"))
 
+(defprotocol POrder
+  "Protocol for matrix reorder"
+  (order
+    [m cols]
+    [m dimension cols]))
+
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
    array is a valid numerical value."
