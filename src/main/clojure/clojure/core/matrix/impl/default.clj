@@ -1384,7 +1384,8 @@
                                           x
                                           (merge-vec (merge-sort (mp/subvector x 0 half))
                                                     (merge-sort (mp/subvector x half (- len half)))))))]
-                  (merge-sort m))
+                      (merge-sort m)))
+          ;         (merge-sort m))
           ; :else (vec (for [i (range (mp/dimension-count m 0))]
           ;     (sort-array (mp/get-1d m i) order))))
         (error "Invalid value of order. For ascending use order='asc, for descending use order='desc"))))
