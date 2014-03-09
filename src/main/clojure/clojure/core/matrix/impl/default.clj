@@ -1384,7 +1384,6 @@
                                           x
                                           (merge-vec (merge-sort (mp/subvector x 0 half))
                                                     (merge-sort (mp/subvector x half (- len half)))))))]
-                      ; (merge-sort m)))
                   (merge-sort m))
           :else (vec (for [i (range (mp/dimension-count m 0))]
               (mp/sort-array (mp/get-1d m i) order))))
