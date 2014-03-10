@@ -544,6 +544,11 @@
       (is (equals [[1 3] [2 4]] (transpose m)))
       (is (equals m (transpose (transpose m)))))))
 
+(defn test-order [im]
+  (testing "order"
+    (let [m (matrix im [[1 2 4] [4 5 6]])]
+      (is (equals [[1 4] [2 5]] (order m 1 [0 1]))))))
+
 (defn test-negate [im]
   (testing "negate"
     (let [m (matrix im [[1 2] [3 4]])]
@@ -603,6 +608,7 @@
   (test-trace im)
   (test-matrix-emul im)
   (test-identity im)
+  (test-order im)
   (test-2d-instances im))
 
 ;; ======================================
