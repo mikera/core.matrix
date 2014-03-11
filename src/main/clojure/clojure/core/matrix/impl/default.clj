@@ -557,6 +557,16 @@
          m 
          (map-indexed (fn [i v] [i v]) shifts))))
 
+(extend-protocol mp/POrder
+  nil
+    (order [m dim cols] nil)
+  Number
+    (order [m dim cols] m)
+  Object
+    (order [m dim cols]
+      (mp/order (mp/convert-to-nested-vectors m) dim cols)))
+
+
 (extend-protocol mp/PMatrixProducts
   Number
     (inner-product [m a]
