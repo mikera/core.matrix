@@ -2,10 +2,13 @@
   (:use clojure.test)
   (:require [clojure.core.matrix :as cm])
   (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.compliance-tester :as ct])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :refer :all])
   (:require [clojure.core.matrix.generic-protocols :as gmp])
+  (:require [simple-check.core :as sc])
+  (:require [simple-check.generators :as gen])
+  (:require [simple-check.properties :as prop])
+  (:require [simple-check.clojure-test :as ct :refer (defspec)])
   (:import [clojure.core.matrix.generic]))
 
 (def real (map->Specialisation {:add +
@@ -71,3 +74,10 @@
   (is (op/== [1 1.5] (div real [2 3] 2)))
   (is (cm/equals [2 1] (div real 4 [2 4])))
   (is (cm/equals [[1 2] [2 1]] (div real [[4 8] [4 4]] [[4 4] [2 4]]))))
+
+
+(defspec generic-behaves-like-normal-when-using-real-spec
+  100
+  (prop/for-all [a gen/int
+                 b gen/int]
+                (= (cm/add a b) (add real a b))))
