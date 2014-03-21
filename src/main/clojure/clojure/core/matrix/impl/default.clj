@@ -967,6 +967,17 @@
         (mp/assign! sl row)
         m)))
 
+(extend-protocol mp/PColumnSetting
+  Object
+  (set-column [m i column]
+    (let [scol (mp/get-column m 0)
+          column (mp/broadcast-like scol column)
+          indices (range (mp/dimension-count column 0))
+          new-m (reduce (fn [acc idx]
+                          (mp/set-2d acc idx i (mp/get-1d column idx)))
+                        m indices)]
+      (mp/coerce-param m new-m))))
+
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
   Number

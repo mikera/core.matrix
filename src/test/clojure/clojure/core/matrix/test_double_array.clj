@@ -38,6 +38,10 @@
     (set-row! a 0 7)
     (is (equals [7 2 3] (seq a)))))
 
+(deftest column-setting
+  (let [a [(double-array [1 2]) (double-array [3 4])]]
+    (is (equals [[1.0 10.0] [3.0 10.0]] (set-column a 1 10)))))
+
 (deftest test-slices
   (testing "slices"
     (let [m [(double-array [1 2]) (double-array [3 4])]]

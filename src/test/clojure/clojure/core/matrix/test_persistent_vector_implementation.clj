@@ -153,6 +153,10 @@
   (is (equals [[1 2] [5 5]] (set-row [[1 2] [3 4]] 1 5)))
   (is (equals [[1 2] [5 6]] (set-row [[1 2] [3 4]] 1 [5 6]))))
 
+(deftest test-column-setting
+  (is (equals [[1 5] [3 5]] (set-column [[1 2] [3 4]] 1 5)))
+  (is (equals [[1 5] [3 6]] (set-column [[1 2] [3 4]] 1 [5 6]))))
+
 (deftest test-slices
   (is (= [1 2] (slices [1 2])))
   (is (== 1 (first (slices [1 2]))))
