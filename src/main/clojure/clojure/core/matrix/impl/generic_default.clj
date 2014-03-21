@@ -112,14 +112,14 @@
 (extend-protocol gmp/PGenericMatrixDivide
   Number
     (generic-element-divide
-      ([m spec] ((:div spez)m))
-      ([m a spec] (mp/element-map a #((:div spez)m %))))
+      ([m spec] ((:div spec)m))
+      ([m a spec] (mp/element-map a #((:div spec)m %))))
   Object
     (generic-element-divide
-      ([m spec] (mp/element-map m #((:div spez)%)))
+      ([m spec] (mp/element-map m #((:div spec)%)))
       ([m a spec]
         (let [[m a] (mp/broadcast-compatible m a)]
-          (mp/element-map m #((:div spez)%1 %2) a)))))
+          (mp/element-map m #((:div spec)%1 %2) a)))))
 
 (extend-protocol gmp/PGenericMatrixDivideMutable
   Number
@@ -128,10 +128,10 @@
     ([m a spec] (error "Can't do mutable divide on a scalar numer")))
   Object
   (generic-element-divide!
-    ([m spec] (mp/element-map! m #((:div spez)%)))
+    ([m spec] (mp/element-map! m #((:div spec)%)))
     ([m a spec]
        (let [[m a] (mp/broadcast-compatible m a)]
-         (mp/element-map! m #((:div spez) %1 %2) a)))))
+         (mp/element-map! m #((:div spec) %1 %2) a)))))
 
 ;; matrix element summation
 (extend-protocol gmp/PGenericSummable
