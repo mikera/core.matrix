@@ -469,8 +469,9 @@
     (convert-to-nested-vectors [m]
       (if (is-nested-persistent-vectors? m)
         m
-        (let [m (mapv-identity-check mp/convert-to-nested-vectors m)]
-          (if (reduce = (map mp/get-shape m))
+        (let [m (mapv-identity-check mp/convert-to-nested-vectors m)
+              m-shapes (map mp/get-shape m)]
+          (if (every? (partial = (first m-shapes)) (rest m-shapes))
             m
             (error "Can't convert to persistent vector array: inconsistent shape."))))))
 
