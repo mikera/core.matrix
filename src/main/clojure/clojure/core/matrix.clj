@@ -849,12 +849,15 @@
     (if (= 1 (mp/element-count erg)) (first (mp/element-seq erg)) erg)))
 
 
-(defn end [a dim]
+(defn end
+  "extractor for msel. selects the last alid index"
+  [a dim]
   (- (dimension-count a dim) 1))
 
 (defn irange
-  "index-range selects the range from start position until (including!) the end
-   position inside msel. Also supports extractors as arguments
+  "extractor for msel.
+   index-range selects the range from start position until (including!) the end
+   position. Also supports extractors as arguments
    Example: (msel [0 1 2 3 4] (irange 1 end)) ;=> [1 2 3 4]
    (irange) is the same as (irange 0 end)"
   ([] (irange 0 end 1))
@@ -866,22 +869,37 @@
                                    [start end step])]
          (range start (if (pos? step) (inc end) (dec end)) step)))))
 
-(defn exclude [idx]
+(defn exclude
+  "extractor for msel.
+   selects all valid indizes except the ones specified in idx. idx can be a
+   number or a sequential"
+  [idx]
   (fn [a dim]
     (let [count (dimension-count a dim)]
       (remove (set (eval-arg a dim idx)) (range count)))))
 
-(defn where [pred?]
+(defn where
+  "extractor for msel.
+   Enables logical indexing. Selects all indices where pred? succeeds.
+   Can only be used as second argument to msel. example:
+   (msel (range 10) (where (partial > 5))) ;=> [0 1 2 3 4]"
+  [pred?]
   (fn [a dim]
     (remove nil? (map (fn [elem idx]
                         (when (pred? elem) idx))
                       (mp/element-seq a) (range)))))
 
-(defn even [a dim]
+(defn even
+  "extractor for msel.
+   selects all valid even indices"
+  [a dim]
   (let [c (dimension-count a dim)]
     (range 0 c 2)))
 
-(defn odd [a dim]
+(defn odd
+  "extractor for msel.
+   selects all valid odd indices"
+  [a dim]
   (let [c (dimension-count a dim)]
     (range 1 c 2)))
 
