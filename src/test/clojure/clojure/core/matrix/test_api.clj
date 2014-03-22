@@ -17,6 +17,16 @@
     (is (== 1 (mget [[1 2 3] [4 5 6]] 0 0)))
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
 
+(deftest test-ml-style-indexing
+  (let [a [[1 2] [3 4]]]
+    (testing "higher level indexing"
+      (is (== 1 (msel a 0 0)))
+      (is (= [[1] [3]] (msel a [0 1] 0)))
+      (is (= a (msel a (irange) (irange))))
+      (is (== 4 (msel a end end)))
+      (is (== 2 (msel a (exclude 1) (exclude 0))))
+      (is (= [1 2] (msel [[-1 0] [1 2]] (where pos?)))))))
+
 (deftest test-shape
   (testing "basic array shapes"
            (is (= 0 (count (shape 1))))

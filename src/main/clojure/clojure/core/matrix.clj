@@ -815,6 +815,76 @@
       (mp/to-vector m)
       (array m (mp/to-object-array m)))))
 
+;; ===================================
+;; high-level matlab-like indexing
+
+(defn- eval-arg [a d arg]
+  (cond
+   (sequential? arg) arg
+   (number? arg) [arg]
+   :else (eval-arg a d (arg a d))))
+
+(defn- eval-args [a args]
+  (map (partial eval-arg a) (range) args))
+
+(defn msel
+  "matlab-like array indexing.
+   Examples:
+    (msel [[1 2][3 4]] 0 0) ;=> 1
+    (msel [[1 2][3 4]] [0 1] 0) ;=> [[1] [3]] (gets the first column)
+    msel also supports extractors:
+    (msel [[1 2][3 4]] (irange) (irange));=> [[1 2][3 4]]
+    (msel [[1 2][3 4]] end end) ;=> 4
+    (msel [[1 2][3 4]] (exclude 1) (exclude 0)) ;=> 2
+    msel supports logical indexing
+    (msel [[-1 0][1 2]] (where pos?)) ;=> [1 2]"
+  [a & args]
+  (let [a (if (and (= 1 (count args)) (< 1 (dimensionality a)))
+              (array a (mp/element-seq a)) a)
+        args (eval-args a args)
+        shape (map count args)
+        erg  (compute-matrix
+              a shape (fn [& idx]
+                        (apply (partial mget a) (map #(nth %1 %2) args idx))))]
+    (if (= 1 (mp/element-count erg)) (first (mp/element-seq erg)) erg)))
+
+
+(defn end [a dim]
+  (- (dimension-count a dim) 1))
+
+(defn irange
+  "index-range selects the range from start position until (including!) the end
+   position inside msel. Also supports extractors as arguments
+   Example: (msel [0 1 2 3 4] (irange 1 end)) ;=> [1 2 3 4]
+   (irange) is the same as (irange 0 end)"
+  ([] (irange 0 end 1))
+  ([end] (irange 0 end 1))
+  ([start end] (irange 0 end 1))
+  ([start end step]
+     (fn [a dim]
+       (let [[start end step] (map #(if (number? %) % (% a dim))
+                                   [start end step])]
+         (range start (if (pos? step) (inc end) (dec end)) step)))))
+
+(defn exclude [idx]
+  (fn [a dim]
+    (let [count (dimension-count a dim)]
+      (remove (set (eval-arg a dim idx)) (range count)))))
+
+(defn where [pred?]
+  (fn [a dim]
+    (remove nil? (map (fn [elem idx]
+                        (when (pred? elem) idx))
+                      (mp/element-seq a) (range)))))
+
+(defn even [a dim]
+  (let [c (dimension-count a dim)]
+    (range 0 c 2)))
+
+(defn odd [a dim]
+  (let [c (dimension-count a dim)]
+    (range 1 c 2)))
+
 ;; ====================================
 ;; structural change operations
 
