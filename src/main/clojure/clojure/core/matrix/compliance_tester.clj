@@ -595,6 +595,12 @@
     (is (equals [[1 2] [1 2]] (broadcast (matrix im [1 2]) [2 2])))
     ))
 
+(defn test-matrix-mset [im]
+  (let [m (matrix im [[1 2] [3 4]])]
+    (is (equals [[5 2] [3 4]] (mset m 0 0 5)))
+    (is (equals [[1 2] [5 4]] (mset m 1 0 5)))
+    (is (equals [[1 2] [3 5]] (mset m 1 1 5)))))
+
 (defn test-2d-instances [im]
   (test-numeric-instance (matrix im [[1 2] [3 4]]))
   (test-numeric-instance (matrix im [[1 2]]))
@@ -609,7 +615,8 @@
   (test-matrix-emul im)
   (test-identity im)
   (test-order im)
-  (test-2d-instances im))
+  (test-2d-instances im)
+  (test-matrix-mset im))
 
 ;; ======================================
 ;; Instance test function

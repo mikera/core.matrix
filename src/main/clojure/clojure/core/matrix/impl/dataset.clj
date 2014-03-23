@@ -104,7 +104,7 @@
       (error "Can't do 1D set on a DataSet"))
     (set-2d [m x y v]
       (let [col (column m y)]
-        (dataset (.column-names m) (assoc (.columns m) (assoc col x v)))))
+        (dataset (.column-names m) (assoc (.columns m) y (assoc col x v)))))
     (set-nd [m indexes v]
       (let [dims (long (count indexes))]
         (cond 
