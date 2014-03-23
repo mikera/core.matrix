@@ -26,8 +26,32 @@
                                 :>= >=
                                 :< <
                                 :<= <=}))
+(defn- round
+  [^long precision ^double d]
+  (let [factor (Math/pow 10 precision)]
+    (/ (Math/round (* d factor)) factor)))
 
 
+(defn fp [precision]
+  (map->Specialisation {:add (comp (partial round precision) +)
+                        :mul (comp (partial round precision) *)
+                        :sub (comp (partial round precision) -)
+                        :div (comp (partial round precision) clojure.core//)
+                        :abs (comp (partial round precision) #(Math/abs (double %)))
+                        :sqrt (comp (partial round  precision) #(Math/sqrt (double %)))
+                        :scalar? number?
+                        :one 1.0
+                        :zero 0.0
+                        := ==
+                        :supports-equality? true
+                        :> >
+                        :>= >=
+                        :< <
+                        :<= <=}))
+
+(deftest test-fixed-point
+  (testing "quick fixed-point specialisation"
+    (is (== 6.2832 (add (fp 4) Math/PI Math/PI)))))
 
 (deftest test-addition
   (testing "matrix addition"
