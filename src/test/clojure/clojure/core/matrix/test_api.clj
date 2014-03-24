@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.test-api
   (:use clojure.core.matrix)
   (:use clojure.core.matrix.utils)
+  (:use clojure.core.matrix.select)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.implementations :as imp])
@@ -20,12 +21,12 @@
 (deftest test-ml-style-indexing
   (let [a [[1 2] [3 4]]]
     (testing "higher level indexing"
-      (is (== 1 (msel a 0 0)))
-      (is (= [[1] [3]] (msel a [0 1] 0)))
-      (is (= a (msel a (irange) (irange))))
-      (is (== 4 (msel a end end)))
-      (is (== 2 (msel a (exclude 1) (exclude 0))))
-      (is (= [1 2] (msel [[-1 0] [1 2]] (where pos?)))))))
+      (is (== 1 (sel a 0 0)))
+      (is (= [[1] [3]] (sel a [0 1] 0)))
+      (is (= a (sel a (irange) (irange))))
+      (is (== 4 (sel a end end)))
+      (is (== 2 (sel a (exclude 1) (exclude 0))))
+      (is (= [1 2] (sel [[-1 0] [1 2]] (where pos?)))))))
 
 (deftest test-shape
   (testing "basic array shapes"
