@@ -149,8 +149,10 @@
   (higher-order-set-area
    a area vals
    (fn [a area shape vals]
-     (doseq [i (range (first shape))]
-       (set-row! a i (get-row vals i))))
+     (loop [[i & is] (indices a) [j & js] (indices vals)]
+       (when i
+         (apply (partial mset! a) (concat i [(apply (partial mget vals) j)]))
+         (recur is js))))
    (fn [a area shape vals]
      (loop [[i & is] (second area) [j & js] (range (second shape))]
        (when i (do (set-column! a i (get-column vals j)) (recur is js)))))
