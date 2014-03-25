@@ -1506,6 +1506,61 @@
   (zero-matrix? [m] false)
   (symmetric? [m] true))
 
+;; ======================================================
+;; default implementation for higher-level array indexing
+;; Helper Functions
+
+(defn- expand-* [a args]
+  [(map #(if (= :* %1) (mp/dimension-count a %2) (count %1)) args (range))
+   (map #(if (= :* %1) (range (mp/dimension-count a %2)) %1) args (range))])
+
+(defn- sel-area [a args]
+  (let [[shape args] (expand-* a args)]
+    (cond
+     (= shape (mp/get-shape a)) a
+     (and (= (count shape) 2)
+          (= (first shape) (mp/dimension-count a 0)))
+     (if (= (second shape) 1)
+       (mp/column-matrix a (mp/get-column a (first (second args))))
+       (mp/transpose (mp/construct-matrix
+                      a (map (partial mp/get-column a) (second args)))))
+     (and (= (count shape) 2)
+          (= (second shape) (mp/dimension-count a 1)))
+     (if (= (first shape) 1)
+       (mp/get-row a (first (first args)))
+       (mp/construct-matrix a (map (partial mp/get-row a) (first args))))
+     :else
+     (mp/compute-matrix
+      a shape (fn [& idx] (mp/get-nd a (map #(nth %1 %2) args idx)))))))
+
+(extend-protocol mp/PLinearView
+  Object
+  (linear-view [a]
+    (mp/element-seq a)))
+
+(extend-protocol mp/PGetIndices
+  Object
+  (get-indices [a indices]
+    (mp/construct-matrix (if (array? a) a [])
+                         (map #(mp/get-nd a %1) indices))))
+
+(defn- int-to-index [shape int]
+  (let [weights (map #(reduce * %) (take-while seq (iterate rest (rest shape))))]
+    (loop [ind [] r int [w & ws] weights]
+      (if w
+        (recur (conj ind (quot r w)) (rem r w) ws)
+        (conj ind r)))))
+
+(defn- get-linear-indices [a arg]
+  (map #(int-to-index (mp/get-shape a) %) arg))
+
+(extend-protocol mp/PSel
+  Object
+  (linear-sel [a indices]
+    (mp/get-indices a (get-linear-indices a indices)))
+  (area-sel [a area]
+    (let [erg (sel-area a area)]
+    (if (= 1 (mp/element-count erg)) (first (mp/element-seq erg)) erg))))
 
 ;; =======================================================
 ;; default multimethod implementations

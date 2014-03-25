@@ -743,6 +743,22 @@
   (generic-negate [m] "Generic 'negate' function for numerical values.")
   (generic-div [m] "Generic 'div' function for numerical values."))
 
+;; ===========================================================
+;; Protocols for higher-level array indexing
+(defprotocol PSel
+  "Protocol for the sel function"
+  (area-sel [a area-indices] "selection of an 'area' from an array for example a row")
+  (linear-sel [a indices] "linear selection from an array. Used for selecting multiple separate indices"))
+
+(defprotocol PGetIndices
+  "Protocol for getting a vector with the elements at the specified indices.
+   should produce views if possible"
+  (get-indices [a indices] "returns a 1-d array with the elements of a at indices"))
+
+(defprotocol PLinearView
+  "Protocol for getting a linear view to an array. Returns an 1-dimensional array with the elements from the array enumerated in row-major order. Should return views when possible"
+  (linear-view [a]))
+
 ;; ============================================================
 ;; Utility functions
 
