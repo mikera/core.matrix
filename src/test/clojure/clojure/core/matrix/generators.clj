@@ -6,15 +6,20 @@
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :as ct :refer (defspec)]))
 
+;; =============================================================================
+;; Array generators for test.check generative testing
+
 (def gen-double (gen/fmap double gen/ratio))
 
 
-(defn gen-nested-vectors [shape elem-gen]
-  (reduce (fn [g s] (gen/vector g s)) elem-gen (reverse shape)))
+(defn gen-nested-vectors 
+  "Generator for nested vectors in a given shape, using a specified element generator"
+  ([shape elem-gen]
+    (reduce (fn [g s] (gen/vector g s)) elem-gen (reverse shape))))
 
 
 (defn gen-array
-  "generator for n-dimensional arrays"
+  "Generator for arbitrary n-dimensional arrays"
   [& {:keys [max-elems min-elems
              max-dim min-dim dimension-generator
              implementations elem-gen]
