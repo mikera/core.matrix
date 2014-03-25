@@ -614,6 +614,13 @@
     (is (equals [4 5 6] (slice m 1)))
     (is (equals [3 6] (slice m 1 2)))))
 
+(defn test-matrix-set-column
+  [im]
+  (let [m (matrix im [[1 2] [3 4]])]
+    (is (equals [[1 5] [3 5]] (set-column m 1 5)))
+    (is (equals [[1 5] [3 6]] (set-column m 1 [5 6])))))
+
+
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)
   (test-transpose im)
@@ -624,7 +631,8 @@
   (test-order im)
   (test-2d-instances im)
   (test-matrix-mset im)
-  (test-matrix-slices im))
+  (test-matrix-slices im)
+  (test-matrix-set-column im))
 
 ;; ======================================
 ;; Instance test function
