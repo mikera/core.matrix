@@ -18,7 +18,7 @@
     (is (== 1 (mget [[1 2 3] [4 5 6]] 0 0)))
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
 
-(deftest test-ml-style-indexing
+(deftest test-sel
   (let [a [[1 2] [3 4]]]
     (testing "higher level indexing"
       (is (== 1 (sel a 0 0)))
