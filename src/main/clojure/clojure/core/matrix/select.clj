@@ -1,6 +1,10 @@
 (ns clojure.core.matrix.select
   (:use [clojure.core.matrix])
   (:require [clojure.core.matrix.protocols :as mp]))
+
+;; =========================================================
+;; EXPERIMENTAL - API subject to change
+;;
 ;; high-level matlab-like indexing
 
 (defn- eval-arg [a d arg]
