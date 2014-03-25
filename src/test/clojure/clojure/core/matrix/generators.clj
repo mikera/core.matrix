@@ -8,6 +8,8 @@
 
 ;; =============================================================================
 ;; Array generators for test.check generative testing
+;;
+;; TODO: should this be a separate library, to allow implementation to import it?
 
 (def gen-double (gen/fmap double gen/ratio))
 
