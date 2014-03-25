@@ -616,9 +616,12 @@
 
 (defn test-matrix-set-column
   [im]
-  (let [m (matrix im [[1 2] [3 4]])]
+  (let [m (matrix im [[1 2] [3 4]])
+        mutable-m (ensure-mutable m)]
     (is (equals [[1 5] [3 5]] (set-column m 1 5)))
-    (is (equals [[1 5] [3 6]] (set-column m 1 [5 6])))))
+    (is (equals [[1 5] [3 6]] (set-column m 1 [5 6])))
+    (set-column! mutable-m 0 7)
+    (is (equals [[7 2] [7 4]] mutable-m))))
 
 
 (defn matrix-tests-2d [im]
