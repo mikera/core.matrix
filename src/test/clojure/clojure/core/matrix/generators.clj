@@ -19,6 +19,10 @@
   ([shape elem-gen]
     (reduce (fn [g s] (gen/vector g s)) elem-gen (reverse shape))))
 
+(defn gen-shape
+  "Generator for valid core.matrix array shapes."
+  ([] (gen/vector gen/s-pos-int))
+  ([& {:keys [dimensionality]}] (gen/vector gen/s-pos-int dimensionality))) 
 
 (defn gen-array
   "Generator for arbitrary n-dimensional arrays"
