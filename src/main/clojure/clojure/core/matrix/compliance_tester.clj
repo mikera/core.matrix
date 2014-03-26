@@ -435,9 +435,9 @@
   (is (equals (add 0.0 m) (mul 1 m)))
   (is (equals m (div m 1)))
   (let [m (add (square m) 1)]
-    (is (equals m (div (square m) m))))
+    (is (equals m (div (square m) m) 0.0001)))
   (is (equals (emul m m) (square m)))
-  (is (equals (esum m) (ereduce + m)))
+  (is (equals (esum m) (ereduce + m) 0.0001))
   (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m)))))
   (if (#{:vectorz} (current-implementation))
     (let [v (->> #(rand 1000.0) repeatedly (take 5) vec normalise array)
