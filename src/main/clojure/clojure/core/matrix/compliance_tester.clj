@@ -650,7 +650,7 @@
   (test-2d-instances im)
   (test-matrix-mset im)
   (test-matrix-slices im)
-  (test-matrix-set-column im))
+  (test-matrix-set-column im)
   (test-matrix-sel im)
   (test-matrix-sel-set im)
   (test-matrix-slices im))
