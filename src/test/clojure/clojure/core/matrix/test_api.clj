@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.test-api
   (:use clojure.core.matrix)
   (:use clojure.core.matrix.utils)
+  (:use clojure.core.matrix.select)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.implementations :as imp])
@@ -16,6 +17,16 @@
     (is (== 1 (mget [1 2 3] 0)))
     (is (== 1 (mget [[1 2 3] [4 5 6]] 0 0)))
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
+
+(deftest test-ml-style-indexing
+  (let [a [[1 2] [3 4]]]
+    (testing "higher level indexing"
+      (is (== 1 (sel a 0 0)))
+      (is (= [[1] [3]] (sel a [0 1] 0)))
+      (is (= a (sel a (irange) (irange))))
+      (is (== 4 (sel a end end)))
+      (is (== 2 (sel a (exclude 1) (exclude 0))))
+      (is (= [1 2] (sel [[-1 0] [1 2]] (where pos?)))))))
 
 (deftest test-shape
   (testing "basic array shapes"
@@ -307,7 +318,23 @@
   (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]]))))
 
 (deftest test-main-diagonal
-  (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]]))))
+  (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]])))
+  (is (e== [1 4] (diagonal [[1 2] [3 4]]))))
+
+(deftest test-diagonals
+  ;; TODO: enable once diagonal function is complete
+  ;; (is (e== [1 4] (diagonal [[1 2] [3 4]] 0)))
+  ;; (is (e== [2] (diagonal [[1 2] [3 4]] 1)))
+  ;; (is (e== [3] (diagonal [[1 2] [3 4]] -1)))
+  ) 
+
+(deftest test-diagonal
+  (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]   )))
+  (is (= [] (diagonal [[1 2] [3 4] [5 6]]  8)))
+  (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]  0)))
+  (is (= [2]   (diagonal [[1 2] [3 4] [5 6]]  1)))
+  (is (= [3 6] (diagonal [[1 2] [3 4] [5 6]] -1)))
+  (is (= [5]   (diagonal [[1 2] [3 4] [5 6]] -2))))
 
 (deftest test-normalise
   (testing "vector normalise"
@@ -401,6 +428,11 @@
   (is (equals [[0 1] [1 0]] (permutation-matrix [1 0])))
   (is (equals [[1 0] [0 1]] (permutation-matrix [0 1])))
   (is (equals [[0 1 0] [0 0 1] [1 0 0]] (permutation-matrix [1 2 0]))))
+
+(deftest test-block-diagonal
+  (is (= [[1]] (block-diagonal-matrix [[[1]]])))
+  (is (= [[1 0.0] [0.0 2]] (block-diagonal-matrix [[[1]][[2]]])))
+  (is (= [[1 0.0 0.0] [0.0 2 3] [0.0 4 5]] (block-diagonal-matrix [[[1]][[2 3][4 5]]]))))
 
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]

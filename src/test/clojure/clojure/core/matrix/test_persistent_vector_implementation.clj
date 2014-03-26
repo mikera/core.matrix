@@ -69,6 +69,12 @@
 (deftest test-rotate
   (is (equals [2 3 1] (rotate [1 2 3] 0 1))))
 
+(deftest test-order
+  (is (equals [1 3 3] (order [1 2 3 4] [0 2 2])))
+  (is (equals [[1 4] [2 5]] (order [[1 2 3] [4 5 6]] 1 [0 1])))
+  (is (error? (order [1 2] 1 [0])))
+  (is (error? (order [1 2] [2]))))
+
 (deftest test-dot
   (is (equals [2 4 6] (dot 2 [1 2 3])))
   (is (equals [2 4 6] (dot [1 2 3] 2)))
@@ -146,6 +152,10 @@
 (deftest test-row-setting
   (is (equals [[1 2] [5 5]] (set-row [[1 2] [3 4]] 1 5)))
   (is (equals [[1 2] [5 6]] (set-row [[1 2] [3 4]] 1 [5 6]))))
+
+(deftest test-column-setting
+  (is (equals [[1 5] [3 5]] (set-column [[1 2] [3 4]] 1 5)))
+  (is (equals [[1 5] [3 6]] (set-column [[1 2] [3 4]] 1 [5 6]))))
 
 (deftest test-slices
   (is (= [1 2] (slices [1 2])))

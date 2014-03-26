@@ -40,6 +40,7 @@
     "Returns a new matrix (regular 2D matrix) with the given number of rows and columns, filled with numeric zero.")
   (new-matrix-nd [m shape]
     "Returns a new general matrix of the given shape.
+     Must return nil if the shape is not supported by the implementation.
      Shape must be a sequence of dimension sizes.")
   (supports-dimensionality? [m dimensions]
     "Returns true if the implementation supports matrices with the given number of dimensions."))
@@ -201,6 +202,10 @@
 (defprotocol PPermutationMatrix
   "Protocol for construction of a permutation matrix."
   (permutation-matrix [m permutation]))
+
+(defprotocol PBlockDiagonalMatrix
+  "Protocol for construction of a block diagonal matrix."
+  (block-diagonal-matrix [m blocks]))
 
 (defprotocol PCoercion
   "Protocol to coerce a parameter to a format used by a specific implementation. It is
@@ -538,6 +543,12 @@
   (transpose! [m]
     "Transposes a mutable 2D matrix in place"))
 
+(defprotocol POrder
+  "Protocol for matrix reorder"
+  (order
+    [m cols]
+    [m dimension cols]))
+
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
    array is a valid numerical value."
@@ -641,6 +652,11 @@
   "Protocol for row setting. Should set a dimension 0 (row) slice to thegiven row value."
   (set-row [m i row])
   (set-row! [m i row]))
+
+(defprotocol PColumnSetting
+  "Protocol for column setting. Should set a dimension 1 (column) slice to the given column value."
+  (set-column [m i column])
+  (set-column! [m i column]))
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!

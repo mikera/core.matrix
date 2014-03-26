@@ -308,13 +308,24 @@
       (let [dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
-          (== 1 dims)
-              (let [xdims (long (mp/dimensionality x))
+          (== 1 dims) 
+            (if (instance? clojure.lang.ISeq x)
+              (let [x (seq x)
+                    msize (long (mp/dimension-count m 0))]
+                (loop [i 0 s (seq x)]
+                  (if (>= i msize)
+                    (when s (error "Mismatches size of sequence in assign!"))
+                    (do 
+                      (mp/set-1d! m i (first s))
+                      (recur (inc i) (next s))))))
+             (let [xdims (long (mp/dimensionality x))
                     msize (long (mp/dimension-count m 0))]
                 (if (== 0 xdims)
                   (let [value (mp/get-0d x)]
                     (dotimes [i msize] (mp/set-1d! m i value)))
-                  (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
+                  (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i))))))
+          
+              
           (array? m)
             (let [xdims (long (mp/dimensionality x))]
               (if (> xdims 0)
@@ -546,6 +557,16 @@
          m 
          (map-indexed (fn [i v] [i v]) shifts))))
 
+(extend-protocol mp/POrder
+  nil
+    (order [m dim cols] nil)
+  Number
+    (order [m dim cols] m)
+  Object
+    (order [m dim cols]
+      (mp/order (mp/convert-to-nested-vectors m) dim cols)))
+
+
 (extend-protocol mp/PMatrixProducts
   Number
     (inner-product [m a]
@@ -598,6 +619,7 @@
             adims (long (mp/dimensionality a))]
         (cond
          (== adims 0) (mp/scale m a)
+         (and (== mdims 1) (== adims 1)) (mp/vector-dot m a)
          (and (== mdims 1) (== adims 2))
            (let [[arows acols] (mp/get-shape a)]
              (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
@@ -944,6 +966,22 @@
             row (mp/broadcast-like sl row)]
         (mp/assign! sl row)
         m)))
+
+(extend-protocol mp/PColumnSetting
+  Object
+  (set-column [m i column]
+    (let [scol (mp/get-column m 0)
+          column (mp/broadcast-like scol column)
+          indices (range (mp/dimension-count column 0))
+          new-m (reduce (fn [acc idx]
+                          (mp/set-2d acc idx i (mp/get-1d column idx)))
+                        m indices)]
+      (mp/coerce-param m new-m)))
+  (set-column! [m i column]
+    (let [scol (mp/get-column m 0)
+          column (mp/broadcast-like scol column)]
+      (dotimes [j (mp/dimension-count column 0)]
+        (mp/set-2d! m j i (mp/get-1d column j))))))
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
@@ -1326,7 +1364,10 @@
       param)
   Object
     (coerce-param [m param]
-      (mp/construct-matrix m param)))
+      ;; NOTE: leave param unchanged if coercion not possible (probably an invalid shape for implementation)
+      (let [param (if (instance? clojure.lang.ISeq param) (mp/convert-to-nested-vectors param) param)] ;; ISeqs can be slow, so convert to vectors
+        (or (mp/construct-matrix m param) 
+           param)))) 
 
 (extend-protocol mp/PExponent
   Number
@@ -1374,8 +1415,9 @@
     (main-diagonal [m]
       (let [sh (mp/get-shape m)
             rank (count sh)
-            dims (apply min sh)]
-        (mp/construct-matrix m (for [i (range dims)] (mp/get-nd m (repeat rank i)))))))
+            dims (apply min sh)
+            diag-vals (for [i (range dims)] (mp/get-nd m (repeat rank i)))]
+        (imp/construct m diag-vals))))
 
 (extend-protocol mp/PSpecialisedConstructors
   Object
@@ -1399,6 +1441,26 @@
         (dotimes [i n]
           (mp/set-2d! r i (v i) 1.0))
         r)))
+
+;; TODO: can this implementation be improved?
+(extend-protocol mp/PBlockDiagonalMatrix
+  Object
+    (block-diagonal-matrix [m blocks]
+      (let [aux (fn aux [acc blocks]
+                  (if (empty? blocks)
+                      acc
+                      (let [acc-dim (mp/dimension-count acc 0)
+                            new-block (blocks 0)
+                            new-block-dim (mp/dimension-count new-block 0)
+                            new-dim (+ acc-dim new-block-dim)
+                            dm (vec (for [i (range new-dim)]
+                                         (if (< i acc-dim)
+                                             (into [] (concat (acc i)
+                                                              (mp/new-vector [] new-block-dim)))
+                                             (into [] (concat (mp/new-vector [] acc-dim)
+                                                              (new-block (- i acc-dim)))))))]
+                            (aux dm (subvec blocks 1)))))]
+        (aux [] blocks))))
 
 ;; Helper function for symmetric? predicate in PMatrixPredicates.
 ;; Note loop/recur instead of letfn/recur is 20-25% slower.

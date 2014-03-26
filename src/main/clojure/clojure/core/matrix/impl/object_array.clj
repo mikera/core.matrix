@@ -120,7 +120,7 @@
           :else
             (error "Invalid dimension: " x)))))
 
-;; explicitly specify we use a primitive type
+;; explicitly specify we use the Object type
 (extend-protocol mp/PTypeInfo
   (Class/forName "[Ljava.lang.Object;")
     (element-type [m]
@@ -226,13 +226,17 @@
 (extend-protocol mp/PMatrixSlices
   (Class/forName "[Ljava.lang.Object;")
     (get-row [m i]
-      (aget ^objects m (long i)))
+      (mp/get-major-slice m i))
     (get-column [m i]
-      (mp/get-major-slice (aget ^objects m (long i)) i))
+      (mp/get-slice m 1 i))
     (get-major-slice [m i]
       (aget ^objects m (long i)))
     (get-slice [m dimension i]
-      (aget ^objects m (long i))))
+      (let [dimension (long dimension)]
+        (if (== dimension 0)
+          (mp/get-major-slice m i)
+          (let [sd (dec dimension)]
+            (mapv #(mp/get-slice % sd i) m))))))
 
 (extend-protocol mp/PSliceView
   (Class/forName "[Ljava.lang.Object;")
