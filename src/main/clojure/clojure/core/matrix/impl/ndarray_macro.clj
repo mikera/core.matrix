@@ -312,9 +312,9 @@ of indexes and strides"
    schemes can be different. Matrices argument should be a list of locals.
    Anaphoric arguments that can be used in a body given that [a, b] are
    provided: a-shape, b-shape, a-data, b-data, a-strides, b-strides, a-offset,
-   b-offset, a-ndims, b-ndims,  a-idx, b-idx (current indeces into a and b),
+   b-offset, a-ndims, b-ndims,  a-idx, b-idx (current indices into a and b),
    loop-acc (current value of accumulator). The passed body should return a
-   new value of accumulator; it will be casted to current 'magic' type"
+   new value of accumulator; it will be cast to current 'magic' type"
   [[m1 & _ :as matrices] init body]
   `(expose-ndarrays [~@matrices]
      (if-not ~(unroll-predicate 'java.util.Arrays/equals
