@@ -324,4 +324,4 @@ of indexes and strides"
          0 (fold-over-0d-internal [~@matrices] ~init ~body)
          1 (fold-over-1d-internal [~@matrices] ~init ~body)
          2 (fold-over-2d-internal [~@matrices] ~init ~body)
-         (TODO)))))
+         (TODO))))) ;;  "NDArray fold-over macro requires implementation for 3+ dimension case"

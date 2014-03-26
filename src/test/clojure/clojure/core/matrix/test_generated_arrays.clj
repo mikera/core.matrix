@@ -10,7 +10,8 @@
 
 (def instance-tests 
   (prop/for-all [a (g/gen-array)] 
-                (clojure.core.matrix.compliance-tester/instance-test a)))
+                (when (supports-shape? a (shape a))
+                  (clojure.core.matrix.compliance-tester/instance-test a))))
 
 (deftest generated-instance-tests
   (is (sc/quick-check 10 instance-tests)))
