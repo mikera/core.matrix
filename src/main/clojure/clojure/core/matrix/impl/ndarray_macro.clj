@@ -252,6 +252,17 @@ of indexes and strides"
 ;; through the loop. In some tests it's substantially slower (1-3x) than
 ;; loop-over, I don't know why.
 
+(defmacro fold-over-0d-internal
+  [[m1 & _ :as matrices] init body]
+  (let [loop-init (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
+                     matrices)
+        loop-recur (for [m matrices]
+                `(+ ~(m-field m 'idx) (aget ~(m-field m 'strides) 0)))]
+    `(let [~'loop-i (int 0)
+           ~'loop-acc (~'type-cast# ~init)
+           ~@loop-init]
+       ~body)))
+
 (defmacro fold-over-1d-internal
   [[m1 & _ :as matrices] init body]
   (let [loop-init (mapcat (fn [m] [(m-field m 'idx) (m-field m 'offset)])
@@ -310,7 +321,7 @@ of indexes and strides"
                                 (map #(m-field % 'shape) matrices))
        (iae "fold-over can iterate only over matrices of equal shape")
        (case ~(m-field m1 'ndims)
-         0 (TODO)
+         0 (fold-over-0d-internal [~@matrices] ~init ~body)
          1 (fold-over-1d-internal [~@matrices] ~init ~body)
          2 (fold-over-2d-internal [~@matrices] ~init ~body)
          (TODO)))))
