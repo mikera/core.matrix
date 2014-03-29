@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>core.matrix</artifactId>
-	<version>0.19.1-SNAPSHOT</version>
+	<version>0.21.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<parent>
@@ -27,13 +27,13 @@
 		<dependency>
 			<groupId>criterium</groupId>
 			<artifactId>criterium</artifactId>
-			<version>0.4.2</version>
+			<version>0.4.3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>clojure</artifactId>
-			<version>1.5.1</version>
+			<version>1.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
@@ -43,19 +43,19 @@
 		<dependency>
 			<groupId>hiccup</groupId>
 			<artifactId>hiccup</artifactId>
-			<version>1.0.4</version>
+			<version>1.0.5</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>vectorz-clj</artifactId>
-			<version>0.17.1</version>
+			<version>0.20.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>reiddraper</groupId>
-			<artifactId>simple-check</artifactId>
-			<version>0.5.3</version>
+			<groupId>org.clojure</groupId>
+			<artifactId>test.check</artifactId>
+			<version>0.5.7</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
