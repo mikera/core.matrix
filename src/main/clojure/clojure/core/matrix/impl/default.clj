@@ -308,13 +308,24 @@
       (let [dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
-          (== 1 dims)
-              (let [xdims (long (mp/dimensionality x))
+          (== 1 dims) 
+            (if (instance? clojure.lang.ISeq x)
+              (let [x (seq x)
+                    msize (long (mp/dimension-count m 0))]
+                (loop [i 0 s (seq x)]
+                  (if (>= i msize)
+                    (when s (error "Mismatches size of sequence in assign!"))
+                    (do 
+                      (mp/set-1d! m i (first s))
+                      (recur (inc i) (next s))))))
+             (let [xdims (long (mp/dimensionality x))
                     msize (long (mp/dimension-count m 0))]
                 (if (== 0 xdims)
                   (let [value (mp/get-0d x)]
                     (dotimes [i msize] (mp/set-1d! m i value)))
-                  (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i)))))
+                  (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i))))))
+          
+              
           (array? m)
             (let [xdims (long (mp/dimensionality x))]
               (if (> xdims 0)
@@ -546,6 +557,16 @@
          m 
          (map-indexed (fn [i v] [i v]) shifts))))
 
+(extend-protocol mp/POrder
+  nil
+    (order [m dim cols] nil)
+  Number
+    (order [m dim cols] m)
+  Object
+    (order [m dim cols]
+      (mp/order (mp/convert-to-nested-vectors m) dim cols)))
+
+
 (extend-protocol mp/PMatrixProducts
   Number
     (inner-product [m a]
@@ -598,6 +619,7 @@
             adims (long (mp/dimensionality a))]
         (cond
          (== adims 0) (mp/scale m a)
+         (and (== mdims 1) (== adims 1)) (mp/vector-dot m a)
          (and (== mdims 1) (== adims 2))
            (let [[arows acols] (mp/get-shape a)]
              (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
@@ -945,6 +967,17 @@
         (mp/assign! sl row)
         m)))
 
+(extend-protocol mp/PColumnSetting
+  Object
+  (set-column [m i column]
+    (let [scol (mp/get-column m 0)
+          column (mp/broadcast-like scol column)
+          indices (range (mp/dimension-count column 0))
+          new-m (reduce (fn [acc idx]
+                          (mp/set-2d acc idx i (mp/get-1d column idx)))
+                        m indices)]
+      (mp/coerce-param m new-m))))
+
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
   Number
@@ -1096,6 +1129,13 @@
           (.isArray (.getClass m)) (seq m) 
           (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
+
+(extend-protocol mp/PSliceSeq2
+  Object
+    (get-slice-seq [m dimension]
+      (if (== dimension 0)
+        (mp/get-major-slice-seq m)
+        (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
 
 (extend-protocol mp/PSliceViewSeq
   Object
@@ -1319,7 +1359,10 @@
       param)
   Object
     (coerce-param [m param]
-      (mp/construct-matrix m param)))
+      ;; NOTE: leave param unchanged if coercion not possible (probably an invalid shape for implementation)
+      (let [param (if (instance? clojure.lang.ISeq param) (mp/convert-to-nested-vectors param) param)] ;; ISeqs can be slow, so convert to vectors
+        (or (mp/construct-matrix m param) 
+           param)))) 
 
 (extend-protocol mp/PExponent
   Number
@@ -1367,8 +1410,9 @@
     (main-diagonal [m]
       (let [sh (mp/get-shape m)
             rank (count sh)
-            dims (apply min sh)]
-        (mp/construct-matrix m (for [i (range dims)] (mp/get-nd m (repeat rank i)))))))
+            dims (apply min sh)
+            diag-vals (for [i (range dims)] (mp/get-nd m (repeat rank i)))]
+        (imp/construct m diag-vals))))
 
 (extend-protocol mp/PSpecialisedConstructors
   Object
@@ -1392,6 +1436,26 @@
         (dotimes [i n]
           (mp/set-2d! r i (v i) 1.0))
         r)))
+
+;; TODO: can this implementation be improved?
+(extend-protocol mp/PBlockDiagonalMatrix
+  Object
+    (block-diagonal-matrix [m blocks]
+      (let [aux (fn aux [acc blocks]
+                  (if (empty? blocks)
+                      acc
+                      (let [acc-dim (mp/dimension-count acc 0)
+                            new-block (blocks 0)
+                            new-block-dim (mp/dimension-count new-block 0)
+                            new-dim (+ acc-dim new-block-dim)
+                            dm (vec (for [i (range new-dim)]
+                                         (if (< i acc-dim)
+                                             (into [] (concat (acc i)
+                                                              (mp/new-vector [] new-block-dim)))
+                                             (into [] (concat (mp/new-vector [] acc-dim)
+                                                              (new-block (- i acc-dim)))))))]
+                            (aux dm (subvec blocks 1)))))]
+        (aux [] blocks))))
 
 ;; Helper function for symmetric? predicate in PMatrixPredicates.
 ;; Note loop/recur instead of letfn/recur is 20-25% slower.
@@ -1436,14 +1500,170 @@
       0 true
       1 true
       2 (and (square? m) (symmetric-matrix-entries? m))
-      (throw 
-        (java.lang.UnsupportedOperationException. "symmetric? is not yet implemented for arrays with more than 2 dimensions."))))
+      (= m (mp/transpose m))))
   nil
   (identity-matrix? [m] false)
   (zero-matrix? [m] false)
   (symmetric? [m] true))
 
+;; ======================================================
+;; default implementation for higher-level array indexing
 
+;; Helper Functions for sel
+
+(defn- expand-* [a args]
+  [(map #(if (= :* %1) (mp/dimension-count a %2) (count %1)) args (range))
+   (map #(if (= :* %1) (range (mp/dimension-count a %2)) %1) args (range))])
+
+(defn- sel-area [a args]
+  (let [[shape args] (expand-* a args)]
+    (cond
+     (= shape (mp/get-shape a)) a
+     (and (= (count shape) 2)
+          (= (first shape) (mp/dimension-count a 0)))
+     (if (= (second shape) 1)
+       (mp/column-matrix a (mp/get-column a (first (second args))))
+       (mp/transpose (mp/construct-matrix
+                      a (map (partial mp/get-column a) (second args)))))
+     (and (= (count shape) 2)
+          (= (second shape) (mp/dimension-count a 1)))
+     (if (= (first shape) 1)
+       (mp/get-row a (first (first args)))
+       (mp/construct-matrix a (map (partial mp/get-row a) (first args))))
+     :else
+     (mp/compute-matrix
+      a shape (fn [& idx] (mp/get-nd a (map #(nth %1 %2) args idx)))))))
+
+(extend-protocol mp/PLinearView
+  Object
+  (linear-view [a]
+    (mp/element-seq a)))
+
+(extend-protocol mp/PIndicesAccess
+  Object
+  (get-indices [a indices]
+    (mp/construct-matrix (if (array? a) a [])
+                         (map #(mp/get-nd a %1) indices)))
+  (set-indices [a indices values]
+    (let [values (mp/element-seq (mp/broadcast values (mp/get-shape indices)))]
+      (loop [a a [id & idx] indices [v & vs] values]
+        (if id (recur (mp/set-nd a id v) idx vs) a))))
+  (set-indices! [a indices values]
+    (let [values (mp/element-seq (mp/broadcast values (mp/get-shape indices)))]
+      (loop [[id & idx] indices [v & vs] values]
+        (when id
+          (do (mp/set-nd! a id v) (recur idx vs)))))))
+
+(defn- int-to-index [shape int]
+  (let [weights (map #(reduce * %) (take-while seq (iterate rest (rest shape))))]
+    (loop [ind [] r int [w & ws] weights]
+      (if w
+        (recur (conj ind (quot r w)) (rem r w) ws)
+        (conj ind r)))))
+
+(defn- get-linear-indices [a arg]
+  (map #(int-to-index (mp/get-shape a) %) arg))
+
+(defn reduce-dims [erg]
+  (let [shape (mp/get-shape erg)]
+    (reduce (fn [acc s]
+              (if (= s 1)
+                (first (mp/get-major-slice-seq acc))
+                (reduced acc))) erg shape)))
+
+(extend-protocol mp/PSel
+  Object
+  (linear-sel [a indices]
+    (if (= indices :*)
+      a
+      (mp/get-indices a (get-linear-indices a indices))))
+  (area-sel [a area]
+    (let [erg (sel-area a area)]
+      (reduce-dims erg))))
+
+;;========================================================
+;; Helper functions for sel-set and sel-set!
+
+(defn- area-indices [area]
+  (reduce (fn [io in]
+            (for [a in b io]
+              (cons a b))) (map vector (last area)) (rest (reverse area))))
+
+(defn indices [vals]
+  (area-indices (map range (mp/get-shape vals))))
+
+(defn- higher-order-set-area [a area vals set-whole
+                              set-columns set-rows set-general]
+  (let [[shape area] (expand-* a area)
+        vals (mp/broadcast vals shape)]
+    (cond
+     (= shape (mp/get-shape a)) (set-whole a area shape vals)
+     (and (= (count shape) 2)
+          (= (first shape) (mp/dimension-count a 0)))
+     (set-columns a area shape vals)
+     (and (= (count shape) 2)
+          (= (second shape) (mp/dimension-count a 1)))
+     (set-rows a area shape vals)
+     :else
+     (set-general a area shape vals))))
+
+(defn- set-area [a area vals]
+  (higher-order-set-area
+   a area vals
+   (fn [a area shape vals] vals)
+   (fn [a area shape vals]
+     (loop [a a [i & is] (second area) [j & js] (range (second shape))]
+       (if i (recur (mp/set-column a i (mp/get-column vals j)) is js) a)))
+   (fn [a area shape vals]
+     (loop [a a [i & is] (first area) [j & js] (range (first shape))]
+       (if i (recur (mp/set-row a i (mp/get-row vals j)) is js) a)))
+   (fn [a area shape vals]
+     (loop [a a [idl & idxl] (area-indices area) [idr & idxr] (indices vals)]
+       (if idl
+         (recur (mp/set-nd a idl (mp/get-nd vals idr)) idxl idxr)
+         a)))))
+
+
+(defn sc! [a i col]
+  (loop [[j & js] (range (mp/dimension-count a 0)) [c & cs] col]
+    (when j (mp/set-2d! a j i c) (recur js cs))))
+
+(defn set-area! [a area vals]
+  (higher-order-set-area
+   a area vals
+   (fn [a area shape vals]
+     (mp/assign! a vals))
+   (fn [a area shape vals]
+     (loop [[i & is] (second area) [j & js] (range (second shape))]
+       (when i (do (sc! a i (mp/get-column vals j)) (recur is js)))))
+   (fn [a area shape vals]
+     (loop [[i & is] (first area) [j & js] (range (first shape))]
+       (when i (do (mp/set-row! a i (mp/get-row vals j)) (recur is js)))))
+   (fn [a area shape vals]
+     (loop [[idl & idxl] (area-indices area) [idr & idxr] (indices vals)]
+       (when idl (do (mp/set-nd! a idl (mp/get-nd vals idr))
+                     (recur idxl idxr)))))))
+
+
+(extend-protocol mp/PSelSet
+  Object
+  (linear-set [a indices values]
+    (mp/set-indices a (get-linear-indices
+                       a  (if (= indices :*)
+                            (range (mp/element-count a))
+                            indices)) values))
+  (area-set [a area-indices values]
+    (set-area a area-indices values)))
+
+(extend-protocol mp/PSelSet!
+  Object
+  (linear-set! [a indices values]
+    (mp/set-indices! a (get-linear-indices
+                        a (if (= indices :*)
+                            (range (mp/element-count a))
+                            indices)) values))
+  (area-set! [a area-indices values]
+    (set-area! a area-indices values)))
 ;; =======================================================
 ;; default multimethod implementations
 

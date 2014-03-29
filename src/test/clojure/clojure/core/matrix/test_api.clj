@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.test-api
   (:use clojure.core.matrix)
   (:use clojure.core.matrix.utils)
+  (:use clojure.core.matrix.select)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.implementations :as imp])
@@ -16,6 +17,43 @@
     (is (== 1 (mget [1 2 3] 0)))
     (is (== 1 (mget [[1 2 3] [4 5 6]] 0 0)))
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
+
+(deftest test-sel
+  (let [a [[1 2] [3 4]]]
+    (testing "higher level indexing"
+      (is (== 1 (sel a 0 0)))
+      (is (= [[1] [3]] (sel a [0 1] 0)))
+      (is (= a (sel a :* :*)))
+      (is (== 4 (sel a end end)))
+      (is (== 2 (sel a (exclude 1) (exclude 0))))
+      (is (= [1 2] (sel [[-1 0] [1 2]] (where pos?)))))))
+
+(deftest test-sel-set
+  (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
+    (testing "sel-set"
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (sel-set a 0 0 2))
+      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (sel-set a [0 2] [0 3] 3))
+      (is (= [[1 2 3 4] [5 5 5 5] [5 5 5 5]])
+          (sel-set a (where (partial < 5)) 5)))))
+
+(deftest test-sel-set!
+  (let [a (matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
+    (testing "sel-set!"
+      (sel-set! a 0 0 2)
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] a))
+      (sel-set! a :* 0 0)
+      (is (= [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a)))))
+
+(deftest test-selector-functions
+  (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12] [13 14 15 16]]]
+    (is (= (eseq a) (sel a (where pos?))))
+    (is (= [16] (sel a end)))
+    (is (= [15] (sel a (calc - end 1))))
+    (is (= a (sel a (irange) (irange))))
+    (is (= [[5 6 7 8] [9 10 11 12]] (sel a (irange 1 2) :*)))
+    (is (= [2 3 4] (sel a (exclude [1 2 3]) (exclude 0))))
+    (is (= [[1 3] [9 11]] (sel a even even)))
+    (is (= [[6 8] [14 16]] (sel a odd odd)))))
 
 (deftest test-shape
   (testing "basic array shapes"
@@ -307,7 +345,23 @@
   (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]]))))
 
 (deftest test-main-diagonal
-  (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]]))))
+  (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]])))
+  (is (e== [1 4] (diagonal [[1 2] [3 4]]))))
+
+(deftest test-diagonals
+  ;; TODO: enable once diagonal function is complete
+  ;; (is (e== [1 4] (diagonal [[1 2] [3 4]] 0)))
+  ;; (is (e== [2] (diagonal [[1 2] [3 4]] 1)))
+  ;; (is (e== [3] (diagonal [[1 2] [3 4]] -1)))
+  ) 
+
+(deftest test-diagonal
+  (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]   )))
+  (is (= [] (diagonal [[1 2] [3 4] [5 6]]  8)))
+  (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]  0)))
+  (is (= [2]   (diagonal [[1 2] [3 4] [5 6]]  1)))
+  (is (= [3 6] (diagonal [[1 2] [3 4] [5 6]] -1)))
+  (is (= [5]   (diagonal [[1 2] [3 4] [5 6]] -2))))
 
 (deftest test-normalise
   (testing "vector normalise"
@@ -402,6 +456,11 @@
   (is (equals [[1 0] [0 1]] (permutation-matrix [0 1])))
   (is (equals [[0 1 0] [0 0 1] [1 0 0]] (permutation-matrix [1 2 0]))))
 
+(deftest test-block-diagonal
+  (is (= [[1]] (block-diagonal-matrix [[[1]]])))
+  (is (= [[1 0.0] [0.0 2]] (block-diagonal-matrix [[[1]][[2]]])))
+  (is (= [[1 0.0 0.0] [0.0 2 3] [0.0 4 5]] (block-diagonal-matrix [[[1]][[2 3][4 5]]]))))
+
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]
     (testing "example code"
@@ -474,12 +533,7 @@
     (is (symmetric? (double-array [1 2 3 4])))
     (is (symmetric? (array [1 2 3 4])))
     (is (symmetric? (array [[1 -3][-3 2]])))
-    (is (not (symmetric? (array [[1 -3][-10 2]]))))
-    (is (try    ; symmetric? isn't yet implemented for 3-D, 4-D, etc., and clatrix doesn't support them at all.
-          (symmetric? (array [  [[1 2][3 4]]  [[5 6][7 8]]  ] )) ; 2x2x2
-          (catch java.lang.UnsupportedOperationException e       ; default, vectorz-clj, clatrix all throw this
-            (println (str "[Caught expected exception: \"" (.getMessage e) "\"]" ))
-            true)))))
+    (is (not (symmetric? (array [[1 -3][-10 2]]))))))
 
 (deftest test-inplace-operators
   (is (op/== (matrix [5 7])

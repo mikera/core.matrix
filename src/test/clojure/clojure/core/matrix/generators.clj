@@ -24,6 +24,7 @@
   ([] (gen/vector gen/s-pos-int))
   ([& {:keys [dimensionality]}] (gen/vector gen/s-pos-int dimensionality))) 
 
+
 (defn gen-array
   "Generator for arbitrary n-dimensional arrays"
   [& {:keys [max-elems min-elems

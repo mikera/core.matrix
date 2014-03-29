@@ -76,3 +76,12 @@
            (when-not (keyword? m) m)
            (error "Unable to find implementation: [" k "]"))
         nil))))
+
+(defn construct 
+  "Attempts to construct an array according to the type of array m. If not possible,
+   returns another array type."
+  ([m data]
+    (or (mp/construct-matrix m data)
+        ;; TODO: use current implementation?
+        (mp/coerce-param m data)
+        (mp/coerce-param [] data))))

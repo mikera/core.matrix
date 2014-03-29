@@ -82,8 +82,7 @@
       (mp/coerce-param [] data))))
 
 (defn zero-vector
-  "Constructs a new zero-filled numerical vector with the given length.
-   If the implementation supports mutable vectors, then the new vector will be fully mutable."
+  "Constructs a new zero-filled numerical vector with the given length."
   ([length]
     (mp/new-vector (implementation-check) length))
   ([implementation length]
@@ -99,8 +98,7 @@
     (mp/new-vector (implementation-check implementation) length)))
 
 (defn zero-matrix
-  "Constructs a new zero-filled numerical matrix with the given dimensions.
-   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+  "Constructs a new zero-filled numerical matrix with the given dimensions."
   ([rows columns]
     (mp/new-matrix (implementation-check) rows columns))
   ([implementation rows columns]
@@ -116,8 +114,7 @@
     (mp/new-matrix (implementation-check implementation) rows columns)))
 
 (defn zero-array
-  "Creates a new zero-filled numerical array with the given shape.
-   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+  "Creates a new zero-filled numerical array with the given shape."
   ([shape]
     (mp/new-matrix-nd (implementation-check) shape))
   ([implementation shape]
@@ -130,7 +127,9 @@
   ([shape]
     (mp/new-matrix-nd (implementation-check) shape))
   ([implementation shape]
-    (mp/new-matrix-nd (implementation-check implementation) shape)))
+    (or (mp/new-matrix-nd (implementation-check implementation) shape)
+        (mp/new-matrix-nd (implementation-check) shape)
+        (error "Implementation unable to create array of shape: " (vec shape)))))
 
 (defn new-scalar-array
   "Returns a new mutable scalar array containing the scalar value zero."
@@ -184,6 +183,14 @@
     (mp/permutation-matrix (implementation-check) permutation))
   ([implementation permutation]
     (mp/permutation-matrix (implementation-check implementation) permutation)))
+
+(defn block-diagonal-matrix
+  "Constructs a block diagonal matrix for a given vector of 2D square matrices and arranges
+  the matrics along the main diagonal of the 2D matrix"
+  ([blocks]
+    (mp/block-diagonal-matrix (implementation-check) blocks))
+  ([implementation blocks]
+    (mp/block-diagonal-matrix (implementation-check implementation) blocks)))
 
 (defn mutable
   "Constructs a fully mutable copy of the given array data.
@@ -500,6 +507,12 @@
   ([m]
     (mp/is-mutable? m)))
 
+(defn index?
+  "Returns true if the parameter is a valid array index type. An index should be a seq-able list 
+   of integer values."
+  ([m] 
+    (TODO))) 
+
 (defn conforming?
   "Returns true if two arrays have a conforming shape. Two arrays are conforming if there
    exists a common shape that both can broadcast to. This is a requirement for element-wise
@@ -637,8 +650,11 @@
     (mp/get-column m y)))
 
 (defn coerce
-  "Coerces param into a format preferred by a specific matrix implementation.
-   If param is already in a format deemed usable by the implementation, returns it unchanged."
+  "Coerces param (which may be any array) into a format preferred by a specific matrix implementation.
+   If param is already in a format deemed usable by the implementation, may return it unchanged.
+
+   coerce should never alter the shape of the array, but may convert element types where necessary
+   (e.g. turning real values into complex values when converting to a complex array type)."
   ([matrix-or-implementation param]
     (let [m (if (keyword? matrix-or-implementation) (imp/get-canonical-object matrix-or-implementation) matrix-or-implementation)]
       (or
@@ -687,8 +703,7 @@
   ([m]
     (mp/get-major-slice-seq m))
   ([m dimension]
-    ;; TODO: should go via protocols
-    (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))
+    (mp/get-slice-seq m dimension)))
 
 (defn slice-views
   "Gets a sequence of views of the slices of an array. If dimension is supplied, slices along a given dimension,
@@ -739,11 +754,17 @@
   "Returns the specified diagonal of a 2D matrix as a vector.
    If k>0, returns a diagonal above the main diagonal.
    If k<0, returns a diagonal below the main diagonal.
-   Works on both square and rectangular matrices."
+   Works on both square and rectangular matrices.
+   Returns empty vector if value of k is out of range (outside matrix)"
   ([m]
-    (mp/main-diagonal [m]))
+    (mp/main-diagonal m))
   ([m k]
-    (TODO)))
+    (cond
+     (< k 0) (mp/main-diagonal (mp/submatrix m [[(- k) (+ (mp/dimension-count m 0) k)] 
+                                                 [0 (mp/dimension-count m 1)]]))
+     (> k 0) (mp/main-diagonal (mp/submatrix m [[0 (mp/dimension-count m 0)]       
+                                                 [k (- (mp/dimension-count m 1) k)]]))
+     :else   (mp/main-diagonal m))))
 
 (defn join
   "Joins arrays together, along dimension 0. Other dimensions must be compatible"
@@ -763,6 +784,13 @@
     (mp/rotate m dimension shift-amount))
   ([m shifts]
     (mp/rotate-all m shifts)))
+
+(defn order
+  "Reorders columns of an array along specified dimension."
+  ([m cols]
+     (mp/order m cols))
+  ([m dimension cols]
+     (mp/order m dimension cols)))
 
 (defn as-vector
   "Creates a view of an array as a single flattened vector.
@@ -1230,6 +1258,28 @@
   "Sets a row in a matrix using a specified vector."
   [m i row]
   (mp/set-row! m i row))
+
+(defn set-column
+  "Sets a column in a matrix using a specified vector."
+  [m i column]
+  (mp/set-column m i column))
+
+;; ===================================
+;; Sparse matrix functions
+
+(defn non-zero-count
+  "Counts the number of non-zero values in a numerical array. 
+   May perform a full array scan, but will often be quicker for specialised
+   sparse matrices - sometimes as fast as O(1)"
+  ([m]
+    ;; TODO fast protocol implementation?
+    (- (mp/element-count m) (mp/zero-count m))))
+
+(defn non-zero-indices
+  "Gets the non-zero indices of an array.
+   - For a 1D vector, returns an ordered index list.
+   - For a higher dimensional array, returns the non-zero-indices for each slice in row-major order."
+  ([m] (TODO))) 
 
 ;; ===================================
 ;; Linear algebra algorithms

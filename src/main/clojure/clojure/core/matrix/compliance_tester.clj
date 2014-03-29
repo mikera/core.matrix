@@ -4,6 +4,7 @@
   (:require [clojure.core.matrix.operators :as ops])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as generic])
+  (:require [clojure.core.matrix.select :as sel])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.utils :as utils :refer [error error?]]))
 
@@ -544,6 +545,11 @@
       (is (equals [[1 3] [2 4]] (transpose m)))
       (is (equals m (transpose (transpose m)))))))
 
+(defn test-order [im]
+  (testing "order"
+    (let [m (matrix im [[1 2 4] [4 5 6]])]
+      (is (equals [[1 4] [2 5]] (order m 1 [0 1]))))))
+
 (defn test-negate [im]
   (testing "negate"
     (let [m (matrix im [[1 2] [3 4]])]
@@ -590,11 +596,48 @@
     (is (equals [[1 2] [1 2]] (broadcast (matrix im [1 2]) [2 2])))
     ))
 
+(defn test-matrix-mset [im]
+  (let [m (matrix im [[1 2] [3 4]])]
+    (is (equals [[5 2] [3 4]] (mset m 0 0 5)))
+    (is (equals [[1 2] [5 4]] (mset m 1 0 5)))
+    (is (equals [[1 2] [3 5]] (mset m 1 1 5)))))
+
+(defn test-matrix-sel [im]
+  (let [m (matrix im [[1 2] [3 4]])]
+    (is (equals [1 2] (sel/sel m 0 :*)))
+    (and (supports-dimensionality? m 1)
+         (is (equals [3 4] (sel/sel m (sel/where (partial < 2))))))))
+
+(defn test-matrix-sel-set [im]
+  (let [m (matrix im [[1 2] [3 4]])
+        mutable-m (ensure-mutable m)]
+    (is (equals [[1 1] [1 1]] (sel/sel-set m :* :* 1)))
+    (is (equals [[5 2] [6 4]] (sel/sel-set m :* 0 [[5] [6]])))
+    (when (mutable? m)
+      (sel/sel-set! m 0 :* [5 6])
+      (is (equals [[5 6] [3 4]] mutable-m))
+      (sel/sel-set! m (sel/where pos?) 1)
+      (is (equals [[1 1] [1 1]] mutable-m)))))
+
 (defn test-2d-instances [im]
   (test-numeric-instance (matrix im [[1 2] [3 4]]))
   (test-numeric-instance (matrix im [[1 2]]))
   (test-numeric-instance (matrix im [[10]]))
   (test-numeric-instance (matrix im [[10] [11]])))
+
+(defn test-matrix-slices [im]
+  (let [m (matrix im [[1 2 3] [4 5 6]])]
+    (is (equals [1 2 3] (get-row m 0)))
+    (is (equals [2 5] (get-column m 1)))
+    (is (equals [4 5 6] (slice m 1)))
+    (is (equals [3 6] (slice m 1 2)))))
+
+(defn test-matrix-set-column
+  [im]
+  (let [m (matrix im [[1 2] [3 4]])]
+    (is (equals [[1 5] [3 5]] (set-column m 1 5)))
+    (is (equals [[1 5] [3 6]] (set-column m 1 [5 6])))))
+
 
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)
@@ -603,7 +646,14 @@
   (test-trace im)
   (test-matrix-emul im)
   (test-identity im)
-  (test-2d-instances im))
+  (test-order im)
+  (test-2d-instances im)
+  (test-matrix-mset im)
+  (test-matrix-slices im)
+  (test-matrix-set-column im)
+  (test-matrix-sel im)
+  (test-matrix-sel-set im)
+  (test-matrix-slices im))
 
 ;; ======================================
 ;; Instance test function

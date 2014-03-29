@@ -40,6 +40,7 @@
     "Returns a new matrix (regular 2D matrix) with the given number of rows and columns, filled with numeric zero.")
   (new-matrix-nd [m shape]
     "Returns a new general matrix of the given shape.
+     Must return nil if the shape is not supported by the implementation.
      Shape must be a sequence of dimension sizes.")
   (supports-dimensionality? [m dimensions]
     "Returns true if the implementation supports matrices with the given number of dimensions."))
@@ -202,6 +203,10 @@
   "Protocol for construction of a permutation matrix."
   (permutation-matrix [m permutation]))
 
+(defprotocol PBlockDiagonalMatrix
+  "Protocol for construction of a block diagonal matrix."
+  (block-diagonal-matrix [m blocks]))
+
 (defprotocol PCoercion
   "Protocol to coerce a parameter to a format used by a specific implementation. It is
    up to the implementation to determine what parameter types they support.
@@ -302,6 +307,13 @@
 
    The default implementation uses get-major-slice-view to obtain the slices."
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
+
+(defprotocol PSliceSeq2
+  "Returns slices of the array as a sequence. 
+
+   These must be views or immutable sub-arrays for higher order slices, or scalars
+   for the slices of a 1D vector."
+  (get-slice-seq [m dim] "Gets a sequence of all array slices"))
 
 (defprotocol PSliceViewSeq
   "Returns the row-major slice views of the array. 
@@ -531,6 +543,12 @@
   (transpose! [m]
     "Transposes a mutable 2D matrix in place"))
 
+(defprotocol POrder
+  "Protocol for matrix reorder"
+  (order
+    [m cols]
+    [m dimension cols]))
+
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
    array is a valid numerical value."
@@ -635,6 +653,10 @@
   (set-row [m i row])
   (set-row! [m i row]))
 
+(defprotocol PColumnSetting
+  "Protocol for column setting. Should set a dimension 1 (column) slice to the given column value."
+  (set-column [m i column]))
+
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
 (eval
@@ -694,6 +716,13 @@
     [m]
     "returns true if matrix m is symmetric"))
 
+(defprotocol PMatrixTypes
+  (diagonal? [m] "Returns true if the matrix is diagonal")
+  (upper-triangular? [m] "Returns true if the matrix m is upper triangualar")
+  (lower-triangular? [m] "Returns true if the matrix m is lower triangualar")
+  (positive-definite? [m] "Returns true is the matrix is positive definite")
+  (positive-semidefinite? [m] "Returns true is the matrix is positive semidefinite"))
+
 ;; ============================================================
 ;; Generic values and functions
 ;;
@@ -713,6 +742,35 @@
   (generic-mul [m] "Generic 'mul' function for numerical values. Must satisfy (equals x (mul one x)).")
   (generic-negate [m] "Generic 'negate' function for numerical values.")
   (generic-div [m] "Generic 'div' function for numerical values."))
+
+;; ===========================================================
+;; Protocols for higher-level array indexing
+(defprotocol PSel
+  "Protocol for the sel function"
+  (area-sel [a area-indices] "selection of an 'area' from an array for example a row")
+  (linear-sel [a indices] "linear selection from an array. Used for selecting multiple separate indices"))
+
+(defprotocol PIndicesAccess
+  "Protocol for getting and settinga vector with the elements at the specified indices. should produce views if possible"
+  (get-indices [a indices] "returns a 1-d array with the elements of a at indices")
+  (set-indices [a indices values] "sets the elements from a at indices to values")
+  (set-indices! [a indices values] "destructively sets the elements from a at indices to values"))
+
+(defprotocol PLinearView
+  "Protocol for getting a linear view to an array. Returns an 1-dimensional array with the elements from the array enumerated in row-major order. Should return views when possible"
+  (linear-view [a]))
+
+(defprotocol PSelSet
+  "Protocol for the sel-setfunction"
+  (area-set [a area-indices values] "sets the area selection of a to values")
+  (linear-set [a indices values] "sets the indices of a to values"))
+
+
+(defprotocol PSelSet!
+  "Protocol for the sel-setfunction"
+  (area-set! [a area-indices values] "destructively sets the area selection of a to values")
+  (linear-set! [a indices values] "destructively sets the indices of a to values"))
+
 
 ;; ============================================================
 ;; Utility functions
