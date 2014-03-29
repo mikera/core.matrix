@@ -655,7 +655,8 @@
 
 (defprotocol PColumnSetting
   "Protocol for column setting. Should set a dimension 1 (column) slice to the given column value."
-  (set-column [m i column]))
+  (set-column [m i column])
+  (set-column! [m i column]))
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!

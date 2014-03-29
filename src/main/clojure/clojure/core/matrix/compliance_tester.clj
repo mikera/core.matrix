@@ -436,9 +436,9 @@
   (is (equals (add 0.0 m) (mul 1 m)))
   (is (equals m (div m 1)))
   (let [m (add (square m) 1)]
-    (is (equals m (div (square m) m))))
+    (is (equals m (div (square m) m) 0.0001)))
   (is (equals (emul m m) (square m)))
-  (is (equals (esum m) (ereduce + m)))
+  (is (equals (esum m) (ereduce + m) 0.0001))
   (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m)))))
   (if (#{:vectorz} (current-implementation))
     (let [v (->> #(rand 1000.0) repeatedly (take 5) vec normalise array)
@@ -634,9 +634,12 @@
 
 (defn test-matrix-set-column
   [im]
-  (let [m (matrix im [[1 2] [3 4]])]
+  (let [m (matrix im [[1 2] [3 4]])
+        mutable-m (ensure-mutable m)]
     (is (equals [[1 5] [3 5]] (set-column m 1 5)))
-    (is (equals [[1 5] [3 6]] (set-column m 1 [5 6])))))
+    (is (equals [[1 5] [3 6]] (set-column m 1 [5 6])))
+    (set-column! mutable-m 0 7)
+    (is (equals [[7 2] [7 4]] mutable-m))))
 
 
 (defn matrix-tests-2d [im]

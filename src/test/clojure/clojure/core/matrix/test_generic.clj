@@ -116,7 +116,8 @@
                 (is (cm/equals (cm/mul a b) (mul real a b)))
                 (is (cm/equals (cm/emul a b) (emul real a b)))
                 (is (cm/equals (cm/e* a b) (e* real a b)))
-                (is (cm/equals (cm/div a b) (div real a b)))
+                (when-not (some (partial == 0.0) (cm/eseq b))
+                  (is (cm/equals (cm/div a b) (div real a b))))
                 (is (cm/equals (cm/negate a) (negate real a)))))
 
 

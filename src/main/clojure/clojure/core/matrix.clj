@@ -1264,6 +1264,11 @@
   [m i column]
   (mp/set-column m i column))
 
+(defn set-column!
+  "Sets a column in a matrix using a specified vector."
+  [m i column]
+  (mp/set-column! m i column))
+
 ;; ===================================
 ;; Sparse matrix functions
 
