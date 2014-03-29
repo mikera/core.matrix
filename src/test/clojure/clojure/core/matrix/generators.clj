@@ -25,16 +25,17 @@
   ([& {:keys [dimensionality]}] (gen/vector gen/s-pos-int dimensionality))) 
 
 (defn gen-array
-  "Generator for arbitrary n-dimensional arrays"
+  "generator for n-dimensional arrays"
   [& {:keys [max-elems min-elems
              max-dim min-dim dimension-generator
              implementations elem-gen]
       :or {max-elems 100 min-elems 1 max-dim 4 min-dim 0
-           dimension-generator gen/pos-int 
+           dimension-generator (gen/choose 1 4)
            elem-gen gen-double
            implementations [:ndarray :persistent-vector :vectorz
                             :object-array :double-array]}}]
   (as-> dimension-generator x
+        (gen/bind x #(gen/vector (gen/choose 1 10) %))
         (gen/such-that #(<= min-dim % max-dim) x)
         (gen/bind x #(gen/vector gen/pos-int %))
         (gen/such-that #(<= min-elems (reduce * %) max-elems) x)
@@ -43,11 +44,22 @@
         (gen/fmap (fn [[impl data]] (array impl data)) x)))
 
 (defn gen-matrix
-  "generator for n-dimensional matrices"
-  [& {:keys [max-elems min-elems implementations elem-gen]
-      :or {max-elems 100 min-elems 1 elem-gen gen-double
-           implementations [:ndarray :persistent-vector :vectorz
-                            :object-array :double-array]}}])
+  "generator for n-dimensional matrices. Will pass options to gen-array"
+  [& options]
+  (apply gen-array :dimension-generator (gen/return 2) options))
+
+(defn implicit-broadcastable? [l r]
+  (let [sl (shape l) sr (shape r)]
+    (every? identity (map #(= %1 %2) (reverse sl) (reverse sr)))))
+
+(defn gen-conforming-arrays
+  "generates count arrays which have conforming shape"
+  [count & options]
+  (gen/such-that (fn [v]
+                   (every? (fn [[l r]] (implicit-broadcastable? l r))
+                           (partition 2 1 v)))
+                 (gen/vector (apply gen-array options) count)))
 
 
-
+(defn gen-conforming-matrices [count & options]
+  (apply gen-conforming-arrays count :max-dim 2 :min-dim 2 options))
