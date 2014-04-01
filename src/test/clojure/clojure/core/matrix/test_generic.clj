@@ -27,19 +27,19 @@
                                 :>= >=
                                 :< <
                                 :<= <=}))
-(defn- round
+(defn- fp-round
   [^long precision ^double d]
   (let [factor (Math/pow 10 precision)]
     (/ (Math/round (* d factor)) factor)))
 
 
 (defn fp [precision]
-  (map->Specialisation {:add (comp (partial round precision) +)
-                        :mul (comp (partial round precision) *)
-                        :sub (comp (partial round precision) -)
-                        :div (comp (partial round precision) clojure.core//)
-                        :abs (comp (partial round precision) #(Math/abs (double %)))
-                        :sqrt (comp (partial round  precision) #(Math/sqrt (double %)))
+  (map->Specialisation {:add (comp (partial fp-round precision) +)
+                        :mul (comp (partial fp-round precision) *)
+                        :sub (comp (partial fp-round precision) -)
+                        :div (comp (partial fp-round precision) clojure.core//)
+                        :abs (comp (partial fp-round precision) #(Math/abs (double %)))
+                        :sqrt (comp (partial fp-round  precision) #(Math/sqrt (double %)))
                         :scalar? number?
                         :one 1.0
                         :zero 0.0

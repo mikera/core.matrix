@@ -4,6 +4,7 @@
   (:require [clojure.core.matrix.generic-protocols :as gmp])
   (:require [clojure.core.matrix.impl.generic-default])
   (:require [clojure.core.matrix.impl.default])
+  (:require [clojure.core.matrix.impl.mathsops :as mops])
   (:require [clojure.core.matrix.implementations :as imp]))
 
 ;; Placeholder namespace for generic versions of core.matrix algorithms
@@ -11,7 +12,7 @@
 ;; generic element accessor functions
 ;; TODO: revisit these names?
 (defn default-value
-  "Returns the default value for the given array. Will normally be either nil or zero."
+ "generic-version of clojure.core.matrix/default-value"
   ([impl]
      (mp/get-1d (mp/new-matrix-nd (imp/get-canonical-object impl) [1]) 0)))
 
@@ -21,265 +22,307 @@
 
 
 (defn mul
-  "Performs element-wise multiplication with numerical arrays."
-  ([spez ] (:one spez))
-  ([spez a] a)
-  ([spez a b]
-    (cond
-      ((:scalar? spez) b) (if ((:scalar? spez) a) ((:mul spez) a b) (gmp/generic-scale a b spez))
-      ((:scalar? spez) a) (gmp/generic-pre-scale b a spez)
-      :else (gmp/generic-element-multiply a b spez)))
-  ([spez a b & more]
-     (reduce (partial mul spez) (mul spez a b) more)))
+  "generic-version of clojure.core.matrix/mul"
+  ([spec ] (:one spec))
+  ([spec a] a)
+  ([spec a b]
+     (let [scalar? (:scalar? spec) mul (:mul spec)]
+       (cond
+        (scalar? b) (if (scalar? a) (mul a b) (gmp/generic-scale a b spec))
+        (scalar? a) (gmp/generic-pre-scale b a spec)
+        :else (gmp/generic-element-multiply a b spec))))
+  ([spec a b & more]
+     (reduce (partial mul spec) (mul spec a b) more)))
 
 (defn emul
-  "Performs element-wise multiplication."
-  ([spez ] (:one spez))
-  ([spez a] a)
-  ([spez a b]
-    (gmp/generic-element-multiply a b spez))
-  ([spez a b & more]
-     (reduce #(gmp/generic-element-multiply %1 %2 spez)
-             (gmp/generic-element-multiply a b spez) more)))
+  "generic-version of clojure.core.matrix/emul"
+  ([spec] (:one spec))
+  ([spec a] a)
+  ([spec a b]
+    (gmp/generic-element-multiply a b spec))
+  ([spec a b & more]
+     (reduce #(gmp/generic-element-multiply %1 %2 spec)
+             (gmp/generic-element-multiply a b spec) more)))
 
 (defn mmul
-  "Performs matrix multiplication on matrices or vectors.  Equivalent to
-  inner-product when applied to vectors.  Will treat a 1D vector roughly as a
-  1xN matrix (row vector) when it's the first argument, or as an Nx1 matrix 
-  (column vector) when it's the second argument--except that the dimensionality 
-  of the result will be different from what it would be with matrix arguments."
-  ([spez ] (:one spez))
-  ([spez a] a)
-  ([spez a b]
-    (gmp/generic-matrix-multiply a b spez))
-  ([spez a b & more]
-     (reduce #(gmp/generic-matrix-multiply %1 %2 spez)
-             (gmp/generic-matrix-multiply a b spez) more)))
+  "generic-version of clojure.core.matrix/mmul"
+  ([spec] (:one spec))
+  ([spec a] a)
+  ([spec a b]
+    (gmp/generic-matrix-multiply a b spec))
+  ([spec a b & more]
+     (reduce #(gmp/generic-matrix-multiply %1 %2 spec)
+             (gmp/generic-matrix-multiply a b spec) more)))
 
 (defn e*
-  "Element-wise multiply operator. Equivalent to emul."
-  ([spez ] (:one spez))
-  ([spez a] a)
-  ([spez a b]
-    (gmp/generic-element-multiply a b spez))
-  ([spez a b & more]
-     (reduce (partial e* spez) (e* spez a b) more)))
+  "generic-version of clojure.core.matrix/e*"
+  ([spec ] (:one spec))
+  ([spec a] a)
+  ([spec a b]
+    (gmp/generic-element-multiply a b spec))
+  ([spec a b & more]
+     (reduce (partial e* spec) (e* spec a b) more)))
 
 (defn div
-  "Performs element-wise matrix division for numerical arrays."
-  ([spez a] (gmp/generic-element-divide a spez))
-  ([spez a b] (gmp/generic-element-divide a b spez))
-  ([spez a b & more] (reduce #(gmp/generic-element-divide %1 %2 spez)
-                             (gmp/generic-element-divide a b spez) more)))
+  "generic-version of clojure.core.matrix/div"
+  ([spec a] (gmp/generic-element-divide a spec))
+  ([spec a b] (gmp/generic-element-divide a b spec))
+  ([spec a b & more] (reduce #(gmp/generic-element-divide %1 %2 spec)
+                             (gmp/generic-element-divide a b spec) more)))
 
 (defn div!
-  "Performs in-place element-wise matrix division for numerical arrays."
-  ([spez a]
-     (gmp/generic-element-divide! a spez)
+  "generic-version of clojure.core.matrix/div!"
+  ([spec a]
+     (gmp/generic-element-divide! a spec)
      a)
-  ([spez a b]
-     (gmp/generic-element-divide! a b spez)
+  ([spec a b]
+     (gmp/generic-element-divide! a b spec)
      a)
-  ([spez a b & more]
-     (gmp/generic-element-divide! a b spez)
+  ([spec a b & more]
+     (gmp/generic-element-divide! a b spec)
      (doseq [c more]
-       (gmp/generic-element-divide! a c spez))
+       (gmp/generic-element-divide! a c spec))
      a))
 
 (defn mul!
-  "Performs in-place element-wise multiplication of numerical arrays."
-  ([spez a] a)
-  ([spez a b]
-    (gmp/generic-element-multiply! a b spez)
+  "generic-version of clojure.core.matrix/mul!"
+  ([spec a] a)
+  ([spec a b]
+    (gmp/generic-element-multiply! a b spec)
     a)
-  ([spez a b & more]
-    (gmp/generic-element-multiply! a b spez)
+  ([spec a b & more]
+    (gmp/generic-element-multiply! a b spec)
     (doseq [c more]
-      (gmp/generic-element-multiply! a c spez))
+      (gmp/generic-element-multiply! a c spec))
     a))
 
 (defn emul!
-  "Performs in-place element-wise multiplication of numerical arrays."
-  ([spez a] a)
-  ([spez a b]
-    (gmp/generic-element-multiply! a b spez)
+  "generic-version of clojure.core.matrix/emul!"
+  ([spec a] a)
+  ([spec a b]
+    (gmp/generic-element-multiply! a b spec)
     a)
-  ([spez a b & more]
-    (gmp/generic-element-multiply! a b spez)
+  ([spec a b & more]
+    (gmp/generic-element-multiply! a b spec)
     (doseq [c more]
-      (gmp/generic-element-multiply! a c spez))
+      (gmp/generic-element-multiply! a c spec))
     a))
 
+(defn transform
+  "generic-version of clojure.core.matrix/transform"
+  [spec t v]
+  (gmp/generic-vector-transform t v spec))
+
+(defn transform!
+  "generic-version of clojure.core.matrix/transform!"
+  ([spec t v]
+     (gmp/generic-vector-transform! t v spec)
+     v))
+
 (defn add
-  "Performs element-wise addition on one or more numerical arrays."
-  ([spez a] a)
-  ([spez a b]
-    (gmp/generic-matrix-add a b spez))
-  ([spez a b & more]
-     (reduce #(gmp/generic-matrix-add %1 %2 spez)
-             (gmp/generic-matrix-add a b spez) more)))
+  "generic-version of clojure.core.matrix/add"
+  ([spec a] a)
+  ([spec a b]
+    (gmp/generic-matrix-add a b spec))
+  ([spec a b & more]
+     (reduce #(gmp/generic-matrix-add %1 %2 spec)
+             (gmp/generic-matrix-add a b spec) more)))
 
 (defn add-product
-  "Adds the element-wise product of two numerical ararys to the first array.
-   Arrays must be the same shape."
-  ([spez m a b]
-    (gmp/generic-add-product m a b spez)))
+  "generic-version of clojure.core.matrix/add-product"
+  ([spec m a b]
+    (gmp/generic-add-product m a b spec)))
 
 (defn add-product!
-  "Adds the product of two numerical arrays to the first array. Returns the mutated array."
-  ([spez m a b]
-    (gmp/generic-add-product! m a b spez)
+  "generic-version of clojure.core.matrix/add-product!"
+  ([spec m a b]
+    (gmp/generic-add-product! m a b spec)
     m))
 
 (defn add-scaled
-  "Adds a numerical array scaled by a given factor to the first array"
-  ([spez m a factor]
-    (gmp/generic-add-scaled m a factor spez)))
+  "generic-version of clojure.core.matrix/add-scaled"
+  ([spec m a factor]
+    (gmp/generic-add-scaled m a factor spec)))
 
 (defn add-scaled!
-  "Adds a numerical array scaled by a given factor to the first array. Returns the mutated array."
-  ([spez m a factor]
-    (gmp/generic-add-scaled! m a factor spez)
+  "generic-version of clojure.core.matrix/add-scaled!"
+  ([spec m a factor]
+    (gmp/generic-add-scaled! m a factor spec)
     m))
 
 (defn add-scaled-product
-  "Adds the product of two numerical arrays scaled by a given factor to the first array"
-  ([spez m a b factor]
-    (gmp/generic-add-scaled-product m a b factor spez)))
+  "generic-version of clojure.core.matrix/add-scaled-product"
+  ([spec m a b factor]
+    (gmp/generic-add-scaled-product m a b factor spec)))
 
 (defn add-scaled-product!
-  "Adds the product of two numerical arrays scaled by a given factor to the first array.
-   Returns the mutated array."
-  ([spez m a b factor]
-    (gmp/generic-add-scaled-product! m a b factor spez)
+  "generic-version of clojure.core.matrix/add-scaled-product!"
+  ([spec m a b factor]
+    (gmp/generic-add-scaled-product! m a b factor spec)
     m))
 
 (defn sub
-  "Performs element-wise subtraction on one or more numerical arrays.
-   Returns the first array after it has been mutated."
-  ([spez a] (gmp/generic-negate a spez))
-  ([spez a b]
-    (gmp/generic-matrix-sub a b spez))
-  ([spez a b & more]
-     (reduce #(gmp/generic-matrix-sub %1 %2 spez)
-             (gmp/generic-matrix-sub a b spez) more)))
+  "generic-version of clojure.core.matrix/sub"
+  ([spec a] (gmp/generic-negate a spec))
+  ([spec a b]
+    (gmp/generic-matrix-sub a b spec))
+  ([spec a b & more]
+     (reduce #(gmp/generic-matrix-sub %1 %2 spec)
+             (gmp/generic-matrix-sub a b spec) more)))
 
 (defn add!
-  "Performs element-wise mutable addition on one or more numerical arrays.
-   Returns the first array after it has been mutated."
-  ([spez a] a)
-  ([spez a b]
-    (gmp/generic-matrix-add! a b spez)
+  "generic-version of clojure.core.matrix/add!"
+  ([spec a] a)
+  ([spec a b]
+    (gmp/generic-matrix-add! a b spec)
     a)
-  ([spez a b & more]
-    (gmp/generic-matrix-add! a b spez)
-    (doseq [m more] (gmp/generic-matrix-add! a m spez))
+  ([spec a b & more]
+    (gmp/generic-matrix-add! a b spec)
+    (doseq [m more] (gmp/generic-matrix-add! a m spec))
     a))
 
 (defn sub!
-  "Performs element-wise mutable subtraction on one or more numerical arrays.
-   Returns the first array, after it has been mutated."
-  ([spez a] a)
-  ([spez a b]
-    (gmp/generic-matrix-sub! a b spez)
+  "generic-version of clojure.core.matrix/sub!"
+  ([spec a] a)
+  ([spec a b]
+    (gmp/generic-matrix-sub! a b spec)
     a)
-  ([spez a b & more]
-    (gmp/generic-matrix-sub! a b spez)
-    (doseq [m more] (gmp/generic-matrix-sub! a m spez))
+  ([spec a b & more]
+    (gmp/generic-matrix-sub! a b spec)
+    (doseq [m more] (gmp/generic-matrix-sub! a m spec))
     a))
 
 (defn scale
-  "Scales a numerical array by one or more scalar factors.
-   Returns a new scaled matrix."
-  ([spez m factor]
-    (gmp/generic-scale m factor spez))
-  ([spez m factor & more-factors]
-     (gmp/generic-scale m (gmp/generic-element-multiply factor (reduce #(gmp/generic-element-multiply %1 %2 spez) more-factors) spez) spez)))
+  "generic-version of clojure.core.matrix/scale"
+  ([spec m factor]
+    (gmp/generic-scale m factor spec))
+  ([spec m factor & more-factors]
+     (gmp/generic-scale m (gmp/generic-element-multiply factor (reduce #(gmp/generic-element-multiply %1 %2 spec) more-factors) spec) spec)))
 
 (defn scale!
-  "Scales a numerical array by one or more scalar factors (in place).
-   Returns the matrix after it has been mutated."
-  ([spez m factor]
-    (gmp/generic-scale! m factor spez)
+  "generic-version of clojure.core.matrix/scale!"
+  ([spec m factor]
+    (gmp/generic-scale! m factor spec)
     m)
-  ([spez m factor & more-factors]
-     (gmp/generic-scale! m (gmp/generic-element-multiply factor (reduce #(gmp/generic-element-multiply %1 %2 spez) more-factors) spez) spez)
+  ([spec m factor & more-factors]
+     (gmp/generic-scale! m (gmp/generic-element-multiply factor (reduce #(gmp/generic-element-multiply %1 %2 spec) more-factors) spec) spec)
     m))
 
-#_(defn square
-  "Squares every element of a numerical array."
-  ([spez m]
-    (gmp/generic-square m spez)))
+(defn square
+  "generic-version of clojure.core.matrix/square"
+  ([spec m]
+    (gmp/generic-square m spec)))
 
-#_(defn normalise
-  "Normalises a numerical vector (scales to unit length).
-   Returns a new normalised vector."
-  ([spez v]
-    (gmp/generic-normalise v spez)))
+(defn normalise
+  "generic-version of clojure.core.matrix/normalise"
+  ([spec v]
+    (gmp/generic-normalise v spec)))
 
-#_(defn normalise!
-  "Normalises a numerical vector in-place (scales to unit length).
-   Returns the modified vector."
-  ([spez v]
-    (gmp/generic-normalise! v spez)
+(defn normalise!
+  "generic-version of clojure.core.matrix/normalise!"
+  ([spec v]
+    (gmp/generic-normalise! v spec)
     v))
 
 (defn dot
-  "Computes the dot product (1Dx1D inner product) of two numerical vectors.
-
-   If either argument is not a vector, computes a higher dimensional inner product."
-  ([spez a b]
+  "generic-version of clojure.core.matrix/dot"
+  ([spec a b]
     (or 
-      #_(gmp/generic-vector-dot a b spez)
-      (gmp/generic-inner-product a b spez))))
+      (gmp/generic-vector-dot a b spec)
+      (gmp/generic-inner-product a b spec))))
 
 (defn inner-product
-  "Computes the inner product of numerical arrays.
-
-   For matrix/matrix and matrix/vector arguments, this is equivalent to matrix multiplication.
-
-   The inner product of two arrays with indexed dimensions {..i j} and {j k..} has dimensions {..i k..}. The inner-product of two vectors will be scalar."
-  ([spez ] (:one spez))
-  ([spez a]
+  "generic-version of clojure.core.matrix/inner-product"
+  ([spec ] (:one spec))
+  ([spec a]
     a)
-  ([spez a b]
-    (gmp/generic-inner-product a b spez))
-  ([spez a b & more]
-     (reduce #(gmp/generic-inner-product %1 %2 spez)
-             (gmp/generic-inner-product a b spez) more)))
+  ([spec a b]
+    (gmp/generic-inner-product a b spec))
+  ([spec a b & more]
+     (reduce #(gmp/generic-inner-product %1 %2 spec)
+             (gmp/generic-inner-product a b spec) more)))
 
 (defn outer-product
-  "Computes the outer product of numerical arrays."
-  ([spez ] (:one spez))
-  ([spez a] a)
-  ([spez a b]
-    (gmp/generic-outer-product a b spez))
-  ([spez a b & more]
-     (reduce (partial outer-product spez) (outer-product spez a b) more)))
+  "generic-version of clojure.core.matrix/outer-product"
+  ([spec ] (:one spec))
+  ([spec a] a)
+  ([spec a b]
+    (gmp/generic-outer-product a b spec))
+  ([spec a b & more]
+     (reduce (partial outer-product spec) (outer-product spec a b) more)))
+
+(defn cross
+  "generic-version of clojure.core.matrix/cross"
+  ([spec a b]
+     (gmp/generic-cross-product a b spec)))
+
+(defn cross!
+  "generic-version of clojure.core.matrix/cross!"
+  ([spec a b]
+    (gmp/generic-cross-product! a b spec)
+    a))
 
 (defn distance
-  "Calculates the euclidean distance between two numerical vectors."
-  ([spez a b]
-    (gmp/generic-distance a b spez)))
+  "generic-version of clojure.core.matrix/distance"
+  ([spec a b]
+    (gmp/generic-distance a b spec)))
 
+;;TODO generic det and inverse
 
 (defn negate
-  "Calculates the negation of a numerical array. Should normally be equivalent to scaling by -1.0"
-  ([spez m]
-    (gmp/generic-negate m spez)))
+  "generic-version of clojure.core.matrix/negate"
+  ([spec m]
+    (gmp/generic-negate m spec)))
 
 (defn negate!
-  "Calculates the negation of a numerical array in place. Equivalent to scaling by -1.0"
-  ([spez m]
-     (gmp/generic-scale! m ((:sub spez) (:one spez)) spez)))
+  "generic-version of clojure.core.matrix/negate!"
+  ([spec m]
+     (gmp/generic-scale! m ((:sub spec) (:one spec)) spec)))
+
+(defn trace
+  "generic-version of clojure.core.matrix/trace"
+  ([spec a]
+     (gmp/generic-trace a spec)))
 
 (defn length
-  "Calculates the euclidean length (magnitude) of a numerical vector"
-  ([spez m]
-    (gmp/generic-length m spez)))
+  "generic-version of clojure.core.matrix/length"
+  ([spec m]
+    (gmp/generic-length m spec)))
 
 (defn length-squared
-  "Calculates the squared length (squared magnitude) of a numerical vector"
-  ([spez m]
-     (gmp/generic-length-squared m spez)))
+  "generic-version of clojure.core.matrix/length-squared"
+  ([spec m]
+     (gmp/generic-length-squared m spec)))
 
+
+(defn pow
+  "generic-version of clojure.core.matrix/pow"
+  ([spec m]
+    m)
+  ([spec m exponent]
+    (gmp/generic-element-pow m exponent spec))
+  ([spec m exponent & more]
+     (reduce (fn [m x] (gmp/generic-element-pow m x spec))
+             (gmp/generic-element-pow m exponent spec) more)))
+
+(defn pow! 
+  "generic-version of clojure.core.matrix/pow!"
+  ([spec m a]
+    ;; TODO: implement via a protocol + default implementation
+     (mp/assign! m (pow spec m a))))
+
+;;create all generic unary maths operators
+(eval
+  `(do ~@(map (fn [[name func]]
+           `(defn ~name
+              ~(str "generic version of clojure.core.matrix/" name) 
+              ([~'spec ~'m]
+                 (~(symbol "clojure.core.matrix.generic-protocols"
+                           (str "generic-" name)) ~'m ~'spec)))) mops/maths-ops)
+     ~@(map (fn [[name func]]
+           `(defn ~(symbol (str name "!"))
+              ~(str "generic version of clojure.core.matrix/" name) 
+              ([~'spec ~'m]
+                 (~(symbol "clojure.core.matrix.generic-protocols"
+                           (str "generic-" name "!")) ~'m ~'spec)
+                ~'m))) mops/maths-ops)))

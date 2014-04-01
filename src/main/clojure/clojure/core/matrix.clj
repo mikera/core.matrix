@@ -244,7 +244,16 @@
   ([diagonal-values]
     (mp/diagonal-matrix (current-implementation-object) diagonal-values))
   ([implementation diagonal-values]
-     (mp/diagonal-matrix (imp/get-canonical-object implementation) diagonal-values)))
+    (mp/diagonal-matrix (imp/get-canonical-object implementation) diagonal-values)))
+
+(defn compute-matrix
+  "Creates a matrix with the specified shape, and each element specified by (f i j k...)
+   Where i, j, k... are the index positions of each element in the matrix"
+  ([shape f]
+    (compute-matrix (implementation-check) shape f))
+  ([implementation shape f]
+    (let [m (implementation-check implementation)]
+      (mp/compute-matrix m shape f))))
 
 (defn sparse-matrix
   "Creates a sparse matrix with the given data. Sparse matrices are required to store

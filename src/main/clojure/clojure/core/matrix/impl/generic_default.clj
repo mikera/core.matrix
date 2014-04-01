@@ -48,31 +48,28 @@
 
 
 (extend-protocol gmp/PGenericMatrixMultiply
-  Number
-    (generic-element-multiply [m a spec]
-      (if (number? a)
-        ((:mul spec) m a)
-        (mp/pre-scale a m)))
-    (generic-matrix-multiply [m a spec]
-      (cond
-        (number? a) ((:mul spec) m a)
-        (array? a) (mp/pre-scale a m)
-        :else (error "Don't know how to multiply number with: " (class a))))
   Object
-    (generic-matrix-multiply [m a spec]
-      (let [mdims (long (mp/dimensionality m))
-            adims (long (mp/dimensionality a))]
-        (cond
-         (== adims 0) (mp/scale m a)
-         (and (== mdims 1) (== adims 2))
+  (generic-matrix-multiply [m a spec]
+    (let [scalar? (:scalar? spec) mul (:mul spec) add (:add spec)]
+      (if (scalar? spec)
+        (if (number? a)
+          (mul m a)
+          (gmp/generic-pre-scale a m spec))
+        (let [mdims (long (mp/dimensionality m))
+              adims (long (mp/dimensionality a))]
+          (cond
+           (== adims 0) (gmp/generic-scale m a spec)
+           (and (== mdims 1) (== adims 2))
            (let [[arows acols] (mp/get-shape a)]
-             (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
+             (mp/reshape (gmp/generic-matrix-multiply
+                          (mp/reshape m [1 arows]) a spec)
                          [arows]))
-         (and (== mdims 2) (== adims 1))
+           (and (== mdims 2) (== adims 1))
            (let [[mrows mcols] (mp/get-shape m)]
-             (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
+             (mp/reshape (gmp/generic-matrix-multiply
+                          m (mp/reshape a [mcols 1]) spec)
                          [mcols]))
-         (and (== mdims 2) (== adims 2))
+           (and (== mdims 2) (== adims 2))
            (let [mutable (mp/is-mutable? m)
                  [mrows mcols] (mp/get-shape m)
                  [arows acols] (mp/get-shape a)
@@ -83,222 +80,270 @@
                (c-for [i (long 0) (< i mrows) (inc i)
                        j (long 0) (< j acols) (inc j)]
                  (mp/set-2d! new-m i j 0))
-                (c-for [i (long 0) (< i mrows) (inc i)
+               (c-for [i (long 0) (< i mrows) (inc i)
                        j (long 0) (< j acols) (inc j)
                        k (long 0) (< k mcols) (inc k)]
-                 (mp/set-2d! new-m i j ((:add spec) (mp/get-2d new-m i j)
-                                          ((:mul spec) (mp/get-2d m i k)
-                                             (mp/get-2d a k j)))))
-               new-m)))))
-    (generic-element-multiply [m a spec]
-      (if (number? a)
-        (mp/scale m a)
-        (let [[m a] (mp/broadcast-compatible m a)]
-          (mp/element-map m (:mul spec) a)))))
+                 (mp/set-2d! new-m i j (add (mp/get-2d new-m i j)
+                                        (mul (mp/get-2d m i k)
+                                         (mp/get-2d a k j)))))
+               new-m)))))))
+  (generic-element-multiply [m a spec]
+    (let [scalar? (:scalar? spec) mul (:mul spec)]
+      (if (scalar? m)
+        (cond
+         (scalar? a) (mul m a)
+         (array? a) (gmp/generic-pre-scale a m spec)
+         :else (error "Don't know how to multiply number with: " (class a)))
+        (if (scalar? a)
+          (gmp/generic-scale m a spec)
+          (let [[m a] (mp/broadcast-compatible m a)]
+            (mp/element-map m mul a)))))))
 
 ;; matrix multiply
 (extend-protocol gmp/PGenericMatrixMultiplyMutable
-  Number
-    (generic-element-multiply! [m a spec]
-      (error "Can't do mutable multiply on a scalar number"))
-    (generic-matrix-multiply! [m a spec]
-      (error "Can't do mutable multiply on a scalar number"))
   Object
-    (generic-element-multiply! [m a spec]
-      (mp/element-map! m (:mul spec) (mp/broadcast-like m a)))
-    (generic-matrix-multiply! [m a spec]
-      (mp/assign! m (mp/matrix-multiply m a))))
+  (generic-element-multiply! [m a spec]
+    (let [scalar? (:scalar? spec) mul (:mul spec)]
+      (if (scalar? m)
+        (error "Can't do mutable multiply on a scalar number")
+        (mp/element-map! m mul (mp/broadcast-like m a)))))
+  (generic-matrix-multiply! [m a spec]
+    (let [scalar? (:scalar? spec)]
+      (if (scalar? m)
+        (error "Can't do mutable multiply on a scalar number")
+        (mp/assign! m (gmp/generic-matrix-multiply m a spec))))))
 
 (extend-protocol gmp/PGenericMatrixDivide
-  Number
-    (generic-element-divide
-      ([m spec] ((:div spec)m))
-      ([m a spec] (mp/element-map a #((:div spec)m %))))
   Object
     (generic-element-divide
-      ([m spec] (mp/element-map m #((:div spec)%)))
+      ([m spec] (let [scalar? (:scalar? spec) div (:div spec)]
+                  (if (scalar? m)
+                    (div m)
+                    (mp/element-map m #(div m %)))))
       ([m a spec]
-        (let [[m a] (mp/broadcast-compatible m a)]
-          (mp/element-map m #((:div spec)%1 %2) a)))))
+         (let [scalar? (:scalar? spec) div (:div spec)]
+           (if (scalar? m)
+             (mp/element-map a #(div m %))
+             (let [[m a] (mp/broadcast-compatible m a)]
+               (mp/element-map m #(div %1 %2) a)))))))
 
 (extend-protocol gmp/PGenericMatrixDivideMutable
-  Number
-  (generic-element-divide!
-    ([m spec] (error "Can't do mutable divide on a scalar number"))
-    ([m a spec] (error "Can't do mutable divide on a scalar numer")))
   Object
   (generic-element-divide!
-    ([m spec] (mp/element-map! m #((:div spec)%)))
+    ([m spec] (let [scalar? (:scalar? spec) div (:div spec)]
+                (if (scalar? m)
+                  (error "Can't do mutable divide on a scalar number")
+                  (mp/element-map! m #(div %)))))
     ([m a spec]
-       (let [[m a] (mp/broadcast-compatible m a)]
-         (mp/element-map! m #((:div spec) %1 %2) a)))))
+       (let [scalar? (:scalar? spec) div (:div spec)]
+         (if (scalar? m)
+           (error "Can't do mutable divide on a scalar numer")
+           (let [[m a] (mp/broadcast-compatible m a)]
+             (mp/element-map! m #(div %1 %2) a)))))))
 
 ;; matrix element summation
 (extend-protocol gmp/PGenericSummable
-  Number
-    (generic-element-sum [a spec] a)
   Object
-    (generic-element-sum [a spec]
-      (mp/element-reduce a (:add spec))))
+  (generic-element-sum [a spec]
+    (let [scalar? (:scalar? spec) add (:add spec)]
+      (if (scalar? a)
+        a
+        (mp/element-reduce a add)))))
 
 (extend-protocol gmp/PGenericElementMinMax
-  Number
-    (generic-element-min [m spec] m)
-    (generic-element-max [m spec] m)
   Object
-    (generic-element-min [m spec] 
-      (mp/element-reduce m 
-                       (fn [best v] (if (or (not best) (< v best)) v best)) 
-                       nil))
-    (generic-element-max [m spec] 
-      (mp/element-reduce m 
-                       (fn [best v] (if (or (not best) (> v best)) v best)) 
-                       nil)))
+  (generic-element-min [m spec]
+    (let [scalar? (:scalar? spec) < (:< spec)]
+      (if (scalar? m)
+        m
+        (mp/element-reduce m 
+                           (fn [best v] (if (or (not best) (< v best)) v best)) 
+                           nil))))
+  (generic-element-max [m spec]
+    (let [scalar? (:scalar? spec) > (:> spec)]
+      (if (scalar? m)
+        m
+        (mp/element-reduce m 
+                           (fn [best v] (if (or (not best) (> v best)) v best)) 
+                           nil)))))
 
 ;; add-product operations
 (extend-protocol gmp/PGenericAddProduct
-  Number
-    (generic-add-product [m a b spec]
-      ((:add spec) m ((:mul spec) a b)))
   Object
-    (generic-add-product [m a b spec]
-      (gmp/generic-matrix-add m (gmp/generic-element-multiply a b spec) spec)))
+  (generic-add-product [m a b spec]
+    (let [scalar? (:scalar? m) add (:add spec) mul (:mul spec)]
+      (if (scalar? m)
+        (add m (mul a b))
+        (gmp/generic-matrix-add
+         m (gmp/generic-element-multiply a b spec) spec)))))
 
 (extend-protocol gmp/PGenericAddProductMutable
-  Number
-    (generic-add-product! [m a b spec]
-      (error "Numbers are not mutable"))
   Object
-    (generic-add-product! [m a b spec]
-      (mp/matrix-add! m (mp/element-multiply a b))))
+  (generic-add-product! [m a b spec]
+    (let [scalar? (:scalar? spec)]
+      (if (scalar? m)
+        (error "Scalars are not mutable")
+        (gmp/generic-matrix-add! m (gmp/generic-element-multiply a b spec)
+                                 spec)))))
 
 (extend-protocol gmp/PGenericAddScaled
-  Number
-    (generic-add-scaled [m a factor spec]
-      ((:add spec) m ((:mul spec) a factor)))
   Object
-    (generic-add-scaled [m a factor spec]
-      (mp/matrix-add m (mp/scale a factor))))
+  (generic-add-scaled [m a factor spec]
+    (let [scalar? (:scalar? spec) add (:add spec) mul (:mul spec)]
+      (if (scalar? m)
+        (add m (mul a factor))
+        (gmp/generic-matrix-add m (gmp/generic-scale a factor spec) spec)))))
 
 (extend-protocol gmp/PGenericAddScaledMutable
-  Number
-    (generic-add-scaled! [m a factor spec]
-      (error "Numbers are not mutable"))
   Object
-    (generic-add-scaled! [m a factor spec]
-      (mp/matrix-add! m (mp/scale a factor))))
+  (generic-add-scaled! [m a factor spec]
+    (let [scalar? (:scalar? spec)]
+      (if (scalar? m)
+        (error "Scalars are not mutable")
+        (gmp/generic-matrix-add! m (gmp/generic-scale a factor spec) spec)))))
 
 (extend-protocol gmp/PGenericAddScaledProduct
-  Number
-    (generic-add-scaled-product [m a b factor spec]
-      ((:add spec) m ((:mul spec) a b factor)))
   Object
-    (generic-add-scaled-product [m a b factor spec]
-      (mp/matrix-add m (mp/scale (mp/element-multiply a b) factor))))
+  (generic-add-scaled-product [m a b factor spec]
+    (let [scalar? (:scalar? spec) add (:add spec) mul (:mul spec)]
+      (if (scalar? m)
+        (add m (mul a b factor))
+        (gmp/generic-matrix-add
+         m (gmp/generic-scale
+            (gmp/generic-element-multiply a b spec) factor spec) spec)))))
 
 (extend-protocol gmp/PGenericAddScaledProductMutable
-  Number
-    (generic-add-scaled-product! [m a b factor spec]
-      (error "Numbers are not mutable"))
   Object
-    (generic-add-scaled-product! [m a b factor spec]
-      (mp/matrix-add! m (mp/scale (mp/element-multiply a b) factor))))
+  (generic-add-scaled-product! [m a b factor spec]
+    (let [scalar? (:scalar? spec)]
+      (if (scalar? m)
+        (error "Scalars are not mutable")
+        (gmp/generic-matrix-add!
+         m (gmp/generic-scale
+            (gmp/generic-element-multiply a b spec) factor spec) spec)))))
+
+(extend-protocol gmp/PGenericVectorTransform
+  clojure.lang.IFn
+    (generic-vector-transform [m a spec]
+      (if (vector? m) (gmp/generic-matrix-multiply m a spec)
+          ;;TODO should here spec be passed? 
+          (m a)))
+    (generic-vector-transform! [m a spec]
+      (if (vector? m) (mp/assign! a (gmp/generic-matrix-multiply m a spec))
+          ;;TODO should here spec be passed?
+          (mp/assign! a (m a))))
+  Object
+    (generic-vector-transform [m a spec]
+      (cond
+        (== 2 (mp/dimensionality m)) (gmp/generic-matrix-multiply m a spec)
+        :else (error "Don't know how to transform using: " (class m))))
+    (generic-vector-transform! [m a spec]
+      (mp/assign! a (gmp/generic-vector-transform m a spec))))
 
 
 ;; matrix scaling
 (extend-protocol gmp/PGenericMatrixScaling
-  Number
-    (generic-scale [m a spec]
-      (if ((:scalar? spec) a)
-        ((:mul spec) m a)
-        (mp/pre-scale a m)))
-    (generic-pre-scale [m a spec]
-      (if ((:scalar? spec) a)
-        ((:mul spec) a m)
-        (mp/scale a m)))
   Object
-    (generic-scale [m a spec]
-      (mp/element-map m #((:mul spec) % a)))
-    (generic-pre-scale [m a spec]
-      (mp/element-map m (partial (:mul spec) a))))
+  (generic-scale [m a spec]
+    (let [scalar? (:scalar? spec) mul (:mul spec)]
+      (if (scalar? m)
+        (if (scalar? a)
+          (mul m a)
+          (gmp/generic-pre-scale a m spec))
+        (mp/element-map m #(mul % a)))))
+  (generic-pre-scale [m a spec]
+    (let [scalar? (:scalar? spec) mul (:mul spec)]
+      (if (scalar? m)
+        (if (scalar? a)
+          (mul a m)
+          (gmp/generic-scale a m spec))
+        (mp/element-map m (partial mul a))))))
 
 (extend-protocol gmp/PGenericMatrixMutableScaling
-  Number
-    (generic-scale! [m a spec]
-      (error "Can't scale! a numeric value: " m))
-    (generic-pre-scale! [m a spec]
-      (error "Can't pre-scale! a numeric value: " m))
   Object
-    (generic-scale! [m a spec]
-      (mp/element-map! m #((:mul spec) % a))
-      m)
-    (generic-pre-scale! [m a spec]
-      (mp/element-map! m (partial (:mul spec) a))
-      m))
+  (generic-scale! [m a spec]
+    (let [scalar? (:scalar? spec) mul (:mul spec)]
+      (if (scalar? m)
+        (error "Can't scale! a scalar: " m)        
+        (do (mp/element-map! m #(mul % a))
+            m))))
+  (generic-pre-scale! [m a spec]
+    (let [scalar? (:scalar? spec) mul (:mul spec)]
+      (if (scalar? m)
+        (error "Can't pre-scale! a scalar: " m)
+        (do (mp/element-map! m (partial mul a))
+            m)))))
 
 (extend-protocol gmp/PGenericMatrixAdd
   ;; matrix add for scalars
-  Number
-    (generic-matrix-add [m a spec]
-      (if ((:scalar? spec) a) ((:add spec) m a)
-        (mp/matrix-add a m)))
-    (generic-matrix-sub [m a spec]
-      (if ((:scalar? spec) a) ((:sub spec) m a)
-        (mp/negate (mp/matrix-sub a m))))
   ;; default impelementation - assume we can use emap?
   Object
-    (generic-matrix-add [m a spec]
-      (let [[m a] (mp/broadcast-compatible m a)]
-        (mp/element-map m (:add spec) a)))
-    (generic-matrix-sub [m a spec]
-      (let [[m a] (mp/broadcast-compatible m a)]
-        (mp/element-map m (:sub spec) a))))
+  (generic-matrix-add [m a spec]
+    (let [scalar? (:scalar? spec) add (:add spec)]
+      (if (scalar? m)
+        (if (scalar? a) (add m a)
+            (gmp/generic-matrix-add a m spec))
+        (let [[m a] (mp/broadcast-compatible m a)]
+          (mp/element-map m add a)))))
+  (generic-matrix-sub [m a spec]
+    (let [scalar? (:scalar? spec) sub (:sub spec)]
+      (if (scalar? m)
+        (if (scalar? a) (sub m a)
+            (gmp/generic-negate (gmp/generic-matrix-sub a m spec) spec))
+        (let [[m a] (mp/broadcast-compatible m a)]
+          (mp/element-map m sub a))))))
 
 (extend-protocol gmp/PGenericMatrixAddMutable
   ;; matrix add for scalars
   Number
     (generic-matrix-add! [m a spec]
-      (error "Can't do mutable add! on a scalar number"))
+)
     (generic-matrix-sub! [m a spec]
-      (error "Can't do mutable sub! on a scalar number"))
+)
   ;; default impelementation - assume we can use emap?
   Object
-    (generic-matrix-add! [m a spec]
-      (mp/element-map! m (:add spec) a))
-    (generic-matrix-sub! [m a spec]
-      (mp/element-map! m (:sub spec) a)))
+  (generic-matrix-add! [m a spec]
+    (let [scalar? (:scalar? spec) add (:add spec)]
+      (if (scalar? m)
+        (error "Can't do mutable add! on a scalar")
+        (mp/element-map! m add a))))
+  (generic-matrix-sub! [m a spec]
+    (let [scalar? (:scalar? spec) sub (:sub spec)]
+      (if (scalar? m)
+        (error "Can't do mutable sub! on a scalar")
+        (mp/element-map! m sub a)))))
 
 (extend-protocol gmp/PGenericNegation
   nil
-    (generic-negate [m spec]
-      (error "Can't negate nil!"))
-  Number
-    (generic-negate [m spec]
-      ((:sub spec) m))
+  (generic-negate [m spec]
+    (error "Can't negate nil!"))
   Object
-    (generic-negate [m spec]
-      (mp/scale m -1)))
+  (generic-negate [m spec]
+    (let [scalar? (:scalar? spec) sub (:sub spec) one (:one spec)]
+      (if (scalar? m)
+        (sub m)
+        (gmp/generic-scale m (sub one) spec)))))
 
 ;; equality checking
 (extend-protocol gmp/PGenericMatrixEquality
   nil
     (generic-matrix-equals [a b spec]
       (error "nil is not a valid numerical value in equality testing"))
-  Number
-    (generic-matrix-equals [a b spec]
-      (cond
-        ((:scalar? spec) b) ((:= spec) a b)
-        (== 0 (mp/dimensionality b)) ((:= spec) a (scalar-coerce b))
-        :else false))
   Object
-    (generic-matrix-equals [a b spec]
-      (cond
-        (identical? a b) true
-        (mp/same-shape? a b)
-          (if (== 0 (mp/dimensionality a))
-            ((:= spec) (mp/get-0d a) (scalar-coerce b))
-            (not (some false? (map (:= spec) (mp/element-seq a) (mp/element-seq b)))))
-        :else false)))
+  (generic-matrix-equals [a b spec]
+    (let [scalar? (:scalar? spec) = (:= spec)]
+      (if (scalar? a)
+        (cond
+         (scalar? b) (= a b)
+         (== 0 (mp/dimensionality b)) (= a (scalar-coerce b))
+         :else false)
+        (cond
+         (identical? a b) true
+         (mp/same-shape? a b)
+         (if (== 0 (mp/dimensionality a))
+           (= (mp/get-0d a) (scalar-coerce b))
+           (not (some false? (map = (mp/element-seq a) (mp/element-seq b)))))
+         :else false)))))
 
 (extend-protocol gmp/PGenericValueEquality
   nil
@@ -309,73 +354,179 @@
           (== 0 (mp/dimensionality b))
           (nil? (mp/get-0d b)))))
   Object
-    (generic-value-equals [a b spec]
+  (generic-value-equals [a b spec]
+    (let [= (:= spec)]
       (and
-        (mp/same-shape? a b)
-        (every? true? (map = (mp/element-seq a) (mp/element-seq b))))))
+       (mp/same-shape? a b)
+       (every? true? (map = (mp/element-seq a) (mp/element-seq b)))))))
 
-(defmacro eps== [a b eps spec]
-  `((:<= ~spec) ((:abs ~spec) ((:sub ~spec) (double ~a) (double ~b))) (double ~eps) ))
+(defmacro eps== [a b eps]
+  `(<= (~'abs (~'sub ~a ~b)) (double ~eps)))
 
 ;; equality checking
 (extend-protocol gmp/PGenericMatrixEqualityEpsilon
   nil
     (generic-matrix-equals-epsilon [a b eps spec]
       (error "nil is not a valid numerical value in equality testing"))
-  Number
-    (generic-matrix-equals-epsilon [a b eps spec]
-      (cond
-        ((:scalar? spec) b) (eps== a b eps spec)
-        (== 0 (mp/dimensionality b)) (eps== a (mp/get-0d b) eps spec)
-        :else false))
   Object
-    (generic-matrix-equals-epsilon [a b eps spec]
-      (cond
-        (identical? a b) true
-        (mp/same-shape? a b)
-          (let [eps (double eps)]
-            (every? #((:<= spec) ((:abs spec) (double %)) eps) (map (:sub spec) (mp/element-seq a) (mp/element-seq b))))
-        :else false)))
+  (generic-matrix-equals-epsilon [a b eps spec]
+    (let [scalar? (:scalar? spec) abs (:abs spec) sub (:sub spec)]
+      (if (scalar? a)
+        (cond
+         (scalar? b) (eps== a b eps)
+         (== 0 (mp/dimensionality b)) (eps== a (mp/get-0d b) eps)
+         :else false)
+        (cond
+         (identical? a b) true
+         (mp/same-shape? a b)
+         (let [eps (double eps)]
+           (every? #(<= (abs %) eps) (map sub (mp/element-seq a)
+                                          (mp/element-seq b))))
+         :else false)))))
 
 
 
 (extend-protocol gmp/PGenericVectorOps
-  Number
-    (generic-vector-dot [a b spec] (gmp/generic-pre-scale b a spec))
-    (generic-length [a spec] (double a))
-    (generic-length-squared [a spec] (Math/sqrt (double a)))
-    (generic-normalise [a spec]
-      (let [a (double a)]
-        (cond
-          (> a 0.0) 1.0
-          (< a 0.0) -1.0
-          :else 0.0)))
   Object
-    (generic-vector-dot [a b spec]
-      (gmp/generic-element-sum (gmp/generic-element-multiply a b spec) spec))
-    (generic-length [a spec]
-      ((:sqrt spec) (gmp/generic-length-squared a spec)))
-    (generic-length-squared [a spec]
-      (mp/element-reduce a (fn [r x] ((:add spec) r ((:mul spec) x x))) 0))
-    (generic-normalise [a spec]
-      (mp/scale a ((:div spec) (:one spec) ((:sqrt spec) (gmp/generic-length-squared a spec))))))
+  (generic-vector-dot [a b spec]
+    (let [scalar? (:scalar? spec)]
+      (if (scalar? a)
+        (gmp/generic-pre-scale b a spec)
+        (gmp/generic-element-sum (gmp/generic-element-multiply a b spec) spec))))
+  (generic-length [a spec]
+    (let [scalar? (:scalar? spec) sqrt (:sqrt spec)]
+      (if (scalar? a)
+        a
+        (sqrt (gmp/generic-length-squared a spec)))))
+  (generic-length-squared [a spec]
+    (let [scalar? (:scalar? spec) add (:add spec) mul (:mul spec)
+          sqrt (:sqrt spec)]
+      (if (scalar? a)
+        (sqrt a)
+        (mp/element-reduce a (fn [r x] (add r (mul x x))) 0))))
+  (generic-normalise [a spec]
+    (let [scalar? (:scalar spec) div (:div spec) one (:one spec) sub (:sub spec)
+          sqrt (:sqrt spec) < (:< spec) > (:> spec) zero (:zero spec)]
+      (if (scalar? a)
+        (cond
+         (> a zero) one
+         (< a zero) (sub one)
+         :else zero)
+        (gmp/generic-scale a (div one (sqrt (gmp/generic-length-squared a spec)))
+                           spec)))))
 
 (extend-protocol gmp/PGenericVectorDistance
-  Number
-    (generic-distance [a b spec] ((:abs spec) (- b a)))
   Object
-    (generic-distance [a b spec] (gmp/generic-length (gmp/generic-matrix-sub a b spec) spec)))
+  (generic-distance [a b spec]
+    (let [scalar? (:scalar? spec) abs (:abs spec) sub (:sub spec)]
+      (if (scalar? a)
+        (abs (sub b a))
+        (gmp/generic-length (gmp/generic-matrix-sub a b spec) spec)))))
 
+(extend-protocol gmp/PGenericVectorCross
+  Object
+  (generic-cross-product [a b spec]
+    (let [sub (:sub spec) mul (:mul spec)]
+      (let [x1 (mp/get-1d a 0)
+            y1 (mp/get-1d a 1)
+            z1 (mp/get-1d a 2)
+            x2 (mp/get-1d b 0)
+            y2 (mp/get-1d b 1)
+            z2 (mp/get-1d b 2)]
+        (mp/construct-matrix a [(sub (mul y1 z2) (mul z1 y2))
+                                (sub (mul z1 x2) (mul x1 z2))
+                                (sub (mul x1 y2) (mul y1 x2))]))))
+  (generic-cross-product! [a b spec]
+    (let [sub (:sub spec) mul (:mul spec)]
+      (let [x1 (mp/get-1d a 0)
+            y1 (mp/get-1d a 1)
+            z1 (mp/get-1d a 2)
+            x2 (mp/get-1d b 0)
+            y2 (mp/get-1d b 1)
+            z2 (mp/get-1d b 2)]
+        (mp/set-1d! a 0 (sub (mul y1 z2) (mul z1 y2)))
+        (mp/set-1d! a 1 (sub (mul z1 x2) (mul x1 z2)))
+        (mp/set-1d! a 2 (sub (mul x1 y2) (mul y1 x2)))
+        a))))
+
+(extend-protocol gmp/PGenericMutableVectorOps
+  Object
+  (generic-normalise! [a spec]
+    (let [one (:one spec) div (:div spec) sqrt (:sqrt spec)]
+      (gmp/generic-scale! a (div 1.0 (sqrt (gmp/generic-length-squared a spec)))
+                          spec))))
+
+(extend-protocol gmp/PGenericMatrixOps
+  nil
+    (generic-trace [m spec] m)
+  Object
+  (generic-trace [m spec]
+    (let [scalar? (:scalar? spec) add (:add spec)]
+      (if (scalar? m)
+        m
+        (do (when-not (== 2 (mp/dimensionality m)) (error "Trace requires a 2D matrix"))
+            (let [rc (mp/dimension-count m 0)
+                  cc (mp/dimension-count m 1)
+                  dims (long rc)]
+              (when-not (== rc cc) (error "Can't compute trace of non-square matrix"))
+              (loop [i 0 res 0.0]
+                (if (>= i dims)
+                  res
+                  (recur (inc i) (add res (mp/get-2d m i i)))))))))))
+
+(extend-protocol gmp/PGenericMatrixProducts
+  Number
+    (inner-product [m a]
+      )
+    (outer-product [m a]
+      )
+  Object
+  (generic-inner-product [m a spec]
+    (let [scalar? (:scalar? spec) mul (:mul spec)]
+      (if (scalar? m)
+        (if (scalar? a)
+        (mul m a)
+        (gmp/generic-pre-scale a m spec))
+        (cond
+         (scalar? m)
+         (gmp/generic-pre-scale a m spec)
+         (scalar? a)
+         (gmp/generic-scale m a spec)
+         (== 1 (mp/dimensionality m))
+         (if (== 1 (mp/dimensionality a))
+           (gmp/generic-element-sum (gmp/generic-element-multiply m a spec) spec)
+           (reduce #(gmp/generic-matrix-add %1 %2 spec)
+                   (map (fn [sl x] (gmp/generic-scale sl x spec))
+                        (mp/get-major-slice-seq a)
+                        (mp/get-major-slice-seq m)))) ;; TODO: implement with mutable accumulation
+         :else
+         (mapv #(gmp/generic-inner-product % a spec)
+               (mp/get-major-slice-seq m))))))
+  (generic-outer-product [m a spec]
+    (let [scalar? (:scalar? spec) mul (:mul spec)]
+      (if (scalar? m)
+        (if (scalar? a)
+          (mul m a)
+          (gmp/generic-pre-scale a m spec))
+        (cond
+         (scalar? m)
+         (gmp/generic-pre-scale a m spec)
+         :else
+         (mp/convert-to-nested-vectors
+          (mp/element-map m (fn [v] (gmp/generic-pre-scale a v spec)))))))))
 
 (extend-protocol gmp/PGenericSummable
-  Number
-    (generic-element-sum [a spec] a)
   Object
-    (generic-element-sum [a spec]
-      (mp/element-reduce a (:add spec))))
+  (generic-element-sum [a spec]
+    (let [scalar? (:scalar? spec) add (:add spec)]
+      (if (scalar? a)
+        a
+        (mp/element-reduce a add)))))
 
 (extend-protocol gmp/PGenericSquare
-  Number
-   (generic-square [m spec] ((:mul spec) m m))
   Object
-   (generic-square [m spec] (gmp/generic-element-multiply m m spec)))
+   (generic-square [m spec] 
+     (let [scalar? (:scalar? spec) mul (:mul spec)]
+       (if (scalar? m)
+         (mul m m)
+         (gmp/generic-element-multiply m m spec)))))
