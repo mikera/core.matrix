@@ -12,7 +12,7 @@
 ;; generic element accessor functions
 ;; TODO: revisit these names?
 (defn default-value
- "generic-version of clojure.core.matrix/default-value"
+ "Returns the default value for the given array. Will normally be either nil or zero."
   ([impl]
      (mp/get-1d (mp/new-matrix-nd (imp/get-canonical-object impl) [1]) 0)))
 
