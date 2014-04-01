@@ -188,12 +188,12 @@
   (is (equals [10] (emap + [1] (broadcast 2 [1]) (double-array [3]) [4]))))
 
 (deftest test-conforming?
-  (is (conforming? 1 [[2 2] [3 3]]))
-  (is (conforming? 1 [3 3]))
+  (is (conforming? [[2 2] [3 3]] 1))
+  (is (conforming? [[2 2] [3 3]] [1 1]))
   (is (conforming? [3 3] 1))
-  (is (conforming? [3 3] [[1 2] [3 4]]))
   (is (not (conforming? [3 3] [[1 2 3] [3 4 3]])))
-  (is (not (conforming? [1 2] [3 4 5]))))
+  (is (not (conforming? [1 2] [3 4 5])))
+  (is (not (conforming? [[0.0]] [0.0 0.0]))))
 
 (deftest test-broadcast
   (is (= [[1 1] [1 1]] (coerce [] (broadcast 1 [2 2]))))
