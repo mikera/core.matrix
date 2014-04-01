@@ -405,7 +405,7 @@
         (sqrt a)
         (mp/element-reduce a (fn [r x] (add r (mul x x))) 0))))
   (generic-normalise [a spec]
-    (let [scalar? (:scalar spec) div (:div spec) one (:one spec) sub (:sub spec)
+    (let [scalar? (:scalar? spec) div (:div spec) one (:one spec) sub (:sub spec)
           sqrt (:sqrt spec) < (:< spec) > (:> spec) zero (:zero spec)]
       (if (scalar? a)
         (cond

@@ -280,6 +280,7 @@
      (gmp/generic-scale! m ((:sub spec) (:one spec)) spec)))
 
 (defn trace
+
   "generic-version of clojure.core.matrix/trace"
   ([spec a]
      (gmp/generic-trace a spec)))

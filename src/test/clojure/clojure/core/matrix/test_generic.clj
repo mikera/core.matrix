@@ -120,13 +120,32 @@
                   (is (cm/equals (cm/div a b) (div real a b))))
                 (is (cm/equals (cm/negate a) (negate real a)))))
 
+(defspec test-mutable-operations 100
+  (prop/for-all [[a b] (gen-conforming-arrays
+                        2 :implementations [:ndarray])]
+                (let [a2 (cm/clone a) b2 (cm/clone b)]
+                  (cm/add! a b) (add! real a2 b2)
+                  (is (cm/equals a a2))
+                  (cm/mul! a b) (mul! real a2 b2)
+                  (is (cm/equals a a2))
+                  (cm/sub! a b) (sub! real a2 b2)
+                  (is (cm/equals a a2))
+                  (when-not (some (partial == 0.0) (cm/eseq b))
+                    (cm/div! a b) (div! real a2 b2)
+                    (is (cm/equals a a2)))
+                  true)))
+
 
 (defspec test-gen-vector-operations 100
   (prop/for-all [a (gen-array :implementations [:ndarray :persistent-vector]
                               :max-dim 1 :min-dim 1)]
                 (is (cm/equals (cm/length a) (length real a)))
                 (is (cm/equals (cm/length-squared a) (length-squared
-                                                      real a)))))
+                                                      real a)))
+                (is (cm/equals (cm/square a) (square real a)))
+                (when-not (== 0.0 (cm/length a))
+                  (is (cm/equals (cm/normalise a) (normalise real a))))
+                true))
 
 (defspec test-gen-mmul 20
   (prop/for-all [[a b] (gen/such-that
