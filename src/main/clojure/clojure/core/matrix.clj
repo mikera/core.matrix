@@ -692,12 +692,15 @@
 
 (defn select
   "Returns a view containing all elements in a which are at the positions
-   of the cartesian product of args. An argument can be a number, the special
-   :all or a 1-dimensional array of numbers. The number of args has to match
-   the dimensionality of a. Examples:
+   of the cartesian product of args. An argument can be:
+   a number - selcts like [number] but drops the current dimension,
+   a 1-dimensional array of numbers or the special :all which is the same
+   as the range with all valid indices.
+   The number of args has to match the dimensionality of a. Examples:
    (select [[1 2][3 4]] 0 0) ;=> 1
    (select [[1 2][3 4]] 0 :all) ;=> [1 2]
-   (select [[1 2][3 4]] [0 1] 0) ;=> [[1] [3]"
+   (select [[1 2][3 4]] [0 1] [0]) ;=> [[1] [3]]
+   (select [[1 2][3 4]] :all 0) ;=> [1 3]"
   [a & args]
   (let [res (map normalise-arg-with-slicing args (mp/get-shape a))
         normalized-args (map first res)
