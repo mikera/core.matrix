@@ -1509,161 +1509,61 @@
 ;; ======================================================
 ;; default implementation for higher-level array indexing
 
-;; Helper Functions for sel
-
-(defn- expand-* [a args]
-  [(map #(if (= :* %1) (mp/dimension-count a %2) (count %1)) args (range))
-   (map #(if (= :* %1) (range (mp/dimension-count a %2)) %1) args (range))])
-
-(defn- sel-area [a args]
-  (let [[shape args] (expand-* a args)]
-    (cond
-     (= shape (mp/get-shape a)) a
-     (and (= (count shape) 2)
-          (= (first shape) (mp/dimension-count a 0)))
-     (if (= (second shape) 1)
-       (mp/column-matrix a (mp/get-column a (first (second args))))
-       (mp/transpose (mp/construct-matrix
-                      a (map (partial mp/get-column a) (second args)))))
-     (and (= (count shape) 2)
-          (= (second shape) (mp/dimension-count a 1)))
-     (if (= (first shape) 1)
-       (mp/get-row a (first (first args)))
-       (mp/construct-matrix a (map (partial mp/get-row a) (first args))))
-     :else
-     (mp/compute-matrix
-      a shape (fn [& idx] (mp/get-nd a (map #(nth %1 %2) args idx)))))))
-
-(extend-protocol mp/PLinearView
-  Object
-  (linear-view [a]
-    (mp/element-seq a)))
-
 (extend-protocol mp/PIndicesAccess
   Object
   (get-indices [a indices]
     (mp/construct-matrix (if (array? a) a [])
-                         (map #(mp/get-nd a %1) indices)))
+                         (map #(mp/get-nd a %1) (map mp/element-seq indices)))))
+
+(extend-protocol mp/PIndicesSetting
+  Object
   (set-indices [a indices values]
-    (let [values (mp/element-seq (mp/broadcast values (mp/get-shape indices)))]
+    (let [indices (map mp/element-seq indices)
+          values (mp/element-seq (mp/broadcast values (mp/get-shape indices)))]
       (loop [a a [id & idx] indices [v & vs] values]
         (if id (recur (mp/set-nd a id v) idx vs) a))))
   (set-indices! [a indices values]
-    (let [values (mp/element-seq (mp/broadcast values (mp/get-shape indices)))]
+    (let [indices (map mp/element-seq indices)
+          values (mp/element-seq (mp/broadcast values (mp/get-shape indices)))]
       (loop [[id & idx] indices [v & vs] values]
         (when id
           (do (mp/set-nd! a id v) (recur idx vs)))))))
 
-(defn- int-to-index [shape int]
-  (let [weights (map #(reduce * %) (take-while seq (iterate rest (rest shape))))]
-    (loop [ind [] r int [w & ws] weights]
-      (if w
-        (recur (conj ind (quot r w)) (rem r w) ws)
-        (conj ind r)))))
 
-(defn- get-linear-indices [a arg]
-  (map #(int-to-index (mp/get-shape a) %) arg))
-
-(defn reduce-dims [erg]
-  (let [shape (mp/get-shape erg)]
-    (reduce (fn [acc s]
-              (if (= s 1)
-                (first (mp/get-major-slice-seq acc))
-                (reduced acc))) erg shape)))
-
-(extend-protocol mp/PSel
+(extend-protocol mp/PSelect
   Object
-  (linear-sel [a indices]
-    (if (= indices :*)
-      a
-      (mp/get-indices a (get-linear-indices a indices))))
-  (area-sel [a area]
-    (let [erg (sel-area a area)]
-      (reduce-dims erg))))
-
-;;========================================================
-;; Helper functions for sel-set and sel-set!
+  (select [a area]
+    (wrap/wrap-selection a area)))
 
 (defn- area-indices [area]
   (reduce (fn [io in]
             (for [a in b io]
               (cons a b))) (map vector (last area)) (rest (reverse area))))
 
-(defn indices [vals]
+(defn- indices [vals]
   (area-indices (map range (mp/get-shape vals))))
 
-(defn- higher-order-set-area [a area vals set-whole
-                              set-columns set-rows set-general]
-  (let [[shape area] (expand-* a area)
+
+(extend-protocol mp/PSetSelection
+  Object
+  (set-selection [a area vals]
+    (let [shape (map count area)
         vals (mp/broadcast vals shape)]
     (cond
-     (= shape (mp/get-shape a)) (set-whole a area shape vals)
      (and (= (count shape) 2)
           (= (first shape) (mp/dimension-count a 0)))
-     (set-columns a area shape vals)
+     (loop [a a [i & is] (second area) [j & js] (range (second shape))]
+       (if i (recur (mp/set-column a i (mp/get-column vals j)) is js) a))
      (and (= (count shape) 2)
           (= (second shape) (mp/dimension-count a 1)))
-     (set-rows a area shape vals)
-     :else
-     (set-general a area shape vals))))
-
-(defn- set-area [a area vals]
-  (higher-order-set-area
-   a area vals
-   (fn [a area shape vals] vals)
-   (fn [a area shape vals]
-     (loop [a a [i & is] (second area) [j & js] (range (second shape))]
-       (if i (recur (mp/set-column a i (mp/get-column vals j)) is js) a)))
-   (fn [a area shape vals]
      (loop [a a [i & is] (first area) [j & js] (range (first shape))]
-       (if i (recur (mp/set-row a i (mp/get-row vals j)) is js) a)))
-   (fn [a area shape vals]
+       (if i (recur (mp/set-row a i (mp/get-row vals j)) is js) a))
+     :else
      (loop [a a [idl & idxl] (area-indices area) [idr & idxr] (indices vals)]
        (if idl
          (recur (mp/set-nd a idl (mp/get-nd vals idr)) idxl idxr)
-         a)))))
+         a))))))
 
-
-(defn sc! [a i col]
-  (loop [[j & js] (range (mp/dimension-count a 0)) [c & cs] col]
-    (when j (mp/set-2d! a j i c) (recur js cs))))
-
-(defn set-area! [a area vals]
-  (higher-order-set-area
-   a area vals
-   (fn [a area shape vals]
-     (mp/assign! a vals))
-   (fn [a area shape vals]
-     (loop [[i & is] (second area) [j & js] (range (second shape))]
-       (when i (do (sc! a i (mp/get-column vals j)) (recur is js)))))
-   (fn [a area shape vals]
-     (loop [[i & is] (first area) [j & js] (range (first shape))]
-       (when i (do (mp/set-row! a i (mp/get-row vals j)) (recur is js)))))
-   (fn [a area shape vals]
-     (loop [[idl & idxl] (area-indices area) [idr & idxr] (indices vals)]
-       (when idl (do (mp/set-nd! a idl (mp/get-nd vals idr))
-                     (recur idxl idxr)))))))
-
-
-(extend-protocol mp/PSelSet
-  Object
-  (linear-set [a indices values]
-    (mp/set-indices a (get-linear-indices
-                       a  (if (= indices :*)
-                            (range (mp/element-count a))
-                            indices)) values))
-  (area-set [a area-indices values]
-    (set-area a area-indices values)))
-
-(extend-protocol mp/PSelSet!
-  Object
-  (linear-set! [a indices values]
-    (mp/set-indices! a (get-linear-indices
-                        a (if (= indices :*)
-                            (range (mp/element-count a))
-                            indices)) values))
-  (area-set! [a area-indices values]
-    (set-area! a area-indices values)))
 ;; =======================================================
 ;; default multimethod implementations
 

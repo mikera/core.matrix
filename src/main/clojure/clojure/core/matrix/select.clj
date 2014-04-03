@@ -2,62 +2,93 @@
   (:use [clojure.core.matrix])
   (:require [clojure.core.matrix.protocols :as mp]))
 
-;; =========================================================
-;; EXPERIMENTAL - API subject to change
-;;
-;; high-level matlab-like indexing
+;; high-level array indexing
+;; Provides a matlab-like dsl for matrix indexing.
+;; Builds upon the select functions in clojure.core.matrix and
+;; adds support for linear-indexing, logical-indexing and use of selector
+;; functions to build up selections.
 
-(defn- eval-arg [a d arg]
+(defn- eval-arg
+  "desugars the selector"
+  [a d arg]
   (cond
-   (sequential? arg) arg
+   (sequential? arg) (mp/element-seq arg)
    (number? arg) [arg]
-   (keyword? arg) arg
+   (= :all arg) (range (dimension-count a d))
    :else (eval-arg a d (arg a d))))
 
-(defn- eval-args [a args]
+(defn- eval-args
+  "evaluates the arguments - calls the selector functions"
+  [a args]
   (map (partial eval-arg a) (range) args))
+
+(defn- reduce-dims
+  "Strips leading dimensions with dimension-count 1"
+  [erg]
+  (let [shape (mp/get-shape erg)]
+    (reduce (fn [acc s]
+              (if (= s 1)
+                (first (mp/get-major-slice-seq acc))
+                (reduced acc))) erg shape)))
+
+(defn- int-to-index
+  "gets the index in an array of shape from the position in the element-seq"
+  [shape int]
+  (let [weights (map #(reduce * %) (take-while seq (iterate rest (rest shape))))]
+    (loop [ind [] r int [w & ws] weights]
+      (if w
+        (recur (conj ind (quot r w)) (rem r w) ws)
+        (conj ind r)))))
+
+(defn- get-linear-indices
+  "returns the corresponding indices for arg"
+  [a arg]
+  (map #(int-to-index (mp/get-shape a) %) arg))
 
 (defn sel
   "matlab-like array indexing.
-   Examples:
-    (sel [[1 2][3 4]] 0 0) ;=> 1
-    (sel [[1 2][3 4]] [0 1] 0) ;=> [[1] [3]] (gets the first column)
-    :* is shorthand for select all
-    (sel [[1 2][3 4]] :* :*) ;=> [[1 2][3 4]]
-    sel also supports selector functions:
+   Like clojure.core.matrix/select but also supports selector functions:
     (sel [[1 2][3 4]] (irange) (irange));=> [[1 2][3 4]]
     (sel [[1 2][3 4]] end end) ;=> 4
     (sel [[1 2][3 4]] (exclude 1) (exclude 0)) ;=> 2
-    sel supports logical indexing
+    if only one argument is supplied it does linear indexing - selects the
+    elements by their position in eseq.
+    (sel [[1 2][3 4]] [0 3]) ;=> [1 4]
+    sel supports logical indexing:
     (sel [[-1 0][1 2]] (where pos?)) ;=> [1 2]"
   [a & args]
   (if (and (= 1 (count args)) (< 1 (dimensionality a)))
-    (mp/linear-sel a (eval-arg (mp/linear-view a) 0 (first args)))
-    (mp/area-sel a (eval-args a args))))
+    (mp/get-indices a (get-linear-indices
+                       a (eval-arg (mp/as-vector a) 0 (first args))))
+    (reduce-dims (mp/select a (eval-args a args)))))
 
-(defn- higher-order-sel-set [a args linear-set area-set]
-  (let [vals (last args) args (butlast args)]
-    (if (and (= 1 (count args)) (< 1 (dimensionality a)))
-      (linear-set a (eval-arg (mp/linear-view a) 0 (first args)) vals)
-      (area-set a (eval-args a args) vals))))
-
-(defn sel-set
-  "like sel, but sets the selected indices to the values specified in the
-   last argument. Leaves first argument unchanged. Examples
+(defn set-sel
+  "like sel but sets the values of a at the selected indices to the supplied
+   values. Leaves a unchanged, returns the modified array. Examples:
    (sel-set [[1 2][3 4]] 0 0 2) ;=> [[2 2][3 4]]
-   (sel-set [[1 2][3 4]] :* 0 [[5][6]] ;=> [[5 2][6 4]]
-   (sel-set [[1 2][3 4]] :* :* 1) ;=> [[1 1][1 1]]
+   (sel-set [[1 2][3 4]] (irange) 0 [[5][6]] ;=> [[5 2][6 4]]
+   (sel-set [[1 2][3 4]] (irange) (irange) 1) ;=> [[1 1][1 1]]
    (sel-set [[-2 -1][0 1]] (where neg?) 0) ;=> [[0 0][0 1]]"
   [a & args]
-  (higher-order-sel-set a args mp/linear-set mp/area-set))
+  (let [vals (last args) sel-args (butlast args)]
+    (if (and (= 1 (count sel-args)) (< 1 (dimensionality a)))
+      (mp/set-indices a (get-linear-indices
+                         a (eval-arg (mp/as-vector a) 0 (first sel-args))) vals)
+      (mp/set-selection a (eval-args a sel-args) vals))))
 
-(defn sel-set!
-  "like sel-set but modifies argument in place"
+(defn set-sel!
+  "like set-sel but destructively modifies a in place"
   [a & args]
-  (higher-order-sel-set a args mp/linear-set! mp/area-set!))
+  (let [vals (last args) sel-args (butlast args)]
+    (if (and (= 1 (count sel-args)) (< 1 (dimensionality a)))
+      (mp/set-indices! a (get-linear-indices
+                          a (eval-arg (mp/as-vector a) 0 (first sel-args))) vals)
+      (mp/assign! (mp/select a (eval-args a sel-args)) vals))))
+
+;;Selector functions
 
 (defn end
-  "selector function for sel. selects the last alid index"
+  "selector function for sel. selects the last valid index"
   [a dim]
   (- (dimension-count a dim) 1))
 

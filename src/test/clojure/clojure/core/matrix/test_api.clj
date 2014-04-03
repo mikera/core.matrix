@@ -18,42 +18,74 @@
     (is (== 1 (mget [[1 2 3] [4 5 6]] 0 0)))
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
 
+(deftest test-select
+  (let [a [[1 2] [3 4]]]
+    (testing "higher level indexing"
+      (is (== 1 (select a 0 0)))
+      (is (equals [[1] [3]] (select a [0 1] 0)))
+      (is (equals a (select a :all :all))))))
+
+(deftest test-select-indices
+  (let [a [[1 2] [3 4]]]
+    (testing "select indices"
+      (is (equals [1 4] (select-indices a [[0 0] [1 1]])))
+      (is (equals [[5 2] [3 6]] (set-indices a [[0 0] [1 1]] [5 6])))
+      (let [ma (mutable a)]
+        (set-indices! ma [[0 0] [1 1]] [5 6])
+        (is (equals ma [[5 2] [3 6]]))))))
+
+
 (deftest test-sel
   (let [a [[1 2] [3 4]]]
     (testing "higher level indexing"
       (is (== 1 (sel a 0 0)))
-      (is (= [[1] [3]] (sel a [0 1] 0)))
-      (is (= a (sel a :* :*)))
+      (is (equals [[1] [3]] (sel a [0 1] 0)))
+      (is (equals a (sel a :all :all)))
       (is (== 4 (sel a end end)))
       (is (== 2 (sel a (exclude 1) (exclude 0))))
-      (is (= [1 2] (sel [[-1 0] [1 2]] (where pos?)))))))
+      (is (equals [1 2] (sel [[-1 0] [1 2]] (where pos?)))))))
 
-(deftest test-sel-set
+(deftest test-set-selection
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
-    (testing "sel-set"
-      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (sel-set a 0 0 2))
-      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (sel-set a [0 2] [0 3] 3))
-      (is (= [[1 2 3 4] [5 5 5 5] [5 5 5 5]])
-          (sel-set a (where (partial < 5)) 5)))))
+    (testing "set-selection"
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (set-selection a 0 0 2))
+      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (set-selection a [0 2] [0 3] 3)))))
 
-(deftest test-sel-set!
+(deftest test-set-selection!
   (let [a (matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
     (testing "sel-set!"
-      (sel-set! a 0 0 2)
+      (set-selection! a 0 0 2)
+      (is (equals [[2 2 3 4] [5 6 7 8] [9 10 11 12]] a))
+      (set-selection! a :all 0 0)
+      (is (equals [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a)))))
+
+
+(deftest test-set-sel
+  (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
+    (testing "set-sel"
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (set-sel a 0 0 2))
+      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (set-sel a [0 2] [0 3] 3))
+      (is (= [[1 2 3 4] [5 5 5 5] [5 5 5 5]])
+          (set-sel a (where (partial < 5)) 5)))))
+
+(deftest test-set-sel!
+  (let [a (matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
+    (testing "set-sel!"
+      (set-sel! a 0 0 2)
       (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] a))
-      (sel-set! a :* 0 0)
+      (set-sel! a :all 0 0)
       (is (= [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a)))))
 
 (deftest test-selector-functions
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12] [13 14 15 16]]]
-    (is (= (eseq a) (sel a (where pos?))))
-    (is (= [16] (sel a end)))
-    (is (= [15] (sel a (calc - end 1))))
-    (is (= a (sel a (irange) (irange))))
-    (is (= [[5 6 7 8] [9 10 11 12]] (sel a (irange 1 2) :*)))
-    (is (= [2 3 4] (sel a (exclude [1 2 3]) (exclude 0))))
-    (is (= [[1 3] [9 11]] (sel a even even)))
-    (is (= [[6 8] [14 16]] (sel a odd odd)))))
+    (is (equals (eseq a) (sel a (where pos?))))
+    (is (equals [16] (sel a end)))
+    (is (equals [15] (sel a (calc - end 1))))
+    (is (equals a (sel a (irange) (irange))))
+    (is (equals [[5 6 7 8] [9 10 11 12]] (sel a (irange 1 2) :all)))
+    (is (equals [2 3 4] (sel a (exclude [1 2 3]) (exclude 0))))
+    (is (equals [[1 3] [9 11]] (sel a even even)))
+    (is (equals [[6 8] [14 16]] (sel a odd odd)))))
 
 (deftest test-shape
   (testing "basic array shapes"
