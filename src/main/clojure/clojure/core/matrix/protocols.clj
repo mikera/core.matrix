@@ -744,6 +744,27 @@
   (generic-negate [m] "Generic 'negate' function for numerical values.")
   (generic-div [m] "Generic 'div' function for numerical values."))
 
+;; ===========================================================
+;; Protocols for higher-level array indexing
+(defprotocol PSelect
+  "Protocol for the sel function"
+  (select [a args] "selects all elements at indices which are in the cartesian product of args"))
+
+(defprotocol PSetSelection
+  "Protocol for setting the elements of an array returned by (select a args) to values"
+  (set-selection [a args values] "sets the elements in the selection of a to values"))
+
+(defprotocol PIndicesAccess
+  "Protocol for getting elements of an array at the specified indices."
+  (get-indices [a indices] "returns a 1-d array with the elements of a at indices"))
+
+(defprotocol PIndicesSetting
+  "Protocol for setting elements of an array at the specified indices"
+  (set-indices [a indices values] "sets the elements from a at indices to values")
+  (set-indices! [a indices values] "destructively sets the elements from a at indices to values"))
+
+
+
 ;; ============================================================
 ;; Utility functions
 

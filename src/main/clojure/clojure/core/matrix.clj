@@ -658,7 +658,70 @@
   "Gets a column of a matrix, as a vector.
    Will return a mutable view if supported by the implementation."
   ([m y]
-    (mp/get-column m y)))
+     (mp/get-column m y)))
+
+(defn- reduce-dims
+  "Strips all leading dimensions whole count is 1"
+  [erg]
+  (let [shape (mp/get-shape erg)]
+    (reduce (fn [acc s]
+              (if (= s 1)
+                (first (mp/get-major-slice-seq acc))
+                (reduced acc))) erg shape)))
+
+(defn- normalise-arg
+  "maps number to [number] and :all to (range s) where s is the shape entry for
+   the current dimension"
+  [arg s]
+  (cond
+   (= :all arg) (range s)
+   (number? arg) [arg]
+   :else (mp/element-seq arg)))
+
+(defn select
+  "Returns a view containing all elements in a which are at the positions
+   of the cartesian product of args. An argument can be a number, the special
+   :all or a 1-dimensional array of numbers. The number of args has to match
+   the dimensionality of a. Examples:
+   (select [[1 2][3 4]] 0 0) ;=> 1
+   (select [[1 2][3 4]] 0 :all) ;=> [1 2]
+   (select [[1 2][3 4]] [0 1] 0) ;=> [[1] [3]"
+  [a & args]
+  (reduce-dims (mp/select a (map normalise-arg args (mp/get-shape a)))))
+
+(defn select-indices
+  "returns a one-dimensional array of the elements which are at the specified
+   indices. An index is a one-dimensional array which element-count matches the
+   dimensionality of a. Examples:
+   (select-indices [[1 2] [3 4]] [[0 0][1 1]]) ;=> [1 4]"
+  [a indices]
+  (mp/get-indices a indices))
+
+(defn set-selection
+  "Like select but sets the elements in the selection to the values in (last
+   args). Leaves a unchanged and returns the modified array"
+  [a & args]
+  (let [sel-args (butlast args) values (last args)]
+    (mp/set-selection a (map normalise-arg sel-args (mp/get-shape a)) values)))
+
+(defn set-selection!
+  "Like set-selection but destructively modifies a in place"
+  [a & args]
+  (let [sel-args (butlast args) values (last args)]
+    (assign! (mp/select a (map normalise-arg sel-args (mp/get-shape a))) values)
+    a))
+
+(defn set-indices
+  "like select-indices but sets the elements at the specified indices to values.
+   Leaves a unchanged and returns a modified array"
+  [a indices values]
+  (mp/set-indices a indices values))
+
+(defn set-indices!
+  "like set-indices but destructively modifies array in place"
+  [a indices values]
+  (mp/set-indices! a indices values)
+  a)
 
 (defn coerce
   "Coerces param (which may be any array) into a format preferred by a specific matrix implementation.
@@ -1279,6 +1342,7 @@
   "Sets a column in a matrix using a specified vector."
   [m i column]
   (mp/set-column! m i column))
+
 
 ;; ===================================
 ;; Sparse matrix functions
