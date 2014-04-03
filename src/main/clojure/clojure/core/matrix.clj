@@ -527,7 +527,9 @@
    exists a common shape that both can broadcast to. This is a requirement for element-wise
    operations to work correctly on two different-shaped arrays."
   ([a] true)
-  ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b))))))
+  ([a b] (let [sa (mp/get-shape a) sb (mp/get-shape b)]
+           (and (>= (count sa) (count sb))
+                (every? identity (map #(= %1 %2) (reverse sa) (reverse sb)))))))
 
 (defn same-shape?
   "Returns true if the arrays have the same shape, false otherwise"
@@ -1336,6 +1338,10 @@
   [m i column]
   (mp/set-column m i column))
 
+(defn set-column!
+  "Sets a column in a matrix using a specified vector."
+  [m i column]
+  (mp/set-column! m i column))
 
 
 ;; ===================================

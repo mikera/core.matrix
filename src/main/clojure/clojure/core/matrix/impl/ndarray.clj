@@ -1085,8 +1085,11 @@
 
   mp/PSummable
     (element-sum [m]
-      (fold-over [m] 0
-                 (+ loop-acc (aget m-data m-idx))))
+      ;; TODO: needs fold-over support for N-dimensional case
+      (if (<= (mp/dimensionality m) 2)
+        (fold-over [m] 0
+                 (+ loop-acc (aget m-data m-idx)))
+        (reduce (fn [acc a] (+ acc (mp/element-sum a))) 0.0 (mp/get-major-slice-seq m))))
 
   mp/PExponent
     (element-pow [m exp]

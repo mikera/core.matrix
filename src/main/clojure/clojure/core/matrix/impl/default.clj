@@ -976,7 +976,12 @@
           new-m (reduce (fn [acc idx]
                           (mp/set-2d acc idx i (mp/get-1d column idx)))
                         m indices)]
-      (mp/coerce-param m new-m))))
+      (mp/coerce-param m new-m)))
+  (set-column! [m i column]
+    (let [scol (mp/get-column m 0)
+          column (mp/broadcast-like scol column)]
+      (dotimes [j (mp/dimension-count column 0)]
+        (mp/set-2d! m j i (mp/get-1d column j))))))
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
