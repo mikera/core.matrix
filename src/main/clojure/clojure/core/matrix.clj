@@ -660,14 +660,26 @@
   ([m y]
      (mp/get-column m y)))
 
-(defn- reduce-dims
+(defn- slice-dims
   "Strips all leading dimensions whole count is 1"
-  [erg]
+  [erg dims-to-slice]
   (let [shape (mp/get-shape erg)]
-    (reduce (fn [acc s]
-              (if (= s 1)
-                (first (mp/get-major-slice-seq acc))
-                (reduced acc))) erg shape)))
+    (loop [erg erg ds dims-to-slice acc (long 0)]
+      (if (seq ds)
+        (if (first ds) ;;slice current dimension
+          (recur (mp/get-slice erg acc 0) (rest ds) acc)
+          (recur erg (rest ds) (inc acc)))
+        erg))))
+
+(defn- normalise-arg-with-slicing
+  "maps number to [number] and :all to (range s) where s is the shape entry for
+   the current dimension also returns if the current dimension has to be
+   sliced after selecting"
+  [arg s]
+  (cond
+   (= :all arg) [(range s) false]
+   (number? arg) [[arg] true]
+   :else [(mp/element-seq arg) false]))
 
 (defn- normalise-arg
   "maps number to [number] and :all to (range s) where s is the shape entry for
@@ -687,7 +699,10 @@
    (select [[1 2][3 4]] 0 :all) ;=> [1 2]
    (select [[1 2][3 4]] [0 1] 0) ;=> [[1] [3]"
   [a & args]
-  (reduce-dims (mp/select a (map normalise-arg args (mp/get-shape a)))))
+  (let [res (map normalise-arg-with-slicing args (mp/get-shape a))
+        normalized-args (map first res)
+        dims-to-slice (map second res)]
+    (slice-dims (mp/select a normalized-args) dims-to-slice)))
 
 (defn select-indices
   "returns a one-dimensional array of the elements which are at the specified

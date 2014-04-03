@@ -4,7 +4,6 @@
   (:require [clojure.core.matrix.operators :as ops])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.generic :as generic])
-  (:require [clojure.core.matrix.select :as sel])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require [clojure.core.matrix.utils :as utils :refer [error error?]]))
 
