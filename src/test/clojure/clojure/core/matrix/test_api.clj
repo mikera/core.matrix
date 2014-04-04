@@ -21,8 +21,9 @@
 (deftest test-select
   (let [a [[1 2] [3 4]]]
     (testing "higher level indexing"
-      (is (== 1 (select a 0 0)))
-      (is (equals [[1] [3]] (select a [0 1] 0)))
+      (is (equals 1 (select a 0 0)))
+      (is (equals [[1] [3]] (select a [0 1] [0])))
+      (is (equals [1 3] (select a :all 0)))
       (is (equals a (select a :all :all))))))
 
 (deftest test-select-indices
@@ -38,11 +39,12 @@
 (deftest test-sel
   (let [a [[1 2] [3 4]]]
     (testing "higher level indexing"
-      (is (== 1 (sel a 0 0)))
-      (is (equals [[1] [3]] (sel a [0 1] 0)))
+      (is (equals 1 (sel a 0 0)))
+      (is (equals [[1] [3]] (sel a [0 1] [0])))
+      (is (equals [1 3] (sel a [0 1] 0)))
       (is (equals a (sel a :all :all)))
-      (is (== 4 (sel a end end)))
-      (is (== 2 (sel a (exclude 1) (exclude 0))))
+      (is (equals 4 (sel a end end)))
+      (is (equals 2 (sel a (exclude 1) (exclude 0))))
       (is (equals [1 2] (sel [[-1 0] [1 2]] (where pos?)))))))
 
 (deftest test-set-selection

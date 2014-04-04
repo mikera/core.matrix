@@ -20,16 +20,33 @@
 (defn- eval-args
   "evaluates the arguments - calls the selector functions"
   [a args]
-  (map (partial eval-arg a) (range) args))
+  (map #(eval-arg a %1 %2) (range) args))
 
-(defn- reduce-dims
-  "Strips leading dimensions with dimension-count 1"
-  [erg]
+(defn- eval-arg-with-slicing
+  "desugars the selector - also checks whether the current dimension has to
+   be sliced"
+  [a d arg]
+  (cond
+   (sequential? arg) [(mp/element-seq arg) false]
+   (number? arg) [[arg] true]
+   (= :all arg) [(range (dimension-count a d)) false]
+   :else (eval-arg-with-slicing a d (arg a d))))
+
+(defn- eval-args-with-slicing
+  "evalutes the arguments and checks which dimensions have to be sliced"
+  [a args]
+  (map #(eval-arg-with-slicing a %1 %2) (range) args))
+
+(defn- slice-dims
+  "Strips all leading dimensions whole count is 1"
+  [erg dims-to-slice]
   (let [shape (mp/get-shape erg)]
-    (reduce (fn [acc s]
-              (if (= s 1)
-                (first (mp/get-major-slice-seq acc))
-                (reduced acc))) erg shape)))
+    (loop [erg erg ds dims-to-slice acc (long 0)]
+      (if (seq ds)
+        (if (first ds) ;;slice current dimension
+          (recur (slice erg acc 0) (rest ds) acc)
+          (recur erg (rest ds) (inc acc)))
+        erg))))
 
 (defn- int-to-index
   "gets the index in an array of shape from the position in the element-seq"
@@ -60,7 +77,10 @@
   (if (and (= 1 (count args)) (< 1 (dimensionality a)))
     (mp/get-indices a (get-linear-indices
                        a (eval-arg (mp/as-vector a) 0 (first args))))
-    (reduce-dims (mp/select a (eval-args a args)))))
+    (let [res (eval-args-with-slicing a args)
+          evaled-args (map first res)
+          dims-to-slice (map second res)]
+      (slice-dims (mp/select a (eval-args a args)) dims-to-slice))))
 
 (defn set-sel
   "like sel but sets the values of a at the selected indices to the supplied
@@ -117,8 +137,9 @@
    number or a sequential"
   [idx]
   (fn [a dim]
-    (let [count (dimension-count a dim)]
-      (remove (set (eval-arg a dim idx)) (range count)))))
+    (let [count (dimension-count a dim)
+          excl (remove (set (eval-arg a dim idx)) (range count))]
+      (if (second excl) excl (first excl)))))
 
 (defn where
   "selector function for sel.
