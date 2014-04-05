@@ -9,3 +9,6 @@
 (deftest test-vectorz-pm
   (is (pp/pm (array :vectorz [1 2])))
   (is (pp/pm (array :vectorz [[1 2] [3 4]]))))
+
+(deftest test-non-numeric
+  (is (= "[:a foo bar  ]" (pp/pm [:a "foo" 'bar \space]))))
