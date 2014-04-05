@@ -289,7 +289,22 @@
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
         (mp/get-nd array ix)))
-
+    mp/PIndexedSettingMutable
+    (set-1d! [m row v]
+      (let [ix (copy-long-array source-position)
+            ^longs im (aget index-maps 0)]
+        (set-source-index ix 0 row)
+        (mp/set-nd! array ix v)))
+    (set-2d! [m row column v]
+      (let [ix (copy-long-array source-position)]
+        (set-source-index ix 0 row)
+        (set-source-index ix 1 column)
+        (mp/set-nd! array ix v)))
+    (set-nd! [m indexes v]
+      (let [^longs ix (copy-long-array source-position)]
+        (dotimes [i (alength shape)]
+          (set-source-index ix i (nth indexes i)))
+        (mp/set-nd! array ix v)))
 
   java.lang.Object
     (toString [m]
@@ -312,6 +327,17 @@
                   (long-range dims)
                   (object-array (map #(long-range (mp/dimension-count m %)) (range dims)))
                   (long-array (repeat dims 0))))))
+(defn wrap-selection
+  [m indices]
+  (let [shp (long-array (map count indices))
+        dims (count shp)]
+    (NDWrapper.
+     m
+     shp
+     (long-array (range dims))
+     (object-array (map long-array indices))
+     (long-array (repeat dims 0))
+     )))
 
 (defn wrap-submatrix
   [m dim-ranges]

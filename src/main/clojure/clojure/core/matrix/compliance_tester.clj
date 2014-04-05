@@ -601,6 +601,18 @@
     (is (equals [[1 2] [5 4]] (mset m 1 0 5)))
     (is (equals [[1 2] [3 5]] (mset m 1 1 5)))))
 
+(defn test-matrix-selection [im]
+  (let [m (matrix im [[1 2] [3 4]])]
+    (is (equals [1 2] (select m 0 :all)))
+    (if (supports-dimensionality? m 1)
+      (is (equals [1 4] (select-indices m [[0 0] [1 1]]))))))
+
+(defn test-matrix-set-selection [im]
+  (let [m (matrix im [[1 2] [3 4]])
+        mutable-m (ensure-mutable m)]
+    (is (equals [[1 1] [1 1]] (set-selection m :all :all 1)))
+    (is (equals [[5 2] [6 4]] (set-selection m :all 0 [[5] [6]])))))
+
 (defn test-2d-instances [im]
   (test-numeric-instance (matrix im [[1 2] [3 4]]))
   (test-numeric-instance (matrix im [[1 2]]))
@@ -635,7 +647,9 @@
   (test-2d-instances im)
   (test-matrix-mset im)
   (test-matrix-slices im)
-  (test-matrix-set-column im))
+  (test-matrix-set-column im)
+  (test-matrix-selection im)
+  (test-matrix-set-selection im))
 
 ;; ======================================
 ;; Instance test function
