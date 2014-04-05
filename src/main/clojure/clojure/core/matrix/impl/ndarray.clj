@@ -644,7 +644,12 @@
     (get-major-slice [m i]
       (row-major-slice#t m i))
     (get-slice [m dimension i]
-      (arbitrary-slice#t m dimension i))
+               ;;get-slice requires to return a scalar for a slice of a 1-dim
+               ;;array
+               (let [res (arbitrary-slice#t m dimension i)]
+                 (if (= 1 ndims)
+                   (mp/get-0d res)
+                   res)))
 
   mp/PSubVector
     (subvector [m start length]

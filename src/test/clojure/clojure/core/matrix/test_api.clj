@@ -200,6 +200,10 @@
   (testing "slices of a standard vector are scalar numbers"
     (is (= [1 2 3] (slices (array [1 2 3]))))))
 
+(deftest test-slice-on-1d
+  (testing "slice on 1d must return scalar"
+    (is (scalar? (slice [1 2 3] 0)))))
+
 (deftest test-submatrix
   (is (equals [[3]] (submatrix (array [[1 2] [3 4]]) [[1 1] [0 1]])))
   (is (equals [[2] [4]] (submatrix (array [[1 2] [3 4]]) 1 [1 1])))

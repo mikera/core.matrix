@@ -1105,7 +1105,8 @@
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
       (cond 
-        (java-array? m) (nth m i)
+       (java-array? m) (nth m i)
+       (== 1 (mp/dimensionality m)) (mp/get-1d m i)
         :else (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
     (get-slice [m dimension i]
       (cond

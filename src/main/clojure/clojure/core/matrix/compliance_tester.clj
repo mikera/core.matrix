@@ -169,6 +169,10 @@
               (is (= (mutable? fss) (mutable? m)))))
           (is (e= m slcs)))))))
 
+(defn test-slice-returns-scalar-on-1d [m]
+  (when (and (= 1 (dimensionality m)) (> (ecount m) 0))
+    (is (scalar? (slice m 0)))))
+
 (defn test-submatrix-assumptions [m]
   (let [shp (shape m)
         dims (dimensionality m)
@@ -271,6 +275,7 @@
   (test-join m)
   (test-dimensionality-assumptions m)
   (test-slice-assumptions m)
+  (test-slice-returns-scalar-on-1d m)
   (test-submatrix-assumptions m)
   (test-mutable-assumptions m)
   (test-vector-round-trip m)
