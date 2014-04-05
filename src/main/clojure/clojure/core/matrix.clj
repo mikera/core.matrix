@@ -527,7 +527,9 @@
    exists a common shape that both can broadcast to. This is a requirement for element-wise
    operations to work correctly on two different-shaped arrays."
   ([a] true)
-  ([a b] (not (nil? (broadcast-shape (mp/get-shape a) (mp/get-shape b))))))
+  ([a b] (let [sa (mp/get-shape a) sb (mp/get-shape b)]
+           (and (>= (count sa) (count sb))
+                (every? identity (map #(= %1 %2) (reverse sa) (reverse sb)))))))
 
 (defn same-shape?
   "Returns true if the arrays have the same shape, false otherwise"
@@ -656,7 +658,88 @@
   "Gets a column of a matrix, as a vector.
    Will return a mutable view if supported by the implementation."
   ([m y]
-    (mp/get-column m y)))
+     (mp/get-column m y)))
+
+(defn- slice-dims
+  "Strips all leading dimensions whole count is 1"
+  [erg dims-to-slice]
+  (let [shape (mp/get-shape erg)]
+    (loop [erg erg ds dims-to-slice acc (long 0)]
+      (if (seq ds)
+        (if (first ds) ;;slice current dimension
+          (recur (mp/get-slice erg acc 0) (rest ds) acc)
+          (recur erg (rest ds) (inc acc)))
+        erg))))
+
+(defn- normalise-arg-with-slicing
+  "maps number to [number] and :all to (range s) where s is the shape entry for
+   the current dimension also returns if the current dimension has to be
+   sliced after selecting"
+  [arg s]
+  (cond
+   (= :all arg) [(range s) false]
+   (number? arg) [[arg] true]
+   :else [(mp/element-seq arg) false]))
+
+(defn- normalise-arg
+  "maps number to [number] and :all to (range s) where s is the shape entry for
+   the current dimension"
+  [arg s]
+  (cond
+   (= :all arg) (range s)
+   (number? arg) [arg]
+   :else (mp/element-seq arg)))
+
+(defn select
+  "Returns a view containing all elements in a which are at the positions
+   of the cartesian product of args. An argument can be:
+   a number - selcts like [number] but drops the current dimension,
+   a 1-dimensional array of numbers or the special :all which is the same
+   as the range with all valid indices.
+   The number of args has to match the dimensionality of a. Examples:
+   (select [[1 2][3 4]] 0 0) ;=> 1
+   (select [[1 2][3 4]] 0 :all) ;=> [1 2]
+   (select [[1 2][3 4]] [0 1] [0]) ;=> [[1] [3]]
+   (select [[1 2][3 4]] :all 0) ;=> [1 3]"
+  [a & args]
+  (let [res (map normalise-arg-with-slicing args (mp/get-shape a))
+        normalized-args (map first res)
+        dims-to-slice (map second res)]
+    (slice-dims (mp/select a normalized-args) dims-to-slice)))
+
+(defn select-indices
+  "returns a one-dimensional array of the elements which are at the specified
+   indices. An index is a one-dimensional array which element-count matches the
+   dimensionality of a. Examples:
+   (select-indices [[1 2] [3 4]] [[0 0][1 1]]) ;=> [1 4]"
+  [a indices]
+  (mp/get-indices a indices))
+
+(defn set-selection
+  "Like select but sets the elements in the selection to the values in (last
+   args). Leaves a unchanged and returns the modified array"
+  [a & args]
+  (let [sel-args (butlast args) values (last args)]
+    (mp/set-selection a (map normalise-arg sel-args (mp/get-shape a)) values)))
+
+(defn set-selection!
+  "Like set-selection but destructively modifies a in place"
+  [a & args]
+  (let [sel-args (butlast args) values (last args)]
+    (assign! (mp/select a (map normalise-arg sel-args (mp/get-shape a))) values)
+    a))
+
+(defn set-indices
+  "like select-indices but sets the elements at the specified indices to values.
+   Leaves a unchanged and returns a modified array"
+  [a indices values]
+  (mp/set-indices a indices values))
+
+(defn set-indices!
+  "like set-indices but destructively modifies array in place"
+  [a indices values]
+  (mp/set-indices! a indices values)
+  a)
 
 (defn coerce
   "Coerces param (which may be any array) into a format preferred by a specific matrix implementation.
@@ -1277,6 +1360,7 @@
   "Sets a column in a matrix using a specified vector."
   [m i column]
   (mp/set-column! m i column))
+
 
 ;; ===================================
 ;; Sparse matrix functions
