@@ -309,6 +309,11 @@
       nil ;; fall-though: should get an ndarray result
       ))
 
+(extend-protocol mp/PImmutableMatrixConstruction
+  IPersistentVector
+  (immutable-matrix [m]
+    m))
+
 (extend-protocol mp/PVectorDistance
   IPersistentVector
     (distance [a b] (mp/length (mapv - b a))))
