@@ -119,6 +119,9 @@
   (is (= [1 2] (seq (array :ndarray [1 2]))))
   )
 
+(deftest test-slice-on-1d
+  (is (scalar? (slice (array :ndarray [1 2 3]) 0))))
+
 (deftest test-assign
   (let [m (empty-ndarray [2 2 2])
         vm [[[0 1] [2 3]] [[4 5] [6 7]]]]
