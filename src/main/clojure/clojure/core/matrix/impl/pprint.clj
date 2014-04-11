@@ -80,15 +80,17 @@
 
 (defn pm
   "Pretty-prints an array. Returns a String containing the pretty-printed representation."
-  [a & {:keys [prefix formatter]}]
-  (let [formatter (or formatter default-formatter)
-        m (format-array a formatter)
-        prefix (or prefix "")
-        sb (StringBuilder.)]
-    (cond
-      (mp/is-scalar? m) (.append sb (str prefix m))
-      (== 1 (mp/dimensionality m)) 
-        (append-row sb m (column-lengths m))
-      :else 
-        (let [clens (column-lengths m)] (rprint sb m prefix clens)))
-    (.toString sb)))
+  ([a] 
+    (pm a nil))
+  ([a {:keys [prefix formatter]}]
+    (let [formatter (or formatter default-formatter)
+          m (format-array a formatter)
+          prefix (or prefix "")
+          sb (StringBuilder.)]
+      (cond
+        (mp/is-scalar? m) (.append sb (str prefix m))
+        (== 1 (mp/dimensionality m)) 
+          (append-row sb m (column-lengths m))
+        :else 
+          (let [clens (column-lengths m)] (rprint sb m prefix clens)))
+      (.toString sb))))

@@ -1536,11 +1536,15 @@
 ;; Print Matrix
 
 (defn pm
-  "Pretty-prints a matrix"
+  "Pretty-prints a matrix.
+
+   opts is a map of optional parameters which may include:
+
+      :formatter - a function to format each array element"
   ([m]
     (println (pprint/pm m)))
-  ([m & opts]
-    (println (apply pprint/pm opts))))
+  ([m opts]
+    (println (pprint/pm m opts))))
 
 ;; =========================================================
 ;; Implementation management functions
