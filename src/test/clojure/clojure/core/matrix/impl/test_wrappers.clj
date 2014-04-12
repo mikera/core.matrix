@@ -65,6 +65,10 @@
   (is (equals [3 4] (wrap-nd [3 4])))
   (is (equals [3 4] (seq (wrap-nd [3 4])))))
 
+(deftest test-wrap-fill
+  (let [a (wrap-nd [[1 2] [3 4]])]
+    (is (equals [[9 9] [9 9]] (fill a 9))))) 
+
 (deftest test-as-vector
   (is (e== [1] (as-vector (wrap-scalar 1)))))
 
