@@ -635,6 +635,10 @@
   "Protocol to support element-wise squaring of a numerical array."
   (square [m]))
 
+(defprotocol PSortArray
+  "Protocol for sorting an array in given order (asc/desc)."
+  (sort-array [m order]))
+
 ;; ==================================
 ;; Elementary Row Operation Protocols
 ;;

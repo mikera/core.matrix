@@ -135,6 +135,16 @@
   (is (equals [1 4] (square [1 2])))
   (is (equals [[1 4]] (square [(double-array [1 2])]))))
 
+(deftest test-sort-array
+  (is (= [1 2 3 4 5 6 7 8] (sort-array [1 3 5 7 2 4 6 8])))
+  (is (= [1 2 3 4 5 6 7 8] (sort-array [1 2 3 4 5 6 7 8])))
+  (is (= [1 2 3 4 5 6 7 8] (sort-array [8 7 6 5 4 3 2 1])))
+  (is (= [1 2 3 4 5 6 7 8] (sort-array [1 3 5 7 2 4 6 8] 'asc)))
+  (is (= [8 7 6 5 4 3 2 1] (sort-array [1 3 5 7 2 4 6 8] 'desc)))
+  (is (= [8 7 6 5 4 3 2 1] (sort-array [1 2 3 4 5 6 7 8] 'desc)))
+  (is (= [8 7 6 5 4 3 2 1] (sort-array [8 7 6 5 4 3 2 1] 'desc)))
+  (is (= [[8 7 6 5] [4 3 2 1]] (sort-array [[8 5 7 6] [1 2 3 4]] 'desc))))
+
 (deftest test-new
   (is (e= [0.0] (new-vector :ndarray 1)))
   (is (e= [[0.0]] (new-matrix :ndarray 1 1)))
