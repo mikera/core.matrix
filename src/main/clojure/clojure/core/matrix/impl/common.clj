@@ -1,12 +1,11 @@
-(ns clojure.core.matrix.docgen.common
+(ns clojure.core.matrix.impl.common
   (:use [clojure.java.shell :only [sh]])
   (:require [clojure.reflect :as r]
             [clojure.string :as s]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.multimethods :as mm]
-            [clojure.core.matrix.implementations :as mi]
-            [criterium.core :as cr]))
+            [clojure.core.matrix.implementations :as mi]))
 
 (defn get-impl-objs
   "Returns a list of available implementations' objects"

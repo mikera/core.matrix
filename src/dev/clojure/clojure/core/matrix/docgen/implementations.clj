@@ -4,7 +4,7 @@
             [clojure.core.matrix.utils :as utils]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as mi]
-            [clojure.core.matrix.docgen.common :as c]))
+            [clojure.core.matrix.impl.common :as c]))
 
 ;; ## Info
 ;; This file provides rather hacky solution for generating
