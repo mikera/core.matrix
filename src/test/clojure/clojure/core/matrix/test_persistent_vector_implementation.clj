@@ -50,6 +50,10 @@
   (testing "trace"
     (is (== 5 (trace [[1 2] [3 4]])))))
 
+(deftest test-fill
+  (is (equals [[2 2] [2 2]] (fill [[1 2] [3 4]] 2)))
+  (is (equals [[2 2] [2 2]] (fill [[1 2] [3 4]] [2 2])))) 
+
 (deftest test-transpose
   (testing "vector transpose"
     (is (= [[1 3] [2 4]] (transpose [[1 2] [3 4]])))
