@@ -712,7 +712,7 @@
     (slice-dims (mp/select a normalized-args) dims-to-slice)))
 
 (defn select-indices
-  "returns a one-dimensional array of the elements which are at the specified
+  "Returns a one-dimensional array of the elements which are at the specified
    indices. An index is a one-dimensional array which element-count matches the
    dimensionality of a. Examples:
    (select-indices [[1 2] [3 4]] [[0 0][1 1]]) ;=> [1 4]"
