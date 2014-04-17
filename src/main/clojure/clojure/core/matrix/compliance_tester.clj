@@ -113,6 +113,12 @@
       (is (thrown? Throwable (dimension-count m -1)))
       (is (thrown? Throwable (dimension-count m dims))))))
 
+(defn test-immutable-assumptions [m]
+  (testing "immutable coerce"
+    (let [im (immutable m)]
+      (is (not (mutable? im)))
+      (is (e= m im)))))
+
 (defn test-mutable-assumptions [m]
   (testing "ensure mutable"
     (let [em (ensure-mutable m)]
@@ -278,6 +284,7 @@
   (test-slice-returns-scalar-on-1d m)
   (test-submatrix-assumptions m)
   (test-mutable-assumptions m)
+  (test-immutable-assumptions m)
   (test-vector-round-trip m)
   (test-ndarray-round-trip m)
   (test-reshape m)

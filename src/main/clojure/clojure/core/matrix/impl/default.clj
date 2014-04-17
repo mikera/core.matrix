@@ -386,6 +386,9 @@
        false))
 
 (extend-protocol mp/PImmutableMatrixConstruction
+  nil
+    (immutable-matrix [m]
+      nil)
   Object 
     (immutable-matrix [m]
       (if 
