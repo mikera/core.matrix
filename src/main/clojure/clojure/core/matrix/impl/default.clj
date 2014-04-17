@@ -388,7 +388,10 @@
 (extend-protocol mp/PImmutableMatrixConstruction
   Object 
     (immutable-matrix [m]
-      (mp/persistent-vector-coerce m))) 
+      (if 
+        (mp/is-mutable? m) 
+        (mp/persistent-vector-coerce m)
+        m))) 
 
 (extend-protocol mp/PZeroCount
   nil 
