@@ -695,10 +695,12 @@
 (defn select
   "Returns a view containing all elements in a which are at the positions
    of the cartesian product of args. An argument can be:
-   a number - selcts like [number] but drops the current dimension,
-   a 1-dimensional array of numbers or the special :all which is the same
-   as the range with all valid indices.
-   The number of args has to match the dimensionality of a. Examples:
+    - a number - selects like [number] but drops the current dimension,
+    - a 1-dimensional array of numbers 
+    - the keyword :all which is the same as the range of all valid indices.
+   The number of args must match the dimensionality of a. 
+
+   Examples:
    (select [[1 2][3 4]] 0 0) ;=> 1
    (select [[1 2][3 4]] 0 :all) ;=> [1 2]
    (select [[1 2][3 4]] [0 1] [0]) ;=> [[1] [3]]
