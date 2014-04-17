@@ -207,7 +207,9 @@
     ))
 
 (defn immutable
-  "Constructs an immutable copy of the given array data.
+  "Returns an immutable array containing the given array data.
+
+   May return the same array if it is already immutable.
 
    If the implementation does not support immutable matrices, will return an immutable array
    from another core.matrix implementation that supports either the same element type or a broader type."
