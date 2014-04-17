@@ -385,6 +385,11 @@
      (is-sparse? [m]
        false))
 
+(extend-protocol mp/PImmutableMatrixConstruction
+  Object 
+    (immutable-matrix [m]
+      (mp/persistent-vector-coerce m))) 
+
 (extend-protocol mp/PZeroCount
   nil 
     (zero-count [m]
@@ -837,6 +842,8 @@
     (matrix-sub [m a]
       (let [[m a] (mp/broadcast-compatible m a)]
         (mp/element-map m clojure.core/- a))))
+
+
 
 (extend-protocol mp/PMatrixAddMutable
   ;; matrix add for scalars
