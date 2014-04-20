@@ -1173,7 +1173,7 @@
   Object
     (join [m a]
       (let [dims (mp/dimensionality m)
-            adims (mp/dimensionality m)]
+            adims (mp/dimensionality a)]
         (cond
           (== dims 0)
             (error "Can't join to a 0-dimensional array!")
