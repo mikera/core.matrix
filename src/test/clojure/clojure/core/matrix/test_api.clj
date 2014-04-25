@@ -31,6 +31,8 @@
     (testing "select indices"
       (is (equals [1 4] (select-indices a [[0 0] [1 1]])))
       (is (equals [[5 2] [3 6]] (set-indices a [[0 0] [1 1]] [5 6])))
+      (is (equals [[0 0] [0 0]] (set-indices a [[0 0] [0 1] [1 0] [1 1]] [0 0 0 0])))
+      (is (equals [[0 0] [0 0]] (set-indices a [[0 0] [0 1] [1 0] [1 1]] 0)))
       (let [ma (mutable a)]
         (set-indices! ma [[0 0] [1 1]] [5 6])
         (is (equals ma [[5 2] [3 6]]))))))
