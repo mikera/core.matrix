@@ -1538,12 +1538,12 @@
   Object
   (set-indices [a indices values]
     (let [indices (map mp/element-seq indices)
-          values (mp/element-seq (mp/broadcast values (mp/get-shape indices)))]
+          values (mp/element-seq (mp/broadcast values [(count indices)]))]
       (loop [a a [id & idx] indices [v & vs] values]
         (if id (recur (mp/set-nd a id v) idx vs) a))))
   (set-indices! [a indices values]
     (let [indices (map mp/element-seq indices)
-          values (mp/element-seq (mp/broadcast values (mp/get-shape indices)))]
+          values (mp/element-seq (mp/broadcast values [(count indices)]))]
       (loop [[id & idx] indices [v & vs] values]
         (when id
           (do (mp/set-nd! a id v) (recur idx vs)))))))
