@@ -18,7 +18,7 @@
                                   [criterium/criterium "0.4.3"]
 				  [org.clojure/tools.macro "0.1.5"]
                                   [hiccup "1.0.5"]
-                                  [net.mikera/vectorz-clj "0.20.0"]
+                                  [net.mikera/vectorz-clj "0.22.0"]
                                   [org.clojure/test.check "0.5.7"]]
                    :source-paths ["src/main/clojure" "src/dev/clojure"]
                    :jvm-opts ^:replace []}})
