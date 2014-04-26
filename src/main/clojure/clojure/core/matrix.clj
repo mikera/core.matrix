@@ -1403,7 +1403,7 @@
    
        P.A = L.U
 
-   Intended usage: (let [{:keys [L U P]} (lu-decomosition A)] ....) "
+   Intended usage: (let [{:keys [L U P]} (lu-decomposition A)] ....) "
   [a]
     (TODO))
 
@@ -1416,7 +1416,7 @@
 
        M = U.S.V*
 
-   Intended usage: (let [{:keys [U S V*]} (sv-decomosition M)] ....)"
+   Intended usage: (let [{:keys [U S V*]} (sv-decomposition M)] ....)"
   [m]
     (TODO))
 
@@ -1434,7 +1434,7 @@
      - L is a lower triangular matrix
      - L* is the conjugate transpose of L
 
-   Intended usage: (let [{:keys [L L*]} (cholesky-decomosition M)] ....)"
+   Intended usage: (let [{:keys [L L*]} (cholesky-decomposition M)] ....)"
   [m]
     (TODO))
 
@@ -1451,7 +1451,7 @@
      - Q is an orthogonal matrix
      - R is an upper triangular matrix (= right triangular marrix)
 
-   Intended usage: (let [{:keys [Q R]} (qr-decomosition M)] ....)"
+   Intended usage: (let [{:keys [Q R]} (qr-decomposition M)] ....)"
   [m]
     (TODO))
 
@@ -1467,7 +1467,7 @@
      - A is a diagonal matrix whose diagonal elements are the eigenvalues.
      - Qinv is the inverse of Q
 
-   Intended usage: (let [{:keys [Q A Qinv]} (eigen-decomosition M)] ....)"
+   Intended usage: (let [{:keys [Q A Qinv]} (eigen-decomposition M)] ....)"
   [m]
     (TODO))
 
