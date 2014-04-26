@@ -890,13 +890,14 @@
 
 (defn as-vector
   "Creates a view of an array as a single flattened vector.
-   Returns nil if this is not supported by the implementation."
+
+   Returns nil if this is not supported by the implementation. You should use `to-vector` instead to
+   obtain a flattened vector without guaranteeing a view."
   ([m]
     (mp/as-vector m)))
 
 (defn to-vector
-  "Creates a new array representing the elements of array m as a single flattened vector.
-   The new vector will be a mutable copy if the implementation supports mutable vectors."
+  "Creates a new array representing the elements of array m as a single flattened vector."
   ([m]
     (or
       (mp/to-vector m)
