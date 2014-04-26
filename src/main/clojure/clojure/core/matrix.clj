@@ -1395,40 +1395,79 @@
     (mp/rank m)))
 
 (defn lu-decomposition
-  "Computes the LU decompotion of a matrix. Returns a vector containing two matrices [L U]
+  "WARNING: API not yet finalised
 
-   Intended usage: (let [[L U] (lu-decomosition M)] ....) "
-  [m]
+   Computes the LU(P) decompotion of a matrix with partial row pivoting. 
+
+   Returns a map containing the keys [:L :U :P], such that:
+   
+       P.A = L.U
+
+   Intended usage: (let [{:keys [L U P]} (lu-decomosition A)] ....) "
+  [a]
     (TODO))
 
 (defn sv-decomposition
-  "Computes the Singular Value decomposition of a matrix. Returns a vector containing three matrices [U S V*]
+  "WARNING: API not yet finalised
 
-   Intended usage: (let [[U S V*] (sv-decomosition M)] ....)"
+   Computes the Singular Value decomposition of a matrix. 
+
+   Returns a map containing the keys [:U :S :V*] such that:
+
+       M = U.S.V*
+
+   Intended usage: (let [{:keys [U S V*]} (sv-decomosition M)] ....)"
   [m]
     (TODO))
 
 (defn cholesky-decomposition
-  "Computes the Cholesky decomposition of a matrix. Returns a vector containing two matrices [L L*]
+  "WARNING: API not yet finalised
 
-   Intended usage: (let [[L L*] (cholesky-decomosition M)] ....)"
+   Computes the Cholesky decomposition of a hermitian, positive definite matrix. 
+
+   Returns a map containing two matrices with the keys [:L :L*] such that
+
+      M = L.L*
+
+   Where
+     - M must be a hermitian, positive definite matrix
+     - L is a lower triangular matrix
+     - L* is the conjugate transpose of L
+
+   Intended usage: (let [{:keys [L L*]} (cholesky-decomosition M)] ....)"
   [m]
     (TODO))
 
 (defn qr-decomposition
-  "Computes the QR decomposition of a matrix. Returns a vector containing two matrices [Q R]
+  "WARNING: API not yet finalised
 
-   Intended usage: (let [[Q R] (qr-decomosition M)] ....)"
+   Computes the QR decomposition of a matrix. 
+
+   Returns a map containing matrices with the keys [:Q :R] such that:
+  
+        M = Q.R
+
+   Where:
+     - Q is an orthogonal matrix
+     - R is an upper triangular matrix (= right triangular marrix)
+
+   Intended usage: (let [{:keys [Q R]} (qr-decomosition M)] ....)"
   [m]
     (TODO))
 
 (defn eigen-decomposition
   "Computes the Eigendecomposition of a diagonalisable matrix.
-   Returns a vector containing three matrices [Q A Qinv]
+   
+   Returns a map containing matrices for each of the the keys [:Q :A :Qinv] such that:
 
-   A is a diagonal matrix whose diagonal elements are the eigenvalues.
+      M = Q.A.Qinv
 
-   Intended usage: (let [[Q A Qinv] (eigen-decomosition M)] ....)"
+   Where:
+     - Q is a matrix where each column is the ith normalised eigenvector of M
+     - A is a diagonal matrix whose diagonal elements are the eigenvalues.
+     - Qinv is the inverse of Q
+
+   Intended usage: (let [{:keys [Q A Qinv]} (eigen-decomosition M)] ....)"
   [m]
     (TODO))
 
