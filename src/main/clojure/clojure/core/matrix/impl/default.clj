@@ -1343,19 +1343,14 @@
 (extend-protocol mp/PReshaping
   nil
     (reshape [m shape]
-      (case (long (reduce * 1 (seq shape)))
-        0 (mp/broadcast m shape)
-        1 (mp/broadcast m shape)
-        (error "Can't reshape nil to shape: " (vec shape))))
+      (mp/reshape [nil] shape))
   Number
     (reshape [m shape]
-      (case (long (reduce * 1 (seq shape)))
-        0 (mp/broadcast m shape)
-        1 (mp/broadcast m shape)
-        (error "Can't reshape a scalar number to shape: " (vec shape))))
+      (mp/reshape [m] shape))
   Object
     (reshape [m shape]
-      (let [partition-shape (fn partition-shape [es shape]
+      (let [es (concat (mp/element-seq m) (repeat 0))
+            partition-shape (fn partition-shape [es shape]
                               (if-let [s (seq shape)]
                                 (let [ns (next s)
                                       plen (reduce * 1 ns)]
@@ -1363,11 +1358,9 @@
                                 (first es)))]
         (if-let [shape (seq shape)]
           (let [fs (long (first shape))
-                parts (partition-shape (mp/element-seq m) shape)]
-            (when-not (<= fs (count parts))
-              (error "Reshape not possible: insufficient elements for shape: " shape " have: " (seq parts)))
+                parts (partition-shape es shape)]
             (mp/construct-matrix m (take fs parts)))
-          (first (mp/element-seq m))))))
+          (first es)))))
 
 (extend-protocol mp/PCoercion
   nil

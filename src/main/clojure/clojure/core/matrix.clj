@@ -947,7 +947,11 @@
 
 (defn reshape
   "Changes the shape of a matrix to the specified new shape. shape can be any sequence of dimension sizes.
-   Preserves the row-major order of matrix elements."
+   
+   Preserves the row-major order of matrix elements. Truncates the sequence of elements if the shape is smaller
+   than the original shape. 
+
+   Pads with default values (dependent on implementation - but normally zero) if the shape is larger."
   ([m shape]
     (mp/reshape m shape)))
 
