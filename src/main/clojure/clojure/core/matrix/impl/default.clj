@@ -781,6 +781,23 @@
     (element-type [a]
       java.lang.Object))
 
+;; generic element values
+(extend-protocol mp/PGenericValues
+  Object
+    (generic-zero [m] 
+       0)
+    (generic-one [m] 
+       1)
+    (generic-value [m] 
+       nil)
+  Object
+    (generic-zero [m] 
+       0)
+    (generic-one [m] 
+      1)
+    (generic-value [m] 
+      0))
+
 ;; general transformation of a vector
 (extend-protocol mp/PVectorTransform
   clojure.lang.IFn
