@@ -1366,7 +1366,8 @@
       (mp/reshape [m] shape))
   Object
     (reshape [m shape]
-      (let [es (concat (mp/element-seq m) (repeat 0))
+      (let [gv (mp/generic-value m) ;; generic value for array padding. Typically nil or zero
+            es (concat (mp/element-seq m) (repeat gv))
             partition-shape (fn partition-shape [es shape]
                               (if-let [s (seq shape)]
                                 (let [ns (next s)
