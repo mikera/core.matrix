@@ -18,3 +18,9 @@
 (deftest test-protocol-extension
   (is (extends-deep? clojure.core.matrix.protocols/PImplementation clojure.lang.PersistentVector))
   (is (extends-deep? clojure.core.matrix.protocols/PImplementation mikera.vectorz.Vector))) 
+
+;; this tests that all protocols have a default implementation for java.lang.Object
+;; (except for specified known exceptions
+(deftest test-default-implementations
+  (is (= #{'PIndexedSettingMutable 'PMatrixRank 'PMatrixTypes 'PGenericOperations} 
+         (set (map :name (filter #(not (extends? % java.lang.Object)) (extract-protocols))))))) 
