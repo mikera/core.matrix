@@ -13,14 +13,14 @@ idiomatic, productive, elegant and fast in the Clojure environment.
 
 => [[4.0 2.0]
     [3.0 7.0]]
-    
+
 ;; Note: nested Clojure vectors can be used as matrices
 ```
 
 Key goals of `core.matrix`:
 
  - Provide a clear, standard API / abstraction for **matrix and array programming** in Clojure
- - Enable **plugable** support for different underlying matrix library implementations
+ - Enable **pluggable** support for different underlying matrix library implementations
  - Provide a general purpose **n-dimensional array** implementation (NDArray)
  - Provide a **foundation** library for other projects (e.g. Incanter)
  - Enable **high performance** numerical computing
@@ -59,7 +59,7 @@ matrix implementations. The most mature implementations are currently:
 However the API is still *subject to some changes* at present (at least up until release 1.0.0),
 so users should be prepared to deal with potential breaking changes when updating to future releases.
 
-The plan is to become an official Clojure Contrib language extension once the API has been well tested. 
+The plan is to become an official Clojure Contrib language extension once the API has been well tested.
 
 [![Build Status](https://travis-ci.org/mikera/core.matrix.png?branch=master)](https://travis-ci.org/mikera/core.matrix)
 
