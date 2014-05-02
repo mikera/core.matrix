@@ -1559,6 +1559,23 @@
         (when id
           (do (mp/set-nd! a id v) (recur idx vs)))))))
 
+;; TODO: proper generic implementations
+(extend-protocol mp/PMatrixTypes
+  Object
+	  (diagonal? [m] 
+	    (error "TODO: Not yet implemented"))
+	  (upper-triangular? [m] 
+	    (error "TODO: Not yet implemented")
+      (mp/upper-triangular? (mp/convert-to-nested-vectors m)))
+	  (lower-triangular? [m] 
+	    (error "TODO: Not yet implemented")
+      (mp/lower-triangular? (mp/convert-to-nested-vectors m)))
+	  (positive-definite? [m] 
+      (error "TODO: Not yet implemented")
+	    (mp/positive-definite? (mp/convert-to-nested-vectors m)))
+	  (positive-semidefinite? [m] 
+	    (error "TODO: Not yet implemented") 
+      ))
 
 (extend-protocol mp/PSelect
   Object
