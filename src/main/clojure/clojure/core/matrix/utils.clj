@@ -283,3 +283,13 @@
       (map enhance-protocol-kv)
       (sort-by :line))))
 
+(defn unimplemented
+  "Identifies which protocols are unimplemented for a given array object.
+
+   Unimplemented protocols will fall back to the default implementation (for java.lang.Object) which
+   is likely to be slower than a specialised implementation."
+  [m]
+  (let [protocols (extract-protocols)
+        m (if (class? m) m (class m))]
+    (map :name (filter #(not (extends-deep? % m)) protocols))))
+
