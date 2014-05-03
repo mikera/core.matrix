@@ -31,6 +31,8 @@
     (testing "select indices"
       (is (equals [1 4] (select-indices a [[0 0] [1 1]])))
       (is (equals [[5 2] [3 6]] (set-indices a [[0 0] [1 1]] [5 6])))
+      (is (equals [[0 0] [0 0]] (set-indices a [[0 0] [0 1] [1 0] [1 1]] [0 0 0 0])))
+      (is (equals [[0 0] [0 0]] (set-indices a [[0 0] [0 1] [1 0] [1 1]] 0)))
       (let [ma (mutable a)]
         (set-indices! ma [[0 0] [1 1]] [5 6])
         (is (equals ma [[5 2] [3 6]]))))))
@@ -200,6 +202,10 @@
   (testing "slices of a standard vector are scalar numbers"
     (is (= [1 2 3] (slices (array [1 2 3]))))))
 
+(deftest test-slice-on-1d
+  (testing "slice on 1d must return scalar"
+    (is (scalar? (slice [1 2 3] 0)))))
+
 (deftest test-submatrix
   (is (equals [[3]] (submatrix (array [[1 2] [3 4]]) [[1 1] [0 1]])))
   (is (equals [[2] [4]] (submatrix (array [[1 2] [3 4]]) 1 [1 1])))
@@ -245,9 +251,8 @@
   (is (equals [] (reshape [[1.0 2.0] [3.0 4.0]] [0])))
   (is (equals 1.0 (reshape [[1.0 2.0] [3.0 4.0]] [])))
   (is (equals [[1 2] [3 4]] (reshape [1 2 3 4] [2 2])))
-  (testing "exceptions"
-    (is (thrown? Throwable (reshape 1 [2])))
-    (is (thrown? Throwable (reshape [1] [2 2])))))
+  (is (equals [1 0] (reshape 1 [2])))
+  (is (equals [[1 2] [3 0]] (reshape [1 2 3] [2 2]))))
 
 (deftest test-index-seq
   (is (= [] (index-seq [])))

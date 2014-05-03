@@ -3,8 +3,13 @@
 /.classpath
 /.settings
 /classes
-/.lein-*
+/
+.lein-*
+
 .DS_Store
-test.html
-bench.dump
+test
+.html
+bench
+.dump
+
 .nrepl-port
