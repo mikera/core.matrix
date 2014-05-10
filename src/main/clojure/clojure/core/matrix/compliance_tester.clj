@@ -535,6 +535,10 @@
   (test-numeric-instance (matrix im [1 2 -3 4.5 7 -10.8]))
   (test-numeric-instance (matrix im [0 0])))
 
+(defn test-1d-mmul [im]
+  (let [m (matrix im [1 2 3])]
+    (is (equals 14 (mmul m m)))))
+
 (defn vector-tests-1d [im]
   (test-vector-mset im)
   (test-vector-length im)
@@ -545,7 +549,8 @@
   (test-vector-subvector im)
   (test-vector-distance im)
   (test-element-add im)
-  (test-1d-instances im))
+  (test-1d-instances im)
+  (test-1d-mmul im))
 
 ;; ========================================
 ;; 2D matrix tests

@@ -795,6 +795,8 @@
              ^ints b-shape (.shape b)]
          (cond
           (== b-ndims 0) (mp/scale a b)
+          (and (== a-ndims 1) (== b-ndims 1))
+          (mp/inner-product a b)
           (and (== a-ndims 1) (== b-ndims 2))
           (let [b-rows (aget b-shape (int 0))]
             (mp/reshape (mp/matrix-multiply (mp/reshape a [1 b-rows]) b)
