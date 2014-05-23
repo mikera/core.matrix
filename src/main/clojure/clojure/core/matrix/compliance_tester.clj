@@ -113,6 +113,12 @@
       (is (thrown? Throwable (dimension-count m -1)))
       (is (thrown? Throwable (dimension-count m dims))))))
 
+(defn test-immutable-assumptions [m]
+  (testing "immutable coerce"
+    (let [im (immutable m)]
+      (is (not (mutable? im)))
+      (is (e= m im)))))
+
 (defn test-mutable-assumptions [m]
   (testing "ensure mutable"
     (let [em (ensure-mutable m)]
@@ -168,6 +174,10 @@
             (let [fss (first ss)]
               (is (= (mutable? fss) (mutable? m)))))
           (is (e= m slcs)))))))
+
+(defn test-slice-returns-scalar-on-1d [m]
+  (when (and (= 1 (dimensionality m)) (> (ecount m) 0))
+    (is (scalar? (slice m 0)))))
 
 (defn test-submatrix-assumptions [m]
   (let [shp (shape m)
@@ -271,8 +281,10 @@
   (test-join m)
   (test-dimensionality-assumptions m)
   (test-slice-assumptions m)
+  (test-slice-returns-scalar-on-1d m)
   (test-submatrix-assumptions m)
   (test-mutable-assumptions m)
+  (test-immutable-assumptions m)
   (test-vector-round-trip m)
   (test-ndarray-round-trip m)
   (test-reshape m)
@@ -435,9 +447,9 @@
   (is (equals (add 0.0 m) (mul 1 m)))
   (is (equals m (div m 1)))
   (let [m (add (square m) 1)]
-    (is (equals m (div (square m) m))))
+    (is (equals m (div (square m) m) 0.0001)))
   (is (equals (emul m m) (square m)))
-  (is (equals (esum m) (ereduce + m)))
+  (is (equals (esum m) (ereduce + m) 0.0001))
   (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m)))))
   (if (#{:vectorz} (current-implementation))
     (let [v (->> #(rand 1000.0) repeatedly (take 5) vec normalise array)
@@ -523,6 +535,10 @@
   (test-numeric-instance (matrix im [1 2 -3 4.5 7 -10.8]))
   (test-numeric-instance (matrix im [0 0])))
 
+(defn test-1d-mmul [im]
+  (let [m (matrix im [1 2 3])]
+    (is (equals 14 (mmul m m)))))
+
 (defn vector-tests-1d [im]
   (test-vector-mset im)
   (test-vector-length im)
@@ -533,7 +549,8 @@
   (test-vector-subvector im)
   (test-vector-distance im)
   (test-element-add im)
-  (test-1d-instances im))
+  (test-1d-instances im)
+  (test-1d-mmul im))
 
 ;; ========================================
 ;; 2D matrix tests
@@ -543,6 +560,11 @@
     (let [m (matrix im [[1 2] [3 4]])]
       (is (equals [[1 3] [2 4]] (transpose m)))
       (is (equals m (transpose (transpose m)))))))
+
+(defn test-order [im]
+  (testing "order"
+    (let [m (matrix im [[1 2 4] [4 5 6]])]
+      (is (equals [[1 4] [2 5]] (order m 1 [0 1]))))))
 
 (defn test-negate [im]
   (testing "negate"
@@ -590,11 +612,46 @@
     (is (equals [[1 2] [1 2]] (broadcast (matrix im [1 2]) [2 2])))
     ))
 
+(defn test-matrix-mset [im]
+  (let [m (matrix im [[1 2] [3 4]])]
+    (is (equals [[5 2] [3 4]] (mset m 0 0 5)))
+    (is (equals [[1 2] [5 4]] (mset m 1 0 5)))
+    (is (equals [[1 2] [3 5]] (mset m 1 1 5)))))
+
+(defn test-matrix-selection [im]
+  (let [m (matrix im [[1 2] [3 4]])]
+    (is (equals [1 2] (select m 0 :all)))
+    (if (supports-dimensionality? m 1)
+      (is (equals [1 4] (select-indices m [[0 0] [1 1]]))))))
+
+(defn test-matrix-set-selection [im]
+  (let [m (matrix im [[1 2] [3 4]])
+        mutable-m (ensure-mutable m)]
+    (is (equals [[1 1] [1 1]] (set-selection m :all :all 1)))
+    (is (equals [[5 2] [6 4]] (set-selection m :all 0 [[5] [6]])))))
+
 (defn test-2d-instances [im]
   (test-numeric-instance (matrix im [[1 2] [3 4]]))
   (test-numeric-instance (matrix im [[1 2]]))
   (test-numeric-instance (matrix im [[10]]))
   (test-numeric-instance (matrix im [[10] [11]])))
+
+(defn test-matrix-slices [im]
+  (let [m (matrix im [[1 2 3] [4 5 6]])]
+    (is (equals [1 2 3] (get-row m 0)))
+    (is (equals [2 5] (get-column m 1)))
+    (is (equals [4 5 6] (slice m 1)))
+    (is (equals [3 6] (slice m 1 2)))))
+
+(defn test-matrix-set-column
+  [im]
+  (let [m (matrix im [[1 2] [3 4]])
+        mutable-m (ensure-mutable m)]
+    (is (equals [[1 5] [3 5]] (set-column m 1 5)))
+    (is (equals [[1 5] [3 6]] (set-column m 1 [5 6])))
+    (set-column! mutable-m 0 7)
+    (is (equals [[7 2] [7 4]] mutable-m))))
+
 
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)
@@ -603,7 +660,13 @@
   (test-trace im)
   (test-matrix-emul im)
   (test-identity im)
-  (test-2d-instances im))
+  (test-order im)
+  (test-2d-instances im)
+  (test-matrix-mset im)
+  (test-matrix-slices im)
+  (test-matrix-set-column im)
+  (test-matrix-selection im)
+  (test-matrix-set-selection im))
 
 ;; ======================================
 ;; Instance test function

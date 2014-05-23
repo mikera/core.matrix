@@ -543,6 +543,12 @@
   (transpose! [m]
     "Transposes a mutable 2D matrix in place"))
 
+(defprotocol POrder
+  "Protocol for matrix reorder"
+  (order
+    [m cols]
+    [m dimension cols]))
+
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
    array is a valid numerical value."
@@ -651,6 +657,11 @@
   (set-row [m i row])
   (set-row! [m i row]))
 
+(defprotocol PColumnSetting
+  "Protocol for column setting. Should set a dimension 1 (column) slice to the given column value."
+  (set-column [m i column])
+  (set-column! [m i column]))
+
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
 (eval
@@ -736,6 +747,27 @@
   (generic-mul [m] "Generic 'mul' function for numerical values. Must satisfy (equals x (mul one x)).")
   (generic-negate [m] "Generic 'negate' function for numerical values.")
   (generic-div [m] "Generic 'div' function for numerical values."))
+
+;; ===========================================================
+;; Protocols for higher-level array indexing
+(defprotocol PSelect
+  "Protocol for the sel function"
+  (select [a args] "selects all elements at indices which are in the cartesian product of args"))
+
+(defprotocol PSetSelection
+  "Protocol for setting the elements of an array returned by (select a args) to values"
+  (set-selection [a args values] "sets the elements in the selection of a to values"))
+
+(defprotocol PIndicesAccess
+  "Protocol for getting elements of an array at the specified indices."
+  (get-indices [a indices] "returns a 1-d array with the elements of a at indices"))
+
+(defprotocol PIndicesSetting
+  "Protocol for setting elements of an array at the specified indices"
+  (set-indices [a indices values] "sets the elements from a at indices to values")
+  (set-indices! [a indices values] "destructively sets the elements from a at indices to values"))
+
+
 
 ;; ============================================================
 ;; Utility functions

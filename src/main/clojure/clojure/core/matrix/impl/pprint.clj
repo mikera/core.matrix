@@ -1,6 +1,13 @@
 (ns clojure.core.matrix.impl.pprint
   (:require [clojure.core.matrix.protocols :as mp])
-  (:use clojure.core.matrix.utils))
+  (:use clojure.core.matrix.utils)
+  (:import [java.lang StringBuilder])
+  (:import [clojure.lang IPersistentVector]))
+
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
+(def ^String NL (System/getProperty "line.separator"))
 
 ;; pretty-printing utilities for matrices
 
@@ -11,54 +18,79 @@
     (format-num x)
     (str x)))
 
-(defn- longest-nums
-  "Finds the longest string representation of
-   any element in each column within a given matrix."
-  [mat formatter]
-  (let [tmat (mp/transpose mat)
-        col-long (fn [r] (mp/element-reduce (mp/element-map r #(count (formatter %))) max))]
-    (map col-long (mp/get-major-slice-seq tmat))))
+(defn- column-lengths
+  "Finds the longest string length of each column in an array of Strings."
+  [m]
+  (let [ss (mp/get-slice-seq m (dec (mp/dimensionality m)))]
+    (mapv 
+      (fn [s] (mp/element-reduce s 
+                                 (fn [acc ^String e] (max acc (.length e))) 
+                                 0))
+      ss)))
 
-(defn- str-elem
-  "Prints an element that takes up a given amount of whitespaces."
-  [elem whitespaces]
-  (let [formatter (str "%" whitespaces "." 3 "f")]
-    (format formatter (double elem))))
+(defn- format-array 
+  "Fromats an array accordsing to the given formatter function"
+  ([m formatter]
+    (cond 
+      (mp/is-scalar? m) (formatter m)
+      :else (mp/element-map 
+              (if (= java.lang.Object (mp/element-type m))
+                m
+                (mp/convert-to-nested-vectors m))
+              formatter))))
 
-(defn- str-row
-  "Creates a string for each row with the desired
-   amount of spaces between the elements."
-  [row len] ;; the first element doesn't have a leading ws.
-  (let [[elem-head & elem-tail] (mp/get-major-slice-seq row)
-        [len-head & len-tail] len
-        first-elem (str-elem elem-head len-head)
-        body-elems (map str-elem elem-tail len-tail)]
-  (str "[" first-elem (apply str (map #(str " " %) body-elems)) "]")))
+(defn- append-elem
+  "Appends an element, right-padding up to a given column length."
+  [^StringBuilder sb ^String elem ^long clen]
+  (let [c (long (count elem))
+        ws (- clen c)]
+    (dotimes [i ws]
+      (.append sb \space))
+    (.append sb elem)))
+
+(defn- append-row
+  "Appends a row of data."
+  [^StringBuilder sb row ^IPersistentVector clens] ;; the first element doesn't have a leading ws.
+  (let [cc (.count clens)]
+    (.append sb \[)
+    (dotimes [i cc]
+      (when (> i 0) (.append sb \space))
+      (append-elem sb (mp/get-1d row i) (.nth clens i)))
+    (.append sb \])))
 
 (defn- rprint
   "Recursively joins each element with a leading
    line break and whitespace. If there are no
    elements left in the matrix it ends with a
    closing bracket."
-  [[head & tail :as mat] acc len]
-  (cond 
-    (empty? mat)
-      (str acc "]")
-    (== 1 (mp/dimensionality head))
-      (recur tail (str acc "\n " (str-row head len)) len)
-    :else 
-      (error "Printing of higher dimensional arrays not yet supported")))
+  [^StringBuilder sb a pre clens]
+  (let [dims (long (mp/dimensionality a))
+        sc (long (mp/dimension-count a 0))
+        pre2 (str pre " ")]
+    (.append sb \[)
+    (dotimes [i sc]
+      (let [s (mp/get-major-slice a i)]
+        (when (> i 0)
+          (.append sb NL)
+          (.append sb pre2))
+        (if (== 2 dims)
+          (append-row sb s clens)
+          (rprint sb s pre2 clens))))
+    (.append sb \])))
 
 (defn pm
-  "Pretty-prints a matrix"
-  [m & {:keys [prefix formatter]}]
-  (let [formatter (or formatter default-formatter)]
-    (cond
-     (mp/is-scalar? m) (str prefix (formatter m))
-     (== 1 (mp/dimensionality m)) (str prefix (str-row m (longest-nums m formatter)))
-    :else 
-       (let [len (longest-nums m formatter)
-             rows (mp/get-major-slice-seq m) 
-             start (str prefix "[" (str-row (first rows) len))
-             out (str start (rprint (next rows) prefix len))]
-         out))))
+  "Pretty-prints an array. Returns a String containing the pretty-printed representation."
+  ([a] 
+    (pm a nil))
+  ([a {:keys [prefix formatter]}]
+    (let [formatter (or formatter default-formatter)
+          m (format-array a formatter)
+          prefix (or prefix "")
+          sb (StringBuilder.)]
+      (cond
+        (mp/is-scalar? m) (.append sb (str prefix m))
+        (== 1 (mp/dimensionality m)) 
+          (append-row sb m (column-lengths m))
+        :else 
+          (let [clens (column-lengths m)] (rprint sb m prefix clens)))
+      (.toString sb))))

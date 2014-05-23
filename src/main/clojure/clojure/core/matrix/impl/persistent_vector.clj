@@ -254,6 +254,14 @@
             (vec (concat (subvec m sh c) (subvec m 0 sh)))))
         (mapv (fn [s] (mp/rotate s (dec dim) places)) m))))
 
+(extend-protocol mp/POrder
+  IPersistentVector
+  (order
+    ([m cols]
+       (mp/order m 0 cols))
+    ([m dimension cols]
+       (mapmatrix #(mp/get-slice m dimension %) cols))))
+
 (extend-protocol mp/PSubVector
   IPersistentVector
     (subvector [m start length]
@@ -300,6 +308,11 @@
     (mutable-matrix [m]
       nil ;; fall-though: should get an ndarray result
       ))
+
+(extend-protocol mp/PImmutableMatrixConstruction
+  IPersistentVector
+  (immutable-matrix [m]
+    m))
 
 (extend-protocol mp/PVectorDistance
   IPersistentVector
@@ -461,8 +474,9 @@
     (convert-to-nested-vectors [m]
       (if (is-nested-persistent-vectors? m)
         m
-        (let [m (mapv-identity-check mp/convert-to-nested-vectors m)]
-          (if (reduce = (map mp/get-shape m))
+        (let [m (mapv-identity-check mp/convert-to-nested-vectors m)
+              m-shapes (map mp/get-shape m)]
+          (if (every? (partial = (first m-shapes)) (rest m-shapes))
             m
             (error "Can't convert to persistent vector array: inconsistent shape."))))))
 

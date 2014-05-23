@@ -385,6 +385,17 @@
      (is-sparse? [m]
        false))
 
+(extend-protocol mp/PImmutableMatrixConstruction
+  nil
+    (immutable-matrix [m]
+      nil)
+  Object 
+    (immutable-matrix [m]
+      (if 
+        (mp/is-mutable? m) 
+        (mp/persistent-vector-coerce m)
+        m))) 
+
 (extend-protocol mp/PZeroCount
   nil 
     (zero-count [m]
@@ -557,6 +568,16 @@
          m 
          (map-indexed (fn [i v] [i v]) shifts))))
 
+(extend-protocol mp/POrder
+  nil
+    (order [m dim cols] nil)
+  Number
+    (order [m dim cols] m)
+  Object
+    (order [m dim cols]
+      (mp/order (mp/convert-to-nested-vectors m) dim cols)))
+
+
 (extend-protocol mp/PMatrixProducts
   Number
     (inner-product [m a]
@@ -669,15 +690,15 @@
 
 (extend-protocol mp/PMatrixDivideMutable
   Number
-  (element-divide!
-    ([m] (error "Can't do mutable divide on a scalar number"))
-    ([m a] (error "Can't do mutable divide on a scalar numer")))
-  Object
-  (element-divide!
-    ([m] (mp/element-map! m #(/ %)))
-    ([m a]
-       (let [[m a] (mp/broadcast-compatible m a)]
-         (mp/element-map! m #(/ %1 %2) a)))))
+	  (element-divide!
+	    ([m] (error "Can't do mutable divide on a scalar number"))
+	    ([m a] (error "Can't do mutable divide on a scalar numer")))
+	Object
+	  (element-divide!
+	    ([m] (mp/element-map! m #(/ %)))
+	    ([m a]
+	       (let [[m a] (mp/broadcast-compatible m a)]
+	         (mp/element-map! m #(/ %1 %2) a)))))
 
 ;; matrix element summation
 (extend-protocol mp/PSummable
@@ -760,6 +781,23 @@
     (element-type [a]
       java.lang.Object))
 
+;; generic element values
+(extend-protocol mp/PGenericValues
+  Object
+    (generic-zero [m] 
+       0)
+    (generic-one [m] 
+       1)
+    (generic-value [m] 
+       nil)
+  Object
+    (generic-zero [m] 
+       0)
+    (generic-one [m] 
+      1)
+    (generic-value [m] 
+      0))
+
 ;; general transformation of a vector
 (extend-protocol mp/PVectorTransform
   clojure.lang.IFn
@@ -827,6 +865,8 @@
     (matrix-sub [m a]
       (let [[m a] (mp/broadcast-compatible m a)]
         (mp/element-map m clojure.core/- a))))
+
+
 
 (extend-protocol mp/PMatrixAddMutable
   ;; matrix add for scalars
@@ -957,6 +997,22 @@
         (mp/assign! sl row)
         m)))
 
+(extend-protocol mp/PColumnSetting
+  Object
+  (set-column [m i column]
+    (let [scol (mp/get-column m 0)
+          column (mp/broadcast-like scol column)
+          indices (range (mp/dimension-count column 0))
+          new-m (reduce (fn [acc idx]
+                          (mp/set-2d acc idx i (mp/get-1d column idx)))
+                        m indices)]
+      (mp/coerce-param m new-m)))
+  (set-column! [m i column]
+    (let [scol (mp/get-column m 0)
+          column (mp/broadcast-like scol column)]
+      (dotimes [j (mp/dimension-count column 0)]
+        (mp/set-2d! m j i (mp/get-1d column j))))))
+
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
   Number
@@ -1079,7 +1135,8 @@
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
       (cond 
-        (java-array? m) (nth m i)
+       (java-array? m) (nth m i)
+       (== 1 (mp/dimensionality m)) (mp/get-1d m i)
         :else (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
     (get-slice [m dimension i]
       (cond
@@ -1133,7 +1190,7 @@
   Object
     (join [m a]
       (let [dims (mp/dimensionality m)
-            adims (mp/dimensionality m)]
+            adims (mp/dimensionality a)]
         (cond
           (== dims 0)
             (error "Can't join to a 0-dimensional array!")
@@ -1303,19 +1360,15 @@
 (extend-protocol mp/PReshaping
   nil
     (reshape [m shape]
-      (case (long (reduce * 1 (seq shape)))
-        0 (mp/broadcast m shape)
-        1 (mp/broadcast m shape)
-        (error "Can't reshape nil to shape: " (vec shape))))
+      (mp/reshape [nil] shape))
   Number
     (reshape [m shape]
-      (case (long (reduce * 1 (seq shape)))
-        0 (mp/broadcast m shape)
-        1 (mp/broadcast m shape)
-        (error "Can't reshape a scalar number to shape: " (vec shape))))
+      (mp/reshape [m] shape))
   Object
     (reshape [m shape]
-      (let [partition-shape (fn partition-shape [es shape]
+      (let [gv (mp/generic-value m) ;; generic value for array padding. Typically nil or zero
+            es (concat (mp/element-seq m) (repeat gv))
+            partition-shape (fn partition-shape [es shape]
                               (if-let [s (seq shape)]
                                 (let [ns (next s)
                                       plen (reduce * 1 ns)]
@@ -1323,11 +1376,9 @@
                                 (first es)))]
         (if-let [shape (seq shape)]
           (let [fs (long (first shape))
-                parts (partition-shape (mp/element-seq m) shape)]
-            (when-not (<= fs (count parts))
-              (error "Reshape not possible: insufficient elements for shape: " shape " have: " (seq parts)))
+                parts (partition-shape es shape)]
             (mp/construct-matrix m (take fs parts)))
-          (first (mp/element-seq m))))))
+          (first es)))))
 
 (extend-protocol mp/PCoercion
   nil
@@ -1444,6 +1495,7 @@
           (mp/set-2d! r i (v i) 1.0))
         r)))
 
+;; TODO: can this implementation be improved?
 (extend-protocol mp/PBlockDiagonalMatrix
   Object
     (block-diagonal-matrix [m blocks]
@@ -1512,6 +1564,80 @@
   (zero-matrix? [m] false)
   (symmetric? [m] true))
 
+;; ======================================================
+;; default implementation for higher-level array indexing
+
+(extend-protocol mp/PIndicesAccess
+  Object
+  (get-indices [a indices]
+    (mp/construct-matrix (if (array? a) a [])
+                         (map #(mp/get-nd a %1) (map mp/element-seq indices)))))
+
+(extend-protocol mp/PIndicesSetting
+  Object
+  (set-indices [a indices values]
+    (let [indices (map mp/element-seq indices)
+          values (mp/element-seq (mp/broadcast values [(count indices)]))]
+      (loop [a a [id & idx] indices [v & vs] values]
+        (if id (recur (mp/set-nd a id v) idx vs) a))))
+  (set-indices! [a indices values]
+    (let [indices (map mp/element-seq indices)
+          values (mp/element-seq (mp/broadcast values [(count indices)]))]
+      (loop [[id & idx] indices [v & vs] values]
+        (when id
+          (do (mp/set-nd! a id v) (recur idx vs)))))))
+
+;; TODO: proper generic implementations
+(extend-protocol mp/PMatrixTypes
+  Object
+	  (diagonal? [m] 
+	    (error "TODO: Not yet implemented"))
+	  (upper-triangular? [m] 
+	    (error "TODO: Not yet implemented")
+      (mp/upper-triangular? (mp/convert-to-nested-vectors m)))
+	  (lower-triangular? [m] 
+	    (error "TODO: Not yet implemented")
+      (mp/lower-triangular? (mp/convert-to-nested-vectors m)))
+	  (positive-definite? [m] 
+      (error "TODO: Not yet implemented")
+	    (mp/positive-definite? (mp/convert-to-nested-vectors m)))
+	  (positive-semidefinite? [m] 
+	    (error "TODO: Not yet implemented") 
+      ))
+
+(extend-protocol mp/PSelect
+  Object
+  (select [a area]
+    (wrap/wrap-selection a area)))
+
+(defn- area-indices [area]
+  (reduce (fn [io in]
+            (for [a in b io]
+              (cons a b))) (map vector (last area)) (rest (reverse area))))
+
+(defn- indices [vals]
+  (area-indices (map range (mp/get-shape vals))))
+
+
+(extend-protocol mp/PSetSelection
+  Object
+  (set-selection [a area vals]
+    (let [shape (map count area)
+        vals (mp/broadcast vals shape)]
+    (cond
+     (and (= (count shape) 2)
+          (= (first shape) (mp/dimension-count a 0)))
+     (loop [a a [i & is] (second area) [j & js] (range (second shape))]
+       (if i (recur (mp/set-column a i (mp/get-column vals j)) is js) a))
+     (and (= (count shape) 2)
+          (= (second shape) (mp/dimension-count a 1)))
+     (loop [a a [i & is] (first area) [j & js] (range (first shape))]
+       (if i (recur (mp/set-row a i (mp/get-row vals j)) is js) a))
+     :else
+     (loop [a a [idl & idxl] (area-indices area) [idr & idxr] (indices vals)]
+       (if idl
+         (recur (mp/set-nd a idl (mp/get-nd vals idr)) idxl idxr)
+         a))))))
 
 ;; =======================================================
 ;; default multimethod implementations

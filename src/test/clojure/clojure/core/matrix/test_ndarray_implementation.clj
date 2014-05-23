@@ -102,6 +102,12 @@
     (sub! a [3 4])
     (is (equals a [8 8]))))
 
+(deftest test-fill
+  (let [a (array :ndarray [[1 2] [3 4]])]
+    (is (equals [[9 9] [9 9]] (fill a 9)))
+    (is (equals [[9 9] [9 9]] (fill a [9 9])))
+    (is (equals [[1 2] [3 4]] a)))) 
+
 (deftest test-contained-vectors
   (let [a (array :ndarray :foo)]
     (mset! a [1 2 3])
@@ -118,6 +124,9 @@
          [3 4]))
   (is (= [1 2] (seq (array :ndarray [1 2]))))
   )
+
+(deftest test-slice-on-1d
+  (is (scalar? (slice (array :ndarray [1 2 3]) 0))))
 
 (deftest test-assign
   (let [m (empty-ndarray [2 2 2])

@@ -644,7 +644,12 @@
     (get-major-slice [m i]
       (row-major-slice#t m i))
     (get-slice [m dimension i]
-      (arbitrary-slice#t m dimension i))
+               ;;get-slice requires to return a scalar for a slice of a 1-dim
+               ;;array
+               (let [res (arbitrary-slice#t m dimension i)]
+                 (if (= 1 ndims)
+                   (mp/get-0d res)
+                   res)))
 
   mp/PSubVector
     (subvector [m start length]
@@ -790,6 +795,8 @@
              ^ints b-shape (.shape b)]
          (cond
           (== b-ndims 0) (mp/scale a b)
+          (and (== a-ndims 1) (== b-ndims 1))
+          (mp/inner-product a b)
           (and (== a-ndims 1) (== b-ndims 2))
           (let [b-rows (aget b-shape (int 0))]
             (mp/reshape (mp/matrix-multiply (mp/reshape a [1 b-rows]) b)
@@ -1085,8 +1092,11 @@
 
   mp/PSummable
     (element-sum [m]
-      (fold-over [m] 0
-                 (+ loop-acc (aget m-data m-idx))))
+      ;; TODO: needs fold-over support for N-dimensional case
+      (if (<= (mp/dimensionality m) 2)
+        (fold-over [m] 0
+                 (+ loop-acc (aget m-data m-idx)))
+        (reduce (fn [acc a] (+ acc (mp/element-sum a))) 0.0 (mp/get-major-slice-seq m))))
 
   mp/PExponent
     (element-pow [m exp]

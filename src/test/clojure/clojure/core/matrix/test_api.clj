@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.test-api
   (:use clojure.core.matrix)
   (:use clojure.core.matrix.utils)
+  (:use clojure.core.matrix.select)
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.implementations :as imp])
@@ -16,6 +17,79 @@
     (is (== 1 (mget [1 2 3] 0)))
     (is (== 1 (mget [[1 2 3] [4 5 6]] 0 0)))
     (is (== 8 (mget [[[1 2] [3 4]] [[5 6] [7 8]]] 1 1 1)))))
+
+(deftest test-select
+  (let [a [[1 2] [3 4]]]
+    (testing "higher level indexing"
+      (is (equals 1 (select a 0 0)))
+      (is (equals [[1] [3]] (select a [0 1] [0])))
+      (is (equals [1 3] (select a :all 0)))
+      (is (equals a (select a :all :all))))))
+
+(deftest test-select-indices
+  (let [a [[1 2] [3 4]]]
+    (testing "select indices"
+      (is (equals [1 4] (select-indices a [[0 0] [1 1]])))
+      (is (equals [[5 2] [3 6]] (set-indices a [[0 0] [1 1]] [5 6])))
+      (is (equals [[0 0] [0 0]] (set-indices a [[0 0] [0 1] [1 0] [1 1]] [0 0 0 0])))
+      (is (equals [[0 0] [0 0]] (set-indices a [[0 0] [0 1] [1 0] [1 1]] 0)))
+      (let [ma (mutable a)]
+        (set-indices! ma [[0 0] [1 1]] [5 6])
+        (is (equals ma [[5 2] [3 6]]))))))
+
+
+(deftest test-sel
+  (let [a [[1 2] [3 4]]]
+    (testing "higher level indexing"
+      (is (equals 1 (sel a 0 0)))
+      (is (equals [[1] [3]] (sel a [0 1] [0])))
+      (is (equals [1 3] (sel a [0 1] 0)))
+      (is (equals a (sel a :all :all)))
+      (is (equals 4 (sel a end end)))
+      (is (equals 2 (sel a (exclude 1) (exclude 0))))
+      (is (equals [1 2] (sel [[-1 0] [1 2]] (where pos?)))))))
+
+(deftest test-set-selection
+  (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
+    (testing "set-selection"
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (set-selection a 0 0 2))
+      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (set-selection a [0 2] [0 3] 3)))))
+
+(deftest test-set-selection!
+  (let [a (matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
+    (testing "sel-set!"
+      (set-selection! a 0 0 2)
+      (is (equals [[2 2 3 4] [5 6 7 8] [9 10 11 12]] a))
+      (set-selection! a :all 0 0)
+      (is (equals [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a)))))
+
+
+(deftest test-set-sel
+  (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
+    (testing "set-sel"
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (set-sel a 0 0 2))
+      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (set-sel a [0 2] [0 3] 3))
+      (is (= [[1 2 3 4] [5 5 5 5] [5 5 5 5]])
+          (set-sel a (where (partial < 5)) 5)))))
+
+(deftest test-set-sel!
+  (let [a (matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
+    (testing "set-sel!"
+      (set-sel! a 0 0 2)
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] a))
+      (set-sel! a :all 0 0)
+      (is (= [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a)))))
+
+(deftest test-selector-functions
+  (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12] [13 14 15 16]]]
+    (is (equals (eseq a) (sel a (where pos?))))
+    (is (equals [16] (sel a end)))
+    (is (equals [15] (sel a (calc - end 1))))
+    (is (equals a (sel a (irange) (irange))))
+    (is (equals [[5 6 7 8] [9 10 11 12]] (sel a (irange 1 2) :all)))
+    (is (equals [2 3 4] (sel a (exclude [1 2 3]) (exclude 0))))
+    (is (equals [[1 3] [9 11]] (sel a even even)))
+    (is (equals [[6 8] [14 16]] (sel a odd odd)))))
 
 (deftest test-shape
   (testing "basic array shapes"
@@ -138,6 +212,10 @@
   (testing "slices of a standard vector are scalar numbers"
     (is (= [1 2 3] (slices (array [1 2 3]))))))
 
+(deftest test-slice-on-1d
+  (testing "slice on 1d must return scalar"
+    (is (scalar? (slice [1 2 3] 0)))))
+
 (deftest test-submatrix
   (is (equals [[3]] (submatrix (array [[1 2] [3 4]]) [[1 1] [0 1]])))
   (is (equals [[2] [4]] (submatrix (array [[1 2] [3 4]]) 1 [1 1])))
@@ -160,12 +238,12 @@
   (is (equals [10] (emap + [1] (broadcast 2 [1]) (double-array [3]) [4]))))
 
 (deftest test-conforming?
-  (is (conforming? 1 [[2 2] [3 3]]))
-  (is (conforming? 1 [3 3]))
+  (is (conforming? [[2 2] [3 3]] 1))
+  (is (conforming? [[2 2] [3 3]] [1 1]))
   (is (conforming? [3 3] 1))
-  (is (conforming? [3 3] [[1 2] [3 4]]))
   (is (not (conforming? [3 3] [[1 2 3] [3 4 3]])))
-  (is (not (conforming? [1 2] [3 4 5]))))
+  (is (not (conforming? [1 2] [3 4 5])))
+  (is (not (conforming? [[0.0]] [0.0 0.0]))))
 
 (deftest test-broadcast
   (is (= [[1 1] [1 1]] (coerce [] (broadcast 1 [2 2]))))
@@ -183,9 +261,8 @@
   (is (equals [] (reshape [[1.0 2.0] [3.0 4.0]] [0])))
   (is (equals 1.0 (reshape [[1.0 2.0] [3.0 4.0]] [])))
   (is (equals [[1 2] [3 4]] (reshape [1 2 3 4] [2 2])))
-  (testing "exceptions"
-    (is (thrown? Throwable (reshape 1 [2])))
-    (is (thrown? Throwable (reshape [1] [2 2])))))
+  (is (equals [1 0] (reshape 1 [2])))
+  (is (equals [[1 2] [3 0]] (reshape [1 2 3] [2 2]))))
 
 (deftest test-index-seq
   (is (= [] (index-seq [])))
@@ -317,7 +394,15 @@
   (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]]))))
 
 (deftest test-main-diagonal
-  (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]]))))
+  (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]])))
+  (is (e== [1 4] (diagonal [[1 2] [3 4]]))))
+
+(deftest test-diagonals
+  ;; TODO: enable once diagonal function is complete
+  ;; (is (e== [1 4] (diagonal [[1 2] [3 4]] 0)))
+  ;; (is (e== [2] (diagonal [[1 2] [3 4]] 1)))
+  ;; (is (e== [3] (diagonal [[1 2] [3 4]] -1)))
+  ) 
 
 (deftest test-diagonal
   (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]   )))
