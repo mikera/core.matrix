@@ -764,6 +764,9 @@
   (set-indices! [a indices values] "destructively sets the elements from a at indices to values"))
 
 
+(defprotocol PQRDecomposition
+  (qr [m options]))
+
 
 ;; ============================================================
 ;; Utility functions
