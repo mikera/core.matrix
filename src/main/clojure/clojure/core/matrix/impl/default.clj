@@ -1694,8 +1694,7 @@
                       (assoc us i (get qr-data qr-idx)))
                us))
         max_ (apply max (map #(Math/abs ^Double %) us))]
-    (if (= max_ 0.0)
-      (error "Decomposition failed")
+    (when-not (= max_ 0.0)
       (let [us (update us (range idx mrows) #(/ % max_))
             tau (->> (subvec us idx mrows)
                      (map #(* % %))
@@ -1789,11 +1788,12 @@
           (let [{:keys [us gamma gammas tau]}
                 (householder-qr
                  qr-data i mcols
-                 mrows us gammas)
-                {:keys [qr-data vs]}
-                (update-qr qr-data i mcols mrows
-                           vs us gamma tau)]
-            (recur qr-data vs us gammas gamma tau (inc i)))
+                 mrows us gammas)]
+            (when-not (nil? tau)
+              (let [{:keys [qr-data vs]}
+                    (update-qr qr-data i mcols mrows
+                               vs us gamma tau)]
+                (recur qr-data vs us gammas gamma tau (inc i)))))
           (->>
            (select-keys
             {:Q #(compute-q m qr-data mcols mrows

@@ -4,7 +4,7 @@
 
 
 (defn qr
-  "Computes QR decomposition of a matrix.
+  "Computes QR decomposition of a full rank matrix.
    Returns a map containing matrices of an input matrix type with the keys [:Q :R] such that:
         M = Q.R
 
@@ -13,7 +13,7 @@
     - R is an upper triangular matrix (= right triangular matrix)
    If :return parameter is specified in options map, it returns only specified keys.
 
-   To provide a meaningful solution the original matrix must have full rank.
+   Returns nil if decomposition is impossible.
 
    Intended usage: (let [{:keys [Q R]} (qr M)] ....)
                    (let [{:keys [R]} (qr M {:return [:R]})] ....)"
