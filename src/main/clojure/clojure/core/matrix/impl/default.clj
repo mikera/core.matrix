@@ -1694,8 +1694,7 @@
                       (assoc us i (get qr-data qr-idx)))
                us))
         max_ (apply max (map #(Math/abs ^Double %) us))]
-
-    (if (= max 0.0)
+    (if (= max_ 0.0)
       (error "Decomposition failed")
       (let [us (update us (range idx mrows) #(/ % max_))
             tau (->> (subvec us idx mrows)
