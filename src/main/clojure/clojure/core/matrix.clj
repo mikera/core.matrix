@@ -70,8 +70,9 @@
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*
 
-   If the implementation does not support the shape of data provided, will attempt to
-   create an array using a different implementation on a best-efforts basis."
+   If the implementation does not support the shape of data provided, may either
+   create an array using a different implementation on a best-efforts basis or
+   alternatively throw an error. Users should not rely on this behaviour."
   ([data]
     (or
       (mp/construct-matrix (implementation-check) data)
