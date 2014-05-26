@@ -710,11 +710,19 @@
 
 (defn test-qr
   [im]
-  (let [m (matrix im [[1 2 3 4]
-                      [0 0 10 0]
-                      [3 0 5 6]])
-        {:keys [Q R]} (qr m)]
-    (is (equals m (mmul Q R) 0.000001))))
+  (map
+   #(let [m (matrix im %)
+          {:keys [Q R]} (qr m)]
+      (is (equals m (mmul Q R) 0.000001)))
+   [[[1 2 3 4]
+     [0 0 10 0]
+     [3 0 5 6]]
+    [[1 1 1
+      0 1 1
+      0 0 1]]]
+   [[1 7 3]
+    [7 4 -5]
+    [3 -5 6]]))
 
 ;; ======================================
 ;; Main compliance test method
