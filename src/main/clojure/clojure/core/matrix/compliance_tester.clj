@@ -470,12 +470,28 @@
     (is (zero-matrix? (array m [[0.0]])))
     (is (not (identity-matrix? (array m [[1.0 0.0]]))))))
 
+(defn test-numeric-matrix-types [m]
+  (when (== 2 (dimensionality m))
+    (let [m1 (diagonal-matrix m [1 2 3])
+          m2 (matrix m [[1 2 3] [0 4 5] [0 0 6]])
+          m3 (matrix m [[1 0 0] [2 3 0] [3 4 5]])]
+      (is (diagonal? m1))
+      (is (upper-triangular? m1))
+      (is (lower-triangular? m1))
+      (is (upper-triangular? m2))
+      (is (not (lower-triangular? m2)))
+      (is (not (diagonal? m2)))
+      (is (lower-triangular? m3))
+      (is (not (upper-triangular? m3)))
+      (is (not (diagonal? m3))))))
+
 (defn test-numeric-instance [m]
   (is (numerical? m))
  ; (test-generic-numerical-assumptions m)
   (numeric-scalar-tests m)
   (misc-numeric-tests m)
-  (test-numeric-matrix-predicates m))
+  (test-numeric-matrix-predicates m)
+  (test-numeric-matrix-types m))
 
 ;; ========================================
 ;; 1D vector tests
