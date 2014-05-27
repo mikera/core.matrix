@@ -1231,6 +1231,12 @@
   nil
     (broadcast [m new-shape]
       (clojure.core.matrix.impl.wrappers/wrap-broadcast m new-shape))
+; TODO: efficient way to use current implementation?
+;  Number
+;    (broadcast [m new-shape]
+;      (if (seq new-shape)
+;        (mp/broadcast ())
+;        m))
   Object
     (broadcast [m new-shape]
       (let [nshape new-shape
