@@ -1592,7 +1592,13 @@
     (error "TODO: Not yet implemented")
     (mp/positive-definite? (mp/convert-to-nested-vectors m)))
   (positive-semidefinite? [m]
-    (error "TODO: Not yet implemented")))
+    (error "TODO: Not yet implemented"))
+  (orthogonal? [m eps]
+    (and (square? m)
+         (mp/matrix-equals-epsilon
+          (mp/matrix-multiply m (mp/transpose m))
+          (mp/identity-matrix m (first (mp/get-shape m)))
+          eps))))
 
 (extend-protocol mp/PSelect
   Object

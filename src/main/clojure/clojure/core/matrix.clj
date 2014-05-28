@@ -435,6 +435,13 @@
   ([m]
      (mp/lower-triangular? m)))
 
+(defn orthogonal?
+  "Returns true if the parameter is an orthogonal matrix"
+  ([m eps]
+     (mp/orthogonal? m eps))
+  ([m]
+     (mp/orthogonal? m 1.E-5)))
+
 (defn sparse?
   "Returns true if an array is sparse, i.e. the implementation supports storage of the entire
    array in less memory than would normally be implied by the number of elements.
