@@ -1806,7 +1806,7 @@
     (let [[mrows mcols] (mp/get-shape m)
           min-len (min mcols mrows)
           max-len (max mcols mrows)]
-      (loop [qr-data (mp/to-vector m)
+      (loop [qr-data (mp/to-vector (mp/convert-to-nested-vectors m))
              vs (mp/new-vector [] max-len)
              us (mp/new-vector [] max-len)
              gammas (mp/new-vector [] min-len)
