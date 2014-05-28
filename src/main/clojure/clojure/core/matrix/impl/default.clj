@@ -1568,20 +1568,43 @@
 ;; TODO: proper generic implementations
 (extend-protocol mp/PMatrixTypes
   Object
-	  (diagonal? [m] 
-	    (error "TODO: Not yet implemented"))
-	  (upper-triangular? [m] 
-	    (error "TODO: Not yet implemented")
-      (mp/upper-triangular? (mp/convert-to-nested-vectors m)))
-	  (lower-triangular? [m] 
-	    (error "TODO: Not yet implemented")
-      (mp/lower-triangular? (mp/convert-to-nested-vectors m)))
-	  (positive-definite? [m] 
-      (error "TODO: Not yet implemented")
-	    (mp/positive-definite? (mp/convert-to-nested-vectors m)))
-	  (positive-semidefinite? [m] 
-	    (error "TODO: Not yet implemented") 
-      ))
+  (diagonal? [m]
+    (if (= (mp/dimensionality m) 2)
+      (let [[mrows mcols] (mp/get-shape m)]
+        (->> (mp/element-seq m)
+             (map #(vector (quot %1 mcols) (rem %1 mcols) %2)
+                  (range (* mrows mcols)))
+             (every? (fn [[i j v]]
+                       (cond
+                        (= i j) true
+                        (and (not (= i j)) (== v 0)) true
+                        :else false)))))
+      false))
+  (upper-triangular? [m]
+    (if (square? m)
+      (->> (mp/get-slice-seq m 0)
+           (map vector (range))
+           (mapcat (fn [[idx xs]] (take idx xs)))
+           (every? zero?))
+      false))
+  (lower-triangular? [m]
+    (if (square? m)
+      (->> (mp/get-slice-seq m 0)
+           (map vector (range))
+           (mapcat (fn [[idx xs]] (drop (inc idx) xs)))
+           (every? zero?))
+      false))
+  (positive-definite? [m]
+    (error "TODO: Not yet implemented")
+    (mp/positive-definite? (mp/convert-to-nested-vectors m)))
+  (positive-semidefinite? [m]
+    (error "TODO: Not yet implemented"))
+  (orthogonal? [m eps]
+    (and (square? m)
+         (mp/matrix-equals-epsilon
+          (mp/matrix-multiply m (mp/transpose m))
+          (mp/identity-matrix m (first (mp/get-shape m)))
+          eps))))
 
 (extend-protocol mp/PSelect
   Object
@@ -1616,6 +1639,199 @@
        (if idl
          (recur (mp/set-nd a idl (mp/get-nd vals idr)) idxl idxr)
          a))))))
+
+;; =======================================================
+;; default linear algebra implementations
+
+;; QR decomposition utility functions
+
+(defn compute-q [m qr-data mcols mrows min-len us vs gammas]
+  (let [q (mp/to-vector (mp/identity-matrix vector mrows))
+        q (loop [i (dec min-len)
+                 us us
+                 vs vs
+                 q q]
+            (if (> i -1)
+              (let [us (assoc us i 1)
+                    us (update-indexed
+                        us
+                        (range (inc i) mrows)
+                        (fn [idx _]
+                          (get qr-data (+ (* idx mcols)
+                                          i))))
+                    gamma (get gammas i)
+                    vs (update-indexed
+                        vs (range i mrows)
+                        (fn [idx _]
+                          (* (get us i)
+                             (get q (+ (* i mrows)
+                                       idx)))))
+                    vs (reduce
+                        (fn [acc idx]
+                          (let [u (get us idx)]
+                            (loop [j i
+                                   q-idx (+ (* idx mrows)
+                                            i)
+                                   acc acc]
+                              (if (< j mrows)
+                                (recur (inc j)
+                                       (inc q-idx)
+                                       (update acc [j]
+                                               #(+ % (* u
+                                                        (get q q-idx)))))
+                                acc))))
+                        vs (range (inc i) mrows))
+                    vs (update vs (range i mrows)
+                               #(* % gamma))
+                    q (reduce
+                       (fn [acc idx]
+                         (let [u (get us idx)]
+                           (loop [j i
+                                  qr-idx (+ (* idx mrows)
+                                            i)
+                                  acc acc]
+                             (if (< j mrows)
+                               (recur (inc j)
+                                      (inc qr-idx)
+                                      (update acc [qr-idx]
+                                              #(- % (* u (get vs j)))))
+                               acc))))
+                       q (range i mrows))]
+                (recur (dec i) us vs q))
+              q))]
+    (mp/compute-matrix m [mrows mrows]
+                       (fn [i j]
+                         (get q (+ (* i mrows) j))))))
+
+(defn compute-r [m data mcols mrows min-len]
+  (mp/compute-matrix
+   m [mrows mcols]
+   (fn [i j]
+     (if (and (< i min-len)
+              (>= j i)
+              (< j mcols))
+       (get data (+ (* i mcols) j))
+       0))))
+
+(defn householder-qr [qr-data idx mcols mrows us gammas]
+  (let [us (loop [qr-idx (+ idx (* idx mcols))
+                  i idx
+                  us us]
+             (if (< i mrows)
+               (recur (+ qr-idx mcols)
+                      (inc i)
+                      (assoc us i (get qr-data qr-idx)))
+               us))
+        max_ (apply max (map #(Math/abs ^Double %) us))]
+    (when-not (= max_ 0.0)
+      (let [us (update us (range idx mrows) #(/ % max_))
+            tau (->> (subvec us idx mrows)
+                     (map #(* % %))
+                     (apply +)
+                     (Math/sqrt))
+            u-idx (get us idx)
+            tau (if (neg? u-idx) (- tau) tau)
+            u-0 (+ u-idx tau)
+            gamma (/ u-0 tau)
+            us (update us (range (inc idx) mrows) #(/ % u-0))
+            us (assoc us idx 1)
+            tau (* tau max_)
+            gammas (assoc gammas idx gamma)]
+        {:gamma gamma
+         :gammas gammas
+         :us us
+         :tau tau}))))
+
+(defn update-qr [qr-data idx mcols mrows vs us gamma tau]
+  (let [u (get us idx)
+        idx+1 (inc idx)
+        vs (update-indexed
+            vs
+            (range idx+1 mcols)
+            (fn [i _]
+              (* (get qr-data
+                      (+ i
+                         (* idx mcols)))
+                 u)))
+
+        vs (reduce
+            (fn [acc i]
+              (let [qr-idx (+ idx+1
+                              (* i mcols))]
+                (update-indexed
+                 acc
+                 (range idx+1 mcols)
+                 #(+ %2
+                     (* (get us i)
+                        (get qr-data (+ qr-idx
+                                        (- %1 idx+1))))))))
+            vs (range idx+1 mrows))
+        vs (update vs
+                   (range idx+1 mcols)
+                   #(* % gamma))
+
+        qr-data (reduce
+                 (fn [acc i]
+                   (let [u (get us i)]
+                     (loop [j idx+1
+                            qr-idx (+ (* i mcols)
+                                      idx+1)
+                            acc acc]
+                       (if (< j mcols)
+                         (recur (inc j)
+                                (inc qr-idx)
+                                (->> (* u (get vs j))
+                                     (- (get acc qr-idx))
+                                     (assoc acc qr-idx)))
+                         acc))))
+                 qr-data (range idx mrows))
+        qr-data (if (< idx mcols)
+                  (assoc qr-data (+ idx (* idx mcols)) (- tau))
+                  qr-data)
+
+        qr-data (reduce
+                 (fn [acc i]
+                   (assoc acc
+                     (+ idx (* i mcols))
+                     (get us i)))
+                 qr-data
+                 (range idx+1 mrows))]
+    {:qr-data qr-data
+     :vs vs}))
+
+
+(extend-protocol mp/PQRDecomposition
+  Object
+  (qr [m options]
+    (let [[mrows mcols] (mp/get-shape m)
+          min-len (min mcols mrows)
+          max-len (max mcols mrows)]
+      (loop [qr-data (mp/to-vector m)
+             vs (mp/new-vector [] max-len)
+             us (mp/new-vector [] max-len)
+             gammas (mp/new-vector [] min-len)
+             gamma nil
+             tau nil
+             i 0]
+        (if (< i min-len)
+          (let [{:keys [us gamma gammas tau]}
+                (householder-qr
+                 qr-data i mcols
+                 mrows us gammas)]
+            (when-not (nil? tau)
+              (let [{:keys [qr-data vs]}
+                    (update-qr qr-data i mcols mrows
+                               vs us gamma tau)]
+                (recur qr-data vs us gammas gamma tau (inc i)))))
+          (->>
+           (select-keys
+            {:Q #(compute-q m qr-data mcols mrows
+                            min-len us vs gammas)
+             :R #(compute-r m qr-data mcols mrows min-len)}
+            (:return options))
+           (map (fn [[k v]] [k (v)]))
+           (into {})))))))
+
 
 ;; =======================================================
 ;; default multimethod implementations

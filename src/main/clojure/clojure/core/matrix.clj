@@ -420,6 +420,28 @@
   [m]
   (mp/symmetric? m))
 
+(defn diagonal?
+  "Returns true if the parameter is a diagonal matrix"
+  ([m]
+     (mp/diagonal? m)))
+
+(defn upper-triangular?
+  "Returns true if the parameter is a upper triangular matrix"
+  ([m]
+     (mp/upper-triangular? m)))
+
+(defn lower-triangular?
+  "Returns true if the parameter is a lower triangular matrix"
+  ([m]
+     (mp/lower-triangular? m)))
+
+(defn orthogonal?
+  "Returns true if the parameter is an orthogonal matrix"
+  ([m eps]
+     (mp/orthogonal? m eps))
+  ([m]
+     (mp/orthogonal? m 1.E-5)))
+
 (defn sparse?
   "Returns true if an array is sparse, i.e. the implementation supports storage of the entire
    array in less memory than would normally be implied by the number of elements.
