@@ -1,5 +1,6 @@
 (ns clojure.core.matrix.compliance-tester
   (:use clojure.core.matrix)
+  (:use clojure.core.matrix.linear)
   (:use clojure.test)
   (:require [clojure.core.matrix.operators :as ops])
   (:require [clojure.core.matrix.protocols :as mp])
@@ -725,6 +726,25 @@
      (is (e== [3 1] (add-row (matrix im [1 1]) 0 1 2))))
 
 ;; ======================================
+;; Decompositions Tests
+
+(defn test-qr
+  [im]
+  (map
+   #(let [m (matrix im %)
+          {:keys [Q R]} (qr m)]
+      (is (equals m (mmul Q R) 0.000001)))
+   [[[1 2 3 4]
+     [0 0 10 0]
+     [3 0 5 6]]
+    [[1 1 1
+      0 1 1
+      0 0 1]]]
+   [[1 7 3]
+    [7 4 -5]
+    [3 -5 6]]))
+
+;; ======================================
 ;; Main compliance test method
 ;;
 ;; Implementations should call this with either a valid instance or their registered implementation key
@@ -752,4 +772,5 @@
       (test-numeric-functions im)
       (test-dimensionality im)
       (test-row-operations im)
+      (test-qr im)
       (test-new-matrices im))))
