@@ -333,16 +333,22 @@
     (matrix-equals [a b]
       (let [bdims (long (mp/dimensionality b))]
         (cond
-          (<= bdims 0) 
+          (<= bdims 0)
             false
-          (not= (count a) (mp/dimension-count b 0)) 
+          (and (= (mp/dimensionality a) 1)
+               (= (mp/dimensionality b) 2))
+            (mp/matrix-equals (mp/row-matrix a a) b)
+          (and (= (mp/dimensionality a) 2)
+               (= (mp/dimensionality b) 1))
+            (mp/matrix-equals a (mp/row-matrix b b))
+          (not= (count a) (mp/dimension-count b 0))
             false
           (== 1 bdims)
             (and (== 1 (mp/dimensionality a))
                  (let [n (long (count a))]
                    (loop [i 0]
                      (if (< i n)
-                       (if (== (mp/get-1d a i) (mp/get-1d b i)) 
+                       (if (== (mp/get-1d a i) (mp/get-1d b i))
                          (recur (inc i))
                          false)
                        true))))
