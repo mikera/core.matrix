@@ -32,8 +32,15 @@
      at least an element :doc containing a string describing an implementation
      is provided.")
   (construct-matrix [m data]
-    "Returns a new matrix containing the given data. data should be in the form of either
-     nested sequences or a valid existing matrix")
+    "Returns a new n-dimensional array containing the given data. data should be in the form of either
+     nested sequences or a valid existing array. 
+
+     The return value should be in the preferred format of the given implementation. If the implementation
+     does not support the required dimensionality or element type then it may either:
+      - Throw an error
+      - Return nil to indicate that a default implementation should be used instead
+
+     0-dimensional arrays / scalars are permitted.")
   (new-vector [m length]
     "Returns a new vector (1D column matrix) of the given length, filled with numeric zero.")
   (new-matrix [m rows columns]
@@ -725,8 +732,9 @@
   (diagonal? [m] "Returns true if the matrix is diagonal")
   (upper-triangular? [m] "Returns true if the matrix m is upper triangualar")
   (lower-triangular? [m] "Returns true if the matrix m is lower triangualar")
-  (positive-definite? [m] "Returns true is the matrix is positive definite")
-  (positive-semidefinite? [m] "Returns true is the matrix is positive semidefinite"))
+  (positive-definite? [m] "Returns true if the matrix is positive definite")
+  (positive-semidefinite? [m] "Returns true if the matrix is positive semidefinite")
+  (orthogonal? [m eps] "Returns true if the matrix is orthogonal"))
 
 ;; ============================================================
 ;; Generic values and functions
@@ -767,6 +775,9 @@
   (set-indices [a indices values] "sets the elements from a at indices to values")
   (set-indices! [a indices values] "destructively sets the elements from a at indices to values"))
 
+
+(defprotocol PQRDecomposition
+  (qr [m options]))
 
 
 ;; ============================================================
