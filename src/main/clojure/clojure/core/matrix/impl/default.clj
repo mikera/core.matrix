@@ -1708,7 +1708,8 @@
         (aset us i (aget qr-data qr-idx))
         (recur (+ qr-idx mcols)
                (inc i)))))
-  (let [max_ (apply max (map #(Math/abs ^Double %) us))]
+  (let [max_ (apply max (map #(Math/abs ^Double %)
+                             (mp/subvector us idx (- mrows idx))))]
     (if (= max_ 0.0)
       {:error true}
       (let [_ (c-for [i idx (< i mrows) (inc i)]
