@@ -513,18 +513,20 @@
     (transpose [m] m)
   Object
     (transpose [m]
-      (case (long (mp/dimensionality m))
-        0 m
-        1 m
-        2 (apply mapv vector (map
+      (mp/coerce-param
+       m
+       (case (long (mp/dimensionality m))
+         0 m
+         1 m
+         2 (apply mapv vector (map
                                #(mp/convert-to-nested-vectors %)
                                (mp/get-major-slice-seq m)))
-        (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
-          ;; note that function must come second for mp/element-map
-          (case (count ss)
-            1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
-            2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
-            (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss)))))))
+         (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
+           ;; note that function must come second for mp/element-map
+           (case (count ss)
+             1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
+             2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
+             (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss))))))))
 
 (extend-protocol mp/PTransposeInPlace
   Object
@@ -1706,7 +1708,8 @@
         (aset us i (aget qr-data qr-idx))
         (recur (+ qr-idx mcols)
                (inc i)))))
-  (let [max_ (apply max (map #(Math/abs ^Double %) us))]
+  (let [max_ (apply max (map #(Math/abs ^Double %)
+                             (mp/subvector us idx (- mrows idx))))]
     (if (= max_ 0.0)
       {:error true}
       (let [_ (c-for [i idx (< i mrows) (inc i)]
