@@ -70,8 +70,9 @@
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*
 
-   If the implementation does not support the shape of data provided, will attempt to
-   create an array using a different implementation on a best-efforts basis."
+   If the implementation does not support the shape of data provided, may either
+   create an array using a different implementation on a best-efforts basis or
+   alternatively throw an error. Users should not rely on this behaviour."
   ([data]
     (or
       (mp/construct-matrix (implementation-check) data)
@@ -418,6 +419,28 @@
   "Returns true if the parameter is a symmetric matrix"
   [m]
   (mp/symmetric? m))
+
+(defn diagonal?
+  "Returns true if the parameter is a diagonal matrix"
+  ([m]
+     (mp/diagonal? m)))
+
+(defn upper-triangular?
+  "Returns true if the parameter is a upper triangular matrix"
+  ([m]
+     (mp/upper-triangular? m)))
+
+(defn lower-triangular?
+  "Returns true if the parameter is a lower triangular matrix"
+  ([m]
+     (mp/lower-triangular? m)))
+
+(defn orthogonal?
+  "Returns true if the parameter is an orthogonal matrix"
+  ([m eps]
+     (mp/orthogonal? m eps))
+  ([m]
+     (mp/orthogonal? m 1.E-5)))
 
 (defn sparse?
   "Returns true if an array is sparse, i.e. the implementation supports storage of the entire

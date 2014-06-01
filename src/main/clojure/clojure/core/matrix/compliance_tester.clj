@@ -1,5 +1,6 @@
 (ns clojure.core.matrix.compliance-tester
   (:use clojure.core.matrix)
+  (:use clojure.core.matrix.linear)
   (:use clojure.test)
   (:require [clojure.core.matrix.operators :as ops])
   (:require [clojure.core.matrix.protocols :as mp])
@@ -470,12 +471,32 @@
     (is (zero-matrix? (array m [[0.0]])))
     (is (not (identity-matrix? (array m [[1.0 0.0]]))))))
 
+(defn test-numeric-matrix-types [m]
+  (when (== 2 (dimensionality m))
+    (let [m1 (diagonal-matrix m [1 2 3])
+          m2 (matrix m [[1 2 3] [0 4 5] [0 0 6]])
+          m3 (matrix m [[1 0 0] [2 3 0] [3 4 5]])
+          m4 (matrix m [[0 -0.8 -0.6] [0.8 -0.36 0.48] [0.6 0.48 -0.64]])]
+      (is (diagonal? m1))
+      (is (upper-triangular? m1))
+      (is (lower-triangular? m1))
+      (is (upper-triangular? m2))
+      (is (not (lower-triangular? m2)))
+      (is (not (diagonal? m2)))
+      (is (lower-triangular? m3))
+      (is (not (upper-triangular? m3)))
+      (is (not (diagonal? m3)))
+      (is (orthogonal? m4))
+      (is (not (orthogonal? m1)))
+      (is (not (orthogonal? m2))))))
+
 (defn test-numeric-instance [m]
   (is (numerical? m))
  ; (test-generic-numerical-assumptions m)
   (numeric-scalar-tests m)
   (misc-numeric-tests m)
-  (test-numeric-matrix-predicates m))
+  (test-numeric-matrix-predicates m)
+  (test-numeric-matrix-types m))
 
 ;; ========================================
 ;; 1D vector tests
@@ -535,6 +556,10 @@
   (test-numeric-instance (matrix im [1 2 -3 4.5 7 -10.8]))
   (test-numeric-instance (matrix im [0 0])))
 
+(defn test-1d-mmul [im]
+  (let [m (matrix im [1 2 3])]
+    (is (equals 14 (mmul m m)))))
+
 (defn vector-tests-1d [im]
   (test-vector-mset im)
   (test-vector-length im)
@@ -545,7 +570,8 @@
   (test-vector-subvector im)
   (test-vector-distance im)
   (test-element-add im)
-  (test-1d-instances im))
+  (test-1d-instances im)
+  (test-1d-mmul im))
 
 ;; ========================================
 ;; 2D matrix tests
@@ -554,7 +580,9 @@
   (testing "2D transpose"
     (let [m (matrix im [[1 2] [3 4]])]
       (is (equals [[1 3] [2 4]] (transpose m)))
-      (is (equals m (transpose (transpose m)))))))
+      (is (equals m (transpose (transpose m))))
+      (is (= (imp/get-canonical-object m)
+             (imp/get-canonical-object (transpose m)))))))
 
 (defn test-order [im]
   (testing "order"
@@ -700,6 +728,25 @@
      (is (e== [3 1] (add-row (matrix im [1 1]) 0 1 2))))
 
 ;; ======================================
+;; Decompositions Tests
+
+(defn test-qr
+  [im]
+  (map
+   #(let [m (matrix im %)
+          {:keys [Q R]} (qr m)]
+      (is (equals m (mmul Q R) 0.000001)))
+   [[[1 2 3 4]
+     [0 0 10 0]
+     [3 0 5 6]]
+    [[1 1 1
+      0 1 1
+      0 0 1]]]
+   [[1 7 3]
+    [7 4 -5]
+    [3 -5 6]]))
+
+;; ======================================
 ;; Main compliance test method
 ;;
 ;; Implementations should call this with either a valid instance or their registered implementation key
@@ -727,4 +774,5 @@
       (test-numeric-functions im)
       (test-dimensionality im)
       (test-row-operations im)
+      (test-qr im)
       (test-new-matrices im))))

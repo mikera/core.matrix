@@ -513,18 +513,20 @@
     (transpose [m] m)
   Object
     (transpose [m]
-      (case (long (mp/dimensionality m))
-        0 m
-        1 m
-        2 (apply mapv vector (map
+      (mp/coerce-param
+       m
+       (case (long (mp/dimensionality m))
+         0 m
+         1 m
+         2 (apply mapv vector (map
                                #(mp/convert-to-nested-vectors %)
                                (mp/get-major-slice-seq m)))
-        (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
-          ;; note that function must come second for mp/element-map
-          (case (count ss)
-            1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
-            2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
-            (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss)))))))
+         (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
+           ;; note that function must come second for mp/element-map
+           (case (count ss)
+             1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
+             2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
+             (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss))))))))
 
 (extend-protocol mp/PTransposeInPlace
   Object
@@ -1231,6 +1233,12 @@
   nil
     (broadcast [m new-shape]
       (clojure.core.matrix.impl.wrappers/wrap-broadcast m new-shape))
+; TODO: efficient way to use current implementation?
+;  Number
+;    (broadcast [m new-shape]
+;      (if (seq new-shape)
+;        (mp/broadcast ())
+;        m))
   Object
     (broadcast [m new-shape]
       (let [nshape new-shape
@@ -1562,20 +1570,43 @@
 ;; TODO: proper generic implementations
 (extend-protocol mp/PMatrixTypes
   Object
-	  (diagonal? [m] 
-	    (error "TODO: Not yet implemented"))
-	  (upper-triangular? [m] 
-	    (error "TODO: Not yet implemented")
-      (mp/upper-triangular? (mp/convert-to-nested-vectors m)))
-	  (lower-triangular? [m] 
-	    (error "TODO: Not yet implemented")
-      (mp/lower-triangular? (mp/convert-to-nested-vectors m)))
-	  (positive-definite? [m] 
-      (error "TODO: Not yet implemented")
-	    (mp/positive-definite? (mp/convert-to-nested-vectors m)))
-	  (positive-semidefinite? [m] 
-	    (error "TODO: Not yet implemented") 
-      ))
+  (diagonal? [m]
+    (if (= (mp/dimensionality m) 2)
+      (let [[mrows mcols] (mp/get-shape m)]
+        (->> (mp/element-seq m)
+             (map #(vector (quot %1 mcols) (rem %1 mcols) %2)
+                  (range (* mrows mcols)))
+             (every? (fn [[i j v]]
+                       (cond
+                        (= i j) true
+                        (and (not (= i j)) (== v 0)) true
+                        :else false)))))
+      false))
+  (upper-triangular? [m]
+    (if (square? m)
+      (->> (mp/get-slice-seq m 0)
+           (map vector (range))
+           (mapcat (fn [[idx xs]] (take idx xs)))
+           (every? zero?))
+      false))
+  (lower-triangular? [m]
+    (if (square? m)
+      (->> (mp/get-slice-seq m 0)
+           (map vector (range))
+           (mapcat (fn [[idx xs]] (drop (inc idx) xs)))
+           (every? zero?))
+      false))
+  (positive-definite? [m]
+    (error "TODO: Not yet implemented")
+    (mp/positive-definite? (mp/convert-to-nested-vectors m)))
+  (positive-semidefinite? [m]
+    (error "TODO: Not yet implemented"))
+  (orthogonal? [m eps]
+    (and (square? m)
+         (mp/matrix-equals-epsilon
+          (mp/matrix-multiply m (mp/transpose m))
+          (mp/identity-matrix m (first (mp/get-shape m)))
+          eps))))
 
 (extend-protocol mp/PSelect
   Object
@@ -1610,6 +1641,173 @@
        (if idl
          (recur (mp/set-nd a idl (mp/get-nd vals idr)) idxl idxr)
          a))))))
+
+;; =======================================================
+;; default linear algebra implementations
+
+;; QR decomposition utility functions
+
+(defn compute-q [m ^doubles qr-data mcols mrows min-len
+                 ^doubles us ^doubles vs ^doubles gammas]
+  (let [q ^doubles (mp/to-double-array (mp/identity-matrix vector mrows))]
+    (c-for [i (dec min-len) (> i -1) (dec i)]
+      (let [gamma (aget gammas i)]
+        (aset us i 1.0)
+        (c-for [j (inc i) (< j mrows) (inc j)]
+          (aset us j
+                (aget qr-data
+                      (+ (* j mcols)
+                         i))))
+        (c-for [j i (< j mrows) (inc j)]
+          (aset vs j
+                (* (aget us i)
+                   (aget q
+                         (+ (* i mrows)
+                            j)))))
+        (c-for [j (inc i) (< j mrows) (inc j)]
+          (let [u (aget us j)]
+            (c-for [k i (< k mrows) (inc k)]
+              (let [q-idx (+ (* j mrows)
+                             i (- k i))]
+                (aset vs k (+ (aget vs k)
+                              (* u
+                                 (aget q q-idx))))))))
+        (c-for [j i (< j mrows) (inc j)]
+          (aset vs j (* (aget vs j)
+                        gamma)))
+
+        (c-for [j i (< j mrows) (inc j)]
+          (let [u (aget us j)]
+            (c-for [k i (< k mrows) (inc k)]
+              (let [qr-idx (+ (* j mrows)
+                              i (- k i))]
+                (aset q qr-idx (- (aget q qr-idx)
+                                  (* u (aget vs k))))))))))
+    (mp/compute-matrix m [mrows mrows]
+                       (fn [i j]
+                         (aget q (+ (* i mrows) j))))))
+
+
+
+(defn compute-r [m ^doubles data mcols mrows min-len]
+  (mp/compute-matrix
+   m [mrows mcols]
+   (fn [i j]
+     (if (and (< i min-len)
+              (>= j i)
+              (< j mcols))
+       (aget data (+ (* i mcols) j))
+       0))))
+
+(defn householder-qr [^doubles qr-data idx mcols
+                      mrows ^doubles us ^doubles gammas]
+  (loop [qr-idx (+ idx (* idx mcols))
+         i idx]
+    (if (< i mrows)
+      (do
+        (aset us i (aget qr-data qr-idx))
+        (recur (+ qr-idx mcols)
+               (inc i)))))
+  (let [max_ (apply max (map #(Math/abs ^Double %)
+                             (mp/subvector us idx (- mrows idx))))]
+    (if (= max_ 0.0)
+      {:error true}
+      (let [_ (c-for [i idx (< i mrows) (inc i)]
+                (aset us i (/ (aget us i) max_)))
+            tau (->> (mp/subvector us idx (- mrows idx))
+                     (map #(* % %))
+                     (apply +)
+                     (Math/sqrt))
+            u-idx (aget us idx)
+            tau (if (neg? u-idx) (- tau) tau)
+            u-0 (+ u-idx tau)
+            gamma (/ u-0 tau)
+            tau (* tau max_)]
+        (aset gammas idx gamma)
+        (c-for [i (inc idx) (< i mrows) (inc i)]
+          (aset us i (/ (aget us i) u-0)))
+        (aset us idx 1.0)
+        {:gamma gamma
+         :gammas gammas
+         :us us
+         :tau tau
+         :error false}))))
+
+(defn update-qr [^doubles qr-data idx mcols mrows ^doubles vs
+                 ^doubles us ^Double gamma ^Double tau]
+  (let [u (aget us idx)
+        idx+1 (inc idx)]
+    (c-for [i idx+1 (< i mcols) (inc i)]
+      (aset vs i (aget qr-data
+                       (+ i
+                          (* idx mcols)))))
+    (c-for [i idx+1 (< i mrows) (inc i)]
+      (let [qr-idx (+ idx+1
+                      (* i mcols))]
+        (c-for [j idx+1 (< j mcols) (inc j)]
+          (aset vs j
+                (+ (aget vs j)
+                   (* (aget us i)
+                      (aget qr-data (+ qr-idx
+                                       (- j idx+1)))))))))
+    (c-for [i idx+1 (< i mcols) (inc i)]
+      (aset vs i (* (aget vs i)
+                    gamma)))
+
+    (c-for [i idx (< i mrows) (inc i)]
+      (let [u (aget us i)]
+        (c-for [j idx+1 (< j mcols) (inc j)]
+          (let [qr-idx (+ (* i mcols)
+                          idx+1
+                          (- j idx+1))]
+            (aset qr-data qr-idx
+                  (-> (aget qr-data qr-idx)
+                      (- (* u (aget vs j)))))))))
+
+    (when (< idx mcols)
+      (aset qr-data (+ idx (* idx mcols)) (double (- tau))))
+
+    (c-for [i idx+1 (< i mrows) (inc i)]
+      (aset qr-data
+            (+ idx (* i mcols))
+            (aget us i)))
+    {:qr-data qr-data
+     :vs vs}))
+
+
+(extend-protocol mp/PQRDecomposition
+  Object
+  (qr [m options]
+    (let [[mrows mcols] (mp/get-shape m)
+          min-len (min mcols mrows)
+          max-len (max mcols mrows)]
+      (loop [qr-data (mp/to-double-array m)
+             vs (double-array max-len)
+             us (double-array max-len)
+             gammas (double-array min-len)
+             gamma 0.0
+             tau 0.0
+             i 0]
+        (if (< i min-len)
+          (let [{:keys [us gamma gammas tau error]}
+                (householder-qr
+                 qr-data i mcols
+                 mrows us gammas)]
+            (when-not error
+              (let [{:keys [qr-data vs]}
+                    (update-qr qr-data i mcols mrows
+                               vs us gamma tau)]
+                (recur qr-data vs us gammas
+                       (double gamma) (double tau) (inc i)))))
+          (->>
+           (select-keys
+            {:Q #(compute-q m qr-data mcols mrows
+                            min-len us vs gammas)
+             :R #(compute-r m qr-data mcols mrows min-len)}
+            (:return options))
+           (map (fn [[k v]] [k (v)]))
+           (into {})))))))
+
 
 ;; =======================================================
 ;; default multimethod implementations
