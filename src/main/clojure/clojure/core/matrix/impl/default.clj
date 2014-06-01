@@ -513,18 +513,20 @@
     (transpose [m] m)
   Object
     (transpose [m]
-      (case (long (mp/dimensionality m))
-        0 m
-        1 m
-        2 (apply mapv vector (map
+      (mp/coerce-param
+       m
+       (case (long (mp/dimensionality m))
+         0 m
+         1 m
+         2 (apply mapv vector (map
                                #(mp/convert-to-nested-vectors %)
                                (mp/get-major-slice-seq m)))
-        (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
-          ;; note that function must come second for mp/element-map
-          (case (count ss)
-            1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
-            2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
-            (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss)))))))
+         (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
+           ;; note that function must come second for mp/element-map
+           (case (count ss)
+             1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
+             2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
+             (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss))))))))
 
 (extend-protocol mp/PTransposeInPlace
   Object
@@ -1673,157 +1675,130 @@
 
 ;; QR decomposition utility functions
 
-(defn compute-q [m qr-data mcols mrows min-len us vs gammas]
-  (let [q (mp/to-vector (mp/identity-matrix vector mrows))
-        q (loop [i (dec min-len)
-                 us us
-                 vs vs
-                 q q]
-            (if (> i -1)
-              (let [us (assoc us i 1)
-                    us (update-indexed
-                        us
-                        (range (inc i) mrows)
-                        (fn [idx _]
-                          (get qr-data (+ (* idx mcols)
-                                          i))))
-                    gamma (get gammas i)
-                    vs (update-indexed
-                        vs (range i mrows)
-                        (fn [idx _]
-                          (* (get us i)
-                             (get q (+ (* i mrows)
-                                       idx)))))
-                    vs (reduce
-                        (fn [acc idx]
-                          (let [u (get us idx)]
-                            (loop [j i
-                                   q-idx (+ (* idx mrows)
-                                            i)
-                                   acc acc]
-                              (if (< j mrows)
-                                (recur (inc j)
-                                       (inc q-idx)
-                                       (update acc [j]
-                                               #(+ % (* u
-                                                        (get q q-idx)))))
-                                acc))))
-                        vs (range (inc i) mrows))
-                    vs (update vs (range i mrows)
-                               #(* % gamma))
-                    q (reduce
-                       (fn [acc idx]
-                         (let [u (get us idx)]
-                           (loop [j i
-                                  qr-idx (+ (* idx mrows)
-                                            i)
-                                  acc acc]
-                             (if (< j mrows)
-                               (recur (inc j)
-                                      (inc qr-idx)
-                                      (update acc [qr-idx]
-                                              #(- % (* u (get vs j)))))
-                               acc))))
-                       q (range i mrows))]
-                (recur (dec i) us vs q))
-              q))]
+(defn compute-q [m ^doubles qr-data mcols mrows min-len
+                 ^doubles us ^doubles vs ^doubles gammas]
+  (let [q ^doubles (mp/to-double-array (mp/identity-matrix vector mrows))]
+    (c-for [i (dec min-len) (> i -1) (dec i)]
+      (let [gamma (aget gammas i)]
+        (aset us i 1.0)
+        (c-for [j (inc i) (< j mrows) (inc j)]
+          (aset us j
+                (aget qr-data
+                      (+ (* j mcols)
+                         i))))
+        (c-for [j i (< j mrows) (inc j)]
+          (aset vs j
+                (* (aget us i)
+                   (aget q
+                         (+ (* i mrows)
+                            j)))))
+        (c-for [j (inc i) (< j mrows) (inc j)]
+          (let [u (aget us j)]
+            (c-for [k i (< k mrows) (inc k)]
+              (let [q-idx (+ (* j mrows)
+                             i (- k i))]
+                (aset vs k (+ (aget vs k)
+                              (* u
+                                 (aget q q-idx))))))))
+        (c-for [j i (< j mrows) (inc j)]
+          (aset vs j (* (aget vs j)
+                        gamma)))
+
+        (c-for [j i (< j mrows) (inc j)]
+          (let [u (aget us j)]
+            (c-for [k i (< k mrows) (inc k)]
+              (let [qr-idx (+ (* j mrows)
+                              i (- k i))]
+                (aset q qr-idx (- (aget q qr-idx)
+                                  (* u (aget vs k))))))))))
     (mp/compute-matrix m [mrows mrows]
                        (fn [i j]
-                         (get q (+ (* i mrows) j))))))
+                         (aget q (+ (* i mrows) j))))))
 
-(defn compute-r [m data mcols mrows min-len]
+
+
+(defn compute-r [m ^doubles data mcols mrows min-len]
   (mp/compute-matrix
    m [mrows mcols]
    (fn [i j]
      (if (and (< i min-len)
               (>= j i)
               (< j mcols))
-       (get data (+ (* i mcols) j))
+       (aget data (+ (* i mcols) j))
        0))))
 
-(defn householder-qr [qr-data idx mcols mrows us gammas]
-  (let [us (loop [qr-idx (+ idx (* idx mcols))
-                  i idx
-                  us us]
-             (if (< i mrows)
-               (recur (+ qr-idx mcols)
-                      (inc i)
-                      (assoc us i (get qr-data qr-idx)))
-               us))
-        max_ (apply max (map #(Math/abs ^Double %) us))]
-    (when-not (= max_ 0.0)
-      (let [us (update us (range idx mrows) #(/ % max_))
-            tau (->> (subvec us idx mrows)
+(defn householder-qr [^doubles qr-data idx mcols
+                      mrows ^doubles us ^doubles gammas]
+  (loop [qr-idx (+ idx (* idx mcols))
+         i idx]
+    (if (< i mrows)
+      (do
+        (aset us i (aget qr-data qr-idx))
+        (recur (+ qr-idx mcols)
+               (inc i)))))
+  (let [max_ (apply max (map #(Math/abs ^Double %)
+                             (mp/subvector us idx (- mrows idx))))]
+    (if (= max_ 0.0)
+      {:error true}
+      (let [_ (c-for [i idx (< i mrows) (inc i)]
+                (aset us i (/ (aget us i) max_)))
+            tau (->> (mp/subvector us idx (- mrows idx))
                      (map #(* % %))
                      (apply +)
                      (Math/sqrt))
-            u-idx (get us idx)
+            u-idx (aget us idx)
             tau (if (neg? u-idx) (- tau) tau)
             u-0 (+ u-idx tau)
             gamma (/ u-0 tau)
-            us (update us (range (inc idx) mrows) #(/ % u-0))
-            us (assoc us idx 1)
-            tau (* tau max_)
-            gammas (assoc gammas idx gamma)]
+            tau (* tau max_)]
+        (aset gammas idx gamma)
+        (c-for [i (inc idx) (< i mrows) (inc i)]
+          (aset us i (/ (aget us i) u-0)))
+        (aset us idx 1.0)
         {:gamma gamma
          :gammas gammas
          :us us
-         :tau tau}))))
+         :tau tau
+         :error false}))))
 
-(defn update-qr [qr-data idx mcols mrows vs us gamma tau]
-  (let [u (get us idx)
-        idx+1 (inc idx)
-        vs (update-indexed
-            vs
-            (range idx+1 mcols)
-            (fn [i _]
-              (* (get qr-data
-                      (+ i
-                         (* idx mcols)))
-                 u)))
+(defn update-qr [^doubles qr-data idx mcols mrows ^doubles vs
+                 ^doubles us ^Double gamma ^Double tau]
+  (let [u (aget us idx)
+        idx+1 (inc idx)]
+    (c-for [i idx+1 (< i mcols) (inc i)]
+      (aset vs i (aget qr-data
+                       (+ i
+                          (* idx mcols)))))
+    (c-for [i idx+1 (< i mrows) (inc i)]
+      (let [qr-idx (+ idx+1
+                      (* i mcols))]
+        (c-for [j idx+1 (< j mcols) (inc j)]
+          (aset vs j
+                (+ (aget vs j)
+                   (* (aget us i)
+                      (aget qr-data (+ qr-idx
+                                       (- j idx+1)))))))))
+    (c-for [i idx+1 (< i mcols) (inc i)]
+      (aset vs i (* (aget vs i)
+                    gamma)))
 
-        vs (reduce
-            (fn [acc i]
-              (let [qr-idx (+ idx+1
-                              (* i mcols))]
-                (update-indexed
-                 acc
-                 (range idx+1 mcols)
-                 #(+ %2
-                     (* (get us i)
-                        (get qr-data (+ qr-idx
-                                        (- %1 idx+1))))))))
-            vs (range idx+1 mrows))
-        vs (update vs
-                   (range idx+1 mcols)
-                   #(* % gamma))
+    (c-for [i idx (< i mrows) (inc i)]
+      (let [u (aget us i)]
+        (c-for [j idx+1 (< j mcols) (inc j)]
+          (let [qr-idx (+ (* i mcols)
+                          idx+1
+                          (- j idx+1))]
+            (aset qr-data qr-idx
+                  (-> (aget qr-data qr-idx)
+                      (- (* u (aget vs j)))))))))
 
-        qr-data (reduce
-                 (fn [acc i]
-                   (let [u (get us i)]
-                     (loop [j idx+1
-                            qr-idx (+ (* i mcols)
-                                      idx+1)
-                            acc acc]
-                       (if (< j mcols)
-                         (recur (inc j)
-                                (inc qr-idx)
-                                (->> (* u (get vs j))
-                                     (- (get acc qr-idx))
-                                     (assoc acc qr-idx)))
-                         acc))))
-                 qr-data (range idx mrows))
-        qr-data (if (< idx mcols)
-                  (assoc qr-data (+ idx (* idx mcols)) (- tau))
-                  qr-data)
+    (when (< idx mcols)
+      (aset qr-data (+ idx (* idx mcols)) (double (- tau))))
 
-        qr-data (reduce
-                 (fn [acc i]
-                   (assoc acc
-                     (+ idx (* i mcols))
-                     (get us i)))
-                 qr-data
-                 (range idx+1 mrows))]
+    (c-for [i idx+1 (< i mrows) (inc i)]
+      (aset qr-data
+            (+ idx (* i mcols))
+            (aget us i)))
     {:qr-data qr-data
      :vs vs}))
 
@@ -1834,23 +1809,24 @@
     (let [[mrows mcols] (mp/get-shape m)
           min-len (min mcols mrows)
           max-len (max mcols mrows)]
-      (loop [qr-data (mp/to-vector m)
-             vs (mp/new-vector [] max-len)
-             us (mp/new-vector [] max-len)
-             gammas (mp/new-vector [] min-len)
-             gamma nil
-             tau nil
+      (loop [qr-data (mp/to-double-array m)
+             vs (double-array max-len)
+             us (double-array max-len)
+             gammas (double-array min-len)
+             gamma 0.0
+             tau 0.0
              i 0]
         (if (< i min-len)
-          (let [{:keys [us gamma gammas tau]}
+          (let [{:keys [us gamma gammas tau error]}
                 (householder-qr
                  qr-data i mcols
                  mrows us gammas)]
-            (when-not (nil? tau)
+            (when-not error
               (let [{:keys [qr-data vs]}
                     (update-qr qr-data i mcols mrows
                                vs us gamma tau)]
-                (recur qr-data vs us gammas gamma tau (inc i)))))
+                (recur qr-data vs us gammas
+                       (double gamma) (double tau) (inc i)))))
           (->>
            (select-keys
             {:Q #(compute-q m qr-data mcols mrows

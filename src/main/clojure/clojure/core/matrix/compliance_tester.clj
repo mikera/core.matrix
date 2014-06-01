@@ -580,7 +580,9 @@
   (testing "2D transpose"
     (let [m (matrix im [[1 2] [3 4]])]
       (is (equals [[1 3] [2 4]] (transpose m)))
-      (is (equals m (transpose (transpose m)))))))
+      (is (equals m (transpose (transpose m))))
+      (is (= (imp/get-canonical-object m)
+             (imp/get-canonical-object (transpose m)))))))
 
 (defn test-order [im]
   (testing "order"
