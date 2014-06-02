@@ -15,13 +15,13 @@
 ;; This constant defines a number of tests for each of properties
 
 (def num-tests 100)
-
+(def impls [:ndarray :persistent-vector :vectorz :object-array :double-array])
 ;; # Helpers
 ;;
 ;; ## Generators
 
 (def gen-impl
-  (gen/elements [:ndarray :persistent-vector :vectorz :object-array :double-array]))
+  (gen/elements impls))
 
 ;; TODO: n should be generated as well
 (defn gen-vec-mtx [n]
@@ -93,6 +93,14 @@
            #_(proper-array? vec-mtx)
            (= arr-shape (shape vec-arr))
            (= arr-shape (shape arr))))))
+
+;; Check that equal matrices of different implementations are considered equal
+(defspec matrix-equals num-tests
+  (prop/for-all
+   [mtx (gen-matrix)]
+   (let [mtxs (map #(matrix % mtx) impls)]
+     (for [m1 mtxs m2 mtxs]
+       (e== m1 m2)))))
 
 (defspec householder-matrix-props num-tests
   (prop/for-all [;; shrinking of keywords is broken in current simple-check

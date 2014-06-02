@@ -675,6 +675,17 @@
     (set-column! mutable-m 0 7)
     (is (equals [[7 2] [7 4]] mutable-m))))
 
+(defn test-matrix-equals
+  [im]
+  (let [m1 (matrix im [[1 2] [3 4]])
+        m2 [[1 2] [3 4]]
+        m3 (matrix im [[1 2 3 4]])
+        m4 [1 2 3 4]]
+    (is (e== m1 m2))
+    (is (e== m2 m1))
+    (is (e== m3 m4))
+    (is (e== m4 m3))))
+
 
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)

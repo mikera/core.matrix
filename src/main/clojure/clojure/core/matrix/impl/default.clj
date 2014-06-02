@@ -914,14 +914,20 @@
           (if (== 0 (mp/dimensionality a))
             (== (mp/get-0d a) (scalar-coerce b))
             (not (some false? (map == (mp/element-seq a) (mp/element-seq b)))))
+        (and (== (mp/dimensionality a) 1)
+             (== (mp/dimensionality b) 2))
+          (mp/matrix-equals (mp/row-matrix a a) b)
+        (and (== (mp/dimensionality a) 2)
+             (== (mp/dimensionality b) 1))
+          (mp/matrix-equals a (mp/row-matrix b b))
         :else false)))
 
 (extend-protocol mp/PValueEquality
   nil
     (value-equals [a b]
-      (or 
+      (or
         (nil? b)
-        (and 
+        (and
           (== 0 (mp/dimensionality b))
           (nil? (mp/get-0d b)))))
   Object
