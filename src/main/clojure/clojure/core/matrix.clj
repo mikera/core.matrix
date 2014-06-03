@@ -1337,14 +1337,6 @@
     ;; TODO: implement via a protocol + default implementation
     (mp/assign! m (pow m a))))
 
-(defn sort-array
-  "Sort array in specified order. Default order = 'asc
-   For descending, use order = 'desc"
-  ([m]
-    (mp/sort-array m 'asc))
-  ([m order]
-    (mp/sort-array m order)))
-
 ;; create all unary maths operators
 (eval
   `(do ~@(map (fn [[name func]]
