@@ -1418,7 +1418,7 @@
   "Gets the non-zero indices of an array.
    - For a 1D vector, returns an ordered index list.
    - For a higher dimensional array, returns the non-zero-indices for each slice in row-major order."
-  ([m] (TODO)))
+  ([m] (mp/non-zero-indices m)))
 
 ;; ===================================
 ;; Linear algebra algorithms

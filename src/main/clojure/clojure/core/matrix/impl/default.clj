@@ -1595,6 +1595,17 @@
         (when id
           (do (mp/set-nd! a id v) (recur idx vs)))))))
 
+(extend-protocol mp/PNonZeroIndices
+  Object
+  (non-zero-indices 
+    [m]
+    (if (mp/is-vector? m)
+      (vec (for [i (range (mp/dimension-count m 0))
+                    :when (not (== 0 (mp/get-1d m i)))] 
+              i))
+      (vec (for [i (range (mp/dimension-count m 0))]
+              (mp/non-zero-indices (m i)))))))
+
 ;; TODO: proper generic implementations
 (extend-protocol mp/PMatrixTypes
   Object

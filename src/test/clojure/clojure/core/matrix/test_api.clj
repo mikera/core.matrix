@@ -510,6 +510,18 @@
   (is (= [[1 0.0] [0.0 2]] (block-diagonal-matrix [[[1]][[2]]])))
   (is (= [[1 0.0 0.0] [0.0 2 3] [0.0 4 5]] (block-diagonal-matrix [[[1]][[2 3][4 5]]]))))
 
+(deftest test-non-zero-indices
+  (is (= []                                    
+         (non-zero-indices [0])))
+  (is (= [0]                                   
+         (non-zero-indices [1])))
+  (is (= [0 3 4]                               
+         (non-zero-indices [1 0 0 2 5 0])))
+  (is (= [[[0]] [[]] [[0]] [[]]]               
+         (non-zero-indices [[[1.0]][[0]][[9.0]][[0]]])))
+  (is (= [[[1] [1]] [[0 1] [0]] [[0 1] [0 1]]] 
+         (non-zero-indices [[[0.0 2.0][0 4.0]][[5.0 6.0][7.0 0]][[9.0 10.0][11.0 12.0]]]))))
+
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]
     (testing "example code"
