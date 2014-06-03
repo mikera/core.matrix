@@ -771,6 +771,12 @@
   (set-indices [a indices values] "sets the elements from a at indices to values")
   (set-indices! [a indices values] "destructively sets the elements from a at indices to values"))
 
+(defprotocol PNonZeroIndices
+  "Protocol for getting non-zero indices of an array"
+   (non-zero-indices [m] "Gets the non-zero indices of an array.
+                         - For a 1D vector, returns an ordered index list.
+                         - For a higher dimensional array, returns the non-zero-indices for each slice in row-major order."))
+
 
 (defprotocol PQRDecomposition
   (qr [m options]))
