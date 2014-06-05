@@ -1656,6 +1656,11 @@
 ;; =======================================================
 ;; default linear algebra implementations
 
+(extend-protocol mp/PNorm
+  Object
+  (vector-norm [m p] (TODO))
+  (matrix-norm [m p] (TODO)))
+
 ;; QR decomposition utility functions
 
 (defn compute-q [m ^doubles qr-data mcols mrows min-len
@@ -1819,6 +1824,29 @@
            (map (fn [[k v]] [k (v)]))
            (into {})))))))
 
+(extend-protocol mp/PCholeskyDecomposition
+  Object
+  (cholesky [m options] (TODO)))
+
+(extend-protocol mp/PLUDecomposition
+  Object
+  (lu [m] (TODO)))
+
+(extend-protocol mp/PSVDDecomposition
+  Object
+  (svd [m options] (TODO)))
+
+(extend-protocol mp/PEigenDecomposition
+  Object
+  (eigen [m options] (TODO)))
+
+(extend-protocol mp/PSolveLinear
+  Object
+  (solve [a b] (TODO)))
+
+(extend-protocol mp/PLeastSquares
+  Object
+  (least-squares [a b] (TODO)))
 
 ;; =======================================================
 ;; default multimethod implementations
