@@ -777,9 +777,38 @@
                          - For a 1D vector, returns an ordered index list.
                          - For a higher dimensional array, returns the non-zero-indices for each slice in row-major order."))
 
+(defprotocol PNorm
+  "Protocol for matrix and vector norms"
+  (vector-norm [m p])
+  (matrix-norm [m p]))
 
 (defprotocol PQRDecomposition
+  "Protocol for QR decomposition"
   (qr [m options]))
+
+(defprotocol PCholeskyDecomposition
+  "Procotol for Cholesky decomposition"
+  (cholesky [m options]))
+
+(defprotocol PLUDecomposition
+  "Protocol for LU decomposition"
+  (lu [m]))
+
+(defprotocol PSVDDecomposition
+  "Protocol for SVD decomposition"
+  (svd [m options]))
+
+(defprotocol PEigenDecomposition
+  "Procotol for Eigenvalue decomposition"
+  (eigen [m options]))
+
+(defprotocol PSolveLinear
+  "Protocol for solving linear matrix equation or system of linear scalar equations"
+  (solve [a b]))
+
+(defprotocol PLeastSquares
+  "Protocol for computing least-square solution to a linear matrix equation"
+  (least-squares [a b]))
 
 
 ;; ============================================================
