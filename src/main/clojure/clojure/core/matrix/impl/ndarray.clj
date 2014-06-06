@@ -674,12 +674,10 @@
   ;; TODO: clarify docstring about higher dimensions
   mp/PMatrixSubComponents
     (main-diagonal [m]
-      (iae-when-not (and (== ndims 2) (== (aget shape 0)
-                                          (aget shape 1)))
-        "main-diagonal is applicable only for square matrices")
       (let [new-ndims (int 1)
-            new-shape (int-array 1 (aget shape 0))
-            new-strides (int-array 1 (* (inc (aget shape 0))
+            min-shape (min (aget shape 0) (aget shape 1))
+            new-shape (int-array 1 min-shape)
+            new-strides (int-array 1 (* (inc (aget shape 1))
                                         (aget strides 1)))]
         (reshape-restride#t m new-ndims new-shape new-strides offset)))
 
