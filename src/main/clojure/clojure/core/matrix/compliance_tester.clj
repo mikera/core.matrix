@@ -613,8 +613,12 @@
     (is (equals [1 4 9] (mmul I [1 2 3])))
     (is (equals I-squared (mmul I I)))
     (is (equals I (transpose I))))
-  (let [m (matrix im [[1 2 3] [4 5 6] [7 8 9]])]
-    (is (equals [1 5 9] (main-diagonal m)))))
+  (let [m1 (matrix im [[1 2 3] [4 5 6] [7 8 9]])
+        m2 (matrix im [[1 2 3] [4 5 6] [7 8 9] [10 11 12]])
+        m3 (matrix im [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
+    (is (equals [1 5 9] (main-diagonal m1)))
+    (is (equals [1 5 9] (main-diagonal m2)))
+    (is (equals [1 6 11] (main-diagonal m3)))))
 
 (defn test-row-column-matrices [im]
   (let [rm (row-matrix im [1 2 3])]

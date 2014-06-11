@@ -1567,6 +1567,17 @@
         (when id
           (do (mp/set-nd! a id v) (recur idx vs)))))))
 
+(extend-protocol mp/PNonZeroIndices
+  Object
+  (non-zero-indices 
+    [m]
+    (if (mp/is-vector? m)
+      (vec (for [i (range (mp/dimension-count m 0))
+                    :when (not (== 0 (mp/get-1d m i)))] 
+              i))
+      (vec (for [i (range (mp/dimension-count m 0))]
+              (mp/non-zero-indices (m i)))))))
+
 ;; TODO: proper generic implementations
 (extend-protocol mp/PMatrixTypes
   Object
@@ -1644,6 +1655,11 @@
 
 ;; =======================================================
 ;; default linear algebra implementations
+
+(extend-protocol mp/PNorm
+  Object
+  (vector-norm [m p] (TODO))
+  (matrix-norm [m p] (TODO)))
 
 ;; QR decomposition utility functions
 
@@ -1808,6 +1824,29 @@
            (map (fn [[k v]] [k (v)]))
            (into {})))))))
 
+(extend-protocol mp/PCholeskyDecomposition
+  Object
+  (cholesky [m options] (TODO)))
+
+(extend-protocol mp/PLUDecomposition
+  Object
+  (lu [m] (TODO)))
+
+(extend-protocol mp/PSVDDecomposition
+  Object
+  (svd [m options] (TODO)))
+
+(extend-protocol mp/PEigenDecomposition
+  Object
+  (eigen [m options] (TODO)))
+
+(extend-protocol mp/PSolveLinear
+  Object
+  (solve [a b] (TODO)))
+
+(extend-protocol mp/PLeastSquares
+  Object
+  (least-squares [a b] (TODO)))
 
 ;; =======================================================
 ;; default multimethod implementations
