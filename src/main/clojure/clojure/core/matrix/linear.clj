@@ -117,7 +117,10 @@
   ([m] (eigen m {:return [:Q :A]})))
 
 (defn solve
-  "Solves a linear matrix equation, or system of linear scalar equations.
+  "Solves a linear matrix equation, or system of linear scalar equations, i.e. finds the
+   value X such that:
+
+     A.X = B
 
    Where:
      - A is a square matrix containing the coefficients of the linear system
