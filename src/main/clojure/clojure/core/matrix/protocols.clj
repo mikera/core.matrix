@@ -792,7 +792,7 @@
 
 (defprotocol PLUDecomposition
   "Protocol for LU decomposition"
-  (lu [m]))
+  (lu [m options]))
 
 (defprotocol PSVDDecomposition
   "Protocol for SVD decomposition"

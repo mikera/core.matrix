@@ -636,7 +636,7 @@
          (and (== mdims 1) (== adims 2))
            (let [[arows acols] (mp/get-shape a)]
              (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
-                         [arows]))
+                         [acols]))
          (and (== mdims 2) (== adims 1))
            (let [[mrows mcols] (mp/get-shape m)]
              (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
@@ -1830,7 +1830,7 @@
 
 (extend-protocol mp/PLUDecomposition
   Object
-  (lu [m] (TODO)))
+  (lu [m options] (TODO)))
 
 (extend-protocol mp/PSVDDecomposition
   Object

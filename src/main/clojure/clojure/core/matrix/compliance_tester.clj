@@ -458,7 +458,14 @@
           m (sub i (emul 2.0 (outer-product v v)))]
       (is (equals m (transpose m) 1.0E-12))
       (is (equals m (inverse m) 1.0E-12))
-      (is (equals (mmul m m) i 1.0E-12)))))
+      (is (equals (mmul m m) i 1.0E-12))))
+  (let [m1 (matrix m [[1 2 3 4]])
+        m2 (matrix m [[1 2 3] [4 5 6] [7 8 9] [10 11 12]])
+        m3 (matrix m [[2 3]
+                      [5 6]
+                      [7 8]])]
+    (is (equals (shape (mmul m1 m2)) [1 3]))
+    (is (equals (shape (mmul m2 m3)) [4 2]))))
 
 (defn test-numeric-matrix-predicates [m]
   (when (== 2 (dimensionality m))
