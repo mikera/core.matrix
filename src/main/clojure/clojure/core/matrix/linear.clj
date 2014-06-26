@@ -77,8 +77,13 @@
      - U is an upper triangular matrix
      - P is a permutation matrix
 
-   Intended usage: (let [{:keys [L U P]} (lu A)] ....)"
-  ([m] (mp/lu m)))
+   If :return parameter is specified in options map, it returns only specified keys.
+
+   Intended usage: (let [{:keys [L U P]} (lu A)] ....)
+                   (let [{:keys [L U]} (lu M {:return [:L :U]})] ....)"
+
+  ([m options] (mp/lu m options))
+  ([m] (lu m {:return [:L :U :P]})))
 
 (defn svd
   "Computes the Singular Value decomposition of a matrix.

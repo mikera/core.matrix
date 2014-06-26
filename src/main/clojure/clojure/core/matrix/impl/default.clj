@@ -1830,7 +1830,7 @@
 
 (extend-protocol mp/PLUDecomposition
   Object
-  (lu [m] (TODO)))
+  (lu [m options] (TODO)))
 
 (extend-protocol mp/PSVDDecomposition
   Object
