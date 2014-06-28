@@ -1824,15 +1824,17 @@
            (map (fn [[k v]] [k (v)]))
            (into {})))))))
 
-(def ^:dynamic *trying-current-implementation*)
+;; temp var to prevent recursive coercion if implementation does not support liear algebra operation
+(def ^:dynamic *trying-current-implementation* nil)
 
 (defmacro try-current-implementation 
   [sym form]
   `(if *trying-current-implementation*
-     (TODO (str "Not yet implemented: " ~(str form)))
+     (TODO (str "Not yet implemented: " ~(str form) " for " (class ~sym)))
      (binding [*trying-current-implementation* true]
        (let [imp# (imp/get-canonical-object)
-             ~sym (mp/coerce-param imp# ~sym)] ~form))))
+             ~sym (mp/coerce-param imp# ~sym)]
+         ~form))))
 
 (extend-protocol mp/PCholeskyDecomposition
   Object
