@@ -30,7 +30,8 @@
 
 ;; useful TODO macro: facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO
-  ([] `(error "TODO: not yet implemented")))
+  ([] `(error "TODO: not yet implemented"))
+  ([& vals] `(error "TODO: " ~@vals)))
 
 (defmacro iae
   "Throws IllegalArgumentException with provided string"
