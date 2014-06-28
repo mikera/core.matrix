@@ -770,10 +770,16 @@
 
 (defn coerce
   "Coerces param (which may be any array) into a format preferred by a specific matrix implementation.
+   If the matrix implementation is not specified, uses the current matrix implementation.
    If param is already in a format deemed usable by the implementation, may return it unchanged.
 
    coerce should never alter the shape of the array, but may convert element types where necessary
    (e.g. turning real values into complex values when converting to a complex array type)."
+  ([param]
+    (let [m (imp/get-canonical-object)] 
+      (or 
+       (mp/coerce-param m param)
+       (mp/coerce-param m (mp/convert-to-nested-vectors param)))))
   ([matrix-or-implementation param]
     (let [m (if (keyword? matrix-or-implementation) (imp/get-canonical-object matrix-or-implementation) matrix-or-implementation)]
       (or
