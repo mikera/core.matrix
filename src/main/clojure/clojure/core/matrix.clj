@@ -1464,8 +1464,8 @@
 
 (defn esum
   "Calculates the sum of all the elements in a numerical array."
-  [m]
-  (mp/element-sum m))
+  ([m]
+    (mp/element-sum m)))
 
 (defn emin
   "Gets the minimum element value from a numerical array"
