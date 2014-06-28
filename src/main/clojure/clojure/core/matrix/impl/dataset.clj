@@ -51,11 +51,12 @@
   DataSet
     (implementation-key [m] :dataset)
     (meta-info [m]
-      {:doc "Clojure.core.matrix implementation for datasets"})
-    (new-vector [m length] (error "Can't construct a Dataset as a 1D vector, only 2D supported"))
+      {:doc "clojure.core.matrix implementation for datasets"})
+    (new-vector [m length] 
+      (mp/new-vector [] length))
     (new-matrix [m rows columns] 
       (let [col-indexes (range columns)] 
-        (dataset (mapv keyword col-indexes) (for [i col-indexes] (mp/new-vector @#'clojure.core.matrix/*matrix-implementation* rows)))))
+        (dataset (mapv keyword col-indexes) (for [i col-indexes] (mp/new-vector (imp/get-canonical-object) rows)))))
     (new-matrix-nd [m shape]
       (if (== 2 (count shape))
         (mp/new-matrix m (first shape) (second shape))

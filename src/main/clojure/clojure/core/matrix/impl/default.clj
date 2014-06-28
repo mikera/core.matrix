@@ -1824,29 +1824,45 @@
            (map (fn [[k v]] [k (v)]))
            (into {})))))))
 
+(def ^:dynamic *trying-current-implementation*)
+
+(defmacro try-current-implementation 
+  [sym form]
+  `(if *trying-current-implementation*
+     (TODO (str "Not yet implemented: " ~(str form)))
+     (binding [*trying-current-implementation* true]
+       (let [imp# (imp/get-canonical-object)
+             ~sym (mp/coerce-param imp# ~sym)] ~form))))
+
 (extend-protocol mp/PCholeskyDecomposition
   Object
-  (cholesky [m options] (TODO)))
+  (cholesky [m options] 
+    (try-current-implementation m (mp/cholesky m options))))
 
 (extend-protocol mp/PLUDecomposition
   Object
-  (lu [m options] (TODO)))
+  (lu [m options] 
+    (try-current-implementation m (mp/lu m options))))
 
 (extend-protocol mp/PSVDDecomposition
   Object
-  (svd [m options] (TODO)))
+  (svd [m options] 
+    (try-current-implementation m (mp/svd m options))))
 
 (extend-protocol mp/PEigenDecomposition
   Object
-  (eigen [m options] (TODO)))
+  (eigen [m options] 
+    (try-current-implementation m (mp/eigen m options))))
 
 (extend-protocol mp/PSolveLinear
   Object
-  (solve [a b] (TODO)))
+  (solve [a b] 
+    (try-current-implementation a (mp/solve a b))))
 
 (extend-protocol mp/PLeastSquares
   Object
-  (least-squares [a b] (TODO)))
+  (least-squares [a b] 
+    (try-current-implementation a (mp/least-squares a b))))
 
 ;; =======================================================
 ;; default multimethod implementations

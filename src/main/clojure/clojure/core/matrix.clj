@@ -5,7 +5,7 @@
   (:require [clojure.core.matrix.multimethods :as mm])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.impl.pprint :as pprint])
-  (:require [clojure.core.matrix.implementations :as imp])
+  (:require [clojure.core.matrix.implementations :as imp :refer [*matrix-implementation*]])
   (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
 ;; ==================================================================================
@@ -38,7 +38,6 @@
 (declare implementation-check)
 (declare current-implementation-object)
 (declare to-nested-vectors)
-(def ^:dynamic *matrix-implementation* imp/DEFAULT-IMPLEMENTATION)
 
 (defn matrix
   "Constructs a matrix from the given numerical data.
@@ -135,7 +134,7 @@
 (defn new-scalar-array
   "Returns a new mutable scalar array containing the scalar value zero."
   ([]
-    (new-scalar-array *matrix-implementation*))
+    (new-scalar-array imp/*matrix-implementation*))
   ([implementation]
     (let [implementation (implementation-check implementation)]
       (mp/new-scalar-array implementation))))
@@ -301,7 +300,7 @@
    Example:
      (with-implementation :vectorz
        (new-matrix 10 10))"
-  `(binding [*matrix-implementation* (imp/get-canonical-object ~impl)]
+  `(binding [imp/*matrix-implementation* (imp/get-canonical-object ~impl)]
      ~@body))
 
 ;; ======================================
@@ -1535,20 +1534,20 @@
 
 (defn current-implementation
   "Gets the currently active matrix implementation (as a keyword)"
-  {:inline (fn [] 'clojure.core.matrix/*matrix-implementation*)}
-  ([] clojure.core.matrix/*matrix-implementation*))
+  {:inline (fn [] imp/*matrix-implementation*)}
+  ([] imp/*matrix-implementation*))
 
 (defn- implementation-check
   "Gets the currently active matrix implementation (as a matrix object). Throws an exception if none is available."
   ([]
-    (if-let [ik clojure.core.matrix/*matrix-implementation*]
+    (if-let [ik imp/*matrix-implementation*]
       (imp/get-canonical-object ik)
       (error "No current clojure.core.matrix implementation available")))
   ([impl]
     (if-let [im (imp/get-canonical-object impl)]
       im
       (cond
-        (scalar? impl) (imp/get-canonical-object clojure.core.matrix/*matrix-implementation*)
+        (scalar? impl) (imp/get-canonical-object imp/*matrix-implementation*)
         :else (error "No clojure.core.matrix implementation available - " (str impl))))))
 
 (defn current-implementation-object
@@ -1562,5 +1561,5 @@
    This is used primarily for functions that construct new matrices, i.e. it determines the
    implementation used for expressions like: (matrix [[1 2] [3 4]])"
   ([m]
-    (alter-var-root (var clojure.core.matrix/*matrix-implementation*)
+    (alter-var-root (var imp/*matrix-implementation*)
                     (fn [_] (imp/get-implementation-key m)))))

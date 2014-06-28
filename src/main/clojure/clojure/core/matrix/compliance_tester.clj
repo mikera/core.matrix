@@ -770,7 +770,7 @@
   [m]
   (let [im (or (imp/get-canonical-object m) (error "Implementation not registered: " (class m)))
         ik (imp/get-implementation-key im)]
-    (binding [*matrix-implementation* ik]
+    (binding [imp/*matrix-implementation* ik]
       (instance-test im)
       (test-implementation im)
       (test-assumptions-for-all-sizes im)
