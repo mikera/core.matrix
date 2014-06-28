@@ -108,8 +108,8 @@
 (defspec qr-props num-tests
   (prop/for-all
    [mtx (gen-matrix)]
-   ;; TODO: fix this as soon as there will be a way to generate full-rank matrices
-   (if-let [{:keys [Q R]} (qr mtx)]
-     (do ;; (is (orthogonal? Q)) ; TODO figure out how to deal with rectangular Q matrices?
-         (is (equals mtx (mmul Q R) 1.0E-12)))
-     true)))
+   (when (>= (row-count mtx) (row-count mtx)) ;; TODO: fix when rows < cols is supported
+     (if-let [{:keys [Q R]} (qr mtx)]
+       (do ;; (is (orthogonal? Q)) ; TODO figure out how to deal with rectangular Q matrices?
+            (is (equals mtx (mmul Q R) 1.0E-12)))
+       true))))
