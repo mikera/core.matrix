@@ -82,7 +82,11 @@
       (mp/coerce-param [] data))))
 
 (defn zero-vector
-  "Constructs a new zero-filled numerical vector with the given length."
+  "Constructs a new zero-filled numerical vector with the given length. 
+
+   Implementations are encouraged to return immutable vectors or sparse vectors 
+   for efficency whre available."
+  ;; TODO: implement a specialised constructor protocol for zero vectors / arrays
   ([length]
     (mp/new-vector (implementation-check) length))
   ([implementation length]
@@ -270,8 +274,7 @@
         (error "Sparse implementation not available"))))
 
 (defn sparse
-  "EXPERIMENTAL:
-   Coerces an array to a sparse format if possible. Sparse arrays are expected to
+  "Coerces an array to a sparse format if possible. Sparse arrays are expected to
    minimise space usage for zero elements.
 
    Returns the array unchanged if such coercion is not possible, or if the array is already sparse."
@@ -281,8 +284,7 @@
     (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
 
 (defn dense
-  "EXPERIMENTAL:
-   Coerces an array to a dense format if possible. Dense arrays are expected to
+  "Coerces an array to a dense format if possible. Dense arrays are expected to
    allocate contiguous storage space for all elements.
 
    'dense' should not be used with very large arrays, and may throw an OutOfMemoryError
@@ -1020,7 +1022,9 @@
 ;; matrix maths / operations
 
 (defn mul
-  "Performs element-wise multiplication with numerical arrays."
+  "Performs element-wise multiplication with scalars and numerical arrays.
+
+   Behaves like clojure.core/* for scalar values."
   ([] 1.0)
   ([a] a)
   ([a b]
