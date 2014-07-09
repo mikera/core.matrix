@@ -779,8 +779,7 @@
 
 (defprotocol PNorm
   "Protocol for matrix and vector norms"
-  (vector-norm [m p])
-  (matrix-norm [m p]))
+  (norm [m p]))
 
 (defprotocol PQRDecomposition
   "Protocol for QR decomposition"
