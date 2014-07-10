@@ -14,4 +14,4 @@
                   (clojure.core.matrix.compliance-tester/instance-test a))))
 
 (deftest generated-instance-tests
-  (is (sc/quick-check 20 instance-tests)))
+  (is (sc/quick-check 20 instance-tests :seed 2964321771959749102)))
