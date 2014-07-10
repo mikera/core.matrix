@@ -33,7 +33,7 @@
      is provided.")
   (construct-matrix [m data]
     "Returns a new n-dimensional array containing the given data. data should be in the form of either
-     nested sequences or a valid existing array. 
+     nested sequences or a valid existing array.
 
      The return value should be in the preferred format of the given implementation. If the implementation
      does not support the required dimensionality or element type then it may either:
