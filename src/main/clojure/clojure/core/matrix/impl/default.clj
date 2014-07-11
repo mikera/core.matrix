@@ -1705,15 +1705,21 @@
 
 
 
-(defn compute-r [m ^doubles data mcols mrows min-len]
-  (mp/compute-matrix
-   m [mrows mcols]
-   (fn [i j]
-     (if (and (< i min-len)
-              (>= j i)
-              (< j mcols))
-       (aget data (+ (* i mcols) j))
-       0))))
+(defn compute-r [m ^doubles data mcols mrows min-len compact?]
+  (let [cm (mp/compute-matrix
+              m [mrows mcols]
+              (fn [i j]
+                (if (and (< i min-len)
+                         (>= j i)
+                         (< j mcols))
+                  (aget data (+ (* i mcols) j))
+                  0)))]
+    (if compact?
+      (->> (mp/get-major-slice-seq cm)
+           (reduce
+            #(if (every? zero? %2) (inc %1) %1) 0)
+           (#(mp/reshape cm [mcols (- mrows %)])))
+      cm)))
 
 (defn householder-qr [^doubles qr-data idx mcols
                       mrows ^doubles us ^doubles gammas]
@@ -1819,7 +1825,7 @@
            (select-keys
             {:Q #(compute-q m qr-data mcols mrows
                             min-len us vs gammas)
-             :R #(compute-r m qr-data mcols mrows min-len)}
+             :R #(compute-r m qr-data mcols mrows min-len (:compact options))}
             (:return options))
            (map (fn [[k v]] [k (v)]))
            (into {})))))))

@@ -755,7 +755,12 @@
       0 0 1]]]
    [[1 7 3]
     [7 4 -5]
-    [3 -5 6]]))
+    [3 -5 6]])
+
+  (let [m (matrix im [[1 2] [3 4] [5 6] [7 8]])
+        {:keys [R]} (qr m {:return [:R]
+                         :compact true})]
+    (is (= (row-count R) 2))))
 
 ;; ======================================
 ;; Main compliance test method
