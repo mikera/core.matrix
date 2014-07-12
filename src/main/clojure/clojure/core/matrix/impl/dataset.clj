@@ -54,9 +54,9 @@
       {:doc "clojure.core.matrix implementation for datasets"})
     (new-vector [m length] 
       (mp/new-vector [] length))
-    (new-matrix [m rows columns] 
-      (let [col-indexes (range columns)] 
-        (dataset (mapv keyword col-indexes) (for [i col-indexes] (mp/new-vector (imp/get-canonical-object) rows)))))
+    (new-matrix [m rows columns]
+      (let [col-indexes (range columns)]
+        (dataset col-indexes (for [i col-indexes] (mp/new-vector (imp/get-canonical-object) rows)))))
     (new-matrix-nd [m shape]
       (if (== 2 (count shape))
         (mp/new-matrix m (first shape) (second shape))
