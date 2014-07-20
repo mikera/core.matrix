@@ -796,9 +796,10 @@
           (and (== a-ndims 1) (== b-ndims 1))
           (mp/inner-product a b)
           (and (== a-ndims 1) (== b-ndims 2))
-          (let [b-rows (aget b-shape (int 0))]
+          (let [b-rows (aget b-shape (int 0))
+                b-cols (aget b-shape (int 1))]
             (mp/reshape (mp/matrix-multiply (mp/reshape a [1 b-rows]) b)
-                        [b-rows]))
+                        [b-cols]))
           (and (== a-ndims 2) (== b-ndims 1))
           (let [a-cols (aget shape (int 1))
                 a-rows (aget shape (int 0))]

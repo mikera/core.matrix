@@ -636,7 +636,7 @@
          (and (== mdims 1) (== adims 2))
            (let [[arows acols] (mp/get-shape a)]
              (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
-                         [arows]))
+                         [acols]))
          (and (== mdims 2) (== adims 1))
            (let [[mrows mcols] (mp/get-shape m)]
              (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
@@ -1709,15 +1709,21 @@
 
 
 
-(defn compute-r [m ^doubles data mcols mrows min-len]
-  (mp/compute-matrix
-   m [mrows mcols]
-   (fn [i j]
-     (if (and (< i min-len)
-              (>= j i)
-              (< j mcols))
-       (aget data (+ (* i mcols) j))
-       0))))
+(defn compute-r [m ^doubles data mcols mrows min-len compact?]
+  (let [cm (mp/compute-matrix
+              m [mrows mcols]
+              (fn [i j]
+                (if (and (< i min-len)
+                         (>= j i)
+                         (< j mcols))
+                  (aget data (+ (* i mcols) j))
+                  0)))]
+    (if compact?
+      (->> (mp/get-major-slice-seq cm)
+           (reduce
+            #(if (every? zero? %2) (inc %1) %1) 0)
+           (#(mp/reshape cm [mcols (- mrows %)])))
+      cm)))
 
 (defn householder-qr [^doubles qr-data idx mcols
                       mrows ^doubles us ^doubles gammas]
@@ -1823,34 +1829,52 @@
            (select-keys
             {:Q #(compute-q m qr-data mcols mrows
                             min-len us vs gammas)
-             :R #(compute-r m qr-data mcols mrows min-len)}
+             :R #(compute-r m qr-data mcols mrows min-len (:compact options))}
             (:return options))
            (map (fn [[k v]] [k (v)]))
            (into {})))))))
 
+;; temp var to prevent recursive coercion if implementation does not support liear algebra operation
+(def ^:dynamic *trying-current-implementation* nil)
+
+(defmacro try-current-implementation 
+  [sym form]
+  `(if *trying-current-implementation*
+     (TODO (str "Not yet implemented: " ~(str form) " for " (class ~sym)))
+     (binding [*trying-current-implementation* true]
+       (let [imp# (imp/get-canonical-object)
+             ~sym (mp/coerce-param imp# ~sym)]
+         ~form))))
+
 (extend-protocol mp/PCholeskyDecomposition
   Object
-  (cholesky [m options] (TODO)))
+  (cholesky [m options] 
+    (try-current-implementation m (mp/cholesky m options))))
 
 (extend-protocol mp/PLUDecomposition
   Object
-  (lu [m options] (TODO)))
+  (lu [m options] 
+    (try-current-implementation m (mp/lu m options))))
 
 (extend-protocol mp/PSVDDecomposition
   Object
-  (svd [m options] (TODO)))
+  (svd [m options] 
+    (try-current-implementation m (mp/svd m options))))
 
 (extend-protocol mp/PEigenDecomposition
   Object
-  (eigen [m options] (TODO)))
+  (eigen [m options] 
+    (try-current-implementation m (mp/eigen m options))))
 
 (extend-protocol mp/PSolveLinear
   Object
-  (solve [a b] (TODO)))
+  (solve [a b] 
+    (try-current-implementation a (mp/solve a b))))
 
 (extend-protocol mp/PLeastSquares
   Object
-  (least-squares [a b] (TODO)))
+  (least-squares [a b] 
+    (try-current-implementation a (mp/least-squares a b))))
 
 ;; =======================================================
 ;; default multimethod implementations

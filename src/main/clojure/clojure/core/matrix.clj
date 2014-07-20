@@ -5,7 +5,7 @@
   (:require [clojure.core.matrix.multimethods :as mm])
   (:require [clojure.core.matrix.protocols :as mp])
   (:require [clojure.core.matrix.impl.pprint :as pprint])
-  (:require [clojure.core.matrix.implementations :as imp])
+  (:require [clojure.core.matrix.implementations :as imp :refer [*matrix-implementation*]])
   (:require [clojure.core.matrix.impl.mathsops :as mops]))
 
 ;; ==================================================================================
@@ -38,7 +38,6 @@
 (declare implementation-check)
 (declare current-implementation-object)
 (declare to-nested-vectors)
-(def ^:dynamic *matrix-implementation* imp/DEFAULT-IMPLEMENTATION)
 
 (defn matrix
   "Constructs a matrix from the given numerical data.
@@ -83,7 +82,11 @@
       (mp/coerce-param [] data))))
 
 (defn zero-vector
-  "Constructs a new zero-filled numerical vector with the given length."
+  "Constructs a new zero-filled numerical vector with the given length. 
+
+   Implementations are encouraged to return immutable vectors or sparse vectors 
+   for efficency whre available."
+  ;; TODO: implement a specialised constructor protocol for zero vectors / arrays
   ([length]
     (mp/new-vector (implementation-check) length))
   ([implementation length]
@@ -135,7 +138,7 @@
 (defn new-scalar-array
   "Returns a new mutable scalar array containing the scalar value zero."
   ([]
-    (new-scalar-array *matrix-implementation*))
+    (new-scalar-array imp/*matrix-implementation*))
   ([implementation]
     (let [implementation (implementation-check implementation)]
       (mp/new-scalar-array implementation))))
@@ -271,8 +274,7 @@
         (error "Sparse implementation not available"))))
 
 (defn sparse
-  "EXPERIMENTAL:
-   Coerces an array to a sparse format if possible. Sparse arrays are expected to
+  "Coerces an array to a sparse format if possible. Sparse arrays are expected to
    minimise space usage for zero elements.
 
    Returns the array unchanged if such coercion is not possible, or if the array is already sparse."
@@ -282,8 +284,7 @@
     (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
 
 (defn dense
-  "EXPERIMENTAL:
-   Coerces an array to a dense format if possible. Dense arrays are expected to
+  "Coerces an array to a dense format if possible. Dense arrays are expected to
    allocate contiguous storage space for all elements.
 
    'dense' should not be used with very large arrays, and may throw an OutOfMemoryError
@@ -301,7 +302,7 @@
    Example:
      (with-implementation :vectorz
        (new-matrix 10 10))"
-  `(binding [*matrix-implementation* (imp/get-canonical-object ~impl)]
+  `(binding [imp/*matrix-implementation* (imp/get-canonical-object ~impl)]
      ~@body))
 
 ;; ======================================
@@ -771,10 +772,16 @@
 
 (defn coerce
   "Coerces param (which may be any array) into a format preferred by a specific matrix implementation.
+   If the matrix implementation is not specified, uses the current matrix implementation.
    If param is already in a format deemed usable by the implementation, may return it unchanged.
 
    coerce should never alter the shape of the array, but may convert element types where necessary
    (e.g. turning real values into complex values when converting to a complex array type)."
+  ([param]
+    (let [m (imp/get-canonical-object)] 
+      (or 
+       (mp/coerce-param m param)
+       (mp/coerce-param m (mp/convert-to-nested-vectors param)))))
   ([matrix-or-implementation param]
     (let [m (if (keyword? matrix-or-implementation) (imp/get-canonical-object matrix-or-implementation) matrix-or-implementation)]
       (or
@@ -1015,7 +1022,9 @@
 ;; matrix maths / operations
 
 (defn mul
-  "Performs element-wise multiplication with numerical arrays."
+  "Performs element-wise multiplication with scalars and numerical arrays.
+
+   Behaves like clojure.core/* for scalar values."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -1459,8 +1468,8 @@
 
 (defn esum
   "Calculates the sum of all the elements in a numerical array."
-  [m]
-  (mp/element-sum m))
+  ([m]
+    (mp/element-sum m)))
 
 (defn emin
   "Gets the minimum element value from a numerical array"
@@ -1535,20 +1544,20 @@
 
 (defn current-implementation
   "Gets the currently active matrix implementation (as a keyword)"
-  {:inline (fn [] 'clojure.core.matrix/*matrix-implementation*)}
-  ([] clojure.core.matrix/*matrix-implementation*))
+  {:inline (fn [] imp/*matrix-implementation*)}
+  ([] imp/*matrix-implementation*))
 
 (defn- implementation-check
   "Gets the currently active matrix implementation (as a matrix object). Throws an exception if none is available."
   ([]
-    (if-let [ik clojure.core.matrix/*matrix-implementation*]
+    (if-let [ik imp/*matrix-implementation*]
       (imp/get-canonical-object ik)
       (error "No current clojure.core.matrix implementation available")))
   ([impl]
     (if-let [im (imp/get-canonical-object impl)]
       im
       (cond
-        (scalar? impl) (imp/get-canonical-object clojure.core.matrix/*matrix-implementation*)
+        (scalar? impl) (imp/get-canonical-object imp/*matrix-implementation*)
         :else (error "No clojure.core.matrix implementation available - " (str impl))))))
 
 (defn current-implementation-object
@@ -1562,5 +1571,5 @@
    This is used primarily for functions that construct new matrices, i.e. it determines the
    implementation used for expressions like: (matrix [[1 2] [3 4]])"
   ([m]
-    (alter-var-root (var clojure.core.matrix/*matrix-implementation*)
+    (alter-var-root (var imp/*matrix-implementation*)
                     (fn [_] (imp/get-implementation-key m)))))

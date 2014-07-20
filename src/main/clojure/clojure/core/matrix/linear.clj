@@ -10,19 +10,12 @@
 
    Special cases of p argument:
    Double/POSITIVE_INFINITY - Infinity norm
-   :frobenius - Frobenius norm
 
    Intended usage: (let [n (norm v 1)] ....)
                    (let [n (norm v Double/POSITIVE_INFINITY)] ....)
                    (let [n (norm v)] ....)"
-  ([m]
-     (cond
-      (vec? m) (norm m 2)
-      (matrix? m) (norm m :frobenius)))
-  ([m p]
-     (cond
-      (vec? m)(mp/vector-norm m p)
-      (matrix? m) (mp/matrix-norm m p))))
+  ([m] (norm m 2))
+  ([m p] (mp/norm m p)))
 
 (defn rank
   "Computes the rank of a matrix, i.e. the number of linearly independent rows
@@ -122,7 +115,10 @@
   ([m] (eigen m {:return [:Q :A]})))
 
 (defn solve
-  "Solves a linear matrix equation, or system of linear scalar equations.
+  "Solves a linear matrix equation, or system of linear scalar equations, i.e. finds the
+   value X such that:
+
+     A.X = B
 
    Where:
      - A is a square matrix containing the coefficients of the linear system

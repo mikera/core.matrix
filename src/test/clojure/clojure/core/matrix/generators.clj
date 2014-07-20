@@ -27,15 +27,13 @@
 (defn gen-array
   "Generator for arbitrary n-dimensional arrays"
   [& {:keys [max-elems min-elems
-             max-dim min-dim dimension-generator
+             max-dim min-dim
              implementations elem-gen]
       :or {max-elems 100 min-elems 1 max-dim 4 min-dim 0
-           dimension-generator gen/pos-int 
            elem-gen gen-double
            implementations [:ndarray :persistent-vector :vectorz
                             :object-array :double-array]}}]
-  (as-> dimension-generator x
-        (gen/such-that #(<= min-dim % max-dim) x)
+  (as-> (gen/elements (range min-dim (inc max-dim))) x
         (gen/bind x #(gen/vector gen/pos-int %))
         (gen/such-that #(<= min-elems (reduce * %) max-elems) x)
         (gen/bind x #(gen-nested-vectors % elem-gen))
