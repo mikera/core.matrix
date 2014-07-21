@@ -3,7 +3,7 @@
   (:require [clojure.core.matrix.protocols :as mp]))
 
 (extend-protocol mp/PIndexImplementation
-  (Class/forName "[D")
+  (Class/forName "[J")
 	  (index? [m]
       true) 
 	  (index-to-longs [m]
@@ -15,12 +15,27 @@
 	  (index-from-ints [m xs]
       (long-array xs))
 	  (index-coerce [m a]
-      (mp/index-to-longs m)))
+      (mp/index-to-longs a)))
+
+(extend-protocol mp/PIndexImplementation
+  (Class/forName "[I")
+	  (index? [m]
+      true) 
+	  (index-to-longs [m]
+      (long-array m))
+	  (index-to-ints [m]
+      m)
+	  (index-from-longs [m xs]
+      (int-array xs))
+	  (index-from-ints [m xs]
+      xs)
+	  (index-coerce [m a]
+      (mp/index-to-ints a)))
 
 (extend-protocol mp/PIndexImplementation
   clojure.lang.IPersistentVector
 	  (index? [m]
-      true) 
+      (every? integer? m)) 
 	  (index-to-longs [m]
       (long-array m))
 	  (index-to-ints [m]
@@ -30,7 +45,11 @@
 	  (index-from-ints [m xs]
       (vec xs))
 	  (index-coerce [m a]
-      (if (== 1 (mp/dimensionality a))
-        (vec (mp/index-to-longs a))
-        (error "Can't make a 1D index from array of shape " (mp/get-shape a)))))
+      (cond 
+        (mp/index? a)
+          (mp/persistent-vector-coerce a)
+        (== 1 (mp/dimensionality a)) 
+          (vec (mp/index-to-longs a))
+        :else 
+          (error "Can't make a 1D index from array of shape " (mp/get-shape a)))))
 

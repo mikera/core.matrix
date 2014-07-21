@@ -81,6 +81,28 @@
       (mp/construct-matrix (implementation-check implementation) data)
       (mp/coerce-param [] data))))
 
+(defn index
+  "Constructs a new index from given data.
+
+   The data may be in one of the following forms:
+   - A valid existing index
+   - A 1D array of integer values
+   - A sequence of integer values
+
+   If implementation is not specified, uses the current matrix library as specified
+   in *matrix-implementation*
+
+   If the implementation does not support its own native index types, will return a
+   valid index from a default implementation."
+  ([data]
+    (or
+      (mp/index-coerce (implementation-check) data)
+      (mp/index-coerce [] data)))
+  ([implementation data]
+    (or
+      (mp/index-coerce (implementation-check implementation) data)
+      (mp/index-coerce [] data))))
+
 (defn zero-vector
   "Constructs a new zero-filled numerical vector with the given length. 
 
@@ -550,7 +572,7 @@
   "Returns true if the parameter is a valid array index type. An index is a seq-able 1D list
    of integer values that can be used to index into arrays."
   ([m]
-    (TODO)))
+    (mp/index? m)))
 
 (defn conforming?
   "Returns true if two arrays have a conforming shape. Two arrays are conforming if there
