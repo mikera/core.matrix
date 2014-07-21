@@ -527,25 +527,28 @@
       nil)))
 
 (defn zero-count
-  "Counts the number of zeros in an array."
+  "Returns the number of zeros in an array."
   ([m]
     (mp/zero-count m)))
 
 (defn density
-  "Returns the density of the matrix, defined as the proportion on non-zero elements"
+  "Returns the density of the matrix, defined as the proportion of non-zero elements"
   ([m]
     (let [zeros (double (mp/zero-count m))
           elems (double (mp/element-count m))]
       (double (/ (- elems zeros) elems)))))
 
 (defn mutable?
-  "Returns true if the matrix is mutable, i.e. supports setting of values."
+  "Returns true if the matrix is mutable, i.e. supports setting of values. 
+
+   It is possible for some matrix implementations to have constraints on mutability (e.g. mutable only in diagonal elements),
+   this method will still return true for such cases."
   ([m]
     (mp/is-mutable? m)))
 
 (defn index?
-  "Returns true if the parameter is a valid array index type. An index should be a seq-able list
-   of integer values."
+  "Returns true if the parameter is a valid array index type. An index is a seq-able 1D list
+   of integer values that can be used to index into arrays."
   ([m]
     (TODO)))
 
