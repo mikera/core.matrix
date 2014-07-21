@@ -754,6 +754,7 @@
 
 ;; ===========================================================
 ;; Protocols for higher-level array indexing
+
 (defprotocol PSelect
   "Protocol for the sel function"
   (select [a args] "selects all elements at indices which are in the cartesian product of args"))
@@ -776,6 +777,18 @@
    (non-zero-indices [m] "Gets the non-zero indices of an array.
                          - For a 1D vector, returns an ordered index list.
                          - For a higher dimensional array, returns the non-zero-indices for each slice in row-major order."))
+
+(defprotocol PIndexImplementation
+  "Protocol for determining if an object is a valid index. Implementations may implement this protocol to support their own index types."
+  (index? [m] "Returns true if the argument is a valid index, false otherwise")
+  (index-to-longs [m])
+  (index-to-ints [m])
+  (index-from-longs [m xs])
+  (index-from-ints [m xs])
+  (index-coerce [m a]))
+
+;; ==========================================================
+;; LINEAR ALGEBRA PROTOCOLS
 
 (defprotocol PNorm
   "Protocol for matrix and vector norms"

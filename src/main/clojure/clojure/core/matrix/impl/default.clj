@@ -1653,6 +1653,21 @@
          (recur (mp/set-nd a idl (mp/get-nd vals idr)) idxl idxr)
          a))))))
 
+(extend-protocol mp/PIndexImplementation
+  Object
+	  (index? [m]
+      false) ;; we default to saying something isn't an index, unless it is explicitly supported
+	  (index-to-longs [m]
+      (long-array (mp/element-seq m)))
+	  (index-to-ints [m]
+      (int-array (mp/element-seq m)))
+	  (index-from-longs [m xs]
+      (long-array xs))
+	  (index-from-ints [m xs]
+      (int-array xs))
+	  (index-coerce [m a]
+      (mp/index-to-longs m)))
+
 ;; =======================================================
 ;; default linear algebra implementations
 
