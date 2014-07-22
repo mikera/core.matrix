@@ -1675,10 +1675,6 @@
   Object
   (norm [m p] (TODO)))
 
-(extend-protocol mp/PMatrixRank
-  Object
-  (rank [m] (TODO)))
-
 ;; QR decomposition utility functions
 
 (defn compute-q [m ^doubles qr-data mcols mrows min-len
