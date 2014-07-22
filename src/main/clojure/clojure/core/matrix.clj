@@ -1,6 +1,6 @@
 (ns clojure.core.matrix
   (:use [clojure.core.matrix.utils])
-  (:require [clojure.core.matrix.impl default double-array object-array persistent-vector wrappers])
+  (:require [clojure.core.matrix.impl default double-array object-array persistent-vector wrappers index])
   (:require [clojure.core.matrix.impl sequence]) ;; TODO: figure out if we want this?
   (:require [clojure.core.matrix.multimethods :as mm])
   (:require [clojure.core.matrix.protocols :as mp])
@@ -80,6 +80,28 @@
     (or
       (mp/construct-matrix (implementation-check implementation) data)
       (mp/coerce-param [] data))))
+
+(defn index
+  "Constructs a new index from given data.
+
+   The data may be in one of the following forms:
+   - A valid existing index
+   - A 1D array of integer values
+   - A sequence of integer values
+
+   If implementation is not specified, uses the current matrix library as specified
+   in *matrix-implementation*
+
+   If the implementation does not support its own native index types, will return a
+   valid index from a default implementation."
+  ([data]
+    (or
+      (mp/index-coerce (implementation-check) data)
+      (mp/index-coerce [] data)))
+  ([implementation data]
+    (or
+      (mp/index-coerce (implementation-check implementation) data)
+      (mp/index-coerce [] data))))
 
 (defn zero-vector
   "Constructs a new zero-filled numerical vector with the given length. 
@@ -527,27 +549,30 @@
       nil)))
 
 (defn zero-count
-  "Counts the number of zeros in an array."
+  "Returns the number of zeros in an array."
   ([m]
     (mp/zero-count m)))
 
 (defn density
-  "Returns the density of the matrix, defined as the proportion on non-zero elements"
+  "Returns the density of the matrix, defined as the proportion of non-zero elements"
   ([m]
     (let [zeros (double (mp/zero-count m))
           elems (double (mp/element-count m))]
       (double (/ (- elems zeros) elems)))))
 
 (defn mutable?
-  "Returns true if the matrix is mutable, i.e. supports setting of values."
+  "Returns true if the matrix is mutable, i.e. supports setting of values. 
+
+   It is possible for some matrix implementations to have constraints on mutability (e.g. mutable only in diagonal elements),
+   this method will still return true for such cases."
   ([m]
     (mp/is-mutable? m)))
 
 (defn index?
-  "Returns true if the parameter is a valid array index type. An index should be a seq-able list
-   of integer values."
+  "Returns true if the parameter is a valid array index type. An index is a seq-able 1D list
+   of integer values that can be used to index into arrays."
   ([m]
-    (TODO)))
+    (mp/index? m)))
 
 (defn conforming?
   "Returns true if two arrays have a conforming shape. Two arrays are conforming if there
@@ -848,24 +873,24 @@
       (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
 
 (defn rows
-  "Gets the rows of an array, as a sequence of vectors.
+  "Gets the rows of a matrix, as a sequence of 1D vectors.
 
    If the array has more than 2 dimensions, will return the rows from all slices in order."
   ([m]
     (case (long (mp/dimensionality m))
         0 (error "Can't get rows of a 0-dimensional object")
-        1 (error "Can't get rows of a 1-dimensional object") ;; TODO: consider scalar or length 1 vector results?
+        1 (error "Can't get rows of a 1-dimensional object") 
         2 (slices m)
         (mapcat rows (slices m)))))
 
 (defn columns
-  "Gets the columns of an array, as a sequence of vectors.
+  "Gets the columns of a matrix, as a sequence of 1D vectors.
 
    If the array has more than 2 dimensions, will return the columns from all slices in order."
   ([m]
     (case (long (mp/dimensionality m))
         0 (error "Can't get columns of a 0-dimensional object")
-        1 (error "Can't get columns of a 1-dimensional object") ;; TODO: consider scalar or length 1 vector results?
+        1 (error "Can't get columns of a 1-dimensional object") 
         2 (slices m 1)
         (mapcat columns (slices m)))))
 
