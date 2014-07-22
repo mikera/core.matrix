@@ -1673,8 +1673,7 @@
 
 (extend-protocol mp/PNorm
   Object
-  (vector-norm [m p] (TODO))
-  (matrix-norm [m p] (TODO)))
+  (norm [m p] (TODO)))
 
 (extend-protocol mp/PMatrixRank
   Object
