@@ -1673,8 +1673,11 @@
 
 (extend-protocol mp/PNorm
   Object
-  (vector-norm [m p] (TODO))
-  (matrix-norm [m p] (TODO)))
+  (norm [m p]
+    (cond
+      (= p java.lang.Double/POSITIVE_INFINITY) (mp/element-max m)
+      (number? p) (mp/element-sum (mp/element-pow (mp/element-map m mops/abs) p))
+      :else (error "p must be a number"))))
 
 ;; QR decomposition utility functions
 
