@@ -3,6 +3,7 @@
   (:use clojure.core.matrix.utils)
   (:use clojure.core.matrix.select)
   (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.linear :as li])
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require clojure.core.matrix.examples)
@@ -599,3 +600,15 @@
   (is (op/== (matrix [2 0.5])
              (op/div= (mutable (matrix [4 2]))
                     (matrix [2 4])))))
+
+(deftest test-norm
+  (is (= 30.0 (li/norm (matrix [[1 2][3 4]]))))
+  (is (= 30.0 (li/norm (matrix [[1 2][3 4]]) 2)))
+  (is (= 10.0 (li/norm (matrix [[1 2][3 4]]) 1)))
+  (is (= 100.0 (li/norm (matrix [[1 2][3 4]]) 3)))
+  (is (= 4 (li/norm (matrix [[1 2][3 4]]) java.lang.Double/POSITIVE_INFINITY)))
+  (is (= 30.0 (li/norm (vector 1 2 3 4))))
+  (is (= 30.0 (li/norm (vector 1 2 3 4) 2)))
+  (is (= 10.0 (li/norm (vector 1 2 3 4) 1)))
+  (is (= 100.0 (li/norm (vector 1 2 3 4) 3)))
+  (is (= 4 (li/norm (vector 1 2 3 4) java.lang.Double/POSITIVE_INFINITY))))
