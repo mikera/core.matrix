@@ -1,20 +1,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>core.matrix</artifactId>
-	<version>0.26.0</version>
+	<groupId>net.mikera</groupId>
+	<version>0.27.0</version>
 	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>net.mikera</groupId>
 		<artifactId>clojure-pom</artifactId>
-		<version>0.0.4</version>
+		<version>0.1.1</version>
 	</parent>
 
 	<dependencies>
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>cljunit</artifactId>
-			<version>0.3.0</version>
+			<version>0.3.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -49,13 +50,13 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>vectorz-clj</artifactId>
-			<version>0.22.0</version>
+			<version>0.23.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>test.check</artifactId>
-			<version>0.5.7</version>
+			<version>0.5.8</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -170,9 +171,9 @@
 	</distributionManagement>
 
 	<scm>
-		<connection>scm:git:git@github.com:clojure-numerics/core.matrix.git</connection>
-		<url>scm:git:git@github.com:clojure-numerics/core.matrix.git</url>
-		<developerConnection>scm:git:git@github.com:clojure-numerics/core.matrix.git</developerConnection>
-		<tag>core.matrix-0.26.0</tag>
+		<connection>scm:git:git@github.com:mikera/core.matrix.git</connection>
+		<url>scm:git:git@github.com:mikera/core.matrix.git</url>
+		<developerConnection>scm:git:git@github.com:mikera/core.matrix.git</developerConnection>
+		<tag>core.matrix-0.27.0</tag>
 	</scm>
 </project>

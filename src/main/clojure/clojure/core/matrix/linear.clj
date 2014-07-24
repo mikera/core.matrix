@@ -5,27 +5,21 @@
 
 
 (defn norm
-  "Computes norm of matrix or vector X. p argument specifies p norm.
-   By default calculates 2 norm for vector and Frobenius norm for matrix.
+  "Computes the norm of a matrix or vector. 
+
+   By default calculates 2-norm for vectors and Frobenius 2-norm for matrices. The optinal p argument specifies use of the p-norm instead.
 
    Special cases of p argument:
    Double/POSITIVE_INFINITY - Infinity norm
-   :frobenius - Frobenius norm
 
    Intended usage: (let [n (norm v 1)] ....)
                    (let [n (norm v Double/POSITIVE_INFINITY)] ....)
                    (let [n (norm v)] ....)"
-  ([m]
-     (cond
-      (vec? m) (norm m 2)
-      (matrix? m) (norm m :frobenius)))
-  ([m p]
-     (cond
-      (vec? m)(mp/vector-norm m p)
-      (matrix? m) (mp/matrix-norm m p))))
+  ([m] (norm m 2))
+  ([m p] (mp/norm m p)))
 
 (defn rank
-  "Computes the rank of a matrix, i.e. the number of linearly independent rows
+  "Computes the rank of a matrix, i.e. the number of linearly independent rows.
 
    Intended usage: (let [r (rank m)] ....)"
   ([m] (mp/rank m)))

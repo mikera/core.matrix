@@ -489,10 +489,9 @@
   Object
     (trace [m]
       (when-not (== 2 (mp/dimensionality m)) (error "Trace requires a 2D matrix"))
-      (let [rc (mp/dimension-count m 0)
-            cc (mp/dimension-count m 1)
-            dims (long rc)]
-        (when-not (== rc cc) (error "Can't compute trace of non-square matrix"))
+      (let [rc (long (mp/dimension-count m 0))
+            cc (long (mp/dimension-count m 1))
+            dims (Math/min rc cc)]
         (loop [i 0 res 0.0]
           (if (>= i dims)
             res
@@ -1653,13 +1652,31 @@
          (recur (mp/set-nd a idl (mp/get-nd vals idr)) idxl idxr)
          a))))))
 
+(extend-protocol mp/PIndexImplementation
+  Object
+	  (index? [m]
+      false) ;; we default to saying something isn't an index, unless it is explicitly supported
+	  (index-to-longs [m]
+      (long-array (mp/element-seq m)))
+	  (index-to-ints [m]
+      (int-array (mp/element-seq m)))
+	  (index-from-longs [m xs]
+      (long-array xs))
+	  (index-from-ints [m xs]
+      (int-array xs))
+	  (index-coerce [m a]
+      (mp/index-to-longs m)))
+
 ;; =======================================================
 ;; default linear algebra implementations
 
 (extend-protocol mp/PNorm
   Object
-  (vector-norm [m p] (TODO))
-  (matrix-norm [m p] (TODO)))
+  (norm [m p]
+    (cond
+      (= p java.lang.Double/POSITIVE_INFINITY) (mp/element-max m)
+      (number? p) (mp/element-sum (mp/element-pow (mp/element-map m mops/abs) p))
+      :else (error "p must be a number"))))
 
 ;; QR decomposition utility functions
 
@@ -1705,15 +1722,21 @@
 
 
 
-(defn compute-r [m ^doubles data mcols mrows min-len]
-  (mp/compute-matrix
-   m [mrows mcols]
-   (fn [i j]
-     (if (and (< i min-len)
-              (>= j i)
-              (< j mcols))
-       (aget data (+ (* i mcols) j))
-       0))))
+(defn compute-r [m ^doubles data mcols mrows min-len compact?]
+  (let [cm (mp/compute-matrix
+              m [mrows mcols]
+              (fn [i j]
+                (if (and (< i min-len)
+                         (>= j i)
+                         (< j mcols))
+                  (aget data (+ (* i mcols) j))
+                  0)))]
+    (if compact?
+      (->> (mp/get-major-slice-seq cm)
+           (reduce
+            #(if (every? zero? %2) (inc %1) %1) 0)
+           (#(mp/reshape cm [mcols (- mrows %)])))
+      cm)))
 
 (defn householder-qr [^doubles qr-data idx mcols
                       mrows ^doubles us ^doubles gammas]
@@ -1819,34 +1842,52 @@
            (select-keys
             {:Q #(compute-q m qr-data mcols mrows
                             min-len us vs gammas)
-             :R #(compute-r m qr-data mcols mrows min-len)}
+             :R #(compute-r m qr-data mcols mrows min-len (:compact options))}
             (:return options))
            (map (fn [[k v]] [k (v)]))
            (into {})))))))
 
+;; temp var to prevent recursive coercion if implementation does not support liear algebra operation
+(def ^:dynamic *trying-current-implementation* nil)
+
+(defmacro try-current-implementation 
+  [sym form]
+  `(if *trying-current-implementation*
+     (TODO (str "Not yet implemented: " ~(str form) " for " (class ~sym)))
+     (binding [*trying-current-implementation* true]
+       (let [imp# (imp/get-canonical-object)
+             ~sym (mp/coerce-param imp# ~sym)]
+         ~form))))
+
 (extend-protocol mp/PCholeskyDecomposition
   Object
-  (cholesky [m options] (TODO)))
+  (cholesky [m options] 
+    (try-current-implementation m (mp/cholesky m options))))
 
 (extend-protocol mp/PLUDecomposition
   Object
-  (lu [m options] (TODO)))
+  (lu [m options] 
+    (try-current-implementation m (mp/lu m options))))
 
 (extend-protocol mp/PSVDDecomposition
   Object
-  (svd [m options] (TODO)))
+  (svd [m options] 
+    (try-current-implementation m (mp/svd m options))))
 
 (extend-protocol mp/PEigenDecomposition
   Object
-  (eigen [m options] (TODO)))
+  (eigen [m options] 
+    (try-current-implementation m (mp/eigen m options))))
 
 (extend-protocol mp/PSolveLinear
   Object
-  (solve [a b] (TODO)))
+  (solve [a b] 
+    (try-current-implementation a (mp/solve a b))))
 
 (extend-protocol mp/PLeastSquares
   Object
-  (least-squares [a b] (TODO)))
+  (least-squares [a b] 
+    (try-current-implementation a (mp/least-squares a b))))
 
 ;; =======================================================
 ;; default multimethod implementations
