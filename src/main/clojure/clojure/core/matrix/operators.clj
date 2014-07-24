@@ -6,10 +6,10 @@
 (set! *unchecked-math* true)
 
 ;; =====================================================================
-;; Mathematical operators defined for matrices and vectors as applicable
+;; Mathematical operators defined for numerical arrays as applicable
 
 (defn *
-  "Matrix multiply operator. Uses elementwise multiplication."
+  "Array multiply operator. Uses elementwise multiplication."
   ([a] a)
   ([a b]
     (m/mul a b))
@@ -17,13 +17,13 @@
     (reduce m/mul (m/mul a b) more)))
 
 (defn **
-  "Matrix exponent operator. Raises every element in matrix a to the given exponent.
-   Uses clojure.core.matrix/pow."
+  "array exponent operator. Raises every element in matrix a to the given exponent.
+   Equivalent to clojure.core.matrix/pow."
   ([a exponent]
     (m/pow a exponent)))
 
 (defn +
-  "Matrix addition operator"
+  "Array addition operator. Equivalent to clojure.core.matrix/add."
   ([a] a)
   ([a b]
     (if (and (number? a) (number? b))
@@ -33,7 +33,7 @@
     (reduce + (+ a b) more)))
 
 (defn -
-  "Matrix subtraction operator"
+  "Array subtraction operator. Equivalent to clojure.core.matrix/sub."
   ([a] (m/negate a))
   ([a b]
     (if (and (number? a) (number? b))
@@ -43,18 +43,19 @@
     (reduce - (- a b) more)))
 
 (defn /
-  "Element-wise matrix division."
+  "Element-wise matrix division. Equivalent to clojure.core.matrix/div."
   ([a] (m/div a)) ;; this computes the reciprocal
   ([a b] (m/div a b))
   ([a b & more] (reduce m/div (m/div a b) more)))
 
 (defn ==
-  "Matrix numerical comparison. Performs == on an element-wise basis"
+  "Numerical array comparison. Equivalent to reducing with clojure.core.matrix/equals."
   ([] true)
   ([a] true)
   ([a b] (m/equals a b))
   ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more)))
 
+;; ===================================================
 ;; inplace operators
 (defn +=
   "Inplace matrix addition operator"
