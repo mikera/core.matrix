@@ -489,10 +489,9 @@
   Object
     (trace [m]
       (when-not (== 2 (mp/dimensionality m)) (error "Trace requires a 2D matrix"))
-      (let [rc (mp/dimension-count m 0)
-            cc (mp/dimension-count m 1)
-            dims (long rc)]
-        (when-not (== rc cc) (error "Can't compute trace of non-square matrix"))
+      (let [rc (long (mp/dimension-count m 0))
+            cc (long (mp/dimension-count m 1))
+            dims (Math/min rc cc)]
         (loop [i 0 res 0.0]
           (if (>= i dims)
             res
