@@ -6,11 +6,12 @@
 	<version>0.27.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<url>https://github.com/mikera/${project.artifactId}</url>
+	<url>https://github.com/mikera/core.matrix</url>
+	
 	<parent>
 		<groupId>net.mikera</groupId>
 		<artifactId>clojure-pom</artifactId>
-		<version>0.1.1</version>
+		<version>0.1.5</version>
 	</parent>
 
 	<dependencies>
