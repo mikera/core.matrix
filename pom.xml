@@ -6,6 +6,7 @@
 	<version>0.27.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
+	<url>https://github.com/mikera/${project.artifactId}</url>
 	<parent>
 		<groupId>net.mikera</groupId>
 		<artifactId>clojure-pom</artifactId>
