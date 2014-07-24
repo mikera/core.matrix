@@ -1184,20 +1184,23 @@
     m))
 
 (defn add-scaled-product
-  "Adds the product of two numerical arrays scaled by a given factor to the first array"
+  "Adds the product of two numerical arrays scaled by a given factor to the first array. 
+
+   This is equivalent to (add m (mul a b factor)) but may be optimised by the underlying implementation."
   ([m a b factor]
     (mp/add-scaled-product m a b factor)))
 
 (defn add-scaled-product!
   "Adds the product of two numerical arrays scaled by a given factor to the first array.
-   Returns the mutated array."
+   Returns the mutated array.
+   This is equivalent to (add! m (mul a b factor)) but may be optimised by the underlying implementation."
   ([m a b factor]
     (mp/add-scaled-product! m a b factor)
     m))
 
 (defn sub
   "Performs element-wise subtraction on one or more numerical arrays.
-   Returns the first array after it has been mutated."
+   Returns a new array."
   ([a] (mp/negate a))
   ([a b]
     (mp/matrix-sub a b))
@@ -1217,7 +1220,7 @@
     a))
 
 (defn sub!
-  "Performs element-wise mutable subtraction on one or more numerical arrays.
+  "Performs element-wise mutable subtraction on one or more numerical arrays.  
    Returns the first array, after it has been mutated."
   ([a] a)
   ([a b]
@@ -1266,7 +1269,6 @@
 
 (defn dot
   "Computes the dot product (1Dx1D inner product) of two numerical vectors.
-
    If either argument is not a vector, computes a higher dimensional inner product."
   ([a b]
     (or
@@ -1288,7 +1290,10 @@
     (reduce mp/inner-product (mp/inner-product a b) more)))
 
 (defn outer-product
-  "Computes the outer product of numerical arrays."
+  "Computes the outer product of numerical arrays.
+
+   The outer product of two arrays with indexed dimensions {i..j} and {j..k} has dimensions {i..j j..k}, i.e. the dimensioanlity will be the
+   sum of the dimensionalities of the two arguments."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -1297,7 +1302,9 @@
     (reduce outer-product (outer-product a b) more)))
 
 (defn cross
-  "Computes the cross-product of two numerical 3D vectors"
+  "Computes the 3D cross-product of two numerical vectors. 
+
+   Behavior on other types is undefined."
   ([a b]
     (mp/cross-product a b)))
 
@@ -1309,14 +1316,13 @@
     a))
 
 (defn distance
-  "Calculates the euclidean distance between two numerical vectors."
+  "Calculates the euclidean distance between two numerical vectors.
+   This is equivalent to (norm 2 (sub a b)) but may be optimised by the underlying implementation."
   ([a b]
     (mp/distance a b)))
 
 (defn det
-  "Calculates the determinant of a 2D numerical matrix.
-
-   Throws an exception if the matrix is not square."
+  "Calculates the determinant of a 2D square numerical matrix."
   ([a]
     (mp/determinant a)))
 
@@ -1327,12 +1333,14 @@
     (mp/inverse m)))
 
 (defn negate
-  "Calculates the negation of a numerical array. Should normally be equivalent to scaling by -1.0"
+  "Calculates the negation of a numerical array. 
+   Generally equivalent to (scale m -1.0)"
   ([m]
     (mp/negate m)))
 
 (defn negate!
-  "Calculates the negation of a numerical array in place. Equivalent to scaling by -1.0"
+  "Calculates the negation of a numerical array in place. Equivalent to scaling by -1.0
+   Generally equivalent to (scale! m -1.0)"
   ([m]
     (mp/scale! m -1.0)))
 
