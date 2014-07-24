@@ -1422,7 +1422,7 @@
   (mp/set-row m i row))
 
 (defn set-row!
-  "Sets a row in a matrix using a specified vector."
+  "Sets a row in a matrix in-place using a specified vector."
   [m i row]
   (mp/set-row! m i row))
 
