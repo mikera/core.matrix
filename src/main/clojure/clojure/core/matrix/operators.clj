@@ -16,8 +16,7 @@
   ([a b & more]
     (reduce m/mul (m/mul a b) more)))
 
-;; TODO: remove the ^:dynamic once figured out way to stop "not declared dynamic" warning
-(defn ^:dynamic **
+(defn **
   "Matrix exponent operator. Raises every element in matrix a to the given exponent.
    Uses clojure.core.matrix/pow."
   ([a exponent]
