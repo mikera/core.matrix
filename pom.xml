@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>net.mikera</groupId>
 		<artifactId>clojure-pom</artifactId>
-		<version>0.0.4</version>
+		<version>0.1.1</version>
 	</parent>
 
 	<dependencies>
