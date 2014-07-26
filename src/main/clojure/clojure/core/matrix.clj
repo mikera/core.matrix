@@ -926,9 +926,11 @@
 (defn join-along
   "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
   ([dimension & arrays]
-    (if (== 0 dimension)
-      (apply join arrays)
-      (TODO))))
+   (if (== 0 dimension)
+     (apply join arrays)
+     (mapv (fn [i]
+             (apply join (map #(mp/get-slice % (dec dimension) i) arrays)))
+           (range (dimension-count (first arrays) (dec dimension)))))))
 
 (defn rotate
   "Rotates an array along specified dimensions."
