@@ -930,11 +930,9 @@
            "Specifified dimension incompatible with first array's dimensionality")
    (if (== 0 dimension)
      (apply join arrays)
-     (let [partial-join (partial join-along (- dimension 1))]
-       (mapv (fn [i]
-               (apply partial-join
-                      (map #(mp/get-slice % (dec dimension) i) arrays)))
-             (range (dimension-count (first arrays) (dec dimension))))))))
+     (let [partial-join (partial join-along (dec dimension))]
+       (apply mapv partial-join
+             (map (fn [a] (mp/get-slice-seq a (dec dimension))) arrays))))))
 
 (defn rotate
   "Rotates an array along specified dimensions."
