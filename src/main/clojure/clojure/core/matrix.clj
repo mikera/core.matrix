@@ -271,7 +271,7 @@
    Diagonal matrices constructed this way may use specialised storage formats, hence may not be fully mutable.
    Use (mutable (diagonal-matrix ...)) if you need to guarantee a mutable matrix."
   ([diagonal-values]
-    (mp/diagonal-matrix (current-implementation-object) diagonal-values))
+    (mp/diagonal-matrix (implementation-check) diagonal-values))
   ([implementation diagonal-values]
     (mp/diagonal-matrix (imp/get-canonical-object implementation) diagonal-values)))
 
