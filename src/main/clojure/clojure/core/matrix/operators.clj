@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.operators
+  (:use clojure.core.matrix.utils) 
   (:refer-clojure :exclude [* - + / vector? ==])
   (:require [clojure.core.matrix :as m]))
 
@@ -54,6 +55,14 @@
   ([a] true)
   ([a b] (m/equals a b))
   ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more)))
+
+(defmacro Σ
+  "Computes the sum of all elements of an array. Equivalent to clojure.core.matrix/esum"
+  ([[sym vals & more :as bindings] exp]
+    (cond 
+      (odd? (count bindings)) (error "Summation requires an even number of forms in binding vector")
+      (seq more) `(Σ [~sym ~vals] (Σ [~@more] ~exp))
+      :else `(reduce m/add (map (fn [i#] (let [~sym i#] ~exp)) ~vals))))) 
 
 ;; ===================================================
 ;; inplace operators
