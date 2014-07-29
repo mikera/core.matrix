@@ -57,12 +57,20 @@
   ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more)))
 
 (defmacro Σ
-  "Computes the sum of all elements of an array. Equivalent to clojure.core.matrix/esum"
+  "Computes array summation over a range of values for one or more variables"
   ([[sym vals & more :as bindings] exp]
     (cond 
       (odd? (count bindings)) (error "Summation requires an even number of forms in binding vector")
       (seq more) `(Σ [~sym ~vals] (Σ [~@more] ~exp))
       :else `(reduce m/add (map (fn [i#] (let [~sym i#] ~exp)) ~vals))))) 
+
+(defmacro Π
+  "Computes array products over a range of values for one or more variables"
+  ([[sym vals & more :as bindings] exp]
+    (cond 
+      (odd? (count bindings)) (error "Summation requires an even number of forms in binding vector")
+      (seq more) `(Σ [~sym ~vals] (Σ [~@more] ~exp))
+      :else `(reduce m/mul (map (fn [i#] (let [~sym i#] ~exp)) ~vals))))) 
 
 ;; ===================================================
 ;; inplace operators
