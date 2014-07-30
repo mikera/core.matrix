@@ -926,9 +926,13 @@
 (defn join-along
   "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
   ([dimension & arrays]
-    (if (== 0 dimension)
-      (apply join arrays)
-      (TODO))))
+   (assert (or (== 0 dimension) (== 1 dimension))
+           "Only joining along the first or second dimension is supported")
+   (if (== 0 dimension)
+     (apply join arrays)
+     (let [partial-join (partial join-along (dec dimension))]
+       (apply mapv partial-join
+             (map (fn [a] (mp/get-slice-seq a (dec dimension))) arrays))))))
 
 (defn rotate
   "Rotates an array along specified dimensions."
