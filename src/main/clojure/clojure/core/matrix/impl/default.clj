@@ -1211,15 +1211,14 @@
     (error "Can't join an array to a scalar number!"))
   Object
   (join-along [m a dim]
-    (cond
-      (== dim 0)
-        (mp/join m a)
-      (== dim 1)
-        (mapv #(mp/join-along %1 %2 (dec dim))
-              (mp/get-slice-seq m (dec dim))
-              (mp/get-slice-seq a (dec dim)))
-      :else
-      (error "Only joining along the first or second dimension is supported"))))
+    (mp/coerce-param m
+      (cond
+         (== dim 0)
+           (mp/join m a)
+         :else
+           (mapv #(mp/join-along %1 %2 (dec dim))
+                 (mp/get-major-slice-seq m)
+                 (mp/get-major-slice-seq a))))))
 
 (extend-protocol mp/PSubVector
   nil
