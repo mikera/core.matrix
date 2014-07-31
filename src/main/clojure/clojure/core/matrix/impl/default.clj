@@ -1202,6 +1202,17 @@
           :else
             (error "Joining with array of incompatible size")))))
 
+(extend-protocol mp/PSliceJoinAlong
+  nil
+  (join-along [dim m a]
+    (error "Can't join an array to a nil value!"))
+  Number
+  (join-along [dim m a]
+    (error "Can't join an array to a scalar number!"))
+  Object
+  (join-along [dim m a]
+    (TODO)))
+
 (extend-protocol mp/PSubVector
   nil
     (subvector [m start length]
