@@ -926,8 +926,6 @@
 (defn join-along
   "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
   ([dimension & arrays]
-;   (assert (or (== 0 dimension) (== 1 dimension))
-;           "Only joining along the first or second dimension is supported")
    (reduce #(mp/join-along %1 %2 dimension) arrays)))
 
 (defn rotate
