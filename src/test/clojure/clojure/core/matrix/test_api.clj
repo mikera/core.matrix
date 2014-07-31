@@ -387,8 +387,8 @@
 (deftest test-join-along
   (is (= [1 2 3] (join-along 0 [1 2] [3])))
   (is (= [3 1 2] (join-along 0 [3] [1 2])))
-  (is (= [[3 2 1] [1 2 3]] (join-along 1 [[3 2] [1 2]] [[1] [3]])))
-  (is (= [[1 3 2] [3 1 2]] (join-along 1 [[1] [3]] [[3 2] [1 2]]))))
+  (is (= [[3 2 1 2] [1 2 3 4]] (join-along 1 [[3 2] [1 2]] [[1] [3]] [[2] [4]])))
+  (is (= [[1 3 2 2] [3 1 2 4]] (join-along 1 [[1] [3]] [[3 2] [1 2]] [[2] [4]]))))
 
 (deftest test-main-diagonal
   (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]])))
