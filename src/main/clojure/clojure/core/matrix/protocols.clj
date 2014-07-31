@@ -333,6 +333,10 @@
   "Protocol for concatenating / joining arrays."
   (join [m a] "Concatenates a to m, along the major slice dimension"))
 
+(defprotocol PSliceJoinAlong
+  "Protocol for concatenating / joining arrays."
+  (join-along [m a dim] "Concatenates a to m, along the slice dimension dim"))
+
 (defprotocol PSubVector
   "Protocol for getting a sub-vector view of a vector. Must return a mutable view
    if the original vector is mutable. Should throw an exception if the specified
