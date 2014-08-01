@@ -22,5 +22,5 @@
 ;; this tests that all protocols have a default implementation for java.lang.Object
 ;; (except for specified known exceptions
 (deftest test-default-implementations
-  (is (= #{'PIndexedSettingMutable 'PMatrixRank 'PGenericOperations} 
-         (set (map :name (filter #(not (extends? % java.lang.Object)) (extract-protocols))))))) 
+  (is (= #{'PIndexedSettingMutable 'PMatrixRank 'PGenericOperations 'PDatasetImplementation}
+         (set (map :name (filter #(not (extends? % java.lang.Object)) (extract-protocols)))))))
