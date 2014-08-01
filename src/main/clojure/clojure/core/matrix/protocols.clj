@@ -834,6 +834,21 @@
   "Protocol for computing least-square solution to a linear matrix equation"
   (least-squares [a b]))
 
+;; ============================================================
+;; Dataset protocols
+
+(defprotocol PDatasetImplementation
+  "Protocol for general dataset functionality"
+  (column-names [ds] "Returns a persistent vector containing column names in the same order as they are placed in the dataset")
+  (columns [ds] "Returns a persistent vector containing columns in the same order they are placed in the dataset")
+  (select-columns [ds cols] "Produces a new dataset with the columns in the specified order")
+  (add-column [ds col-name col] "Adds column to the dataset")
+  (to-map [ds] "Returns map of columns with associated list of values")
+  (merge-datasets [ds1 ds2] "Returns a dataset created by combining columns of the given datasets. In case of columns with duplicate names, last-one-wins strategy is applied")
+  (rename-columns [ds col-map] "Renames columns based on map of old new column name pairs")
+  (replace-column [ds col-name vs] "Replaces column in a dataset with new values")
+  (conj-rows [ds1 ds2] "Returns a dataset created by combining the rows of the given datasets"))
+
 
 ;; ============================================================
 ;; Utility functions
