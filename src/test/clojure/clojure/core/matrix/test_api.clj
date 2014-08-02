@@ -3,6 +3,7 @@
   (:use clojure.core.matrix.utils)
   (:use clojure.core.matrix.select)
   (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.linear :as li])
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.implementations :as imp])
   (:require clojure.core.matrix.examples)
@@ -383,6 +384,13 @@
   (is (= [1 2 3] (join [1 2] 3)))
   (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]]))))
 
+(deftest test-join-along
+  (is (= [1 2 3] (join-along 0 [1 2] [3])))
+  (is (= [3 1 2] (join-along 0 [3] [1 2])))
+  (is (= [[3 2 1 2] [1 2 3 4]] (join-along 1 [[3 2] [1 2]] [[1] [3]] [[2] [4]])))
+  (is (= [[1 3 2 2] [3 1 2 4]] (join-along 1 [[1] [3]] [[3 2] [1 2]] [[2] [4]])))
+  (is (= [[[1 2]]] (join-along 2 [[[1]]] [[[2]]]))))
+
 (deftest test-main-diagonal
   (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]])))
   (is (e== [1 4] (diagonal [[1 2] [3 4]]))))
@@ -500,6 +508,18 @@
   (is (= [[1 0.0] [0.0 2]] (block-diagonal-matrix [[[1]][[2]]])))
   (is (= [[1 0.0 0.0] [0.0 2 3] [0.0 4 5]] (block-diagonal-matrix [[[1]][[2 3][4 5]]]))))
 
+(deftest test-non-zero-indices
+  (is (= []                                    
+         (non-zero-indices [0])))
+  (is (= [0]                                   
+         (non-zero-indices [1])))
+  (is (= [0 3 4]                               
+         (non-zero-indices [1 0 0 2 5 0])))
+  (is (= [[[0]] [[]] [[0]] [[]]]               
+         (non-zero-indices [[[1.0]][[0]][[9.0]][[0]]])))
+  (is (= [[[1] [1]] [[0 1] [0]] [[0 1] [0 1]]] 
+         (non-zero-indices [[[0.0 2.0][0 4.0]][[5.0 6.0][7.0 0]][[9.0 10.0][11.0 12.0]]]))))
+
 (deftest check-examples
   (binding [*out* (java.io.StringWriter.)]
     (testing "example code"
@@ -587,3 +607,15 @@
   (is (op/== (matrix [2 0.5])
              (op/div= (mutable (matrix [4 2]))
                     (matrix [2 4])))))
+
+(deftest test-norm
+  (is (= 30.0 (li/norm (matrix [[1 2][3 4]]))))
+  (is (= 30.0 (li/norm (matrix [[1 2][3 4]]) 2)))
+  (is (= 10.0 (li/norm (matrix [[1 2][3 4]]) 1)))
+  (is (= 100.0 (li/norm (matrix [[1 2][3 4]]) 3)))
+  (is (= 4 (li/norm (matrix [[1 2][3 4]]) java.lang.Double/POSITIVE_INFINITY)))
+  (is (= 30.0 (li/norm (vector 1 2 3 4))))
+  (is (= 30.0 (li/norm (vector 1 2 3 4) 2)))
+  (is (= 10.0 (li/norm (vector 1 2 3 4) 1)))
+  (is (= 100.0 (li/norm (vector 1 2 3 4) 3)))
+  (is (= 4 (li/norm (vector 1 2 3 4) java.lang.Double/POSITIVE_INFINITY))))

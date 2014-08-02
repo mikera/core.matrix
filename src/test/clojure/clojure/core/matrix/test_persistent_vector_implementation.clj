@@ -150,6 +150,9 @@
     (is (vec? a))
     (is (= [1 2] (slices a)))))
 
+(deftest test-trace
+  (is (equals 6 (trace [[1 2 3] [4 5 6]]))))
+
 (deftest test-scalar-interop
   (is (equals [2 4] (mul [1 2] (scalar-array 2)))))
 

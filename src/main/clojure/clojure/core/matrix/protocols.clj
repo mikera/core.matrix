@@ -33,7 +33,7 @@
      is provided.")
   (construct-matrix [m data]
     "Returns a new n-dimensional array containing the given data. data should be in the form of either
-     nested sequences or a valid existing array. 
+     nested sequences or a valid existing array.
 
      The return value should be in the preferred format of the given implementation. If the implementation
      does not support the required dimensionality or element type then it may either:
@@ -332,6 +332,10 @@
 (defprotocol PSliceJoin
   "Protocol for concatenating / joining arrays."
   (join [m a] "Concatenates a to m, along the major slice dimension"))
+
+(defprotocol PSliceJoinAlong
+  "Protocol for concatenating / joining arrays."
+  (join-along [m a dim] "Concatenates a to m, along the slice dimension dim"))
 
 (defprotocol PSubVector
   "Protocol for getting a sub-vector view of a vector. Must return a mutable view
@@ -754,6 +758,7 @@
 
 ;; ===========================================================
 ;; Protocols for higher-level array indexing
+
 (defprotocol PSelect
   "Protocol for the sel function"
   (select [a args] "selects all elements at indices which are in the cartesian product of args"))
@@ -771,9 +776,55 @@
   (set-indices [a indices values] "sets the elements from a at indices to values")
   (set-indices! [a indices values] "destructively sets the elements from a at indices to values"))
 
+(defprotocol PNonZeroIndices
+  "Protocol for getting non-zero indices of an array"
+   (non-zero-indices [m] "Gets the non-zero indices of an array.
+                         - For a 1D vector, returns an ordered index list.
+                         - For a higher dimensional array, returns the non-zero-indices for each slice in row-major order."))
+
+(defprotocol PIndexImplementation
+  "Protocol for determining if an object is a valid index. Implementations may implement this protocol to support their own index types."
+  (index? [m] "Returns true if the argument is a valid index, false otherwise")
+  (index-to-longs [m])
+  (index-to-ints [m])
+  (index-from-longs [m xs])
+  (index-from-ints [m xs])
+  (index-coerce [m a]))
+
+;; ==========================================================
+;; LINEAR ALGEBRA PROTOCOLS
+
+(defprotocol PNorm
+  "Protocol for matrix and vector norms"
+  (norm [m p]))
 
 (defprotocol PQRDecomposition
+  "Protocol for QR decomposition"
   (qr [m options]))
+
+(defprotocol PCholeskyDecomposition
+  "Procotol for Cholesky decomposition"
+  (cholesky [m options]))
+
+(defprotocol PLUDecomposition
+  "Protocol for LU decomposition"
+  (lu [m options]))
+
+(defprotocol PSVDDecomposition
+  "Protocol for SVD decomposition"
+  (svd [m options]))
+
+(defprotocol PEigenDecomposition
+  "Procotol for Eigenvalue decomposition"
+  (eigen [m options]))
+
+(defprotocol PSolveLinear
+  "Protocol for solving linear matrix equation or system of linear scalar equations"
+  (solve [a b]))
+
+(defprotocol PLeastSquares
+  "Protocol for computing least-square solution to a linear matrix equation"
+  (least-squares [a b]))
 
 
 ;; ============================================================

@@ -458,7 +458,14 @@
           m (sub i (emul 2.0 (outer-product v v)))]
       (is (equals m (transpose m) 1.0E-12))
       (is (equals m (inverse m) 1.0E-12))
-      (is (equals (mmul m m) i 1.0E-12)))))
+      (is (equals (mmul m m) i 1.0E-12))))
+  (let [m1 (matrix m [[1 2 3 4]])
+        m2 (matrix m [[1 2 3] [4 5 6] [7 8 9] [10 11 12]])
+        m3 (matrix m [[2 3]
+                      [5 6]
+                      [7 8]])]
+    (is (equals (shape (mmul m1 m2)) [1 3]))
+    (is (equals (shape (mmul m2 m3)) [4 2]))))
 
 (defn test-numeric-matrix-predicates [m]
   (when (== 2 (dimensionality m))
@@ -613,8 +620,12 @@
     (is (equals [1 4 9] (mmul I [1 2 3])))
     (is (equals I-squared (mmul I I)))
     (is (equals I (transpose I))))
-  (let [m (matrix im [[1 2 3] [4 5 6] [7 8 9]])]
-    (is (equals [1 5 9] (main-diagonal m)))))
+  (let [m1 (matrix im [[1 2 3] [4 5 6] [7 8 9]])
+        m2 (matrix im [[1 2 3] [4 5 6] [7 8 9] [10 11 12]])
+        m3 (matrix im [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
+    (is (equals [1 5 9] (main-diagonal m1)))
+    (is (equals [1 5 9] (main-diagonal m2)))
+    (is (equals [1 6 11] (main-diagonal m3)))))
 
 (defn test-row-column-matrices [im]
   (let [rm (row-matrix im [1 2 3])]
@@ -744,7 +755,15 @@
       0 0 1]]]
    [[1 7 3]
     [7 4 -5]
-    [3 -5 6]]))
+    [3 -5 6]])
+
+  (let [m (matrix im [[1 2] [3 4] [5 6] [7 8]])]
+    (let [{:keys [R]} (qr m {:return [:R]
+                             :compact true})]
+      (is (= (row-count R) 2)))
+    (let [{:keys [Q R]} (qr m {:compact true})]
+      (is (equals (shape Q) [4 4]))
+      (is (equals (shape R) [2 2])))))
 
 ;; ======================================
 ;; Main compliance test method
@@ -759,7 +778,7 @@
   [m]
   (let [im (or (imp/get-canonical-object m) (error "Implementation not registered: " (class m)))
         ik (imp/get-implementation-key im)]
-    (binding [*matrix-implementation* ik]
+    (binding [imp/*matrix-implementation* ik]
       (instance-test im)
       (test-implementation im)
       (test-assumptions-for-all-sizes im)

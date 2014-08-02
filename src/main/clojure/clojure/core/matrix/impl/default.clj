@@ -489,10 +489,9 @@
   Object
     (trace [m]
       (when-not (== 2 (mp/dimensionality m)) (error "Trace requires a 2D matrix"))
-      (let [rc (mp/dimension-count m 0)
-            cc (mp/dimension-count m 1)
-            dims (long rc)]
-        (when-not (== rc cc) (error "Can't compute trace of non-square matrix"))
+      (let [rc (long (mp/dimension-count m 0))
+            cc (long (mp/dimension-count m 1))
+            dims (Math/min rc cc)]
         (loop [i 0 res 0.0]
           (if (>= i dims)
             res
@@ -636,7 +635,7 @@
          (and (== mdims 1) (== adims 2))
            (let [[arows acols] (mp/get-shape a)]
              (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
-                         [arows]))
+                         [acols]))
          (and (== mdims 2) (== adims 1))
            (let [[mrows mcols] (mp/get-shape m)]
              (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
@@ -1203,6 +1202,24 @@
           :else
             (error "Joining with array of incompatible size")))))
 
+(extend-protocol mp/PSliceJoinAlong
+  nil
+  (join-along [m a dim]
+    (error "Can't join an array to a nil value!"))
+  Number
+  (join-along [m a dim]
+    (error "Can't join an array to a scalar number!"))
+  Object
+  (join-along [m a dim]
+    (mp/coerce-param m
+      (cond
+         (== dim 0)
+           (mp/join m a)
+         :else
+           (mapv #(mp/join-along %1 %2 (dec dim))
+                 (mp/get-major-slice-seq m)
+                 (mp/get-major-slice-seq a))))))
+
 (extend-protocol mp/PSubVector
   nil
     (subvector [m start length]
@@ -1567,6 +1584,17 @@
         (when id
           (do (mp/set-nd! a id v) (recur idx vs)))))))
 
+(extend-protocol mp/PNonZeroIndices
+  Object
+  (non-zero-indices 
+    [m]
+    (if (mp/is-vector? m)
+      (vec (for [i (range (mp/dimension-count m 0))
+                    :when (not (== 0 (mp/get-1d m i)))] 
+              i))
+      (vec (for [i (range (mp/dimension-count m 0))]
+              (mp/non-zero-indices (m i)))))))
+
 ;; TODO: proper generic implementations
 (extend-protocol mp/PMatrixTypes
   Object
@@ -1642,8 +1670,31 @@
          (recur (mp/set-nd a idl (mp/get-nd vals idr)) idxl idxr)
          a))))))
 
+(extend-protocol mp/PIndexImplementation
+  Object
+	  (index? [m]
+      false) ;; we default to saying something isn't an index, unless it is explicitly supported
+	  (index-to-longs [m]
+      (long-array (mp/element-seq m)))
+	  (index-to-ints [m]
+      (int-array (mp/element-seq m)))
+	  (index-from-longs [m xs]
+      (long-array xs))
+	  (index-from-ints [m xs]
+      (int-array xs))
+	  (index-coerce [m a]
+      (mp/index-to-longs m)))
+
 ;; =======================================================
 ;; default linear algebra implementations
+
+(extend-protocol mp/PNorm
+  Object
+  (norm [m p]
+    (cond
+      (= p java.lang.Double/POSITIVE_INFINITY) (mp/element-max m)
+      (number? p) (mp/element-sum (mp/element-pow (mp/element-map m mops/abs) p))
+      :else (error "p must be a number"))))
 
 ;; QR decomposition utility functions
 
@@ -1689,15 +1740,21 @@
 
 
 
-(defn compute-r [m ^doubles data mcols mrows min-len]
-  (mp/compute-matrix
-   m [mrows mcols]
-   (fn [i j]
-     (if (and (< i min-len)
-              (>= j i)
-              (< j mcols))
-       (aget data (+ (* i mcols) j))
-       0))))
+(defn compute-r [m ^doubles data mcols mrows min-len compact?]
+  (let [cm (mp/compute-matrix
+              m [mrows mcols]
+              (fn [i j]
+                (if (and (< i min-len)
+                         (>= j i)
+                         (< j mcols))
+                  (aget data (+ (* i mcols) j))
+                  0)))]
+    (if compact?
+      (->> (mp/get-major-slice-seq cm)
+           (reduce
+            #(if (every? zero? %2) (inc %1) %1) 0)
+           (#(mp/reshape cm [mcols (- mrows %)])))
+      cm)))
 
 (defn householder-qr [^doubles qr-data idx mcols
                       mrows ^doubles us ^doubles gammas]
@@ -1803,11 +1860,52 @@
            (select-keys
             {:Q #(compute-q m qr-data mcols mrows
                             min-len us vs gammas)
-             :R #(compute-r m qr-data mcols mrows min-len)}
+             :R #(compute-r m qr-data mcols mrows min-len (:compact options))}
             (:return options))
            (map (fn [[k v]] [k (v)]))
            (into {})))))))
 
+;; temp var to prevent recursive coercion if implementation does not support liear algebra operation
+(def ^:dynamic *trying-current-implementation* nil)
+
+(defmacro try-current-implementation 
+  [sym form]
+  `(if *trying-current-implementation*
+     (TODO (str "Not yet implemented: " ~(str form) " for " (class ~sym)))
+     (binding [*trying-current-implementation* true]
+       (let [imp# (imp/get-canonical-object)
+             ~sym (mp/coerce-param imp# ~sym)]
+         ~form))))
+
+(extend-protocol mp/PCholeskyDecomposition
+  Object
+  (cholesky [m options] 
+    (try-current-implementation m (mp/cholesky m options))))
+
+(extend-protocol mp/PLUDecomposition
+  Object
+  (lu [m options] 
+    (try-current-implementation m (mp/lu m options))))
+
+(extend-protocol mp/PSVDDecomposition
+  Object
+  (svd [m options] 
+    (try-current-implementation m (mp/svd m options))))
+
+(extend-protocol mp/PEigenDecomposition
+  Object
+  (eigen [m options] 
+    (try-current-implementation m (mp/eigen m options))))
+
+(extend-protocol mp/PSolveLinear
+  Object
+  (solve [a b] 
+    (try-current-implementation a (mp/solve a b))))
+
+(extend-protocol mp/PLeastSquares
+  Object
+  (least-squares [a b] 
+    (try-current-implementation a (mp/least-squares a b))))
 
 ;; =======================================================
 ;; default multimethod implementations
