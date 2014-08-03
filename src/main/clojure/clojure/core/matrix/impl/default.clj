@@ -1145,6 +1145,24 @@
         (== 0 dimension) (mp/get-major-slice m i)
         :else (mp/get-slice (mp/convert-to-nested-vectors m) dimension i))))
 
+(extend-protocol mp/PMatrixColumns
+  Object
+  (get-columns [m]
+    (case (long (mp/dimensionality m))
+      0 (error "Can't get columns of a 0-dimensional object")
+      1 (error "Can't get columns of a 1-dimensional object")
+      2 (mp/get-slice-seq m 1)
+      (mapcat mp/get-columns (mp/get-major-slice-seq m)))))
+
+(extend-protocol mp/PMatrixRows
+  Object
+  (get-rows [m]
+    (case (long (mp/dimensionality m))
+      0 (error "Can't get rows of a 0-dimensional object")
+      1 (error "Can't get rows of a 1-dimensional object")
+      2 (mp/get-major-slice-seq m)
+      (mapcat mp/get-rows (mp/get-major-slice-seq m)))))
+
 (extend-protocol mp/PSliceView
   Object
     ;; default implementation uses a lightweight wrapper object

@@ -877,22 +877,14 @@
 
    If the array has more than 2 dimensions, will return the rows from all slices in order."
   ([m]
-    (case (long (mp/dimensionality m))
-        0 (error "Can't get rows of a 0-dimensional object")
-        1 (error "Can't get rows of a 1-dimensional object") 
-        2 (slices m)
-        (mapcat rows (slices m)))))
+    (mp/get-rows m)))
 
 (defn columns
   "Gets the columns of a matrix, as a sequence of 1D vectors.
 
    If the array has more than 2 dimensions, will return the columns from all slices in order."
   ([m]
-    (case (long (mp/dimensionality m))
-        0 (error "Can't get columns of a 0-dimensional object")
-        1 (error "Can't get columns of a 1-dimensional object") 
-        2 (slices m 1)
-        (mapcat columns (slices m)))))
+   (mp/get-columns m)))
 
 (defn main-diagonal
   "Returns the main diagonal of a matrix or general array, as a vector.
