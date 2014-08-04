@@ -859,6 +859,7 @@
     (cond
       (== dims 0) (get-0d x)
       (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
+      (not (is-scalar? x)) (mapv convert-to-nested-vectors (get-major-slice-seq x))
       (instance? java.util.List x) (mapv convert-to-nested-vectors x)
       (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
       (instance? clojure.lang.Seqable x) (mapv convert-to-nested-vectors x)
