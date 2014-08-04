@@ -37,6 +37,15 @@
     (is (= (except-columns ds [:a :b])
            (dataset [:c] (matrix [[9 9 9 9]]))))))
 
+(deftest test-select-column
+  (let [ds (dataset [:a :b :c] (matrix [[1 2 3 4]
+                                        [4 5 6 7]
+                                        [9 9 9 9]]))]
+    (is (= (select-rows ds 0)
+           (dataset [:a :b :c] (matrix [[1] [4] [9]]))))
+    (is (= (select-rows ds [1 2])
+           (dataset [:a :b :c] (matrix [[2 3] [5 6] [9 9]]))))))
+
 (deftest test-to-map
   (let [ds (dataset [:a :b] (matrix [[1 2 3] [4 5 6]]))]
     (is (= (to-map ds) {:a [1 2 3] :b [4 5 6]}))))
