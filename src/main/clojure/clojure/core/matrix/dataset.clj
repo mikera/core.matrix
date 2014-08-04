@@ -77,6 +77,17 @@
                       (into #{} col-names))]
        (mp/select-columns ds col-names))))
 
+(defn row-maps
+  "Returns vector of maps with row values"
+  ([ds]
+     (map
+      (fn [row]
+        (->> (map-indexed
+              (fn [idx v] [(column-name ds idx) v])
+              row)
+             (into {})))
+      (rows ds))))
+
 (defn to-map
   "Returns map of columns with associated list of values"
   ([ds]
