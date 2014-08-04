@@ -1703,6 +1703,18 @@
 	  (index-coerce [m a]
       (mp/index-to-longs m)))
 
+(extend-protocol mp/PDimensionImplementation
+  Object
+    (dimension-name [ds idx dim] 
+      (cond 
+        (== dim 0) (mp/row-name ds idx)
+        (== dim 1) (mp/column-name ds idx)
+        :else idx))
+    (row-name [ds idx] 
+      idx)
+    (column-name [ds idx] 
+      (nth (mp/column-names ds) idx)))  
+
 ;; =======================================================
 ;; default linear algebra implementations
 

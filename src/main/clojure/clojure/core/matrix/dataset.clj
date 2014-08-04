@@ -59,6 +59,11 @@
   ([ds idx]
      (get (mp/column-names ds) idx)))
 
+(defn dimension-name
+  "Returns the name for a given index along the specified dimension"
+  ([ds dim idx]
+    (mp/dimension-name ds dim idx))) 
+
 (defn add-column
   "Adds column to the dataset"
   ([ds col-name col]
