@@ -859,11 +859,12 @@
     (cond
       (== dims 0) (get-0d x)
       (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
-      (not (is-scalar? x)) (mapv convert-to-nested-vectors (get-major-slice-seq x))
+      (== dims 1) (vec (element-seq x)) 
       (instance? java.util.List x) (mapv convert-to-nested-vectors x)
       (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
       (instance? clojure.lang.Seqable x) (mapv convert-to-nested-vectors x)
       (.isArray (class x)) (mapv convert-to-nested-vectors (seq x))
+      (not (is-scalar? x)) (mapv convert-to-nested-vectors (get-major-slice-seq x))
       :default (error "Can't coerce to vector: " (class x)))))
 
 (defn broadcast-compatible
