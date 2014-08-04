@@ -850,7 +850,7 @@
   (conj-rows [ds1 ds2] "Returns a dataset created by combining the rows of the given datasets"))
 
 (defprotocol PDimensionImplementation
-  "Protocol for querying multi-dimensioned datasets"
+  "EXPERIMENTAL: Protocol for querying multi-dimensioned datasets"
   (dimension-name [ds idx dim] "Returns the name of the specified index along a given numbered dimension")
   (row-name [ds idx] "Returns the name of the row (dimension 0) at a specified index")
   (column-name [ds idx] "returns the name of the column (dimension 1) at a specified column index")) 
