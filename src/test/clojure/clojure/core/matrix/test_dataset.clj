@@ -70,6 +70,10 @@
            (dataset [:a :b] [[1 2 3 5 6 7]
                              [4 5 6 8 8 8]])))))
 
+(deftest test-row-maps
+  (let [ds (dataset [:a :b] [[1 2 3] [4 5 6]])]
+    (is (= (row-maps ds) [{:a 1 :b 4} {:a 2 :b 5} {:a 3 :b 6}]))))
+
 (deftest instance-tests
   (clojure.core.matrix.compliance-tester/instance-test
    (ds/construct-dataset [:bar] [["Foo"]])))
