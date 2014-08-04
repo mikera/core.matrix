@@ -393,7 +393,7 @@
     (immutable-matrix [m]
       (if 
         (mp/is-mutable? m) 
-        (mp/persistent-vector-coerce m)
+        (mp/convert-to-nested-vectors m)
         m))) 
 
 (extend-protocol mp/PZeroCount
