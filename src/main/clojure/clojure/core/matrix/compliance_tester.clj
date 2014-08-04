@@ -263,12 +263,16 @@
          (check-joined-matrices m j)))
      (when (< 1 (dimensionality m))
        (let [j (join-along 1 m m)]
-         (doall (map check-joined-matrices (slices m) (slices j)))))
+         (doseq [[slice1 slice2] (map vector
+                                      (slices m)
+                                      (slices j))]
+           (check-joined-matrices slice1 slice2))))
      (when (< 2 (dimensionality m))
        (let [j (join-along 2 m m)]
-         (doall (map check-joined-matrices
-                     (map #(slices % 1) (slices m 1))
-                     (map #(slices % 1) (slices j 1)))))))))
+         (doseq [[slice1 slice2] (map vector
+                                      (map #(slices % 1) (slices m 1))
+                                      (map #(slices % 1) (slices j 1)))]
+           (check-joined-matrices slice1 slice2)))))))
 
 (defn test-pm
   "Test for matrix pretty-printing"
