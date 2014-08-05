@@ -75,9 +75,14 @@
           cols (map #(mp/get-column ds %) indices)]
       (construct-dataset col-names cols)))
   (select-rows [ds rows]
-    (let [all-rows (mp/get-rows ds)]
-      (construct-dataset (mp/column-names ds)
-                         (mp/transpose (map #(get all-rows %) rows)))))
+    (let [col-names (mp/column-names ds)]
+      (construct-dataset
+       col-names
+       (reduce
+        (fn [acc idx]
+          (mapv conj acc (mp/get-row ds idx)))
+        (into [] (repeat (count col-names) []))
+        rows))))
   (add-column [ds col-name col]
     (construct-dataset (conj (mp/column-names ds) col-name)
              (conj (mp/get-columns ds) col)))
