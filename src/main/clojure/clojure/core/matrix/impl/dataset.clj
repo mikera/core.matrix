@@ -17,6 +17,8 @@
   (let [^IPersistentVector col-names (vec col-names)
         ^IPersistentVector columns (vec columns)
         cc (count col-names)]
+    (when (not= cc (count (into #{} col-names)))
+      (error "DataSet does not support duplicate column names"))
     (when (not= cc (count columns))
       (error "Mismatched number of columns, have: " cc " column names"))
     (DataSet. col-names columns)))
