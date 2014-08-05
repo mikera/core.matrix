@@ -77,9 +77,7 @@
 (defn select-rows
   "Produces a new dataset with the rows in the specified order"
   ([ds rows]
-     (if (number? rows)
-       (mp/select-rows ds [rows])
-       (mp/select-rows ds rows))))
+     (mp/select-rows ds rows)))
 
 (defn except-columns
   "Returns new dataset with all columns except specified"
