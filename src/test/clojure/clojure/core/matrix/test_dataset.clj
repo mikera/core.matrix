@@ -40,7 +40,7 @@
     (is (= (except-columns ds [:a :b])
            (dataset [:c] (matrix [[9 9 9 9]]))))))
 
-(deftest test-select-column
+(deftest test-select-rows
   (let [ds (dataset [:a :b :c] (matrix [[1 2 3 4]
                                         [4 5 6 7]
                                         [9 9 9 9]]))]
