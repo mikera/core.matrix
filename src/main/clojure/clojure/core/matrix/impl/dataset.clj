@@ -84,14 +84,10 @@
           cols (map #(mp/get-column ds %) indices)]
       (construct-dataset col-names cols)))
   (select-rows [ds rows]
-    (let [col-names (mp/column-names ds)]
-      (construct-dataset
-       col-names
-       (reduce
-        (fn [acc idx]
-          (mapv conj acc (mp/get-row ds idx)))
-        (into [] (repeat (count col-names) []))
-        rows))))
+    (let [col-names (mp/column-names ds)
+          row-maps (mp/row-maps ds)]
+      (->> (map #(nth row-maps %) rows)
+           (dataset-from-row-maps col-names))))
   (add-column [ds col-name col]
     (construct-dataset (conj (mp/column-names ds) col-name)
              (conj (mp/get-columns ds) col)))
