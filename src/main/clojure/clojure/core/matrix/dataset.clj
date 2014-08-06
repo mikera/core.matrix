@@ -7,11 +7,16 @@
 
 (defn dataset
   "Creates dataset from:
-    column-names and seq of columns
+    column names and seq of columns
+    column names and seq of row maps
     map of columns with associated list of values.
     matrix - its columns will be used as dataset columns and incrementing Long values starting from 0, i.e. 0, 1, 2, etc will be used as column names.
     seq of maps"
-  ([col-names columns] (construct-dataset col-names columns))
+  ([col-names m]
+     (cond
+      (matrix? m) (construct-dataset col-names m)
+      (map? (first m)) (dataset-from-row-maps col-names m)
+      :else (error "Don't know how to create dataset from shape"  (shape m))))
   ([m]
      (cond
       (matrix? m) (dataset-from-array m)

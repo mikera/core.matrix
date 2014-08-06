@@ -35,6 +35,15 @@
         (vec (for [i col-indexes]
                (mp/get-slice m 1 i)))))))
 
+(defn dataset-from-row-maps
+  ([col-names m]
+     (let [rows (map (fn [row]
+                       (reduce
+                        (fn [acc c] (conj acc (get row c)))
+                        [] col-names)) m)]
+       (-> (dataset-from-array rows)
+           (mp/rename-columns (zipmap (range) col-names))))))
+
 (extend-protocol mp/PMatrixSlices
   DataSet
   (get-column [ds i]
