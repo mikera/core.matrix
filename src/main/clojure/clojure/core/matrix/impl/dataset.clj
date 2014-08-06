@@ -86,6 +86,15 @@
   (add-column [ds col-name col]
     (construct-dataset (conj (mp/column-names ds) col-name)
              (conj (mp/get-columns ds) col)))
+  (row-maps [ds]
+    (let [col-names (mp/column-names ds)]
+      (map
+      (fn [row]
+        (->> (map-indexed
+              (fn [idx v] [(nth col-names idx) v])
+              row)
+             (into {})))
+      (mp/get-rows ds))))
   (to-map [ds]
     (into {} (map (fn [k v] [k v])
                   (mp/column-names ds)

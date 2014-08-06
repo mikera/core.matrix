@@ -845,6 +845,7 @@
   (select-rows [ds rows] "Produces a new dataset with specified rows")
   (add-column [ds col-name col] "Adds column to the dataset")
   (to-map [ds] "Returns map of columns with associated list of values")
+  (row-maps [ds] "Returns seq of maps with row values")
   (merge-datasets [ds1 ds2] "Returns a dataset created by combining columns of the given datasets. In case of columns with duplicate names, last-one-wins strategy is applied")
   (rename-columns [ds col-map] "Renames columns based on map of old new column name pairs")
   (replace-column [ds col-name vs] "Replaces column in a dataset with new values")

@@ -90,13 +90,7 @@
 (defn row-maps
   "Returns vector of maps with row values"
   ([ds]
-     (map
-      (fn [row]
-        (->> (map-indexed
-              (fn [idx v] [(column-name ds idx) v])
-              row)
-             (into {})))
-      (rows ds))))
+     (mp/row-maps ds)))
 
 (defn to-map
   "Returns map of columns with associated list of values"
