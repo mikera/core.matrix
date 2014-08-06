@@ -7,26 +7,28 @@
 
 (defn dataset
   "Creates dataset from:
-    column names and seq of columns
+    column names and seq of rows
     column names and seq of row maps
     map of columns with associated list of values.
     matrix - its columns will be used as dataset columns and incrementing Long values starting from 0, i.e. 0, 1, 2, etc will be used as column names.
     seq of maps"
   ([col-names m]
      (cond
-      (matrix? m) (construct-dataset col-names m)
+      (matrix? m) (dataset-from-rows col-names m)
       (map? (first m)) (dataset-from-row-maps col-names m)
       :else (error "Don't know how to create dataset from shape"  (shape m))))
   ([m]
      (cond
       (matrix? m) (dataset-from-array m)
       (map? m)
-      (apply construct-dataset
-             (reduce
-              (fn [[col-names cols] [k v]]
-                [(conj col-names k)
-                 (conj cols v)])
-              [[] []] m))
+      (let [col-names (keys m)
+            cols (reduce
+                  (fn [acc c] (conj acc (get m c)))
+                  [] col-names)
+            row-counts (into #{} (map count m))]
+        (if (= (count row-counts) 1)
+          (dataset-from-columns col-names cols)
+          (error "Cant' create dataset with different column lengths")))
 
       (and (= (mp/dimensionality m) 1)
            (map? (first m)))
@@ -45,8 +47,9 @@
                       (into #{})
                       (count)
                       (= 1)))
-          (dataset col-names
-                   (reduce #(conj %1 (get col-map %2)) [] col-names))
+          (dataset-from-columns
+           col-names
+           (reduce #(conj %1 (get col-map %2)) [] col-names))
           (error "Can't create dataset from incomplete maps"))))))
 
 (defmacro dataset?
@@ -67,7 +70,7 @@
 (defn dimension-name
   "Returns the name for a given index along the specified dimension"
   ([ds dim idx]
-    (mp/dimension-name ds dim idx))) 
+    (mp/dimension-name ds dim idx)))
 
 (defn add-column
   "Adds column to the dataset"
