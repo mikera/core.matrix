@@ -13,15 +13,21 @@
   [^IPersistentVector column-names
    ^IPersistentVector columns])
 
-(defn construct-dataset [col-names columns]
+(defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
-        ^IPersistentVector columns (vec columns)
+        ^IPersistentVector cols (vec cols)
         cc (count col-names)]
-    (when (not= cc (count (into #{} col-names)))
-      (error "DataSet does not support duplicate column names"))
-    (when (not= cc (count columns))
+    (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
-    (DataSet. col-names columns)))
+    (DataSet. col-names cols)))
+
+(defn dataset-from-rows [col-names rows]
+  (let [^IPersistentVector col-names (vec col-names)
+        ^IPersistentVector rows (vec rows)
+        cc (count col-names)]
+    (when (not= cc (count (first rows)))
+      (error "Mismatched number of columns, have: " cc " column names"))
+    (DataSet. col-names (mp/transpose rows))))
 
 (defn dataset-from-array
   ([m]
@@ -29,13 +35,20 @@
        (error "Don't know how to construct DataSet from type: " (class m)))
      (when (< (mp/dimensionality m) 2)
        (error "Can't construct dataset from array with shape: " (mp/get-shape m)))
-     (let [row-count (mp/dimension-count m 0)
-           col-count (mp/dimension-count m 1)
+     (let [col-count (mp/dimension-count m 1)
            col-indexes (range col-count)]
-       (construct-dataset
+       (dataset-from-columns
         (into [] col-indexes)
         (vec (for [i col-indexes]
                (mp/get-slice m 1 i)))))))
+
+(defn dataset-from-row-maps
+  ([col-names m]
+     (let [rows (map (fn [row]
+                       (reduce
+                        (fn [acc c] (conj acc (get row c)))
+                        [] col-names)) m)]
+       (dataset-from-rows col-names rows))))
 
 (extend-protocol mp/PMatrixSlices
   DataSet
@@ -63,7 +76,7 @@
   (set-column [ds i column]
     (let [scol (mp/get-column ds 0)
           column (mp/broadcast-like scol column)]
-      (construct-dataset
+      (dataset-from-columns
        (mp/column-names ds)
        (assoc (mp/get-columns ds) i column)))))
 
@@ -75,10 +88,24 @@
     (let [all-col-names (mp/column-names ds)
           indices (map #(.indexOf all-col-names %) col-names)
           cols (map #(mp/get-column ds %) indices)]
-      (construct-dataset col-names cols)))
+      (dataset-from-columns col-names cols)))
+  (select-rows [ds rows]
+    (let [col-names (mp/column-names ds)
+          row-maps (mp/row-maps ds)]
+      (->> (map #(nth row-maps %) rows)
+           (dataset-from-row-maps col-names))))
   (add-column [ds col-name col]
-    (construct-dataset (conj (mp/column-names ds) col-name)
-             (conj (mp/get-columns ds) col)))
+    (dataset-from-columns (conj (mp/column-names ds) col-name)
+                          (conj (mp/get-columns ds) col)))
+  (row-maps [ds]
+    (let [col-names (mp/column-names ds)]
+      (map
+      (fn [row]
+        (->> (map-indexed
+              (fn [idx v] [(nth col-names idx) v])
+              row)
+             (into {})))
+      (mp/get-rows ds))))
   (to-map [ds]
     (into {} (map (fn [k v] [k v])
                   (mp/column-names ds)
@@ -90,8 +117,8 @@
              cols (mp/get-columns acc)
              idx (.indexOf colnames k)]
          (if (> idx -1)
-           (construct-dataset colnames (assoc cols idx v))
-           (construct-dataset (conj colnames k) (conj cols v)))))
+           (dataset-from-columns colnames (assoc cols idx v))
+           (dataset-from-columns (conj colnames k) (conj cols v)))))
      ds1 (mp/to-map ds2)))
   (rename-columns [ds col-map]
     (reduce
@@ -99,7 +126,7 @@
        (let [colnames (mp/column-names acc)
              idx (.indexOf colnames k)]
          (if (> idx -1)
-           (construct-dataset (assoc colnames idx v) (mp/get-columns acc))
+           (dataset-from-columns (assoc colnames idx v) (mp/get-columns acc))
            (error "Column " k " is not found in the dataset"))))
      ds col-map))
   (replace-column [ds col-name vs]
@@ -110,17 +137,14 @@
         (error "Column " col-name " is not found in the dataset"))))
   (conj-rows [ds1 ds2]
     (let [col-names-1 (mp/column-names ds1)
-          col-names-2  (mp/column-names ds2)]
+          col-names-2 (mp/column-names ds2)]
       (if (= (into #{} col-names-1)
              (into #{} col-names-2))
-        (construct-dataset
-         col-names-1
-         (mapv #(into %1 %2)
-               (mp/get-columns ds1)
-               (-> (mp/select-columns ds2 col-names-1)
-                   (mp/get-columns))))
+        (->> (mp/select-columns ds2 col-names-1)
+             (mp/get-rows)
+             (concat (mp/get-rows ds1))
+             (dataset-from-rows col-names-1))
         (error "Can't join rows of datasets with different columns")))))
-
 
 (extend-protocol mp/PImplementation
   DataSet
@@ -131,7 +155,7 @@
     (mp/new-vector [] length))
   (new-matrix [m rows columns]
     (let [col-indexes (range columns)]
-      (construct-dataset
+      (dataset-from-columns
        col-indexes
        (for [i col-indexes]
          (mp/new-vector (imp/get-canonical-object) rows)))))
@@ -183,7 +207,7 @@
       (error "Can't do 1D set on a DataSet"))
     (set-2d [m x y v]
       (let [col (mp/get-column m y)]
-        (construct-dataset
+        (dataset-from-columns
          (mp/column-names m)
          (assoc (mp/get-columns m) y (assoc col x v)))))
     (set-nd [m indexes v]
@@ -193,6 +217,6 @@
           :else (error "Can't set on DataSet array with index: " (vec indexes)))))
     (is-mutable? [m] false))
 
-(def CANONICAL-OBJECT (construct-dataset [:0] [[1.0 2.0]]))
+(def CANONICAL-OBJECT (dataset-from-columns [:0] [[1.0 2.0]]))
 
 (imp/register-implementation CANONICAL-OBJECT)
