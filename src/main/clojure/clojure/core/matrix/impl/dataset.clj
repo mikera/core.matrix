@@ -24,7 +24,6 @@
 (defn dataset-from-rows [col-names rows]
   (let [^IPersistentVector col-names (vec col-names)
         ^IPersistentVector cols (into [] (mp/get-columns rows))
-        _ (println cols)
         cc (count col-names)]
     (when (not= cc (count (first rows)))
       (error "Mismatched number of columns, have: " cc " column names"))
