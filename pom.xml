@@ -53,13 +53,13 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>vectorz-clj</artifactId>
-			<version>0.23.0</version>
+			<version>0.24.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>test.check</artifactId>
-			<version>0.5.8</version>
+			<version>0.5.9</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
