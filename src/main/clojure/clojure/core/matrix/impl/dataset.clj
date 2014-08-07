@@ -25,7 +25,7 @@
   (let [^IPersistentVector col-names (vec col-names)
         ^IPersistentVector cols (into [] (mp/get-columns rows))
         cc (count col-names)]
-    (when (not= cc (count (first rows)))
+    (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
     (DataSet. col-names cols)))
 
