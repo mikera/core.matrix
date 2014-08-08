@@ -88,12 +88,23 @@
     (let [all-col-names (mp/column-names ds)
           indices (map #(.indexOf all-col-names %) col-names)
           cols (map #(mp/get-column ds %) indices)]
-      (dataset-from-columns col-names cols)))
+      (if (every? #(> % -1) indices)
+        (dataset-from-columns col-names cols)
+        (error "Columns "
+               (->> (zipmap indices col-names)
+                    (filter #(= (first %) -1))
+                    (mapv second))
+               " not found in dataset"))))
   (select-rows [ds rows]
     (let [col-names (mp/column-names ds)
-          row-maps (mp/row-maps ds)]
-      (->> (map #(nth row-maps %) rows)
-           (dataset-from-row-maps col-names))))
+          row-maps (mp/row-maps ds)
+          c (count (mp/get-rows ds))
+          out-of-range (filter #(>= % c) rows)]
+      (if (= (count out-of-range) 0)
+        (->> (map #(nth row-maps %) rows)
+             (dataset-from-row-maps col-names))
+        (error "Dataset contains only " c " rows. Can't select rows with indices: "
+               (vec out-of-range)))))
   (add-column [ds col-name col]
     (dataset-from-columns (conj (mp/column-names ds) col-name)
                           (conj (mp/get-columns ds) col)))
