@@ -391,8 +391,7 @@
       nil)
   Object 
     (immutable-matrix [m]
-      (if 
-        (mp/is-mutable? m) 
+      (if (mp/is-mutable? m) 
         (mp/convert-to-nested-vectors m)
         m))) 
 
