@@ -69,7 +69,8 @@
 (extend-protocol mp/PMatrixRows
   DataSet
   (get-rows [ds]
-    (mp/transpose (mp/get-columns ds))))
+    (map #(mp/get-row ds %)
+         (range (mp/dimension-count ds 0)))))
 
 (extend-protocol mp/PColumnSetting
   DataSet
