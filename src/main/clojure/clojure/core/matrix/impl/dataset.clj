@@ -103,7 +103,7 @@
       (if (= (count out-of-range) 0)
         (->> (map #(nth row-maps %) rows)
              (dataset-from-row-maps col-names))
-        (error "Dataset contains only" c " rows. Can't select rows with indices: "
+        (error "Dataset contains only " c " rows. Can't select rows with indices: "
                (vec out-of-range)))))
   (add-column [ds col-name col]
     (dataset-from-columns (conj (mp/column-names ds) col-name)
