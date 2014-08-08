@@ -155,7 +155,7 @@
   ([implementation shape]
     (or (mp/new-matrix-nd (implementation-check implementation) shape)
         (mp/new-matrix-nd (implementation-check) shape)
-        (error "Implementation unable to create array of shape: " (vec shape)))))
+        (mp/new-matrix-nd :persistent-vector shape)))) ;; todo: what is the right default?
 
 (defn new-scalar-array
   "Returns a new mutable scalar array containing the scalar value zero."
@@ -271,7 +271,7 @@
    Diagonal matrices constructed this way may use specialised storage formats, hence may not be fully mutable.
    Use (mutable (diagonal-matrix ...)) if you need to guarantee a mutable matrix."
   ([diagonal-values]
-    (mp/diagonal-matrix (current-implementation-object) diagonal-values))
+    (mp/diagonal-matrix (implementation-check) diagonal-values))
   ([implementation diagonal-values]
     (mp/diagonal-matrix (imp/get-canonical-object implementation) diagonal-values)))
 
@@ -877,22 +877,14 @@
 
    If the array has more than 2 dimensions, will return the rows from all slices in order."
   ([m]
-    (case (long (mp/dimensionality m))
-        0 (error "Can't get rows of a 0-dimensional object")
-        1 (error "Can't get rows of a 1-dimensional object") 
-        2 (slices m)
-        (mapcat rows (slices m)))))
+    (mp/get-rows m)))
 
 (defn columns
   "Gets the columns of a matrix, as a sequence of 1D vectors.
 
    If the array has more than 2 dimensions, will return the columns from all slices in order."
   ([m]
-    (case (long (mp/dimensionality m))
-        0 (error "Can't get columns of a 0-dimensional object")
-        1 (error "Can't get columns of a 1-dimensional object") 
-        2 (slices m 1)
-        (mapcat columns (slices m)))))
+   (mp/get-columns m)))
 
 (defn main-diagonal
   "Returns the main diagonal of a matrix or general array, as a vector.
@@ -926,9 +918,7 @@
 (defn join-along
   "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
   ([dimension & arrays]
-    (if (== 0 dimension)
-      (apply join arrays)
-      (TODO))))
+   (reduce #(mp/join-along %1 %2 dimension) arrays)))
 
 (defn rotate
   "Rotates an array along specified dimensions."

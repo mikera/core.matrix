@@ -297,6 +297,14 @@
   (get-major-slice [m i])
   (get-slice [m dimension i]))
 
+(defprotocol PMatrixRows
+  "Protocol for accessing rows of a matrix"
+  (get-rows [m]))
+
+(defprotocol PMatrixColumns
+  "Protocol for accessing columns of a matrix"
+  (get-columns [m]))
+
 (defprotocol PSliceView
   "Protocol for quick view access into a row-major slices of an array. If implemented, must return
    either a view or an immutable sub-matrix: it must *not* return copied data.
@@ -332,6 +340,10 @@
 (defprotocol PSliceJoin
   "Protocol for concatenating / joining arrays."
   (join [m a] "Concatenates a to m, along the major slice dimension"))
+
+(defprotocol PSliceJoinAlong
+  "Protocol for concatenating / joining arrays."
+  (join-along [m a dim] "Concatenates a to m, along the slice dimension dim"))
 
 (defprotocol PSubVector
   "Protocol for getting a sub-vector view of a vector. Must return a mutable view
@@ -822,6 +834,28 @@
   "Protocol for computing least-square solution to a linear matrix equation"
   (least-squares [a b]))
 
+;; ============================================================
+;; Dataset protocols
+
+(defprotocol PDatasetImplementation
+  "Protocol for general dataset functionality"
+  (column-names [ds] "Returns a persistent vector containing column names in the same order as they are placed in the dataset")
+  (columns [ds] "Returns a persistent vector containing columns in the same order they are placed in the dataset")
+  (select-columns [ds cols] "Produces a new dataset with the columns in the specified order")
+  (select-rows [ds rows] "Produces a new dataset with specified rows")
+  (add-column [ds col-name col] "Adds column to the dataset")
+  (to-map [ds] "Returns map of columns with associated list of values")
+  (row-maps [ds] "Returns seq of maps with row values")
+  (merge-datasets [ds1 ds2] "Returns a dataset created by combining columns of the given datasets. In case of columns with duplicate names, last-one-wins strategy is applied")
+  (rename-columns [ds col-map] "Renames columns based on map of old new column name pairs")
+  (replace-column [ds col-name vs] "Replaces column in a dataset with new values")
+  (conj-rows [ds1 ds2] "Returns a dataset created by combining the rows of the given datasets"))
+
+(defprotocol PDimensionImplementation
+  "EXPERIMENTAL: Protocol for querying multi-dimensioned datasets"
+  (dimension-name [ds idx dim] "Returns the name of the specified index along a given numbered dimension")
+  (row-name [ds idx] "Returns the name of the row (dimension 0) at a specified index")
+  (column-name [ds idx] "returns the name of the column (dimension 1) at a specified column index")) 
 
 ;; ============================================================
 ;; Utility functions
@@ -832,10 +866,12 @@
     (cond
       (== dims 0) (get-0d x)
       (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
+      (== dims 1) (vec (element-seq x)) 
       (instance? java.util.List x) (mapv convert-to-nested-vectors x)
       (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
       (instance? clojure.lang.Seqable x) (mapv convert-to-nested-vectors x)
       (.isArray (class x)) (mapv convert-to-nested-vectors (seq x))
+      (not (is-scalar? x)) (mapv convert-to-nested-vectors (get-major-slice-seq x))
       :default (error "Can't coerce to vector: " (class x)))))
 
 (defn broadcast-compatible

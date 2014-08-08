@@ -33,14 +33,20 @@
     - Q is an orthogonal matrix
     - R is an upper triangular matrix (= right triangular matrix)
    If :return parameter is specified in options map, it returns only specified keys.
+   If :compact parameter is specified in options map, compact versions of matrices are returned.
 
    Returns nil if decomposition is impossible.
 
    Intended usage: (let [{:keys [Q R]} (qr M)] ....)
                    (let [{:keys [R]} (qr M {:return [:R]})] ....)"
 
-  ([m options] (mp/qr m options))
-  ([m] (qr m {:return [:Q :R]})))
+  ([m {:keys [return compact]
+       :or {return [:Q :R]
+            compact false}}]
+     (mp/qr m {:return return
+               :compact compact}))
+  ([m]
+     (mp/qr m {:return [:Q :R]})))
 
 (defn cholesky
   "Computes the Cholesky decomposition of a hermitian, positive definite matrix.

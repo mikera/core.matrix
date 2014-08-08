@@ -391,9 +391,8 @@
       nil)
   Object 
     (immutable-matrix [m]
-      (if 
-        (mp/is-mutable? m) 
-        (mp/persistent-vector-coerce m)
+      (if (mp/is-mutable? m) 
+        (mp/convert-to-nested-vectors m)
         m))) 
 
 (extend-protocol mp/PZeroCount
@@ -1145,6 +1144,24 @@
         (== 0 dimension) (mp/get-major-slice m i)
         :else (mp/get-slice (mp/convert-to-nested-vectors m) dimension i))))
 
+(extend-protocol mp/PMatrixColumns
+  Object
+  (get-columns [m]
+    (case (long (mp/dimensionality m))
+      0 (error "Can't get columns of a 0-dimensional object")
+      1 (error "Can't get columns of a 1-dimensional object")
+      2 (mp/get-slice-seq m 1)
+      (mapcat mp/get-columns (mp/get-major-slice-seq m)))))
+
+(extend-protocol mp/PMatrixRows
+  Object
+  (get-rows [m]
+    (case (long (mp/dimensionality m))
+      0 (error "Can't get rows of a 0-dimensional object")
+      1 (error "Can't get rows of a 1-dimensional object")
+      2 (mp/get-major-slice-seq m)
+      (mapcat mp/get-rows (mp/get-major-slice-seq m)))))
+
 (extend-protocol mp/PSliceView
   Object
     ;; default implementation uses a lightweight wrapper object
@@ -1201,6 +1218,24 @@
             (mp/coerce-param m (concat (mp/get-major-slice-seq m) [a]))
           :else
             (error "Joining with array of incompatible size")))))
+
+(extend-protocol mp/PSliceJoinAlong
+  nil
+  (join-along [m a dim]
+    (error "Can't join an array to a nil value!"))
+  Number
+  (join-along [m a dim]
+    (error "Can't join an array to a scalar number!"))
+  Object
+  (join-along [m a dim]
+    (mp/coerce-param m
+      (cond
+         (== dim 0)
+           (mp/join m a)
+         :else
+           (mapv #(mp/join-along %1 %2 (dec dim))
+                 (mp/get-major-slice-seq m)
+                 (mp/get-major-slice-seq a))))))
 
 (extend-protocol mp/PSubVector
   nil
@@ -1666,6 +1701,18 @@
       (int-array xs))
 	  (index-coerce [m a]
       (mp/index-to-longs m)))
+
+(extend-protocol mp/PDimensionImplementation
+  Object
+    (dimension-name [ds idx dim] 
+      (cond 
+        (== dim 0) (mp/row-name ds idx)
+        (== dim 1) (mp/column-name ds idx)
+        :else idx))
+    (row-name [ds idx] 
+      idx)
+    (column-name [ds idx] 
+      (nth (mp/column-names ds) idx)))  
 
 ;; =======================================================
 ;; default linear algebra implementations
