@@ -16,6 +16,10 @@
      (cond
       (matrix? m) (dataset-from-rows col-names m)
       (map? (first m)) (dataset-from-row-maps col-names m)
+      (map? m) (let [cols (reduce
+                           (fn [acc c] (conj acc (get m c)))
+                           [] col-names)]
+                 (dataset-from-columns col-names cols))
       :else (error "Don't know how to create dataset from shape"  (shape m))))
   ([m]
      (cond

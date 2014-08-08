@@ -13,7 +13,11 @@
         ds2 (dataset (matrix [[1 4] [2 5] [3 6]]))
         ds3 (dataset (sorted-map :a [1 2 3] :b [4 5 6]))
         ds4 (dataset [{:a 1 :b 2} {:a 4 :b 5}])
-        ds5 (dataset [:c :a :b] [{:a 1 :b 2 :c 3} {:a 4 :b 5 :c 6}])]
+        ds5 (dataset [:c :a :b] [{:a 1 :b 2 :c 3} {:a 4 :b 5 :c 6}])
+        ds6 (dataset [:vec :ndarray :double-array]
+                     {:vec (matrix :persistent-vector [1 2 3])
+                      :ndarray (matrix :ndarray [4 5 6])
+                      :double-array (matrix :double-array [7 8 9])})]
     (is (= (column-names ds1) [:a :b]))
     (is (= (columns ds1) [[1 2 3] [4 5 6]]))
     (is (= (column-names ds2) [0 1]))
@@ -23,7 +27,10 @@
     (is (= (into #{} (column-names ds4)) #{:a :b}))
     (is (= (into #{} (columns ds4)) #{[1 4] [2 5]}))
     (is (= (column-names ds5) [:c :a :b]))
-    (is (= (columns ds5) [[3 6] [1 4] [2 5]]))))
+    (is (= (columns ds5) [[3 6] [1 4] [2 5]]))
+    (is (= (mapv type (columns ds6)) [(type (matrix :persistent-vector []))
+                                      (type (matrix :ndarray []))
+                                      (type ( matrix :double-array []))]))))
 
 (deftest test-column-name
   (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]

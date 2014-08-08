@@ -15,7 +15,7 @@
 
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
-        ^IPersistentVector cols (vec cols)
+        ^IPersistentVector cols (into [] (mp/get-rows cols))
         cc (count col-names)]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
@@ -23,11 +23,11 @@
 
 (defn dataset-from-rows [col-names rows]
   (let [^IPersistentVector col-names (vec col-names)
-        ^IPersistentVector rows (vec rows)
+        ^IPersistentVector cols (into [] (mp/get-columns rows))
         cc (count col-names)]
-    (when (not= cc (count (first rows)))
+    (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
-    (DataSet. col-names (mp/transpose rows))))
+    (DataSet. col-names cols)))
 
 (defn dataset-from-array
   ([m]
