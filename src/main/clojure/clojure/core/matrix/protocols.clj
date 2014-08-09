@@ -849,7 +849,8 @@
   (merge-datasets [ds1 ds2] "Returns a dataset created by combining columns of the given datasets. In case of columns with duplicate names, last-one-wins strategy is applied")
   (rename-columns [ds col-map] "Renames columns based on map of old new column name pairs")
   (replace-column [ds col-name vs] "Replaces column in a dataset with new values")
-  (conj-rows [ds1 ds2] "Returns a dataset created by combining the rows of the given datasets"))
+  (conj-rows [ds1 ds2] "Returns a dataset created by combining the rows of the given datasets")
+  (conj-columns [ds1 ds2] "Returns a dataset created by combining the columns of the given datasets"))
 
 (defprotocol PDimensionImplementation
   "EXPERIMENTAL: Protocol for querying multi-dimensioned datasets"

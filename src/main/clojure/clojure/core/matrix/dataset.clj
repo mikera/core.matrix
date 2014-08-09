@@ -140,3 +140,10 @@
      (mp/conj-rows ds1 ds2))
   ([ds1 ds2 & args]
      (apply mp/conj-rows (mp/conj-rows ds1 ds2) args)))
+
+(defn conj-columns
+  "Returns a dataset created by combining the columns of the given datasets"
+  ([ds1 ds2]
+     (mp/conj-columns ds1 ds2))
+  ([ds1 ds2 & args]
+     (apply mp/conj-columns (mp/conj-columns ds1 ds2) args)))

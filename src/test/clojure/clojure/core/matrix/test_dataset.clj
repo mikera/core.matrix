@@ -79,6 +79,12 @@
     (is (= (conj-rows ds1 ds2)
            (dataset [:a :b] [[1 4] [2 5] [3 6] [5 8] [6 8] [7 8]])))))
 
+(deftest test-conj-columns
+  (let [ds1 (dataset [:a :b] [[1 4] [2 5] [3 6]])
+        ds2 (dataset [:c :d] [[8 5] [8 6] [8 7]])]
+    (is (= (conj-columns ds1 ds2)
+           (dataset [:a :b :c :d] [[1 4 8 5] [2 5 8 6] [3 6 8 7]])))))
+
 (deftest test-row-maps
   (let [ds (dataset [:a :b] [[1 4] [2 5] [3 6]])]
     (is (= (row-maps ds) [{:a 1 :b 4} {:a 2 :b 5} {:a 3 :b 6}]))))
