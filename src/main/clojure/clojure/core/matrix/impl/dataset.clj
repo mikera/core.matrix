@@ -147,7 +147,7 @@
       (if (> idx -1)
         (mp/set-column ds idx vs)
         (error "Column " col-name " is not found in the dataset"))))
-  (conj-rows [ds1 ds2]
+  (join-rows [ds1 ds2]
     (let [col-names-1 (mp/column-names ds1)
           col-names-2 (mp/column-names ds2)]
       (if (= (into #{} col-names-1)
@@ -157,7 +157,7 @@
              (concat (mp/get-rows ds1))
              (dataset-from-rows col-names-1))
         (error "Can't join rows of datasets with different columns"))))
-  (conj-columns [ds1 ds2]
+  (join-columns [ds1 ds2]
     (let [col-set-1 (into #{} (mp/column-names ds1))
           col-set-2 (into #{} (mp/column-names ds2))
           intersection (clojure.set/intersection col-set-1 col-set-2)]
