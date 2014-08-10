@@ -5,6 +5,11 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:import clojure.core.matrix.impl.dataset.DataSet))
 
+(defmacro dataset?
+  "Returns true if argument is a dataset"
+  ([d]
+     `(instance? DataSet ~d)))
+
 (defn dataset
   "Creates dataset from:
     column names and seq of rows
@@ -23,6 +28,7 @@
       :else (error "Don't know how to create dataset from shape"  (shape m))))
   ([m]
      (cond
+      (dataset? m) m
       (matrix? m) (dataset-from-array m)
       (map? m)
       (let [col-names (keys m)
