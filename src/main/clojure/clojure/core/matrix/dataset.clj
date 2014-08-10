@@ -134,9 +134,16 @@
         ds col-name
         (matrix col (map #(apply f % args) col))))))
 
-(defn conj-rows
+(defn join-rows
   "Returns a dataset created by combining the rows of the given datasets"
   ([ds1 ds2]
-     (mp/conj-rows ds1 ds2))
+     (mp/join-rows ds1 ds2))
   ([ds1 ds2 & args]
-     (apply mp/conj-rows (mp/conj-rows ds1 ds2) args)))
+     (apply mp/join-rows (mp/join-rows ds1 ds2) args)))
+
+(defn join-columns
+  "Returns a dataset created by combining the columns of the given datasets"
+  ([ds1 ds2]
+     (mp/join-columns ds1 ds2))
+  ([ds1 ds2 & args]
+     (apply mp/join-columns (mp/join-columns ds1 ds2) args)))

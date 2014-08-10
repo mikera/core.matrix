@@ -73,11 +73,17 @@
     (is (= (update-column ds :b * 3)
            (dataset [:a :b] (matrix [[1 12] [2 15] [3 18]]))))))
 
-(deftest test-conj-rows
+(deftest test-join-rows
   (let [ds1 (dataset [:a :b] [[1 4] [2 5] [3 6]])
         ds2 (dataset [:b :a] [[8 5] [8 6] [8 7]])]
-    (is (= (conj-rows ds1 ds2)
+    (is (= (join-rows ds1 ds2)
            (dataset [:a :b] [[1 4] [2 5] [3 6] [5 8] [6 8] [7 8]])))))
+
+(deftest test-join-columns
+  (let [ds1 (dataset [:a :b] [[1 4] [2 5] [3 6]])
+        ds2 (dataset [:c :d] [[8 5] [8 6] [8 7]])]
+    (is (= (join-columns ds1 ds2)
+           (dataset [:a :b :c :d] [[1 4 8 5] [2 5 8 6] [3 6 8 7]])))))
 
 (deftest test-row-maps
   (let [ds (dataset [:a :b] [[1 4] [2 5] [3 6]])]

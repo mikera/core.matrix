@@ -147,7 +147,7 @@
       (if (> idx -1)
         (mp/set-column ds idx vs)
         (error "Column " col-name " is not found in the dataset"))))
-  (conj-rows [ds1 ds2]
+  (join-rows [ds1 ds2]
     (let [col-names-1 (mp/column-names ds1)
           col-names-2 (mp/column-names ds2)]
       (if (= (into #{} col-names-1)
@@ -156,7 +156,16 @@
              (mp/get-rows)
              (concat (mp/get-rows ds1))
              (dataset-from-rows col-names-1))
-        (error "Can't join rows of datasets with different columns")))))
+        (error "Can't join rows of datasets with different columns"))))
+  (join-columns [ds1 ds2]
+    (let [col-set-1 (into #{} (mp/column-names ds1))
+          col-set-2 (into #{} (mp/column-names ds2))
+          intersection (clojure.set/intersection col-set-1 col-set-2)]
+      (if (= (count intersection) 0)
+        (dataset-from-columns
+         (concat (mp/column-names ds1) (mp/column-names ds2))
+         (concat (mp/get-columns ds1) (mp/get-columns ds2)))
+        (error "Duplicate column names: " intersection)))))
 
 (extend-protocol mp/PImplementation
   DataSet
