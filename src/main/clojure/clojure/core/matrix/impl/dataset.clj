@@ -98,14 +98,17 @@
                " not found in dataset"))))
   (select-rows [ds rows]
     (let [col-names (mp/column-names ds)
-          row-maps (mp/row-maps ds)
-          c (count (mp/get-rows ds))
-          out-of-range (filter #(>= % c) rows)]
-      (if (= (count out-of-range) 0)
+          row-maps (mp/row-maps ds)]
+      (try
         (->> (map #(nth row-maps %) rows)
              (dataset-from-row-maps col-names))
-        (error "Dataset contains only " c " rows. Can't select rows with indices: "
-               (vec out-of-range)))))
+        (catch Exception e
+          (let [c (count (mp/get-rows ds))
+                out-of-range (filter #(>= % c) rows)]
+            (if (> (count out-of-range) 0)
+              (error "Dataset contains only " c " rows. Can't select rows with indices: "
+                     (vec out-of-range))
+              (throw e)))))))
   (add-column [ds col-name col]
     (dataset-from-columns (conj (mp/column-names ds) col-name)
                           (conj (mp/get-columns ds) col)))
