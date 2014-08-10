@@ -37,11 +37,13 @@
     (is (= (column-name ds 0) :a))
     (is (= (column-name ds 1) :b))))
 
-(deftest test-select-column
-  (let [ds (dataset [:a :b :c] (matrix [[1 4 9] [2 5 9] [3 6 9] [4 7 9]]))]
-    (is (= (select-columns ds [:a :b])
+(deftest test-select-columns
+  (let [ds1 (dataset [:a :b :c] (matrix [[1 4 9] [2 5 9] [3 6 9] [4 7 9]]))
+        ds2 (dataset [:a :b :c] [])]
+    (is (= (select-columns ds1 [:a :b])
            (dataset [:a :b] (matrix [[1 4] [2 5] [3 6] [4 7]]))))
-    (is (= (except-columns ds [:a :b])
+    (is (= (select-columns ds2 [:a :b]) (dataset [:a :b] [])))
+    (is (= (except-columns ds1 [:a :b])
            (dataset [:c] (matrix [[9] [9] [9] [9]]))))))
 
 (deftest test-select-rows

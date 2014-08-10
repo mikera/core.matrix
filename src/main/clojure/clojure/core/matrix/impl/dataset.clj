@@ -15,16 +15,20 @@
 
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
-        ^IPersistentVector cols (into [] (mp/get-rows cols))
-        cc (count col-names)]
+        cc (count col-names)
+        ^IPersistentVector cols (if (empty? cols)
+                                  (into [] (repeat cc []))
+                                  (into [] (mp/get-rows cols)))]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
     (DataSet. col-names cols)))
 
 (defn dataset-from-rows [col-names rows]
   (let [^IPersistentVector col-names (vec col-names)
-        ^IPersistentVector cols (into [] (mp/get-columns rows))
-        cc (count col-names)]
+        cc (count col-names)
+        ^IPersistentVector cols (if (empty? rows)
+                                  (into [] (repeat cc []))
+                                  (into [] (mp/get-columns rows)))]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
     (DataSet. col-names cols)))
@@ -203,7 +207,10 @@
     [(mp/dimension-count m 0) (mp/dimension-count m 1)])
   (dimension-count [m x]
     (cond
-     (== x 0) (mp/dimension-count (first (mp/get-columns m)) 0)
+     (== x 0) (let [cols (mp/get-columns m)]
+                (if-not (empty? cols)
+                  (mp/dimension-count cols 1)
+                  0))
      (== x 1) (count (mp/column-names m))
      :else (error "Invalid dimension: " x))))
 

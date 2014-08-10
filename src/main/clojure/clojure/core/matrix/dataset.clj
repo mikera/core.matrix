@@ -15,6 +15,7 @@
   ([col-names m]
      (cond
       (matrix? m) (dataset-from-rows col-names m)
+      (and (vec? m) (empty? m)) (dataset-from-rows col-names m)
       (map? (first m)) (dataset-from-row-maps col-names m)
       (map? m) (let [cols (reduce
                            (fn [acc c] (conj acc (get m c)))
@@ -55,11 +56,6 @@
            col-names
            (reduce #(conj %1 (get col-map %2)) [] col-names))
           (error "Can't create dataset from incomplete maps"))))))
-
-(defmacro dataset?
-  "Returns true if argument is a dataset"
-  ([d]
-     `(instance? DataSet ~d)))
 
 (defn column-names
   "Returns a persistent vector containing column names in the same order as they are placed in the dataset"
