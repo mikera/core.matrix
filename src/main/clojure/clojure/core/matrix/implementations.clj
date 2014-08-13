@@ -23,6 +23,7 @@
    :scalar-wrapper 'clojure.core.matrix.impl.wrappers
    :slice-wrapper 'clojure.core.matrix.impl.wrappers
    :nd-wrapper 'clojure.core.matrix.impl.wrappers
+   :dataset 'clojure.core.matrix.impl.dataset
    :jblas :TODO
    :clatrix 'clatrix.core
    :parallel-colt :TODO
