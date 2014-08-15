@@ -12,6 +12,7 @@
 (def KNOWN-IMPLEMENTATIONS
   (array-map
    :vectorz 'mikera.vectorz.matrix-api
+   :clatrix 'clatrix.core
    :ndarray 'clojure.core.matrix.impl.ndarray
    :ndarray-double 'clojure.core.matrix.impl.ndarray
    :ndarray-float 'clojure.core.matrix.impl.ndarray
@@ -25,7 +26,6 @@
    :nd-wrapper 'clojure.core.matrix.impl.wrappers
    :dataset 'clojure.core.matrix.impl.dataset
    :jblas :TODO
-   :clatrix 'clatrix.core
    :parallel-colt :TODO
    :ejml :TODO
    :ujmp :TODO
