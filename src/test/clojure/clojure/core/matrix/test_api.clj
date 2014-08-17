@@ -22,6 +22,8 @@
   (let [a [[1 2] [3 4]]]
     (testing "higher level indexing"
       (is (equals 1 (select a 0 0)))
+      (is (equals 4 (select a -1 -1)))
+      (is (equals 4 (select [[1 2][3 4]] -1 -1)))
       (is (equals [[1] [3]] (select a [0 1] [0])))
       (is (equals [1 3] (select a :all 0)))
       (is (equals a (select a :all :all))))))
@@ -50,8 +52,9 @@
 (deftest test-set-selection
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
     (testing "set-selection"
-      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (set-selection a 0 0 2))
-      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (set-selection a [0 2] [0 3] 3)))))
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] (set-selection a 0 0 2)))
+      (is (= [[1 2 3 4] [5 6 7 8] [9 10 11 13]] (set-selection a -1 -1 13)))
+      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]] (set-selection a [0 2] [0 3] 3))))))
 
 (deftest test-set-selection!
   (let [a (matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
@@ -59,13 +62,16 @@
       (set-selection! a 0 0 2)
       (is (equals [[2 2 3 4] [5 6 7 8] [9 10 11 12]] a))
       (set-selection! a :all 0 0)
-      (is (equals [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a)))))
+      (is (equals [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a))
+      (set-selection! a -1 -1 0)
+      (is (equals [[0 2 3 4] [0 6 7 8] [0 10 11 0]] a)))))
 
 
 (deftest test-set-sel
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
     (testing "set-sel"
       (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (set-sel a 0 0 2))
+      (is (= [[1 2 3 4] [5 6 7 8] [9 10 11 13]]) (set-sel a -1 -1 13))
       (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (set-sel a [0 2] [0 3] 3))
       (is (= [[1 2 3 4] [5 5 5 5] [5 5 5 5]])
           (set-sel a (where (partial < 5)) 5)))))
@@ -76,7 +82,9 @@
       (set-sel! a 0 0 2)
       (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] a))
       (set-sel! a :all 0 0)
-      (is (= [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a)))))
+      (is (= [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a))
+      (set-sel! a -1 -1 0)
+      (is (= [[0 2 3 4] [0 6 7 8] [0 10 11 0]] a)))))
 
 (deftest test-selector-functions
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12] [13 14 15 16]]]
