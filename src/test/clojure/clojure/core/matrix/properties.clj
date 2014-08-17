@@ -1,5 +1,7 @@
 (ns clojure.core.matrix.properties
   (:use clojure.core.matrix)
+  (:use clojure.core.matrix.linear)
+  (:use clojure.core.matrix.generators)
   (:use clojure.test)
   (:require [clojure.test.check :as sc]
             [clojure.test.check.generators :as gen]
@@ -102,3 +104,13 @@
       (is (equals m (transpose m) 1.0E-12))
       (is (equals m (inverse m) 1.0E-12))
       (is (equals (mmul m m) i 1.0E-12)))))
+
+(defspec qr-props num-tests
+  (prop/for-all
+   [mtx (gen-matrix)]
+   (if (>= (row-count mtx) (column-count mtx)) ;; TODO: fix when rows < cols is supported
+     (if-let [{:keys [Q R]} (qr mtx)]
+       (do  (is (orthogonal? Q))
+            (is (equals mtx (mmul Q R) 1.0E-10)))
+       true)
+     true)))

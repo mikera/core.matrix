@@ -391,9 +391,8 @@
       nil)
   Object 
     (immutable-matrix [m]
-      (if 
-        (mp/is-mutable? m) 
-        (mp/persistent-vector-coerce m)
+      (if (mp/is-mutable? m) 
+        (mp/convert-to-nested-vectors m)
         m))) 
 
 (extend-protocol mp/PZeroCount
@@ -489,10 +488,9 @@
   Object
     (trace [m]
       (when-not (== 2 (mp/dimensionality m)) (error "Trace requires a 2D matrix"))
-      (let [rc (mp/dimension-count m 0)
-            cc (mp/dimension-count m 1)
-            dims (long rc)]
-        (when-not (== rc cc) (error "Can't compute trace of non-square matrix"))
+      (let [rc (long (mp/dimension-count m 0))
+            cc (long (mp/dimension-count m 1))
+            dims (Math/min rc cc)]
         (loop [i 0 res 0.0]
           (if (>= i dims)
             res
@@ -513,18 +511,20 @@
     (transpose [m] m)
   Object
     (transpose [m]
-      (case (long (mp/dimensionality m))
-        0 m
-        1 m
-        2 (apply mapv vector (map
+      (mp/coerce-param
+       m
+       (case (long (mp/dimensionality m))
+         0 m
+         1 m
+         2 (apply mapv vector (map
                                #(mp/convert-to-nested-vectors %)
                                (mp/get-major-slice-seq m)))
-        (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
-          ;; note that function must come second for mp/element-map
-          (case (count ss)
-            1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
-            2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
-            (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss)))))))
+         (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
+           ;; note that function must come second for mp/element-map
+           (case (count ss)
+             1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
+             2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
+             (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss))))))))
 
 (extend-protocol mp/PTransposeInPlace
   Object
@@ -634,7 +634,7 @@
          (and (== mdims 1) (== adims 2))
            (let [[arows acols] (mp/get-shape a)]
              (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
-                         [arows]))
+                         [acols]))
          (and (== mdims 2) (== adims 1))
            (let [[mrows mcols] (mp/get-shape m)]
              (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
@@ -690,15 +690,15 @@
 
 (extend-protocol mp/PMatrixDivideMutable
   Number
-  (element-divide!
-    ([m] (error "Can't do mutable divide on a scalar number"))
-    ([m a] (error "Can't do mutable divide on a scalar numer")))
-  Object
-  (element-divide!
-    ([m] (mp/element-map! m #(/ %)))
-    ([m a]
-       (let [[m a] (mp/broadcast-compatible m a)]
-         (mp/element-map! m #(/ %1 %2) a)))))
+	  (element-divide!
+	    ([m] (error "Can't do mutable divide on a scalar number"))
+	    ([m a] (error "Can't do mutable divide on a scalar numer")))
+	Object
+	  (element-divide!
+	    ([m] (mp/element-map! m #(/ %)))
+	    ([m a]
+	       (let [[m a] (mp/broadcast-compatible m a)]
+	         (mp/element-map! m #(/ %1 %2) a)))))
 
 ;; matrix element summation
 (extend-protocol mp/PSummable
@@ -780,6 +780,23 @@
   Object
     (element-type [a]
       java.lang.Object))
+
+;; generic element values
+(extend-protocol mp/PGenericValues
+  Object
+    (generic-zero [m] 
+       0)
+    (generic-one [m] 
+       1)
+    (generic-value [m] 
+       nil)
+  Object
+    (generic-zero [m] 
+       0)
+    (generic-one [m] 
+      1)
+    (generic-value [m] 
+      0))
 
 ;; general transformation of a vector
 (extend-protocol mp/PVectorTransform
@@ -1127,6 +1144,24 @@
         (== 0 dimension) (mp/get-major-slice m i)
         :else (mp/get-slice (mp/convert-to-nested-vectors m) dimension i))))
 
+(extend-protocol mp/PMatrixColumns
+  Object
+  (get-columns [m]
+    (case (long (mp/dimensionality m))
+      0 (error "Can't get columns of a 0-dimensional object")
+      1 (error "Can't get columns of a 1-dimensional object")
+      2 (mp/get-slice-seq m 1)
+      (mapcat mp/get-columns (mp/get-major-slice-seq m)))))
+
+(extend-protocol mp/PMatrixRows
+  Object
+  (get-rows [m]
+    (case (long (mp/dimensionality m))
+      0 (error "Can't get rows of a 0-dimensional object")
+      1 (error "Can't get rows of a 1-dimensional object")
+      2 (mp/get-major-slice-seq m)
+      (mapcat mp/get-rows (mp/get-major-slice-seq m)))))
+
 (extend-protocol mp/PSliceView
   Object
     ;; default implementation uses a lightweight wrapper object
@@ -1184,6 +1219,24 @@
           :else
             (error "Joining with array of incompatible size")))))
 
+(extend-protocol mp/PSliceJoinAlong
+  nil
+  (join-along [m a dim]
+    (error "Can't join an array to a nil value!"))
+  Number
+  (join-along [m a dim]
+    (error "Can't join an array to a scalar number!"))
+  Object
+  (join-along [m a dim]
+    (mp/coerce-param m
+      (cond
+         (== dim 0)
+           (mp/join m a)
+         :else
+           (mapv #(mp/join-along %1 %2 (dec dim))
+                 (mp/get-major-slice-seq m)
+                 (mp/get-major-slice-seq a))))))
+
 (extend-protocol mp/PSubVector
   nil
     (subvector [m start length]
@@ -1214,6 +1267,12 @@
   nil
     (broadcast [m new-shape]
       (clojure.core.matrix.impl.wrappers/wrap-broadcast m new-shape))
+; TODO: efficient way to use current implementation?
+;  Number
+;    (broadcast [m new-shape]
+;      (if (seq new-shape)
+;        (mp/broadcast ())
+;        m))
   Object
     (broadcast [m new-shape]
       (let [nshape new-shape
@@ -1343,19 +1402,15 @@
 (extend-protocol mp/PReshaping
   nil
     (reshape [m shape]
-      (case (long (reduce * 1 (seq shape)))
-        0 (mp/broadcast m shape)
-        1 (mp/broadcast m shape)
-        (error "Can't reshape nil to shape: " (vec shape))))
+      (mp/reshape [nil] shape))
   Number
     (reshape [m shape]
-      (case (long (reduce * 1 (seq shape)))
-        0 (mp/broadcast m shape)
-        1 (mp/broadcast m shape)
-        (error "Can't reshape a scalar number to shape: " (vec shape))))
+      (mp/reshape [m] shape))
   Object
     (reshape [m shape]
-      (let [partition-shape (fn partition-shape [es shape]
+      (let [gv (mp/generic-value m) ;; generic value for array padding. Typically nil or zero
+            es (concat (mp/element-seq m) (repeat gv))
+            partition-shape (fn partition-shape [es shape]
                               (if-let [s (seq shape)]
                                 (let [ns (next s)
                                       plen (reduce * 1 ns)]
@@ -1363,11 +1418,9 @@
                                 (first es)))]
         (if-let [shape (seq shape)]
           (let [fs (long (first shape))
-                parts (partition-shape (mp/element-seq m) shape)]
-            (when-not (<= fs (count parts))
-              (error "Reshape not possible: insufficient elements for shape: " shape " have: " (seq parts)))
+                parts (partition-shape es shape)]
             (mp/construct-matrix m (take fs parts)))
-          (first (mp/element-seq m))))))
+          (first es)))))
 
 (extend-protocol mp/PCoercion
   nil
@@ -1538,16 +1591,67 @@
   Object
   (set-indices [a indices values]
     (let [indices (map mp/element-seq indices)
-          values (mp/element-seq (mp/broadcast values (mp/get-shape indices)))]
+          values (mp/element-seq (mp/broadcast values [(count indices)]))]
       (loop [a a [id & idx] indices [v & vs] values]
         (if id (recur (mp/set-nd a id v) idx vs) a))))
   (set-indices! [a indices values]
     (let [indices (map mp/element-seq indices)
-          values (mp/element-seq (mp/broadcast values (mp/get-shape indices)))]
+          values (mp/element-seq (mp/broadcast values [(count indices)]))]
       (loop [[id & idx] indices [v & vs] values]
         (when id
           (do (mp/set-nd! a id v) (recur idx vs)))))))
 
+(extend-protocol mp/PNonZeroIndices
+  Object
+  (non-zero-indices 
+    [m]
+    (if (mp/is-vector? m)
+      (vec (for [i (range (mp/dimension-count m 0))
+                    :when (not (== 0 (mp/get-1d m i)))] 
+              i))
+      (vec (for [i (range (mp/dimension-count m 0))]
+              (mp/non-zero-indices (m i)))))))
+
+;; TODO: proper generic implementations
+(extend-protocol mp/PMatrixTypes
+  Object
+  (diagonal? [m]
+    (if (= (mp/dimensionality m) 2)
+      (let [[mrows mcols] (mp/get-shape m)]
+        (->> (mp/element-seq m)
+             (map #(vector (quot %1 mcols) (rem %1 mcols) %2)
+                  (range (* mrows mcols)))
+             (every? (fn [[i j v]]
+                       (cond
+                        (= i j) true
+                        (and (not (= i j)) (== v 0)) true
+                        :else false)))))
+      false))
+  (upper-triangular? [m]
+    (if (square? m)
+      (->> (mp/get-slice-seq m 0)
+           (map vector (range))
+           (mapcat (fn [[idx xs]] (take idx xs)))
+           (every? zero?))
+      false))
+  (lower-triangular? [m]
+    (if (square? m)
+      (->> (mp/get-slice-seq m 0)
+           (map vector (range))
+           (mapcat (fn [[idx xs]] (drop (inc idx) xs)))
+           (every? zero?))
+      false))
+  (positive-definite? [m]
+    (error "TODO: Not yet implemented")
+    (mp/positive-definite? (mp/convert-to-nested-vectors m)))
+  (positive-semidefinite? [m]
+    (error "TODO: Not yet implemented"))
+  (orthogonal? [m eps]
+    (and (square? m)
+         (mp/matrix-equals-epsilon
+          (mp/matrix-multiply m (mp/transpose m))
+          (mp/identity-matrix m (first (mp/get-shape m)))
+          eps))))
 
 (extend-protocol mp/PSelect
   Object
@@ -1582,6 +1686,255 @@
        (if idl
          (recur (mp/set-nd a idl (mp/get-nd vals idr)) idxl idxr)
          a))))))
+
+(extend-protocol mp/PIndexImplementation
+  Object
+	  (index? [m]
+      false) ;; we default to saying something isn't an index, unless it is explicitly supported
+	  (index-to-longs [m]
+      (long-array (mp/element-seq m)))
+	  (index-to-ints [m]
+      (int-array (mp/element-seq m)))
+	  (index-from-longs [m xs]
+      (long-array xs))
+	  (index-from-ints [m xs]
+      (int-array xs))
+	  (index-coerce [m a]
+      (mp/index-to-longs m)))
+
+(extend-protocol mp/PDimensionImplementation
+  Object
+    (dimension-name [ds idx dim] 
+      (cond 
+        (== dim 0) (mp/row-name ds idx)
+        (== dim 1) (mp/column-name ds idx)
+        :else idx))
+    (row-name [ds idx] 
+      idx)
+    (column-name [ds idx] 
+      (nth (mp/column-names ds) idx)))  
+
+;; =======================================================
+;; default linear algebra implementations
+
+(extend-protocol mp/PNorm
+  Object
+  (norm [m p]
+    (cond
+      (= p java.lang.Double/POSITIVE_INFINITY) (mp/element-max m)
+      (number? p) (mp/element-sum (mp/element-pow (mp/element-map m mops/abs) p))
+      :else (error "p must be a number"))))
+
+;; QR decomposition utility functions
+
+(defn compute-q [m ^doubles qr-data mcols mrows min-len
+                 ^doubles us ^doubles vs ^doubles gammas]
+  (let [q ^doubles (mp/to-double-array (mp/identity-matrix vector mrows))]
+    (c-for [i (dec min-len) (> i -1) (dec i)]
+      (let [gamma (aget gammas i)]
+        (aset us i 1.0)
+        (c-for [j (inc i) (< j mrows) (inc j)]
+          (aset us j
+                (aget qr-data
+                      (+ (* j mcols)
+                         i))))
+        (c-for [j i (< j mrows) (inc j)]
+          (aset vs j
+                (* (aget us i)
+                   (aget q
+                         (+ (* i mrows)
+                            j)))))
+        (c-for [j (inc i) (< j mrows) (inc j)]
+          (let [u (aget us j)]
+            (c-for [k i (< k mrows) (inc k)]
+              (let [q-idx (+ (* j mrows)
+                             i (- k i))]
+                (aset vs k (+ (aget vs k)
+                              (* u
+                                 (aget q q-idx))))))))
+        (c-for [j i (< j mrows) (inc j)]
+          (aset vs j (* (aget vs j)
+                        gamma)))
+
+        (c-for [j i (< j mrows) (inc j)]
+          (let [u (aget us j)]
+            (c-for [k i (< k mrows) (inc k)]
+              (let [qr-idx (+ (* j mrows)
+                              i (- k i))]
+                (aset q qr-idx (- (aget q qr-idx)
+                                  (* u (aget vs k))))))))))
+    (mp/compute-matrix m [mrows mrows]
+                       (fn [i j]
+                         (aget q (+ (* i mrows) j))))))
+
+
+
+(defn compute-r [m ^doubles data mcols mrows min-len compact?]
+  (let [cm (mp/compute-matrix
+              m [mrows mcols]
+              (fn [i j]
+                (if (and (< i min-len)
+                         (>= j i)
+                         (< j mcols))
+                  (aget data (+ (* i mcols) j))
+                  0)))]
+    (if compact?
+      (->> (mp/get-major-slice-seq cm)
+           (reduce
+            #(if (every? zero? %2) (inc %1) %1) 0)
+           (#(mp/reshape cm [mcols (- mrows %)])))
+      cm)))
+
+(defn householder-qr [^doubles qr-data idx mcols
+                      mrows ^doubles us ^doubles gammas]
+  (loop [qr-idx (+ idx (* idx mcols))
+         i idx]
+    (if (< i mrows)
+      (do
+        (aset us i (aget qr-data qr-idx))
+        (recur (+ qr-idx mcols)
+               (inc i)))))
+  (let [max_ (apply max (map #(Math/abs ^Double %)
+                             (mp/subvector us idx (- mrows idx))))]
+    (if (= max_ 0.0)
+      {:error true}
+      (let [_ (c-for [i idx (< i mrows) (inc i)]
+                (aset us i (/ (aget us i) max_)))
+            tau (->> (mp/subvector us idx (- mrows idx))
+                     (map #(* % %))
+                     (apply +)
+                     (Math/sqrt))
+            u-idx (aget us idx)
+            tau (if (neg? u-idx) (- tau) tau)
+            u-0 (+ u-idx tau)
+            gamma (/ u-0 tau)
+            tau (* tau max_)]
+        (aset gammas idx gamma)
+        (c-for [i (inc idx) (< i mrows) (inc i)]
+          (aset us i (/ (aget us i) u-0)))
+        (aset us idx 1.0)
+        {:gamma gamma
+         :gammas gammas
+         :us us
+         :tau tau
+         :error false}))))
+
+(defn update-qr [^doubles qr-data idx mcols mrows ^doubles vs
+                 ^doubles us ^Double gamma ^Double tau]
+  (let [u (aget us idx)
+        idx+1 (inc idx)]
+    (c-for [i idx+1 (< i mcols) (inc i)]
+      (aset vs i (aget qr-data
+                       (+ i
+                          (* idx mcols)))))
+    (c-for [i idx+1 (< i mrows) (inc i)]
+      (let [qr-idx (+ idx+1
+                      (* i mcols))]
+        (c-for [j idx+1 (< j mcols) (inc j)]
+          (aset vs j
+                (+ (aget vs j)
+                   (* (aget us i)
+                      (aget qr-data (+ qr-idx
+                                       (- j idx+1)))))))))
+    (c-for [i idx+1 (< i mcols) (inc i)]
+      (aset vs i (* (aget vs i)
+                    gamma)))
+
+    (c-for [i idx (< i mrows) (inc i)]
+      (let [u (aget us i)]
+        (c-for [j idx+1 (< j mcols) (inc j)]
+          (let [qr-idx (+ (* i mcols)
+                          idx+1
+                          (- j idx+1))]
+            (aset qr-data qr-idx
+                  (-> (aget qr-data qr-idx)
+                      (- (* u (aget vs j)))))))))
+
+    (when (< idx mcols)
+      (aset qr-data (+ idx (* idx mcols)) (double (- tau))))
+
+    (c-for [i idx+1 (< i mrows) (inc i)]
+      (aset qr-data
+            (+ idx (* i mcols))
+            (aget us i)))
+    {:qr-data qr-data
+     :vs vs}))
+
+
+(extend-protocol mp/PQRDecomposition
+  Object
+  (qr [m options]
+    (let [[mrows mcols] (mp/get-shape m)
+          min-len (min mcols mrows)
+          max-len (max mcols mrows)]
+      (loop [qr-data (mp/to-double-array m)
+             vs (double-array max-len)
+             us (double-array max-len)
+             gammas (double-array min-len)
+             gamma 0.0
+             tau 0.0
+             i 0]
+        (if (< i min-len)
+          (let [{:keys [us gamma gammas tau error]}
+                (householder-qr
+                 qr-data i mcols
+                 mrows us gammas)]
+            (when-not error
+              (let [{:keys [qr-data vs]}
+                    (update-qr qr-data i mcols mrows
+                               vs us gamma tau)]
+                (recur qr-data vs us gammas
+                       (double gamma) (double tau) (inc i)))))
+          (->>
+           (select-keys
+            {:Q #(compute-q m qr-data mcols mrows
+                            min-len us vs gammas)
+             :R #(compute-r m qr-data mcols mrows min-len (:compact options))}
+            (:return options))
+           (map (fn [[k v]] [k (v)]))
+           (into {})))))))
+
+;; temp var to prevent recursive coercion if implementation does not support liear algebra operation
+(def ^:dynamic *trying-current-implementation* nil)
+
+(defmacro try-current-implementation 
+  [sym form]
+  `(if *trying-current-implementation*
+     (TODO (str "Not yet implemented: " ~(str form) " for " (class ~sym)))
+     (binding [*trying-current-implementation* true]
+       (let [imp# (imp/get-canonical-object)
+             ~sym (mp/coerce-param imp# ~sym)]
+         ~form))))
+
+(extend-protocol mp/PCholeskyDecomposition
+  Object
+  (cholesky [m options] 
+    (try-current-implementation m (mp/cholesky m options))))
+
+(extend-protocol mp/PLUDecomposition
+  Object
+  (lu [m options] 
+    (try-current-implementation m (mp/lu m options))))
+
+(extend-protocol mp/PSVDDecomposition
+  Object
+  (svd [m options] 
+    (try-current-implementation m (mp/svd m options))))
+
+(extend-protocol mp/PEigenDecomposition
+  Object
+  (eigen [m options] 
+    (try-current-implementation m (mp/eigen m options))))
+
+(extend-protocol mp/PSolveLinear
+  Object
+  (solve [a b] 
+    (try-current-implementation a (mp/solve a b))))
+
+(extend-protocol mp/PLeastSquares
+  Object
+  (least-squares [a b] 
+    (try-current-implementation a (mp/least-squares a b))))
 
 ;; =======================================================
 ;; default multimethod implementations

@@ -1,4 +1,5 @@
-(ns clojure.core.matrix.utils)
+(ns clojure.core.matrix.utils
+  (:require [clojure.reflect :as r]))
 
 ;; Some of these are copies of methods from the library
 ;;   https://github.com/mikera/clojure-utils
@@ -29,7 +30,8 @@
 
 ;; useful TODO macro: facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO
-  ([] `(error "TODO: not yet implemented")))
+  ([] `(error "TODO: not yet implemented"))
+  ([& vals] `(error "TODO: " ~@vals)))
 
 (defmacro iae
   "Throws IllegalArgumentException with provided string"
@@ -239,6 +241,26 @@
        (number? x#) x#
        :else (clojure.core.matrix.protocols/get-0d x#)))))
 
+;; utilities for protocol introspection
+
+(defn extends-deep?
+  "This functions differs from ordinary `extends?` by using `extends?`
+   on all ancestors of given type instead of just type itself. It also
+   skips `java.lang.Object` that serves as a default implementation
+   for all protocols"
+  [proto cls]
+  ;; Here we need a special case to avoid reflecting on primitive type
+  ;; (it will cause an exception)
+  (if (= (Class/forName "[D") cls)
+    (extends? proto cls)
+    (let [bases (-> cls (r/type-reflect :ancestors true) :ancestors)]
+      (->> bases
+           (filter (complement #{'java.lang.Object}))
+           (map resolve)
+           (cons cls)
+           (map (partial extends? proto))
+           (some true?)))))
+
 (defn protocol?
   "Returns true if an argument is a protocol'"
   [p]
@@ -254,8 +276,27 @@
 
 (defn extract-protocols
   "Extracts protocol info from clojure.core.matrix.protocols"
-  []
-  (->> (ns-publics 'clojure.core.matrix.protocols)
-       (filter (comp protocol? deref val))
-       (map enhance-protocol-kv)
-       (sort-by :line)))
+  ([]
+    (extract-protocols 'clojure.core.matrix.protocols))
+  ([ns-sym]
+    (->> (ns-publics ns-sym)
+      (filter (comp protocol? deref val))
+      (map enhance-protocol-kv)
+      (sort-by :line))))
+
+(defn unimplemented
+  "Identifies which protocols are unimplemented for a given array object.
+
+   Unimplemented protocols will fall back to the default implementation (for java.lang.Object) which
+   is likely to be slower than a specialised implementation."
+  [m]
+  (let [protocols (extract-protocols)
+        m (if (class? m) m (class m))]
+    (map :name (filter #(not (extends-deep? % m)) protocols))))
+
+;; useful for updating slice of the vector
+(defn update [xs vals f]
+  (reduce #(update-in %1 [%2] f) xs vals))
+
+(defn update-indexed [xs idxs f]
+  (reduce #(assoc %1 %2 (f %2 (get %1 %2))) xs idxs))

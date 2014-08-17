@@ -1,5 +1,6 @@
 (ns clojure.core.matrix.compliance-tester
   (:use clojure.core.matrix)
+  (:use clojure.core.matrix.linear)
   (:use clojure.test)
   (:require [clojure.core.matrix.operators :as ops])
   (:require [clojure.core.matrix.protocols :as mp])
@@ -239,17 +240,39 @@
       (fill! mm e)
       (is (e= mm n)))))
 
+(defn check-joined-matrices [original joined]
+  (let [js (slices joined)]
+    (is (== (first (shape joined)) (* 2 (first (shape original)))))
+    (is (e= original (take (first (shape original)) js)))
+    (is (e= original (drop (first (shape original)) js)))))
+
 (defn test-join
   "Test for joining matrices along major dimension"
   ([m]
-    (when (> 0 (dimensionality m))
-      (let [j (join m m)
-            js (slices j)]
-        (is (== (first (shape j)) (* 2 (first (shape m)))))
-        (is (e= m (first js))))
-      (let [j (join m (first (slices m)))
-            js (slices j)]
-        (is (== (first (shape j)) (inc (first (shape m)))))))))
+   (when (and m (== 1 (dimensionality m)))
+     (let [j (join m m)]
+       (check-joined-matrices m j)))))
+
+
+(defn test-join-along
+  "Test for joining matrices along arbitrary dimensions"
+  ([m]
+   (when m
+     (when (< 0 (dimensionality m))
+       (let [j (join-along 0 m m)]
+         (check-joined-matrices m j)))
+     (when (< 1 (dimensionality m))
+       (let [j (join-along 1 m m)]
+         (doseq [[slice1 slice2] (map vector
+                                      (slices m)
+                                      (slices j))]
+           (check-joined-matrices slice1 slice2))))
+     (when (< 2 (dimensionality m))
+       (let [j (join-along 2 m m)]
+         (doseq [[slice1 slice2] (map vector
+                                      (map #(slices % 1) (slices m 1))
+                                      (map #(slices % 1) (slices j 1)))]
+           (check-joined-matrices slice1 slice2)))))))
 
 (defn test-pm
   "Test for matrix pretty-printing"
@@ -279,6 +302,7 @@
   (test-pack m)
   (test-assign m)
   (test-join m)
+  (test-join-along m)
   (test-dimensionality-assumptions m)
   (test-slice-assumptions m)
   (test-slice-returns-scalar-on-1d m)
@@ -344,7 +368,7 @@
 ;  (testing "Invalid vectors"
 ;    (is (error? (matrix m [1 [2 3]])))
 ;    (is (error? (matrix m [[2 3] 1]))))
-;  
+;
 )
 
 (defn test-dimensionality [im]
@@ -457,7 +481,14 @@
           m (sub i (emul 2.0 (outer-product v v)))]
       (is (equals m (transpose m) 1.0E-12))
       (is (equals m (inverse m) 1.0E-12))
-      (is (equals (mmul m m) i 1.0E-12)))))
+      (is (equals (mmul m m) i 1.0E-12))))
+  (let [m1 (matrix m [[1 2 3 4]])
+        m2 (matrix m [[1 2 3] [4 5 6] [7 8 9] [10 11 12]])
+        m3 (matrix m [[2 3]
+                      [5 6]
+                      [7 8]])]
+    (is (equals (shape (mmul m1 m2)) [1 3]))
+    (is (equals (shape (mmul m2 m3)) [4 2]))))
 
 (defn test-numeric-matrix-predicates [m]
   (when (== 2 (dimensionality m))
@@ -470,12 +501,32 @@
     (is (zero-matrix? (array m [[0.0]])))
     (is (not (identity-matrix? (array m [[1.0 0.0]]))))))
 
+(defn test-numeric-matrix-types [m]
+  (when (== 2 (dimensionality m))
+    (let [m1 (diagonal-matrix m [1 2 3])
+          m2 (matrix m [[1 2 3] [0 4 5] [0 0 6]])
+          m3 (matrix m [[1 0 0] [2 3 0] [3 4 5]])
+          m4 (matrix m [[0 -0.8 -0.6] [0.8 -0.36 0.48] [0.6 0.48 -0.64]])]
+      (is (diagonal? m1))
+      (is (upper-triangular? m1))
+      (is (lower-triangular? m1))
+      (is (upper-triangular? m2))
+      (is (not (lower-triangular? m2)))
+      (is (not (diagonal? m2)))
+      (is (lower-triangular? m3))
+      (is (not (upper-triangular? m3)))
+      (is (not (diagonal? m3)))
+      (is (orthogonal? m4))
+      (is (not (orthogonal? m1)))
+      (is (not (orthogonal? m2))))))
+
 (defn test-numeric-instance [m]
   (is (numerical? m))
  ; (test-generic-numerical-assumptions m)
   (numeric-scalar-tests m)
   (misc-numeric-tests m)
-  (test-numeric-matrix-predicates m))
+  (test-numeric-matrix-predicates m)
+  (test-numeric-matrix-types m))
 
 ;; ========================================
 ;; 1D vector tests
@@ -535,6 +586,10 @@
   (test-numeric-instance (matrix im [1 2 -3 4.5 7 -10.8]))
   (test-numeric-instance (matrix im [0 0])))
 
+(defn test-1d-mmul [im]
+  (let [m (matrix im [1 2 3])]
+    (is (equals 14 (mmul m m)))))
+
 (defn vector-tests-1d [im]
   (test-vector-mset im)
   (test-vector-length im)
@@ -545,7 +600,8 @@
   (test-vector-subvector im)
   (test-vector-distance im)
   (test-element-add im)
-  (test-1d-instances im))
+  (test-1d-instances im)
+  (test-1d-mmul im))
 
 ;; ========================================
 ;; 2D matrix tests
@@ -554,7 +610,9 @@
   (testing "2D transpose"
     (let [m (matrix im [[1 2] [3 4]])]
       (is (equals [[1 3] [2 4]] (transpose m)))
-      (is (equals m (transpose (transpose m)))))))
+      (is (equals m (transpose (transpose m))))
+      (is (= (imp/get-canonical-object m)
+             (imp/get-canonical-object (transpose m)))))))
 
 (defn test-order [im]
   (testing "order"
@@ -585,8 +643,12 @@
     (is (equals [1 4 9] (mmul I [1 2 3])))
     (is (equals I-squared (mmul I I)))
     (is (equals I (transpose I))))
-  (let [m (matrix im [[1 2 3] [4 5 6] [7 8 9]])]
-    (is (equals [1 5 9] (main-diagonal m)))))
+  (let [m1 (matrix im [[1 2 3] [4 5 6] [7 8 9]])
+        m2 (matrix im [[1 2 3] [4 5 6] [7 8 9] [10 11 12]])
+        m3 (matrix im [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
+    (is (equals [1 5 9] (main-diagonal m1)))
+    (is (equals [1 5 9] (main-diagonal m2)))
+    (is (equals [1 6 11] (main-diagonal m3)))))
 
 (defn test-row-column-matrices [im]
   (let [rm (row-matrix im [1 2 3])]
@@ -700,6 +762,33 @@
      (is (e== [3 1] (add-row (matrix im [1 1]) 0 1 2))))
 
 ;; ======================================
+;; Decompositions Tests
+
+(defn test-qr
+  [im]
+  (map
+   #(let [m (matrix im %)
+          {:keys [Q R]} (qr m)]
+      (is (equals m (mmul Q R) 0.000001)))
+   [[[1 2 3 4]
+     [0 0 10 0]
+     [3 0 5 6]]
+    [[1 1 1
+      0 1 1
+      0 0 1]]]
+   [[1 7 3]
+    [7 4 -5]
+    [3 -5 6]])
+
+  (let [m (matrix im [[1 2] [3 4] [5 6] [7 8]])]
+    (let [{:keys [R]} (qr m {:return [:R]
+                             :compact true})]
+      (is (= (row-count R) 2)))
+    (let [{:keys [Q R]} (qr m {:compact true})]
+      (is (equals (shape Q) [4 4]))
+      (is (equals (shape R) [2 2])))))
+
+;; ======================================
 ;; Main compliance test method
 ;;
 ;; Implementations should call this with either a valid instance or their registered implementation key
@@ -712,7 +801,7 @@
   [m]
   (let [im (or (imp/get-canonical-object m) (error "Implementation not registered: " (class m)))
         ik (imp/get-implementation-key im)]
-    (binding [*matrix-implementation* ik]
+    (binding [imp/*matrix-implementation* ik]
       (instance-test im)
       (test-implementation im)
       (test-assumptions-for-all-sizes im)
@@ -727,4 +816,5 @@
       (test-numeric-functions im)
       (test-dimensionality im)
       (test-row-operations im)
+      (test-qr im)
       (test-new-matrices im))))

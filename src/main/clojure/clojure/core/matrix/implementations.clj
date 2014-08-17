@@ -23,6 +23,7 @@
    :scalar-wrapper 'clojure.core.matrix.impl.wrappers
    :slice-wrapper 'clojure.core.matrix.impl.wrappers
    :nd-wrapper 'clojure.core.matrix.impl.wrappers
+   :dataset 'clojure.core.matrix.impl.dataset
    :jblas :TODO
    :clatrix 'clatrix.core
    :parallel-colt :TODO
@@ -33,6 +34,9 @@
 ;; default implementation to use
 ;; should be included with clojure.core.matrix for easy of use
 (def DEFAULT-IMPLEMENTATION :persistent-vector)
+
+;; current implementation in use
+(def ^:dynamic *matrix-implementation* DEFAULT-IMPLEMENTATION)
 
 ;; hashmap of implementation keys to canonical objects
 ;; objects must implement PImplementation protocol at a minimum
@@ -67,6 +71,8 @@
   "Gets the canonical object for a specific implementation. The canonical object is used
    to call implementation-specific protocol functions where required (e.g. creation of new 
    arrays of the correct type for the implementation)"
+  ([]
+    (get-canonical-object *matrix-implementation*))
   ([m]
     (let [k (get-implementation-key m)
           obj (@canonical-objects k)]

@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.operators
+  (:use clojure.core.matrix.utils) 
   (:refer-clojure :exclude [* - + / vector? ==])
   (:require [clojure.core.matrix :as m]))
 
@@ -6,25 +7,24 @@
 (set! *unchecked-math* true)
 
 ;; =====================================================================
-;; Mathematical operators defined for matrices and vectors as applicable
+;; Mathematical operators defined for numerical arrays as applicable
 
 (defn *
-  "Matrix multiply operator. Uses elementwise multiplication."
+  "Array multiply operator. Uses elementwise multiplication."
   ([a] a)
   ([a b]
     (m/mul a b))
   ([a b & more]
     (reduce m/mul (m/mul a b) more)))
 
-;; TODO: remove the ^:dynamic once figured out way to stop "not declared dynamic" warning
-(defn ^:dynamic **
-  "Matrix exponent operator. Raises every element in matrix a to the given exponent.
-   Uses clojure.core.matrix/pow."
+(defn **
+  "array exponent operator. Raises every element in matrix a to the given exponent.
+   Equivalent to clojure.core.matrix/pow."
   ([a exponent]
     (m/pow a exponent)))
 
 (defn +
-  "Matrix addition operator"
+  "Array addition operator. Equivalent to clojure.core.matrix/add."
   ([a] a)
   ([a b]
     (if (and (number? a) (number? b))
@@ -34,7 +34,7 @@
     (reduce + (+ a b) more)))
 
 (defn -
-  "Matrix subtraction operator"
+  "Array subtraction operator. Equivalent to clojure.core.matrix/sub."
   ([a] (m/negate a))
   ([a b]
     (if (and (number? a) (number? b))
@@ -44,18 +44,35 @@
     (reduce - (- a b) more)))
 
 (defn /
-  "Element-wise matrix division."
+  "Element-wise matrix division. Equivalent to clojure.core.matrix/div."
   ([a] (m/div a)) ;; this computes the reciprocal
   ([a b] (m/div a b))
   ([a b & more] (reduce m/div (m/div a b) more)))
 
 (defn ==
-  "Matrix numerical comparison. Performs == on an element-wise basis"
+  "Numerical array comparison. Equivalent to reducing with clojure.core.matrix/equals."
   ([] true)
   ([a] true)
   ([a b] (m/equals a b))
   ([a b & more] (reduce (fn [r m] (and r (== a m))) (== a b) more)))
 
+(defmacro Σ
+  "Computes array summation over a range of values for one or more variables"
+  ([[sym vals & more :as bindings] exp]
+    (cond 
+      (odd? (count bindings)) (error "Summation requires an even number of forms in binding vector")
+      (seq more) `(Σ [~sym ~vals] (Σ [~@more] ~exp))
+      :else `(reduce m/add (map (fn [i#] (let [~sym i#] ~exp)) ~vals))))) 
+
+(defmacro Π
+  "Computes array products over a range of values for one or more variables"
+  ([[sym vals & more :as bindings] exp]
+    (cond 
+      (odd? (count bindings)) (error "Summation requires an even number of forms in binding vector")
+      (seq more) `(Σ [~sym ~vals] (Σ [~@more] ~exp))
+      :else `(reduce m/mul (map (fn [i#] (let [~sym i#] ~exp)) ~vals))))) 
+
+;; ===================================================
 ;; inplace operators
 (defn +=
   "Inplace matrix addition operator"
