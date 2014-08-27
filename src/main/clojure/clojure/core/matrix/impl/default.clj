@@ -1649,9 +1649,9 @@
   (orthogonal? [m eps]
     (and (square? m)
          (mp/matrix-equals-epsilon
-          (mp/matrix-multiply m (mp/transpose m))
-          (mp/identity-matrix m (first (mp/get-shape m)))
-          eps))))
+           (mp/matrix-multiply m (mp/transpose m))
+           (mp/identity-matrix m (mp/dimension-count m 0))
+           eps))))
 
 (extend-protocol mp/PSelect
   Object
