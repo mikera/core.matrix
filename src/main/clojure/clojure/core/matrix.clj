@@ -1567,7 +1567,7 @@
 
 (defn current-implementation
   "Gets the currently active matrix implementation (as a keyword)"
-  {:inline (fn [] imp/*matrix-implementation*)}
+  ;;{:inline (fn [] imp/*matrix-implementation*)} ;; Seems to cause caching issues when setting implementations?
   ([] imp/*matrix-implementation*))
 
 (defn- implementation-check
