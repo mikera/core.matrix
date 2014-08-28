@@ -290,7 +290,7 @@
 
   Throws an exception if creation of a sparse matrix is not possible"
   ([data]
-    (sparse-matrix (current-implementation-object) data))
+    (sparse-matrix (implementation-check) data))
   ([implementation data]
     (or (mp/sparse-coerce implementation data)
         (error "Sparse implementation not available"))))
@@ -301,7 +301,7 @@
 
    Returns the array unchanged if such coercion is not possible, or if the array is already sparse."
   ([data]
-    (sparse (current-implementation-object) data))
+    (sparse (implementation-check) data))
   ([implementation data]
     (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
 
