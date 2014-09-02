@@ -779,7 +779,9 @@
       java.lang.Object)
   Object
     (element-type [a]
-      java.lang.Object))
+      (if (java-array? a)
+        (.getComponentType (class a))
+        java.lang.Object)))
 
 ;; generic element values
 (extend-protocol mp/PGenericValues
