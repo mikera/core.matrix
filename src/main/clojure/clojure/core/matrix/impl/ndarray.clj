@@ -10,6 +10,8 @@
   (:require [clojure.core.matrix.multimethods :as mm])
   (:refer-clojure :exclude [vector?]))
 
+;; (error "NDArray loaded!")
+
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
