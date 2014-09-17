@@ -1038,10 +1038,12 @@
 ;;
 ;; Label support is optional - unlabelled arrays must return Long values 0,1,2... for labels along each dimension
 (defn label
-  "Returns the label for the given array."
+  "Returns label(s) for the given array."
+  ([m dim]
+    (vec (range (mp/dimension-count m dim))))
   ([m dim i]
     ;; TODO: implement labelling protocol
-    i)) 
+    (if (and (<= 0 i) (< i (mp/dimension-count m dim))) i (error "Index out of range: " i)) )) 
 
 ;; ======================================
 ;; matrix maths / operations
