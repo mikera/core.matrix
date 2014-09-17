@@ -1034,6 +1034,16 @@
     (mp/matrix-equals-epsilon a b epsilon)))
 
 ;; ======================================
+;; Matrix labels
+;;
+;; Label support is optional - unlabelled arrays must return Long values 0,1,2... for labels along each dimension
+(defn label
+  "Returns the label for the given array."
+  ([m dim i]
+    ;; TODO: implement labelling protocol
+    i)) 
+
+;; ======================================
 ;; matrix maths / operations
 
 (defn mul
