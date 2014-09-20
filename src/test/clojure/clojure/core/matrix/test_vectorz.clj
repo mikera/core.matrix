@@ -19,7 +19,6 @@
     (is (instance? mikera.arrayz.INDArray mm))
     (is (equals [[4 4] [4 4]] (pow! mm 2)))))
 
-;; TODO: reinstate after vector-clj 0.18.0 release which contains fix
 (deftest test-pm
   (is (string? (clojure.core.matrix.impl.pprint/pm (array :vectorz [1 2]))))) 
 
