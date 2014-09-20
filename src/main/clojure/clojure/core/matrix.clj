@@ -1427,7 +1427,8 @@
 (defn set-row!
   "Sets a row in a matrix in-place using a specified vector."
   [m i row]
-  (mp/set-row! m i row))
+  (mp/set-row! m i row)
+  m)
 
 (defn set-column
   "Sets a column in a matrix using a specified vector."
@@ -1437,7 +1438,8 @@
 (defn set-column!
   "Sets a column in a matrix using a specified vector."
   [m i column]
-  (mp/set-column! m i column))
+  (mp/set-column! m i column)
+  m)
 
 
 ;; ===================================
