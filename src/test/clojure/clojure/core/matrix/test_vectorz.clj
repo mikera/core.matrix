@@ -17,8 +17,7 @@
   (let [m (matrix :vectorz [[2 2][2 2]])
         mm (mutable m)]
     (is (instance? mikera.arrayz.INDArray mm))
-    (pow! mm 2)
-    (is (equals [[4 4] [4 4]] mm))))
+    (is (equals [[4 4] [4 4]] (pow! mm 2)))))
 
 ;; TODO: reinstate after vector-clj 0.18.0 release which contains fix
 (deftest test-pm

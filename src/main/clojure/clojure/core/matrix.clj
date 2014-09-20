@@ -1379,7 +1379,8 @@
   "Mutable exponent function, see 'pow'"
   ([m a]
     ;; TODO: implement via a protocol + default implementation
-    (mp/assign! m (pow m a))))
+    (mp/assign! m (pow m a))
+    m))
 
 ;; create all unary maths operators
 (eval
