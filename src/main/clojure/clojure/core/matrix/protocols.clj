@@ -863,9 +863,9 @@
 
 (defn persistent-vector-coerce [x]
   "Coerces a data structure to nested persistent vectors"
-  (let [dims (dimensionality x)]
+  (let [dims (long (dimensionality x))]
     (cond
-      (== dims 0) (get-0d x)
+      (== dims 0) (get-0d x) ;; first handle scalar / 0d case
       (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
       (== dims 1) (vec (element-seq x)) 
       (instance? java.util.List x) (mapv convert-to-nested-vectors x)
