@@ -5,6 +5,11 @@
   (:require [clojure.core.matrix.protocols :as mp])
   (:import clojure.core.matrix.impl.dataset.DataSet))
 
+(defmacro dataset?
+  "Returns true if argument is a dataset"
+  ([d]
+     `(instance? DataSet ~d)))
+
 (defn dataset
   "Creates dataset from:
     column names and seq of rows
@@ -12,34 +17,36 @@
     map of columns with associated list of values.
     matrix - its columns will be used as dataset columns and incrementing Long values starting from 0, i.e. 0, 1, 2, etc will be used as column names.
     seq of maps"
-  ([col-names m]
+  ([col-names data]
      (cond
-      (matrix? m) (dataset-from-rows col-names m)
-      (map? (first m)) (dataset-from-row-maps col-names m)
-      (map? m) (let [cols (reduce
-                           (fn [acc c] (conj acc (get m c)))
+      (matrix? data) (dataset-from-rows col-names data)
+      (and (vec? data) (empty? data)) (dataset-from-rows col-names data)
+      (map? (first data)) (dataset-from-row-maps col-names data)
+      (map? data) (let [cols (reduce
+                           (fn [acc c] (conj acc (get data c)))
                            [] col-names)]
                  (dataset-from-columns col-names cols))
-      :else (error "Don't know how to create dataset from shape"  (shape m))))
-  ([m]
+      :else (error "Don't know how to create dataset from shape"  (shape data))))
+  ([data]
      (cond
-      (matrix? m) (dataset-from-array m)
-      (map? m)
-      (let [col-names (keys m)
+      (dataset? data) data
+      (matrix? data) (dataset-from-array data)
+      (map? data)
+      (let [col-names (keys data)
             cols (reduce
-                  (fn [acc c] (conj acc (get m c)))
+                  (fn [acc c] (conj acc (get data c)))
                   [] col-names)
-            row-counts (into #{} (map count m))]
+            row-counts (into #{} (map count data))]
         (if (= (count row-counts) 1)
           (dataset-from-columns col-names cols)
           (error "Cant' create dataset with different column lengths")))
 
-      (and (= (mp/dimensionality m) 1)
-           (map? (first m)))
-      (let [col-names (keys (first m))
+      (and (= (mp/dimensionality data) 1)
+           (map? (first data)))
+      (let [col-names (keys (first data))
             col-map (-> (zipmap col-names (repeat []))
                         (vector)
-                        (#(apply conj % m))
+                        (#(apply conj % data))
                         (#(apply merge-with conj %)))]
         ;; check that there all the maps have the same keys
         ;; no additional keys in all but the first maps and
@@ -55,11 +62,6 @@
            col-names
            (reduce #(conj %1 (get col-map %2)) [] col-names))
           (error "Can't create dataset from incomplete maps"))))))
-
-(defmacro dataset?
-  "Returns true if argument is a dataset"
-  ([d]
-     `(instance? DataSet ~d)))
 
 (defn column-names
   "Returns a persistent vector containing column names in the same order as they are placed in the dataset"
@@ -134,9 +136,16 @@
         ds col-name
         (matrix col (map #(apply f % args) col))))))
 
-(defn conj-rows
+(defn join-rows
   "Returns a dataset created by combining the rows of the given datasets"
   ([ds1 ds2]
-     (mp/conj-rows ds1 ds2))
+     (mp/join-rows ds1 ds2))
   ([ds1 ds2 & args]
-     (apply mp/conj-rows (mp/conj-rows ds1 ds2) args)))
+     (apply mp/join-rows (mp/join-rows ds1 ds2) args)))
+
+(defn join-columns
+  "Returns a dataset created by combining the columns of the given datasets"
+  ([ds1 ds2]
+     (mp/join-columns ds1 ds2))
+  ([ds1 ds2 & args]
+     (apply mp/join-columns (mp/join-columns ds1 ds2) args)))

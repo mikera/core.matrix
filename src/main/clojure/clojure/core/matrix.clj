@@ -290,7 +290,7 @@
 
   Throws an exception if creation of a sparse matrix is not possible"
   ([data]
-    (sparse-matrix (current-implementation-object) data))
+    (sparse-matrix (implementation-check) data))
   ([implementation data]
     (or (mp/sparse-coerce implementation data)
         (error "Sparse implementation not available"))))
@@ -301,7 +301,7 @@
 
    Returns the array unchanged if such coercion is not possible, or if the array is already sparse."
   ([data]
-    (sparse (current-implementation-object) data))
+    (sparse (implementation-check) data))
   ([implementation data]
     (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
 
@@ -1034,6 +1034,18 @@
     (mp/matrix-equals-epsilon a b epsilon)))
 
 ;; ======================================
+;; Matrix labels
+;;
+;; Label support is optional - unlabelled arrays must return Long values 0,1,2... for labels along each dimension
+(defn label
+  "Returns label(s) for the given array."
+  ([m dim]
+    (vec (range (mp/dimension-count m dim))))
+  ([m dim i]
+    ;; TODO: implement labelling protocol
+    (if (and (<= 0 i) (< i (mp/dimension-count m dim))) i (error "Index out of range: " i)) )) 
+
+;; ======================================
 ;; matrix maths / operations
 
 (defn mul
@@ -1367,7 +1379,8 @@
   "Mutable exponent function, see 'pow'"
   ([m a]
     ;; TODO: implement via a protocol + default implementation
-    (mp/assign! m (pow m a))))
+    (mp/assign! m (pow m a))
+    m))
 
 ;; create all unary maths operators
 (eval
@@ -1414,7 +1427,8 @@
 (defn set-row!
   "Sets a row in a matrix in-place using a specified vector."
   [m i row]
-  (mp/set-row! m i row))
+  (mp/set-row! m i row)
+  m)
 
 (defn set-column
   "Sets a column in a matrix using a specified vector."
@@ -1424,7 +1438,8 @@
 (defn set-column!
   "Sets a column in a matrix using a specified vector."
   [m i column]
-  (mp/set-column! m i column))
+  (mp/set-column! m i column)
+  m)
 
 
 ;; ===================================
@@ -1567,7 +1582,7 @@
 
 (defn current-implementation
   "Gets the currently active matrix implementation (as a keyword)"
-  {:inline (fn [] imp/*matrix-implementation*)}
+  ;;{:inline (fn [] imp/*matrix-implementation*)} ;; Seems to cause caching issues when setting implementations?
   ([] imp/*matrix-implementation*))
 
 (defn- implementation-check

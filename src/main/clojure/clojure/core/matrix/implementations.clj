@@ -23,12 +23,14 @@
    :scalar-wrapper 'clojure.core.matrix.impl.wrappers
    :slice-wrapper 'clojure.core.matrix.impl.wrappers
    :nd-wrapper 'clojure.core.matrix.impl.wrappers
+   :dataset 'clojure.core.matrix.impl.dataset
    :jblas :TODO
    :clatrix 'clatrix.core
    :parallel-colt :TODO
    :ejml :TODO
    :ujmp :TODO
-   :commons-math 'apache-commons-matrix.core))
+   :commons-math 'apache-commons-matrix.core
+   :mtj 'cav.mtj.core.matrix))
 
 ;; default implementation to use
 ;; should be included with clojure.core.matrix for easy of use

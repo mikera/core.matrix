@@ -110,7 +110,7 @@
    [mtx (gen-matrix)]
    (if (>= (row-count mtx) (column-count mtx)) ;; TODO: fix when rows < cols is supported
      (if-let [{:keys [Q R]} (qr mtx)]
-       (do ;; (is (orthogonal? Q)) ; TODO figure out how to deal with rectangular Q matrices?
-            (is (equals mtx (mmul Q R) 1.0E-12)))
+       (do  (is (orthogonal? Q))
+            (is (equals mtx (mmul Q R) 1.0E-10)))
        true)
      true)))

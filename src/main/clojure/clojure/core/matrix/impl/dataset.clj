@@ -15,16 +15,20 @@
 
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
-        ^IPersistentVector cols (into [] (mp/get-rows cols))
-        cc (count col-names)]
+        cc (count col-names)
+        ^IPersistentVector cols (if (empty? cols)
+                                  (into [] (repeat cc []))
+                                  (into [] (mp/get-rows cols)))]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
     (DataSet. col-names cols)))
 
 (defn dataset-from-rows [col-names rows]
   (let [^IPersistentVector col-names (vec col-names)
-        ^IPersistentVector cols (into [] (mp/get-columns rows))
-        cc (count col-names)]
+        cc (count col-names)
+        ^IPersistentVector cols (if (empty? rows)
+                                  (into [] (repeat cc []))
+                                  (into [] (mp/get-columns rows)))]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
     (DataSet. col-names cols)))
@@ -98,14 +102,17 @@
                " not found in dataset"))))
   (select-rows [ds rows]
     (let [col-names (mp/column-names ds)
-          row-maps (mp/row-maps ds)
-          c (count (mp/get-rows ds))
-          out-of-range (filter #(>= % c) rows)]
-      (if (= (count out-of-range) 0)
+          row-maps (mp/row-maps ds)]
+      (try
         (->> (map #(nth row-maps %) rows)
              (dataset-from-row-maps col-names))
-        (error "Dataset contains only " c " rows. Can't select rows with indices: "
-               (vec out-of-range)))))
+        (catch Exception e
+          (let [c (count (mp/get-rows ds))
+                out-of-range (filter #(>= % c) rows)]
+            (if (> (count out-of-range) 0)
+              (error "Dataset contains only " c " rows. Can't select rows with indices: "
+                     (vec out-of-range))
+              (throw e)))))))
   (add-column [ds col-name col]
     (dataset-from-columns (conj (mp/column-names ds) col-name)
                           (conj (mp/get-columns ds) col)))
@@ -147,7 +154,7 @@
       (if (> idx -1)
         (mp/set-column ds idx vs)
         (error "Column " col-name " is not found in the dataset"))))
-  (conj-rows [ds1 ds2]
+  (join-rows [ds1 ds2]
     (let [col-names-1 (mp/column-names ds1)
           col-names-2 (mp/column-names ds2)]
       (if (= (into #{} col-names-1)
@@ -156,7 +163,16 @@
              (mp/get-rows)
              (concat (mp/get-rows ds1))
              (dataset-from-rows col-names-1))
-        (error "Can't join rows of datasets with different columns")))))
+        (error "Can't join rows of datasets with different columns"))))
+  (join-columns [ds1 ds2]
+    (let [col-set-1 (into #{} (mp/column-names ds1))
+          col-set-2 (into #{} (mp/column-names ds2))
+          intersection (clojure.set/intersection col-set-1 col-set-2)]
+      (if (= (count intersection) 0)
+        (dataset-from-columns
+         (concat (mp/column-names ds1) (mp/column-names ds2))
+         (concat (mp/get-columns ds1) (mp/get-columns ds2)))
+        (error "Duplicate column names: " intersection)))))
 
 (extend-protocol mp/PImplementation
   DataSet
@@ -194,7 +210,10 @@
     [(mp/dimension-count m 0) (mp/dimension-count m 1)])
   (dimension-count [m x]
     (cond
-     (== x 0) (mp/dimension-count (first (mp/get-columns m)) 0)
+     (== x 0) (let [cols (mp/get-columns m)]
+                (if-not (empty? cols)
+                  (mp/dimension-count cols 1)
+                  0))
      (== x 1) (count (mp/column-names m))
      :else (error "Invalid dimension: " x))))
 

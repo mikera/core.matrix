@@ -16,7 +16,8 @@
     (is (== 1 (dimensionality a)))
     (is (vec? a))
     (is (== 6 (esum a)))
-    (is (equals (pow a a) [1 4 27]))))
+    (is (equals (pow a a) [1 4 27])))
+  (is (orthogonal? [(int-array [0 1]) (int-array [1 0])])))
 
 (deftest array-slicing
   (let [a (long-array [1 2 3])]
