@@ -285,7 +285,8 @@
       (mp/compute-matrix m shape f))))
 
 (defn sparse-matrix
-  "Creates a sparse matrix with the given data. Sparse matrices are required to store
+  "Creates a sparse matrix with the given data, using a specified implementation 
+  or the current implementation if not specified. Sparse matrices are required to store
   a M*N matrix with E non-zero elements in approx O(M+N+E) space or less.
 
   Throws an exception if creation of a sparse matrix is not possible"
