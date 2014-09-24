@@ -301,7 +301,7 @@
 
    Returns the array unchanged if such coercion is not possible, or if the array is already sparse."
   ([data]
-    (sparse (implementation-check) data))
+    (mp/sparse data))
   ([implementation data]
     (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
 
