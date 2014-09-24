@@ -1612,7 +1612,7 @@
                     :when (not (== 0 (mp/get-1d m i)))] 
               i))
       (vec (for [i (range (mp/dimension-count m 0))]
-              (mp/non-zero-indices (m i)))))))
+              (mp/non-zero-indices (mp/get-major-slice m i)))))))
 
 ;; TODO: proper generic implementations
 (extend-protocol mp/PMatrixTypes
