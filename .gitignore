@@ -3,11 +3,10 @@
 /.classpath
 /.settings
 /classes
-/
+
 .lein-*
 
 .DS_Store
-test
 .html
 bench
 .dump
