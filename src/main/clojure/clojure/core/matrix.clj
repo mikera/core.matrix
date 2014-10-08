@@ -304,7 +304,8 @@
   ([data]
     (mp/sparse data))
   ([implementation data]
-    (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
+    (let [implementation (implementation-check implementation)]
+      (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data)))))
 
 (defn dense
   "Coerces an array to a dense format if possible. Dense arrays are expected to
