@@ -93,7 +93,7 @@
       nil)
   Object
     (sparse-coerce [m data]
-      nil)
+      nil) ;; allow fall through if sparse coercion is not directly supported
     (sparse [m]
       m)) 
 
@@ -105,7 +105,7 @@
       nil)
   Object
     (dense-coerce [m data]
-      nil)
+      nil) ;; allow fall-through if dense coercion is not directly supported
     (dense [m]
       m)) 
 
