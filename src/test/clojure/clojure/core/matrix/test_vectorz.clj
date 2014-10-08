@@ -20,7 +20,8 @@
     (is (equals [[4 4] [4 4]] (pow! mm 2)))))
 
 (deftest test-sparse
-  (is (instance? mikera.arrayz.INDArray (sparse (matrix :vectorz [[1 2] [3 4]])))))
+  (is (instance? mikera.arrayz.INDArray (sparse (matrix :vectorz [[1 2] [3 4]]))))
+  (is (instance? mikera.arrayz.INDArray (sparse :vectorz [[1 2] [3 4]]))))
 
 (deftest test-pm
   (is (string? (clojure.core.matrix.impl.pprint/pm (array :vectorz [1 2]))))) 
