@@ -800,6 +800,7 @@
    m can be either a matrix instance or the implementation keyword."
   [m]
   (let [im (or (imp/get-canonical-object m) (error "Implementation not registered: " (class m)))
+        im (clone im) ;; clone to avoid risk of modifying canonical object
         ik (imp/get-implementation-key im)]
     (binding [imp/*matrix-implementation* ik]
       (instance-test im)
