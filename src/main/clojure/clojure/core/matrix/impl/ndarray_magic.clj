@@ -141,8 +141,13 @@
    `test-ndarray-implementation` namespace"
   [type & body]
   (let [replaces (form-replaces {} type)
+        class-suffix (if-let [fn-suffix (->> type type-table-magic :fn-suffix)]
+                 (str "_" (name fn-suffix))
+                 "")
         replaces (assoc replaces
                    'typename#
-                   (symbol (str "clojure.core.matrix.impl.ndarray."
+                   (symbol (str "clojure.core.matrix.impl.ndarray"
+                                class-suffix
+                                "."
                                 (get replaces 'typename#))))]
     `(do ~@(handle-forms type replaces body))))
