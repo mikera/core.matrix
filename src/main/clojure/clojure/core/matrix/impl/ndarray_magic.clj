@@ -13,7 +13,7 @@
   [types]
   (def type-table-magic types)
   (def deftypes-magic (atom {}))
-  (def defns-magic (atom {})))
+  (def defns-magic (atom [])))
 
 (defn form-replaces
   "Takes specialization map and returns a map with symbols with hashes as
@@ -88,7 +88,9 @@
   [t replaces [_ fn-name & _ :as form]]
   (let [new-fn-name (add-fn-suffix t fn-name)
         new-replaces (assoc replaces fn-name new-fn-name)]
-    (handle-forms t new-replaces [new-fn-name form])))
+    (handle-forms t new-replaces {:fn-name new-fn-name
+                                  :type t
+                                  :form form})))
 
 (defmacro with-magic
   "Macro for collecting forms for specialization. See `ndarray` namespace for
@@ -122,15 +124,16 @@
 
 (defmacro spit-code
   "Emits specialized versions of collected forms"
-  []
-  `(do  ;let [start# (System/currentTimeMillis)]
-        ;(println (str "declares: " (- start# (System/currentTimeMillis))))
-     ~@(map #(list 'declare %) (keys @defns-magic))
-     ~@(vals @deftypes-magic)
-     ~@(vals @defns-magic)
-     ~@(map (fn [t] `(imp/register-implementation
-                      (~(add-fn-suffix t 'empty-ndarray) [1])))
-            (keys type-table-magic))))
+  [type]
+  (let [defns (filter #(= (:type %) type) @defns-magic)]
+    (list* 'do
+           (concat (->> defns
+                        (map :fn-name)
+                        (map #(list 'declare %)))
+                   [(get @deftypes-magic type)]
+                   (map :form defns)
+                   [`(imp/register-implementation
+                      (~(add-fn-suffix type 'empty-ndarray) [1]))]))))
 
 (defmacro specialize
   "Allows use of the 'magic' machinery from outside of `ndarray` namespace. This
