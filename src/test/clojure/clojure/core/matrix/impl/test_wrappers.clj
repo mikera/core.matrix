@@ -4,6 +4,7 @@
   (:use clojure.core.matrix.impl.wrappers)
   (:require [clojure.core.matrix.operators :as op])
   (:require [clojure.core.matrix.protocols :as mp])
+  (:require [mikera.cljutils.error :refer [error?]])
   (:require [clojure.core.matrix.compliance-tester]))
 
 (deftest regressions
@@ -83,6 +84,14 @@
   (let [ss (mp/get-major-slice-seq (wrap-nd [[3 4] [5 6]]))]
     (is (equals [3 4] (first ss)))
     (is (= [3 4] (coerce [] (first ss))))))
+
+(deftest test-indexed-wrappers
+  (let [m (submatrix (identity-matrix 2)  0 2 0 2)]
+    (is (equals [1 0] (nth m 0)))
+    (is (equals [0 1] (nth m 1)))
+    (is (error? (nth m 2)))
+    (is (= :foo (nth m 3 :foo)))
+    (is (= 2 (count m)))))
 
 (deftest test-nd-transpose
   (is (equals 3 (transpose (wrap-nd 3))))
