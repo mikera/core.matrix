@@ -29,15 +29,16 @@
       ss)))
 
 (defn- format-array 
-  "Fromats an array accordsing to the given formatter function"
+  "Formats an array according to the given formatter function"
   ([m formatter]
-    (cond 
-      (mp/is-scalar? m) (formatter m)
-      :else (mp/element-map 
-              (if (= java.lang.Object (mp/element-type m))
-                m
-                (mp/convert-to-nested-vectors m))
-              formatter))))
+    (let [m (mp/ensure-type m String)]
+      (cond 
+        (mp/is-scalar? m) (formatter m)
+        :else (mp/element-map 
+                (if (= java.lang.Object (mp/element-type m))
+                  m
+                  (mp/convert-to-nested-vectors m))
+                formatter)))))
 
 (defn- append-elem
   "Appends an element, right-padding up to a given column length."

@@ -225,7 +225,8 @@
       (seq m))
     (element-map
       ([m f]
-        (let [cnt (alength m)
+        (let [m ^doubles m
+              cnt (alength m)
               ^doubles r (double-array cnt)]
           (dotimes [i cnt]
             (aset r i (double (f (aget m i)))))

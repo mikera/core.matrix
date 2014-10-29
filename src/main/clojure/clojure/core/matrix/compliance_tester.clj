@@ -277,9 +277,7 @@
 (defn test-pm
   "Test for matrix pretty-printing"
   ([m]
-    ;; TODO: fix issue #43 on GitHub
-    ;;(is (< 0 (count (with-out-str (pm m)))))
-    ))
+    (is (< 0 (count (with-out-str (pm m)))))))
 
 (defn test-to-string [m]
   (when m ;; guard for nil
