@@ -240,39 +240,36 @@
       (fill! mm e)
       (is (e= mm n)))))
 
-(defn check-joined-matrices [original joined]
-  (let [js (slices joined)]
-    (is (== (first (shape joined)) (* 2 (first (shape original)))))
-    (is (e= original (take (first (shape original)) js)))
-    (is (e= original (drop (first (shape original)) js)))))
+(defn check-joined-matrices [dim original joined]
+  (is (== (dimensionality original) (dimensionality joined)))
+  (let [js (slices joined dim)
+        os (slices original dim)
+        cnt (dimension-count original dim)]
+    (is (== (dimension-count joined dim) (* 2 cnt)))
+    (when (> cnt 0)
+      (is (e= os (take cnt js)))
+      (is (e= os (drop cnt js))))))
 
 (defn test-join
   "Test for joining matrices along major dimension"
   ([m]
    (when (and m (== 1 (dimensionality m)))
      (let [j (join m m)]
-       (check-joined-matrices m j)))))
+       (check-joined-matrices 0 m j)))))
 
 
 (defn test-join-along
   "Test for joining matrices along arbitrary dimensions"
   ([m]
-   (when m
-     (when (< 0 (dimensionality m))
-       (let [j (join-along 0 m m)]
-         (check-joined-matrices m j)))
-     (when (< 1 (dimensionality m))
-       (let [j (join-along 1 m m)]
-         (doseq [[slice1 slice2] (map vector
-                                      (slices m)
-                                      (slices j))]
-           (check-joined-matrices slice1 slice2))))
-     (when (< 2 (dimensionality m))
-       (let [j (join-along 2 m m)]
-         (doseq [[slice1 slice2] (map vector
-                                      (map #(slices % 1) (slices m 1))
-                                      (map #(slices % 1) (slices j 1)))]
-           (check-joined-matrices slice1 slice2)))))))
+    (when (< 0 (dimensionality m))
+      (let [j (join-along 0 m m)]
+        (check-joined-matrices 0 m j)))
+    (when (< 1 (dimensionality m))
+      (let [j (join-along 1 m m)]
+        (check-joined-matrices 1 m j)))
+    (when (< 2 (dimensionality m))
+      (let [j (join-along 2 m m)]
+        (check-joined-matrices 2 m j)))))
 
 (defn test-pm
   "Test for matrix pretty-printing"

@@ -456,9 +456,10 @@
                   (mp/get-shape (m 0))
                   nil))))
     (dimension-count [m x]
-      (if (== x 0)
-        (.length m)
-        (mp/dimension-count (m 0) (dec x)))))
+      (let [x (long x)]
+        (if (== x 0)
+          (.length m)
+          (mp/dimension-count (m 0) (dec x))))))
 
 (extend-protocol mp/PElementCount
   IPersistentVector

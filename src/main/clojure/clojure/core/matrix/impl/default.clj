@@ -430,13 +430,13 @@
     (is-scalar? [m] true)
     (is-vector? [m] false)
     (get-shape [m] nil)
-    (dimension-count [m i] (error "cannot get dimension count from nil"))
+    (dimension-count [m i] (error "nil has zero dimensionality, cannot get count for dimension: " i))
   Number
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
     (get-shape [m] nil)
-    (dimension-count [m i] (error "Number has zero dimensionality, cannot get dimension count"))
+    (dimension-count [m i] (error "Number has zero dimensionality, cannot get count for dimension: " i))
   Object
     (dimensionality [m] 
       (cond 
@@ -1189,9 +1189,10 @@
 (extend-protocol mp/PSliceSeq2
   Object
     (get-slice-seq [m dimension]
-      (if (== dimension 0)
-        (mp/get-major-slice-seq m)
-        (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
+      (cond 
+        (== dimension 0) (mp/get-major-slice-seq m)
+        (< dimension 0) (error "Can't get slices of a negative dimension: " dimension)
+        :else (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
 
 (extend-protocol mp/PSliceViewSeq
   Object
