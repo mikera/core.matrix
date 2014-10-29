@@ -711,13 +711,17 @@
     [m f]
     [m f a]
     [m f a more]
-    "Maps f over all elements of m (and optionally other matrices), returning a new matrix")
+    "Maps f over all elements of m (and optionally other matrices), returning a new matrix. 
+     f is expected to produce elements of a type supported by the implementation of m - failure
+     to do so may cause an error.")
   (element-map!
     [m f]
     [m f a]
     [m f a more]
     "Maps f over all elements of m (and optionally other matrices), mutating the elements of m in place.
-     Must throw an exception if m is not mutable.")
+     Must throw an exception if m is not mutable.
+     f is expected to produce elements of a type supported by the implementation of m - failure
+     to do so may cause an error.")
   (element-reduce
     [m f]
     [m f init]
