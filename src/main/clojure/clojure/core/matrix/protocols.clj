@@ -32,8 +32,15 @@
      at least an element :doc containing a string describing an implementation
      is provided.")
   (construct-matrix [m data]
-    "Returns a new matrix containing the given data. data should be in the form of either
-     nested sequences or a valid existing matrix")
+    "Returns a new n-dimensional array containing the given data. data should be in the form of either
+     nested sequences or a valid existing array.
+
+     The return value should be in the preferred format of the given implementation. If the implementation
+     does not support the required dimensionality or element type then it may either:
+      - Throw an error
+      - Return nil to indicate that a default implementation should be used instead
+
+     0-dimensional arrays / scalars are permitted.")
   (new-vector [m length]
     "Returns a new vector (1D column matrix) of the given length, filled with numeric zero.")
   (new-matrix [m rows columns]
@@ -249,13 +256,13 @@
   "Protocol to broadcast into a given matrix shape and perform coercion in one step.
 
    Equivalent to (coerce m (broadcast-like m a)) but likely to be more efficient."
-  (broadcast-coerce [m a]))
+  (broadcast-coerce [m a] "Broacasts and coerces a to the same shape and implementation as m"))
 
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers,
    however providing an efficient implementation is strongly encouraged to enable fast interop 
    with Clojure vectors."
-  (convert-to-nested-vectors [m]))
+  (convert-to-nested-vectors [m] "Converts an array to nested Clojure persistent vectors"))
 
 (defprotocol PReshaping
   "Protocol to reshape matrices. Should support any new shape allowed by the implementation.
@@ -289,6 +296,14 @@
   (get-column [m i])
   (get-major-slice [m i])
   (get-slice [m dimension i]))
+
+(defprotocol PMatrixRows
+  "Protocol for accessing rows of a matrix"
+  (get-rows [m]))
+
+(defprotocol PMatrixColumns
+  "Protocol for accessing columns of a matrix"
+  (get-columns [m]))
 
 (defprotocol PSliceView
   "Protocol for quick view access into a row-major slices of an array. If implemented, must return
@@ -325,6 +340,10 @@
 (defprotocol PSliceJoin
   "Protocol for concatenating / joining arrays."
   (join [m a] "Concatenates a to m, along the major slice dimension"))
+
+(defprotocol PSliceJoinAlong
+  "Protocol for concatenating / joining arrays."
+  (join-along [m a dim] "Concatenates a to m, along the slice dimension dim"))
 
 (defprotocol PSubVector
   "Protocol for getting a sub-vector view of a vector. Must return a mutable view
@@ -692,13 +711,17 @@
     [m f]
     [m f a]
     [m f a more]
-    "Maps f over all elements of m (and optionally other matrices), returning a new matrix")
+    "Maps f over all elements of m (and optionally other matrices), returning a new matrix. 
+     f is expected to produce elements of a type supported by the implementation of m - failure
+     to do so may cause an error.")
   (element-map!
     [m f]
     [m f a]
     [m f a more]
     "Maps f over all elements of m (and optionally other matrices), mutating the elements of m in place.
-     Must throw an exception if m is not mutable.")
+     Must throw an exception if m is not mutable.
+     f is expected to produce elements of a type supported by the implementation of m - failure
+     to do so may cause an error.")
   (element-reduce
     [m f]
     [m f init]
@@ -721,8 +744,9 @@
   (diagonal? [m] "Returns true if the matrix is diagonal")
   (upper-triangular? [m] "Returns true if the matrix m is upper triangualar")
   (lower-triangular? [m] "Returns true if the matrix m is lower triangualar")
-  (positive-definite? [m] "Returns true is the matrix is positive definite")
-  (positive-semidefinite? [m] "Returns true is the matrix is positive semidefinite"))
+  (positive-definite? [m] "Returns true if the matrix is positive definite")
+  (positive-semidefinite? [m] "Returns true if the matrix is positive semidefinite")
+  (orthogonal? [m eps] "Returns true if the matrix is orthogonal"))
 
 ;; ============================================================
 ;; Generic values and functions
@@ -746,6 +770,7 @@
 
 ;; ===========================================================
 ;; Protocols for higher-level array indexing
+
 (defprotocol PSelect
   "Protocol for the sel function"
   (select [a args] "selects all elements at indices which are in the cartesian product of args"))
@@ -763,21 +788,95 @@
   (set-indices [a indices values] "sets the elements from a at indices to values")
   (set-indices! [a indices values] "destructively sets the elements from a at indices to values"))
 
+(defprotocol PNonZeroIndices
+  "Protocol for getting non-zero indices of an array"
+   (non-zero-indices [m] "Gets the non-zero indices of an array.
+                         - For a 1D vector, returns an ordered index list.
+                         - For a higher dimensional array, returns the non-zero-indices for each slice in row-major order."))
 
+(defprotocol PIndexImplementation
+  "Protocol for determining if an object is a valid index. Implementations may implement this protocol to support their own index types."
+  (index? [m] "Returns true if the argument is a valid index, false otherwise")
+  (index-to-longs [m])
+  (index-to-ints [m])
+  (index-from-longs [m xs])
+  (index-from-ints [m xs])
+  (index-coerce [m a]))
+
+;; ==========================================================
+;; LINEAR ALGEBRA PROTOCOLS
+
+(defprotocol PNorm
+  "Protocol for matrix and vector norms"
+  (norm [m p]))
+
+(defprotocol PQRDecomposition
+  "Protocol for QR decomposition"
+  (qr [m options]))
+
+(defprotocol PCholeskyDecomposition
+  "Procotol for Cholesky decomposition"
+  (cholesky [m options]))
+
+(defprotocol PLUDecomposition
+  "Protocol for LU decomposition"
+  (lu [m options]))
+
+(defprotocol PSVDDecomposition
+  "Protocol for SVD decomposition"
+  (svd [m options]))
+
+(defprotocol PEigenDecomposition
+  "Procotol for Eigenvalue decomposition"
+  (eigen [m options]))
+
+(defprotocol PSolveLinear
+  "Protocol for solving linear matrix equation or system of linear scalar equations"
+  (solve [a b]))
+
+(defprotocol PLeastSquares
+  "Protocol for computing least-square solution to a linear matrix equation"
+  (least-squares [a b]))
+
+;; ============================================================
+;; Dataset protocols
+
+(defprotocol PDatasetImplementation
+  "Protocol for general dataset functionality"
+  (column-names [ds] "Returns a persistent vector containing column names in the same order as they are placed in the dataset")
+  (columns [ds] "Returns a persistent vector containing columns in the same order they are placed in the dataset")
+  (select-columns [ds cols] "Produces a new dataset with the columns in the specified order")
+  (select-rows [ds rows] "Produces a new dataset with specified rows")
+  (add-column [ds col-name col] "Adds column to the dataset")
+  (to-map [ds] "Returns map of columns with associated list of values")
+  (row-maps [ds] "Returns seq of maps with row values")
+  (merge-datasets [ds1 ds2] "Returns a dataset created by combining columns of the given datasets. In case of columns with duplicate names, last-one-wins strategy is applied")
+  (rename-columns [ds col-map] "Renames columns based on map of old new column name pairs")
+  (replace-column [ds col-name vs] "Replaces column in a dataset with new values")
+  (join-rows [ds1 ds2] "Returns a dataset created by combining the rows of the given datasets")
+  (join-columns [ds1 ds2] "Returns a dataset created by combining the columns of the given datasets"))
+
+(defprotocol PDimensionImplementation
+  "EXPERIMENTAL: Protocol for querying multi-dimensioned datasets"
+  (dimension-name [ds idx dim] "Returns the name of the specified index along a given numbered dimension")
+  (row-name [ds idx] "Returns the name of the row (dimension 0) at a specified index")
+  (column-name [ds idx] "returns the name of the column (dimension 1) at a specified column index")) 
 
 ;; ============================================================
 ;; Utility functions
 
 (defn persistent-vector-coerce [x]
   "Coerces a data structure to nested persistent vectors"
-  (let [dims (dimensionality x)]
+  (let [dims (long (dimensionality x))]
     (cond
-      (== dims 0) (get-0d x)
+      (== dims 0) (get-0d x) ;; first handle scalar / 0d case
       (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
+      (== dims 1) (vec (element-seq x)) 
       (instance? java.util.List x) (mapv convert-to-nested-vectors x)
       (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
       (instance? clojure.lang.Seqable x) (mapv convert-to-nested-vectors x)
       (.isArray (class x)) (mapv convert-to-nested-vectors (seq x))
+      (not (is-scalar? x)) (mapv convert-to-nested-vectors (get-major-slice-seq x))
       :default (error "Can't coerce to vector: " (class x)))))
 
 (defn broadcast-compatible
@@ -802,3 +901,17 @@
           (recur s (next ns))
           false)
         true)))) 
+
+(defn supports-type?
+  "Checks if an array can contain a specified Java type."
+  ([m ^Class klass]
+    (let [^Class mc (element-type m)]
+      (.isAssignableFrom mc klass))))
+
+(defn ensure-type 
+  "Checks if an array can contain a specified Java type, if so returns the orifginal array, otherwise
+   returns a copy of the array that can support the sepecified type."
+  [m ^Class klass]
+  (if (supports-type? m klass)
+    m
+    (convert-to-nested-vectors m))) ;; TODO: better format?

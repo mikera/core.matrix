@@ -9,7 +9,7 @@
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.multimethods :as mm]
             [clojure.core.matrix.implementations :as mi]
-            [clojure.core.matrix.docgen.common :as c]))
+            [clojure.core.matrix.impl.common :as c]))
 
 ;; # Constants
 

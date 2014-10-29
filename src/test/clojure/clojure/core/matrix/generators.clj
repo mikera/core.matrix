@@ -27,15 +27,13 @@
 (defn gen-array
   "Generator for arbitrary n-dimensional arrays"
   [& {:keys [max-elems min-elems
-             max-dim min-dim dimension-generator
+             max-dim min-dim
              implementations elem-gen]
       :or {max-elems 100 min-elems 1 max-dim 4 min-dim 0
-           dimension-generator gen/pos-int 
            elem-gen gen-double
            implementations [:ndarray :persistent-vector :vectorz
                             :object-array :double-array]}}]
-  (as-> dimension-generator x
-        (gen/such-that #(<= min-dim % max-dim) x)
+  (as-> (gen/elements (range min-dim (inc max-dim))) x
         (gen/bind x #(gen/vector gen/pos-int %))
         (gen/such-that #(<= min-elems (reduce * %) max-elems) x)
         (gen/bind x #(gen-nested-vectors % elem-gen))
@@ -43,11 +41,14 @@
         (gen/fmap (fn [[impl data]] (array impl data)) x)))
 
 (defn gen-matrix
-  "generator for n-dimensional matrices"
-  [& {:keys [max-elems min-elems implementations elem-gen]
-      :or {max-elems 100 min-elems 1 elem-gen gen-double
+  "generator for matrices"
+  [& {:keys [implementations elem-gen shape-gen]
+      :or {shape-gen (gen-shape :dimensionality 2)
+           elem-gen gen-double
            implementations [:ndarray :persistent-vector :vectorz
-                            :object-array :double-array]}}])
-
-
-
+                            :object-array :double-array]}}]
+  (gen/bind shape-gen
+            (fn [shape]
+              (->> (gen-nested-vectors shape elem-gen)
+                   (gen/tuple (gen/elements implementations))
+                   (gen/fmap (fn [[impl data]] (matrix impl data)))))))

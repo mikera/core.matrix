@@ -10,6 +10,8 @@
   (:require [clojure.core.matrix.multimethods :as mm])
   (:refer-clojure :exclude [vector?]))
 
+;; (error "NDArray loaded!")
+
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
 
@@ -623,12 +625,12 @@
   ;;   (broadcast [m target-shape])
   ;; mp/PBroadcastLike
   ;;   (broadcast-like [m a])
-  
+
   mp/PBroadcastCoerce
     (broadcast-coerce [m a]
       (let [^typename# a (if (instance? typename# a) a (mp/coerce-param m a))]
         (mp/broadcast-like m a)))
-  
+
   ;; mp/PReshaping
   ;;   (reshape [m shape])
 
@@ -644,7 +646,12 @@
     (get-major-slice [m i]
       (row-major-slice#t m i))
     (get-slice [m dimension i]
-      (arbitrary-slice#t m dimension i))
+               ;;get-slice requires to return a scalar for a slice of a 1-dim
+               ;;array
+               (let [res (arbitrary-slice#t m dimension i)]
+                 (if (= 1 ndims)
+                   (mp/get-0d res)
+                   res)))
 
   mp/PSubVector
     (subvector [m start length]
@@ -669,12 +676,10 @@
   ;; TODO: clarify docstring about higher dimensions
   mp/PMatrixSubComponents
     (main-diagonal [m]
-      (iae-when-not (and (== ndims 2) (== (aget shape 0)
-                                          (aget shape 1)))
-        "main-diagonal is applicable only for square matrices")
       (let [new-ndims (int 1)
-            new-shape (int-array 1 (aget shape 0))
-            new-strides (int-array 1 (* (inc (aget shape 0))
+            min-shape (min (aget shape 0) (aget shape 1))
+            new-shape (int-array 1 min-shape)
+            new-strides (int-array 1 (* (inc (aget shape 1))
                                         (aget strides 1)))]
         (reshape-restride#t m new-ndims new-shape new-strides offset)))
 
@@ -790,10 +795,13 @@
              ^ints b-shape (.shape b)]
          (cond
           (== b-ndims 0) (mp/scale a b)
+          (and (== a-ndims 1) (== b-ndims 1))
+          (mp/inner-product a b)
           (and (== a-ndims 1) (== b-ndims 2))
-          (let [b-rows (aget b-shape (int 0))]
+          (let [b-rows (aget b-shape (int 0))
+                b-cols (aget b-shape (int 1))]
             (mp/reshape (mp/matrix-multiply (mp/reshape a [1 b-rows]) b)
-                        [b-rows]))
+                        [b-cols]))
           (and (== a-ndims 2) (== b-ndims 1))
           (let [a-cols (aget shape (int 1))
                 a-rows (aget shape (int 0))]
@@ -1169,5 +1177,3 @@
       (iae-when-not (== (aget shape 0) (aget shape 1))
         "inverse operates only on square matrices")
       (invert#t m)))
-
-(magic/spit-code)

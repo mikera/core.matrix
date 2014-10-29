@@ -225,10 +225,12 @@
       (seq m))
     (element-map
       ([m f]
-        (let [^doubles m (double-array m)]
-          (dotimes [i (alength m)]
-            (aset m i (double (f (aget m i)))))
-          m))
+        (let [m ^doubles m
+              cnt (alength m)
+              ^doubles r (double-array cnt)]
+          (dotimes [i cnt]
+            (aset r i (double (f (aget m i)))))
+          r))
       ([m f a]
         (let [^doubles m (double-array m)
               ^doubles a (mp/broadcast-coerce m a)]

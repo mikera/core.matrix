@@ -12,8 +12,8 @@
 (def KNOWN-IMPLEMENTATIONS
   (array-map
    :vectorz 'mikera.vectorz.matrix-api
-   :ndarray 'clojure.core.matrix.impl.ndarray
-   :ndarray-double 'clojure.core.matrix.impl.ndarray
+   :ndarray 'clojure.core.matrix.impl.ndarray-object
+   :ndarray-double 'clojure.core.matrix.impl.ndarray-double
    :ndarray-float 'clojure.core.matrix.impl.ndarray
    :ndarray-long 'clojure.core.matrix.impl.ndarray
    :persistent-vector 'clojure.core.matrix.impl.persistent-vector
@@ -23,16 +23,21 @@
    :scalar-wrapper 'clojure.core.matrix.impl.wrappers
    :slice-wrapper 'clojure.core.matrix.impl.wrappers
    :nd-wrapper 'clojure.core.matrix.impl.wrappers
+   :dataset 'clojure.core.matrix.impl.dataset
    :jblas :TODO
    :clatrix 'clatrix.core
    :parallel-colt :TODO
    :ejml :TODO
    :ujmp :TODO
-   :commons-math 'apache-commons-matrix.core))
+   :commons-math 'apache-commons-matrix.core
+   :mtj 'cav.mtj.core.matrix))
 
 ;; default implementation to use
 ;; should be included with clojure.core.matrix for easy of use
 (def DEFAULT-IMPLEMENTATION :persistent-vector)
+
+;; current implementation in use
+(def ^:dynamic *matrix-implementation* DEFAULT-IMPLEMENTATION)
 
 ;; hashmap of implementation keys to canonical objects
 ;; objects must implement PImplementation protocol at a minimum
@@ -41,7 +46,7 @@
 (defn get-implementation-key
   "Returns the implementation code for a given object"
   ([m]
-    (cond 
+    (cond
       (keyword? m) m
       (mp/is-scalar? m) nil
       :else (mp/implementation-key m))))
@@ -58,26 +63,28 @@
   ([k]
     (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
       (try
-        (do 
-          (require ns-sym) 
+        (do
+          (require ns-sym)
           (if (@canonical-objects k) :ok :warning-implementation-not-registered?))
         (catch Throwable t nil)))))
 
 (defn get-canonical-object
   "Gets the canonical object for a specific implementation. The canonical object is used
-   to call implementation-specific protocol functions where required (e.g. creation of new 
+   to call implementation-specific protocol functions where required (e.g. creation of new
    arrays of the correct type for the implementation)"
+  ([]
+    (get-canonical-object *matrix-implementation*))
   ([m]
     (let [k (get-implementation-key m)
           obj (@canonical-objects k)]
-      (if k 
+      (if k
         (or obj
            (if (try-load-implementation k) (@canonical-objects k))
            (when-not (keyword? m) m)
            (error "Unable to find implementation: [" k "]"))
         nil))))
 
-(defn construct 
+(defn construct
   "Attempts to construct an array according to the type of array m. If not possible,
    returns another array type."
   ([m data]

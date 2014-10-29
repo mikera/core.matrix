@@ -4,7 +4,7 @@
             [clojure.core.matrix.utils :as utils]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as mi]
-            [clojure.core.matrix.docgen.common :as c]))
+            [clojure.core.matrix.impl.common :as c]))
 
 ;; ## Info
 ;; This file provides rather hacky solution for generating
@@ -18,7 +18,7 @@
   [git-hash]
   (seq [[:h2 "Protocol/Implementation summary"]
         [:p "git hash: "
-         [:a {:href (str repo-url "/blob/" git-hash)}
+         [:a {:href (str repo-url "/tree/" git-hash)}
           git-hash]]
         [:small "Hint: hover on protocol or implementation names to "
          "get their description"]]))

@@ -9,7 +9,9 @@
   (:require [clojure.core.matrix.impl.ndarray])
   (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
   (:require [clojure.core.matrix.impl.ndarray-macro :as macro])
-  (:use clojure.core.matrix.impl.ndarray))
+  (:use clojure.core.matrix.impl.ndarray)
+  (:use clojure.core.matrix.impl.ndarray-double)
+  (:use clojure.core.matrix.impl.ndarray-object))
 
 ;; Tests for the NDArray implementation
 
@@ -77,7 +79,7 @@
       (is (== 10 (ereduce + m)))
       (is (== 4 (ereduce (fn [acc _] (inc acc)) 0 m)))
       (is (== 4 (ereduce (fn [acc _] (inc acc)) 0 (eseq m))))))
-  
+
   (testing "Elementwise divide"
     (is (equals [2 2] (div (array :ndarray [6 4]) [3 2])))))
 
@@ -102,6 +104,12 @@
     (sub! a [3 4])
     (is (equals a [8 8]))))
 
+(deftest test-fill
+  (let [a (array :ndarray [[1 2] [3 4]])]
+    (is (equals [[9 9] [9 9]] (fill a 9)))
+    (is (equals [[9 9] [9 9]] (fill a [9 9])))
+    (is (equals [[1 2] [3 4]] a))))
+
 (deftest test-contained-vectors
   (let [a (array :ndarray :foo)]
     (mset! a [1 2 3])
@@ -118,6 +126,9 @@
          [3 4]))
   (is (= [1 2] (seq (array :ndarray [1 2]))))
   )
+
+(deftest test-slice-on-1d
+  (is (scalar? (slice (array :ndarray [1 2 3]) 0))))
 
 (deftest test-assign
   (let [m (empty-ndarray [2 2 2])
@@ -162,7 +173,7 @@
                first
                (mget 1))))
   (is (equals [10] (add-product! (array :ndarray [4]) [2] [3])))
-  (is (equals [30 70 110] (mmul (array :ndarray-double [[1 2 3 4] [5 6 7 8] [9 10 11 12]]) [1 2 3 4]))) 
+  (is (equals [30 70 110] (mmul (array :ndarray-double [[1 2 3 4] [5 6 7 8] [9 10 11 12]]) [1 2 3 4])))
   (is (equals [10] (add-product (array :ndarray [4]) [2] [3]))))
 
 (deftest ndarray-test

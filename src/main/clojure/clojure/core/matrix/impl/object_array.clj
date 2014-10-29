@@ -124,7 +124,11 @@
 (extend-protocol mp/PTypeInfo
   (Class/forName "[Ljava.lang.Object;")
     (element-type [m]
-      java.lang.Object))
+      (let [^objects m m]
+        (cond
+         (== 1 (mp/dimensionality m)) Object
+         :else (mp/element-type (aget m 0))))))
+
 
 (extend-protocol mp/PIndexedAccess
   (Class/forName "[Ljava.lang.Object;")

@@ -29,15 +29,16 @@
       ss)))
 
 (defn- format-array 
-  "Fromats an array accordsing to the given formatter function"
+  "Formats an array according to the given formatter function"
   ([m formatter]
-    (cond 
-      (mp/is-scalar? m) (formatter m)
-      :else (mp/element-map 
-              (if (= java.lang.Object (mp/element-type m))
-                m
-                (mp/convert-to-nested-vectors m))
-              formatter))))
+    (let [m (mp/ensure-type m String)]
+      (cond 
+        (mp/is-scalar? m) (formatter m)
+        :else (mp/element-map 
+                (if (= java.lang.Object (mp/element-type m))
+                  m
+                  (mp/convert-to-nested-vectors m))
+                formatter)))))
 
 (defn- append-elem
   "Appends an element, right-padding up to a given column length."
@@ -80,15 +81,17 @@
 
 (defn pm
   "Pretty-prints an array. Returns a String containing the pretty-printed representation."
-  [a & {:keys [prefix formatter]}]
-  (let [formatter (or formatter default-formatter)
-        m (format-array a formatter)
-        prefix (or prefix "")
-        sb (StringBuilder.)]
-    (cond
-      (mp/is-scalar? m) (.append sb (str prefix m))
-      (== 1 (mp/dimensionality m)) 
-        (append-row sb m (column-lengths m))
-      :else 
-        (let [clens (column-lengths m)] (rprint sb m prefix clens)))
-    (.toString sb)))
+  ([a] 
+    (pm a nil))
+  ([a {:keys [prefix formatter]}]
+    (let [formatter (or formatter default-formatter)
+          m (format-array a formatter)
+          prefix (or prefix "")
+          sb (StringBuilder.)]
+      (cond
+        (mp/is-scalar? m) (.append sb (str prefix m))
+        (== 1 (mp/dimensionality m)) 
+          (append-row sb m (column-lengths m))
+        :else 
+          (let [clens (column-lengths m)] (rprint sb m prefix clens)))
+      (.toString sb))))

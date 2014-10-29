@@ -208,6 +208,16 @@
   clojure.lang.Seqable
     (seq [m]
       (mp/get-major-slice-seq m))
+    
+  clojure.lang.Indexed
+    (count [m] 
+      (aget shape 0))
+    (nth [m i]
+      (mp/get-major-slice m i))
+    (nth [m i not-found]
+      (if (and (integer? i) (<= 0 i) (< i (aget shape 0)))
+        (mp/get-major-slice m i)
+        not-found))
 
   mp/PImplementation
     (implementation-key [m]
