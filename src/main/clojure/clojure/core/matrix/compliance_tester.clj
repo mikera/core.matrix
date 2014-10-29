@@ -261,15 +261,13 @@
 (defn test-join-along
   "Test for joining matrices along arbitrary dimensions"
   ([m]
-    (when (< 0 (dimensionality m))
-      (let [j (join-along 0 m m)]
-        (check-joined-matrices 0 m j)))
-    (when (< 1 (dimensionality m))
-      (let [j (join-along 1 m m)]
-        (check-joined-matrices 1 m j)))
-    (when (< 2 (dimensionality m))
-      (let [j (join-along 2 m m)]
-        (check-joined-matrices 2 m j)))))
+    (test-join-along m 0)
+    (test-join-along m 1)
+    (test-join-along m 2))
+  ([m dim]
+    (when (< dim (dimensionality m))
+      (let [j (join-along dim m m)]
+        (check-joined-matrices dim m j)))))
 
 (defn test-pm
   "Test for matrix pretty-printing"

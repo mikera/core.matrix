@@ -920,7 +920,9 @@
 (defn join-along
   "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
   ([dimension & arrays]
-   (reduce #(mp/join-along %1 %2 dimension) arrays)))
+    (or 
+      (reduce #(mp/join-along %1 %2 dimension) arrays)
+      (error "Failure to joins arrays"))))
 
 (defn rotate
   "Rotates an array along specified dimensions."
