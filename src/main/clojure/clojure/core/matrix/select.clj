@@ -8,14 +8,25 @@
 ;; adds support for linear-indexing, logical-indexing and use of selector
 ;; functions to build up selections.
 
+(defn- normalise-negative-index
+  "supports using -1 to get the last element
+   index is the (possibly negative) index and s is the
+   shape entry of the current dimension"
+  [index s]
+  (if (neg? index)
+    (+ s index)
+    index))
+
 (defn- eval-arg
   "desugars the selector"
   [a d arg]
-  (cond
-   (sequential? arg) (mp/element-seq arg)
-   (number? arg) [arg]
-   (= :all arg) (range (dimension-count a d))
-   :else (eval-arg a d (arg a d))))
+  (let [s (dimension-count a d)]
+    (cond
+     (sequential? arg) (mp/element-map
+                        arg #(normalise-negative-index % s))
+     (number? arg) [(normalise-negative-index arg s)]
+     (= :all arg) (range s)
+     :else (eval-arg a d (arg a d)))))
 
 (defn- eval-args
   "evaluates the arguments - calls the selector functions"
@@ -26,11 +37,13 @@
   "desugars the selector - also checks whether the current dimension has to
    be sliced"
   [a d arg]
-  (cond
-   (sequential? arg) [(mp/element-seq arg) false]
-   (number? arg) [[arg] true]
-   (= :all arg) [(range (dimension-count a d)) false]
-   :else (eval-arg-with-slicing a d (arg a d))))
+  (let [s (dimension-count a d)]
+    (cond
+     (sequential? arg) [(mp/element-map
+                         arg #(normalise-negative-index % s)) false]
+     (number? arg) [[(normalise-negative-index arg s)] true]
+     (= :all arg) [(range s) false]
+     :else (eval-arg-with-slicing a d (arg a d)))))
 
 (defn- eval-args-with-slicing
   "evalutes the arguments and checks which dimensions have to be sliced"

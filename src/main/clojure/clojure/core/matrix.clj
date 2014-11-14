@@ -725,6 +725,16 @@
           (recur erg (rest ds) (inc acc)))
         erg))))
 
+(defn- normalise-negative-index
+  "supports using -1 to get the last element
+   index is the (possibly negative) index and s is the
+   shape entry of the current dimension"
+  [index s]
+  (if (neg? index)
+    (+ s index)
+    index))
+
+
 (defn- normalise-arg-with-slicing
   "maps number to [number] and :all to (range s) where s is the shape entry for
    the current dimension also returns if the current dimension has to be
@@ -732,8 +742,8 @@
   [arg s]
   (cond
    (= :all arg) [(range s) false]
-   (number? arg) [[arg] true]
-   :else [(mp/element-seq arg) false]))
+   (number? arg) [[(normalise-negative-index arg s)] true]
+   :else [(mp/element-map arg #(normalise-negative-index % s)) false]))
 
 (defn- normalise-arg
   "maps number to [number] and :all to (range s) where s is the shape entry for
@@ -741,8 +751,8 @@
   [arg s]
   (cond
    (= :all arg) (range s)
-   (number? arg) [arg]
-   :else (mp/element-seq arg)))
+   (number? arg) [(normalise-negative-index arg s)]
+   :else (mp/element-map arg #(normalise-negative-index % s))))
 
 (defn select
   "Returns a view containing all elements in a which are at the positions
@@ -750,10 +760,12 @@
     - a number - selects like [number] but drops the current dimension,
     - a 1-dimensional array of numbers
     - the keyword :all which is the same as the range of all valid indices.
-   The number of args must match the dimensionality of a.
+   The number of args must match the dimensionality of a. 
+   Also supports negative indexes (-1 means last element).
 
    Examples:
    (select [[1 2][3 4]] 0 0) ;=> 1
+   (select [[1 2][3 4]] -1 -1) ;=> 4
    (select [[1 2][3 4]] 0 :all) ;=> [1 2]
    (select [[1 2][3 4]] [0 1] [0]) ;=> [[1] [3]]
    (select [[1 2][3 4]] :all 0) ;=> [1 3]"
