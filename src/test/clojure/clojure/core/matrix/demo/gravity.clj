@@ -1,5 +1,6 @@
 (ns clojure.core.matrix.demo.gravity
   (:use clojure.core.matrix)
+  (:refer-clojure :exclude [update])
   (:import [javax.swing JFrame JPanel JComponent Timer])
   (:import [java.awt Dimension Graphics Color])
   (:import [java.awt.event ActionListener ActionEvent]))

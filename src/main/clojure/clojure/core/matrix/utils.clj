@@ -295,9 +295,5 @@
         m (if (class? m) m (class m))]
     (map :name (filter #(not (extends-deep? % m)) protocols))))
 
-;; useful for updating slice of the vector
-(defn update [xs vals f]
-  (reduce #(update-in %1 [%2] f) xs vals))
-
 (defn update-indexed [xs idxs f]
   (reduce #(assoc %1 %2 (f %2 (get %1 %2))) xs idxs))
