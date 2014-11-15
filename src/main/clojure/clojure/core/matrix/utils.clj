@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.utils
+  (:refer-clojure :exclude [update])
   (:require [clojure.reflect :as r]))
 
 ;; Some of these are copies of methods from the library
