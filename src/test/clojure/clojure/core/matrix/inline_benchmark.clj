@@ -1,6 +1,5 @@
 (ns clojure.core.matrix.inline-benchmark
-  (:require [criterium.core :as c])
-  (:import [clojure.core.matrix ClassPair]))
+  (:require [criterium.core :as c]))
 
 ;; benchmark for inline usage
 
@@ -11,11 +10,11 @@
   ([x y]
     (+ x y)))
 
-(defn add-prim 
+(defn add-prim
   (^long [^long x ^long y]
     (+ x y)))
 
-(defn add-inline 
+(defn add-inline
   {:inline (fn ([x y] `(+ ~x ~y)))}
   ([x y]
     (+ x y)))
@@ -26,7 +25,7 @@
 (defn length-hinted
   ([^String x] (.length x)))
 
-(defn length-inline 
+(defn length-inline
   {:inline (fn ([x] `(.length ~x)))}
   ([x]
     (.length x)))
@@ -46,22 +45,22 @@
 
   ;; primitive fn - 1.25 ns per call
   (c/quick-bench (dotimes [i 1000] (add-prim i 10)))
-  
+
   ;; inline fn - 1.19 ns per call
   (c/quick-bench (dotimes [i 1000] (add-inline i 10)))
-  
-  
+
+
   ;;========================================================
   ;; fn with relection - 2060 ns per call
   (c/quick-bench (dotimes [i 1000] (length-fn "foo")))
 
   ;; fn with type hints - 0.90 ns per call
   (c/quick-bench (dotimes [i 1000] (length-hinted "foo")))
-  
+
   ;; inline fn - 0.60 ns per call
   (c/quick-bench (dotimes [i 1000] (length-inline "foo")))
-  
-  
+
+
   ;;========================================================
   ;; wrapped fn count: 1.50 ns per call    (why is this so fast?!?)
   (c/quick-bench (dotimes [i 1000] (count-fn [1 2 3])))

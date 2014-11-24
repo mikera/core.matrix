@@ -1,11 +1,9 @@
 (ns clojure.core.matrix.test-double-array
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.compliance-tester])
-  (:require clojure.core.matrix.impl.double-array))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.compliance-tester]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.utils :refer [error?]]
+            [clojure.test :refer :all]))
 
 ;; This namespace contains tests for the Java double[] array implementation
 ;;
@@ -62,7 +60,7 @@
           fs (first (slice-views da))]
       (is (not (scalar? fs)))
       (is (== 0 (dimensionality fs)))
-      (fill! fs 10) 
+      (fill! fs 10)
       (is (equals [10 2 3] da))
       (is (array? fs))))
   (testing "wrong dimension"
@@ -89,7 +87,7 @@
       (is (= [2.0 4.0] (seq da)))))
   (testing "assign from a Number array"
     (let [da (double-array [1 2])]
-      (mp/assign-array! da (into-array java.lang.Number [2 5]))
+      (mp/assign-array! da (into-array Number [2 5]))
       (is (= [2.0 5.0] (seq da))))))
 
 (deftest test-equals

@@ -1,9 +1,9 @@
 (ns clojure.core.matrix.impl.dummy
-  (:use clojure.core.matrix)
-  (:use clojure.test)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.compliance-tester])
-  (:require [clojure.core.matrix.implementations :as imp]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.compliance-tester]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix :refer :all]
+            [clojure.test :refer :all]))
 
 (defrecord Dummy [dims])
 

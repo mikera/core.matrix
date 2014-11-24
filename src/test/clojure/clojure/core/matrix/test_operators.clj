@@ -1,9 +1,9 @@
 (ns clojure.core.matrix.test-operators
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.operators)
-  (:require clojure.core.matrix.impl.persistent-vector)
-  (:refer-clojure :exclude [* - + / ==]))
+  (:refer-clojure :exclude [* - + / ==])
+  (:require clojure.core.matrix.impl.persistent-vector
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.operators :refer :all]
+            [clojure.test :refer :all]))
 
 ;; Tests for the clojure.core.matrix.operators namespace
 

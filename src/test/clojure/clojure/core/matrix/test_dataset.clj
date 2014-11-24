@@ -1,12 +1,9 @@
 (ns clojure.core.matrix.test-dataset
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.dataset)
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.impl.dataset :as ds])
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.compliance-tester]))
+  (:require [clojure.core.matrix.impl.dataset :as ds]
+            [clojure.core.matrix.compliance-tester :as compliance]
+            [clojure.test :refer :all]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.dataset :refer :all]))
 
 (deftest test-construct-dataset
   (let [ds1 (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))
@@ -92,8 +89,8 @@
     (is (= (row-maps ds) [{:a 1 :b 4} {:a 2 :b 5} {:a 3 :b 6}]))))
 
 (deftest instance-tests
-  (clojure.core.matrix.compliance-tester/instance-test
+  (compliance/instance-test
    (ds/dataset-from-columns [:bar] [["Foo"]])))
 
 (deftest compliance-test
-  (clojure.core.matrix.compliance-tester/compliance-test ds/CANONICAL-OBJECT))
+  (compliance/compliance-test ds/CANONICAL-OBJECT))

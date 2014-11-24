@@ -1,12 +1,9 @@
 (ns clojure.core.matrix.test-sequence
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.compliance-tester])
-  (:require clojure.core.matrix.impl.sequence))
+  (:require [clojure.core.matrix.compliance-tester :as compliance]
+            [clojure.core.matrix :refer :all]
+            [clojure.test :refer :all]))
 
-;; Tests for core.matrix implementation for arbitray sequences (ISeq)
+;; Tests for core.matrix implementation for arbitrary sequences (ISeq)
 
 (deftest regressions
   (is (== 3 (ereduce (fn [acc _] (inc acc)) 0 '(nil nil nil))))
@@ -18,7 +15,7 @@
   (is (= [2 2] (shape '((1 2) (3 4))))))
 
 (deftest compliance-test
-  (clojure.core.matrix.compliance-tester/compliance-test '(1)))
+  (compliance/compliance-test '(1)))
 
 (deftest sequence-ops
   (is (equals (emul (range 10) (range 10)) '(0 1 4 9 16 25 36 49 64 81))))

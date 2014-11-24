@@ -1,13 +1,11 @@
 (ns clojure.core.matrix.test-utils
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require clojure.core.matrix.examples)
-  (:require clojure.core.matrix.impl.persistent-vector)
-  (:refer-clojure :exclude [vector?]))
+  (:refer-clojure :exclude [vector?])
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.utils :refer [extends-deep? extract-protocols]]
+            [clojure.test :refer :all])
+  (:import [clojure.lang PersistentVector]
+           [mikera.vectorz Vector]))
 
 ;; Tests for clojure.core.matrix.utils functions and macros
 
@@ -16,11 +14,11 @@
   (is (= (count (long-array 0)) (count (long-array nil)))))
 
 (deftest test-protocol-extension
-  (is (extends-deep? clojure.core.matrix.protocols/PImplementation clojure.lang.PersistentVector))
-  (is (extends-deep? clojure.core.matrix.protocols/PImplementation mikera.vectorz.Vector))) 
+  (is (extends-deep? mp/PImplementation PersistentVector))
+  (is (extends-deep? mp/PImplementation Vector)))
 
 ;; this tests that all protocols have a default implementation for java.lang.Object
 ;; (except for specified known exceptions
 (deftest test-default-implementations
   (is (= #{'PIndexedSettingMutable 'PMatrixRank 'PGenericOperations 'PDatasetImplementation}
-         (set (map :name (filter #(not (extends? % java.lang.Object)) (extract-protocols)))))))
+         (set (map :name (filter #(not (extends? % Object)) (extract-protocols)))))))
