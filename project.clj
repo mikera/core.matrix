@@ -28,7 +28,8 @@
                    
                    :source-paths ["src/main/clojure" "src/dev/clojure"]
                    :jvm-opts ^:replace []}
-             :doc {:plugins [[codox "0.8.8"]]}}
+             :doc [:dev ;; composite profile, inherit from dev
+                   {:plugins [[codox "0.8.8"]]}]}
   
   :aliases {"doc" ["with-profile" "doc" "doc"]}
   
