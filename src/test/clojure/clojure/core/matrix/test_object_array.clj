@@ -1,11 +1,7 @@
 (ns clojure.core.matrix.test-object-array
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.compliance-tester])
-  (:require clojure.core.matrix.impl.double-array))
+  (:require [clojure.core.matrix.compliance-tester :as compliance]
+            [clojure.core.matrix :refer :all]
+            [clojure.test :refer :all]))
 
 ;; Tests for core.matrix functions on Java Object [] arrays
 ;;
@@ -21,9 +17,9 @@
 
 (deftest instance-tests
   ;(clojure.core.matrix.compliance-tester/instance-test (object-array []))
-  (clojure.core.matrix.compliance-tester/instance-test (object-array [1]))
-  (clojure.core.matrix.compliance-tester/instance-test (object-array [1 :foo]))
-  (clojure.core.matrix.compliance-tester/instance-test (object-array [-1 4 2 7 -3])))
+  (compliance/instance-test (object-array [1]))
+  (compliance/instance-test (object-array [1 :foo]))
+  (compliance/instance-test (object-array [-1 4 2 7 -3])))
 
-(deftest compliance-test
-  (clojure.core.matrix.compliance-tester/compliance-test (object-array [0.23])))
+(deftest compliance-tests
+  (compliance/compliance-test (object-array [0.23])))

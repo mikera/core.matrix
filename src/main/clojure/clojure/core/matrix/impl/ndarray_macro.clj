@@ -1,12 +1,12 @@
 (ns clojure.core.matrix.impl.ndarray-macro
-  (:require [clojure.pprint])
-  (:require [clojure.walk :as w])
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.multimethods :as mm])
-  (:refer-clojure :exclude [vector?]))
+  (:refer-clojure :exclude [vector?])
+  (:require [clojure.pprint]
+            [clojure.walk :as w]
+            [clojure.core.matrix.impl.ndarray-magic :as magic]
+            [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.multimethods :as mm]
+            [clojure.core.matrix.utils :refer :all]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)

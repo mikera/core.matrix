@@ -1,15 +1,16 @@
 (ns clojure.core.matrix.test-api
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
-  (:use clojure.core.matrix.select)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.linear :as li])
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require clojure.core.matrix.examples)
-  (:require clojure.core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?])
-  (:use clojure.test))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.linear :as li]
+            [clojure.core.matrix.operators :as op]
+            [clojure.core.matrix.implementations :as imp]
+            clojure.core.matrix.examples
+            clojure.core.matrix.impl.persistent-vector
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.utils :refer [error? broadcast-shape]]
+            [clojure.core.matrix.select :refer :all]
+            [clojure.test :refer :all])
+  (:import [java.io StringWriter]))
 
 ;; This namespace is intended for general purpose tests og the core.matrix API functions
 
@@ -528,7 +529,7 @@
          (non-zero-indices [[[0.0 2.0][0 4.0]][[5.0 6.0][7.0 0]][[9.0 10.0][11.0 12.0]]]))))
 
 (deftest check-examples
-  (binding [*out* (java.io.StringWriter.)]
+  (binding [*out* (StringWriter.)]
     (testing "example code"
       (clojure.core.matrix.examples/all-examples))))
 
@@ -620,9 +621,9 @@
   (is (= 30.0 (li/norm (matrix [[1 2][3 4]]) 2)))
   (is (= 10.0 (li/norm (matrix [[1 2][3 4]]) 1)))
   (is (= 100.0 (li/norm (matrix [[1 2][3 4]]) 3)))
-  (is (= 4 (li/norm (matrix [[1 2][3 4]]) java.lang.Double/POSITIVE_INFINITY)))
+  (is (= 4 (li/norm (matrix [[1 2][3 4]]) Double/POSITIVE_INFINITY)))
   (is (= 30.0 (li/norm (vector 1 2 3 4))))
   (is (= 30.0 (li/norm (vector 1 2 3 4) 2)))
   (is (= 10.0 (li/norm (vector 1 2 3 4) 1)))
   (is (= 100.0 (li/norm (vector 1 2 3 4) 3)))
-  (is (= 4 (li/norm (vector 1 2 3 4) java.lang.Double/POSITIVE_INFINITY))))
+  (is (= 4 (li/norm (vector 1 2 3 4) Double/POSITIVE_INFINITY))))

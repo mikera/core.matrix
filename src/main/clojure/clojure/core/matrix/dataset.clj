@@ -1,9 +1,9 @@
 (ns clojure.core.matrix.dataset
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.impl.dataset)
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:import clojure.core.matrix.impl.dataset.DataSet))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.impl.dataset :as impl]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.utils :refer [error]])
+  (:import [clojure.core.matrix.impl.dataset DataSet]))
 
 (defmacro dataset?
   "Returns true if argument is a dataset"
@@ -19,18 +19,18 @@
     seq of maps"
   ([col-names data]
      (cond
-      (matrix? data) (dataset-from-rows col-names data)
-      (and (vec? data) (empty? data)) (dataset-from-rows col-names data)
-      (map? (first data)) (dataset-from-row-maps col-names data)
+      (matrix? data) (impl/dataset-from-rows col-names data)
+      (and (vec? data) (empty? data)) (impl/dataset-from-rows col-names data)
+      (map? (first data)) (impl/dataset-from-row-maps col-names data)
       (map? data) (let [cols (reduce
                            (fn [acc c] (conj acc (get data c)))
                            [] col-names)]
-                 (dataset-from-columns col-names cols))
+                 (impl/dataset-from-columns col-names cols))
       :else (error "Don't know how to create dataset from shape"  (shape data))))
   ([data]
      (cond
       (dataset? data) data
-      (matrix? data) (dataset-from-array data)
+      (matrix? data) (impl/dataset-from-array data)
       (map? data)
       (let [col-names (keys data)
             cols (reduce
@@ -38,7 +38,7 @@
                   [] col-names)
             row-counts (into #{} (map count data))]
         (if (= (count row-counts) 1)
-          (dataset-from-columns col-names cols)
+          (impl/dataset-from-columns col-names cols)
           (error "Cant' create dataset with different column lengths")))
 
       (and (= (mp/dimensionality data) 1)
@@ -58,7 +58,7 @@
                       (into #{})
                       (count)
                       (= 1)))
-          (dataset-from-columns
+          (impl/dataset-from-columns
            col-names
            (reduce #(conj %1 (get col-map %2)) [] col-names))
           (error "Can't create dataset from incomplete maps"))))))

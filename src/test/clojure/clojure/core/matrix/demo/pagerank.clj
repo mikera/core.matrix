@@ -1,8 +1,8 @@
 (ns clojure.core.matrix.demo.pagerank
   (:refer-clojure :exclude [* - + / ==])
-  (:require clojure.core.matrix.impl.ndarray)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.operators))
+  (:require clojure.core.matrix.impl.ndarray
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.operators :refer :all]))
 
 (defn demo []
 
@@ -13,7 +13,7 @@
 ;;   - http://en.wikipedia.org/wiki/PageRank
 
 (def links
-;; link matrix: each row represnts the number of 
+;; link matrix: each row represnts the number of
 ;; outbound links from a page to other pages
   [[0 0 1 1 0 0 1 2 0 0]
    [1 0 0 1 0 0 0 0 0 0]
@@ -28,7 +28,7 @@
 
 (def n (row-count links))
 
-(defn proportions 
+(defn proportions
   "Normalises a vector to a sum of 1.0"
   ([v]
     (/ v (esum v))))
@@ -51,14 +51,14 @@ outbound
 ;; Iterative method
 ;;
 ;; state defines the location of the browsing population
-;; each iteration of the pagerank sequences gets 
+;; each iteration of the pagerank sequences gets
 ;; closer to the correct pagerank value
 
-(def initial-state (proportions (repeat n 1000000))) 
+(def initial-state (proportions (repeat n 1000000)))
 (pm initial-state)
 
-(defn step 
-  "Compute the next state, i.e. the proportion of people 
+(defn step
+  "Compute the next state, i.e. the proportion of people
    on each page"
   ([state]
     (+ (* CLICK-THROUGH         (mmul inbound state))
@@ -84,15 +84,15 @@ outbound
 (pm (- (nth pageranks 100) (nth pageranks 300)))
 
 ;; make array out of sequence of steps
-(pm (array (take 8 pageranks))) 
+(pm (array (take 8 pageranks)))
 
 ;; =================================================================================
 ;; Direct (algebraic) method
 
-(defn pagerank-direct 
+(defn pagerank-direct
   "Computes the pagerank directly"
   ([inbound]
-    (mmul (inverse (- (identity-matrix n) 
+    (mmul (inverse (- (identity-matrix n)
                       (* CLICK-THROUGH inbound)))
           (* (- 1.0 CLICK-THROUGH) initial-state))))
 

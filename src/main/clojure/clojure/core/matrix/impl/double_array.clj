@@ -1,10 +1,7 @@
 (ns clojure.core.matrix.impl.double-array
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:use clojure.core.matrix.utils)
-  (:require clojure.core.matrix.impl.persistent-vector)
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.impl.mathsops :as mops])
-  (:require [clojure.core.matrix.multimethods :as mm]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.utils :refer :all]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -15,7 +12,7 @@
 
 (def ^:const DOUBLE-ARRAY-CLASS (Class/forName "[D"))
 
-(def array-magic-data 
+(def array-magic-data
   {:double {:class DOUBLE-ARRAY-CLASS
             :regname :ndarray-double
             :fn-suffix 'double
@@ -177,13 +174,13 @@
 
 (extend-protocol mp/PVectorOps
   (Class/forName "[D")
-    (vector-dot [a b] 
+    (vector-dot [a b]
       (cond
         (is-double-array? b)
           (let [^doubles a a
                 ^doubles b b
                 n (alength a)]
-            (when (not (== n (alength b))) (error "Incompatible double array lengths"))
+            (when-not (== n (alength b)) (error "Incompatible double array lengths"))
             (loop [i 0 res 0.0]
               (if (< i n)
                 (recur (inc i) (+ res (* (aget a i) (aget b i))))
@@ -198,13 +195,13 @@
                 res)))
         :else nil))
     (length [a] (Math/sqrt (doubles-squared-sum a)))
-    (length-squared [a] 
+    (length-squared [a]
       (doubles-squared-sum a))
     (normalise [a]
       (let [a ^doubles a
             len (doubles-squared-sum a)]
         (cond
-          (> len 0.0) (mp/scale a (/ 1.0 (Math/sqrt len))) 
+          (> len 0.0) (mp/scale a (/ 1.0 (Math/sqrt len)))
           :else (double-array (alength a))))))
 
 (extend-protocol mp/PCoercion

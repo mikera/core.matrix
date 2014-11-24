@@ -1,6 +1,6 @@
 (ns clojure.core.matrix.select
-  (:use [clojure.core.matrix])
-  (:require [clojure.core.matrix.protocols :as mp]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix :refer :all]))
 
 ;; high-level array indexing
 ;; Provides a matlab-like dsl for matrix indexing.
@@ -110,7 +110,7 @@
 (defn end
   "selector function for sel. selects the last valid index"
   [a dim]
-  (- (dimension-count a dim) 1))
+  (dec (dimension-count a dim)))
 
 (defn calc [f & args]
   (fn [a dim]

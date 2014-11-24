@@ -1,11 +1,9 @@
 (ns clojure.core.matrix.test-arrays
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.compliance-tester])
   (:refer-clojure :exclude [vector?])
-  (:use clojure.test))
+  (:require [clojure.core.matrix.compliance-tester :as compliance]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.utils :refer :all]
+            [clojure.test :refer :all]))
 
 ;; This namespace is intended for tests of core.matrix functions on arbitrary Java arrays
 ;;
@@ -23,18 +21,15 @@
   (let [a (long-array [1 2 3])]
     (is (== 1 (first (slices a)))))
   (let [a (object-array [1 2 3])]
-    (is (array? (first (slice-views a)))))) 
+    (is (array? (first (slice-views a))))))
 
 (deftest compliance-tests
-  (clojure.core.matrix.compliance-tester/instance-test (int-array [1 2 3]))
-  (clojure.core.matrix.compliance-tester/instance-test (float-array [1 2 3]))
-  (clojure.core.matrix.compliance-tester/instance-test (long-array []))
-  (clojure.core.matrix.compliance-tester/instance-test (char-array [\a \b \c]))
-  (clojure.core.matrix.compliance-tester/instance-test (object-array [(double-array [1 2 3])]))
-  ;; TODO: reinstante once Clojure bug CLJ-1306 is fixed
-  ;; (clojure.core.matrix.compliance-tester/instance-test (object-array [(short-array (map short [1 2 3]))]))
-  (clojure.core.matrix.compliance-tester/instance-test 
-    (into-array (Class/forName "[D") 
-                [(double-array [1 2])
-                 (double-array [3 4])]))
-  )
+  (compliance/instance-test (int-array [1 2 3]))
+  (compliance/instance-test (float-array [1 2 3]))
+  (compliance/instance-test (long-array []))
+  (compliance/instance-test (char-array [\a \b \c]))
+  (compliance/instance-test (object-array [(double-array [1 2 3])]))
+  (compliance/instance-test (object-array [(short-array (map short [1 2 3]))]))
+  (compliance/instance-test (into-array (Class/forName "[D")
+                                        [(double-array [1 2])
+                                         (double-array [3 4])])))
