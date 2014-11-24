@@ -75,9 +75,10 @@
 (deftest test-set-sel
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
     (testing "set-sel"
-      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] (set-sel a 0 0 2)))
-      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]] (set-sel a [0 2] [0 3] 3)))
-      (is (= [[1 2 3 4] [5 5 5 5] [5 5 5 5]] (set-sel a (where (partial < 5)) 5))))))
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (set-sel a 0 0 2))
+      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (set-sel a [0 2] [0 3] 3))
+      (is (= [[1 2 3 4] [5 5 5 5] [5 5 5 5]])
+          (set-sel a (where (partial < 5)) 5)))))
 
 (deftest test-set-sel!
   (let [a (matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
