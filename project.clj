@@ -25,11 +25,13 @@
                                   [hiccup "1.0.5"]
                                   [net.mikera/vectorz-clj "0.26.0"]
                                   [org.clojure/test.check "0.5.9"]]
-
+                   
                    :source-paths ["src/main/clojure" "src/dev/clojure"]
                    :jvm-opts ^:replace []}
              :doc {:plugins [[codox "0.8.8"]]}}
+  
   :aliases {"doc" ["with-profile" "doc" "doc"]}
+  
   :codox {:sources ["src/main/clojure"]
           :src-dir-uri "https://github.com/mikera/core.matrix/blob/master/"
           :src-linenum-anchor-prefix "L"
