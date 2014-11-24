@@ -1,7 +1,7 @@
 (ns clojure.core.matrix.generic
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.implementations :as imp]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.utils :refer [TODO]]))
 
 ;; Placeholder namespace for generic versions of core.matrix algorithms
 
@@ -23,7 +23,7 @@
 
 (defn two
   "Returns the standard 'two' scalar value for the given array / implementation"
-  ([impl] 
+  ([impl]
     (let [o (one impl)]
       (mp/get-0d (mp/matrix-add o o)))))
 

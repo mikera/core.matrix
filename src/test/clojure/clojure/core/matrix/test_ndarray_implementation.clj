@@ -1,17 +1,17 @@
 (ns clojure.core.matrix.test-ndarray-implementation
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.compliance-tester :as ct])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.generic :as gen])
-  (:require clojure.core.matrix.impl.persistent-vector)
-  (:require [clojure.core.matrix.impl.ndarray])
-  (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
-  (:require [clojure.core.matrix.impl.ndarray-macro :as macro])
-  (:use clojure.core.matrix.impl.ndarray)
-  (:use clojure.core.matrix.impl.ndarray-double)
-  (:use clojure.core.matrix.impl.ndarray-object))
+  (:require [clojure.core.matrix.operators :as op]
+            [clojure.core.matrix.compliance-tester :as ct]
+            [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.generic :as gen]
+            clojure.core.matrix.impl.persistent-vector
+            [clojure.core.matrix.impl.ndarray]
+            [clojure.core.matrix.impl.ndarray-magic :as magic]
+            [clojure.core.matrix.impl.ndarray-macro :as macro]
+            [clojure.test :refer :all]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.impl.ndarray :refer :all]
+            [clojure.core.matrix.impl.ndarray-double :refer :all]
+            [clojure.core.matrix.impl.ndarray-object :refer :all]))
 
 ;; Tests for the NDArray implementation
 

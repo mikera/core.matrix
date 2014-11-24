@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.utils
   (:refer-clojure :exclude [update])
-  (:require [clojure.reflect :as r]))
+  (:require [clojure.reflect :as r])
+  (:import [java.util Arrays]))
 
 ;; Some of these are copies of methods from the library
 ;;   https://github.com/mikera/clojure-utils
@@ -13,7 +14,7 @@
 (defmacro error
   "Throws an error with the provided message(s)"
   ([& vals]
-    `(throw (java.lang.RuntimeException. (str ~@vals)))))
+    `(throw (RuntimeException. (str ~@vals)))))
 
 (defmacro error?
   "Returns true if executing body throws an error, false otherwise."
@@ -27,7 +28,7 @@
 (defmacro error
   "Throws an error with the provided message(s)"
   ([& vals]
-    `(throw (java.lang.RuntimeException. (str ~@vals)))))
+    `(throw (RuntimeException. (str ~@vals)))))
 
 ;; useful TODO macro: facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO
@@ -46,7 +47,7 @@
      (iae ~exception-str)))
 
 (defmacro java-array? [m]
-  `(.isArray (.getClass ~m))) 
+  `(.isArray (.getClass ~m)))
 
 (defn valid-shape?
   "returns true if the given object is a valid core.matrix array shape."
@@ -93,17 +94,17 @@
 (defn copy-double-array
   "Returns a copy of a double array"
   (^doubles [^doubles arr]
-    (java.util.Arrays/copyOf arr (int (alength arr)))))
+    (Arrays/copyOf arr (int (alength arr)))))
 
 (defn copy-long-array
   "Returns a copy of a long array"
   (^longs [^longs arr]
-    (java.util.Arrays/copyOf arr (int (alength arr)))))
+    (Arrays/copyOf arr (int (alength arr)))))
 
 (defn copy-object-array
   "Returns a copy of a long array"
   (^objects [^objects arr]
-    (java.util.Arrays/copyOf arr (int (alength arr)))))
+    (Arrays/copyOf arr (int (alength arr)))))
 
 (defn long-range
   "Returns a range of longs in a long[] array"
@@ -219,14 +220,14 @@
 
 (defmacro abutnth [i xs]
   `(let [n# (alength ~xs)
-         new-xs# (java.util.Arrays/copyOf ~xs (int (dec n#)))]
+         new-xs# (Arrays/copyOf ~xs (int (dec n#)))]
      (c-for [j# (int ~i) (< j# (dec n#)) (inc j#)]
        (aset new-xs# (int j#) (aget ~xs (int (inc j#)))))
      new-xs#))
 
 (defmacro areverse [xs]
   `(let [n# (alength ~xs)
-         new-xs# (java.util.Arrays/copyOf ~xs (int n#))]
+         new-xs# (Arrays/copyOf ~xs (int n#))]
      (c-for [i# (int 0) (< i# (quot n# 2)) (inc i#)]
        (let [j# (- (- n# 1) i#)
              t# (aget new-xs# j#)]
@@ -234,11 +235,11 @@
          (aset new-xs# i# t#)))
      new-xs#))
 
-(defmacro scalar-coerce 
+(defmacro scalar-coerce
   "Macro to coerce to scalar value with an efficient dispatch sequence"
   ([x]
   `(let [x# ~x]
-     (cond 
+     (cond
        (number? x#) x#
        :else (clojure.core.matrix.protocols/get-0d x#)))))
 
@@ -256,7 +257,7 @@
     (extends? proto cls)
     (let [bases (-> cls (r/type-reflect :ancestors true) :ancestors)]
       (->> bases
-           (filter (complement #{'java.lang.Object}))
+           (filter (complement #{'Object}))
            (map resolve)
            (cons cls)
            (map (partial extends? proto))

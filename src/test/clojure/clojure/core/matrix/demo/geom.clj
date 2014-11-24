@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.demo.geom
-  (:use clojure.core.matrix))
+  (:require [clojure.core.matrix :refer :all]))
 
 (def π 3.141592653589793)
 

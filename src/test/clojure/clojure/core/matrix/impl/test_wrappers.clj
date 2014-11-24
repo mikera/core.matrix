@@ -1,11 +1,10 @@
 (ns clojure.core.matrix.impl.test-wrappers
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.impl.wrappers)
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [mikera.cljutils.error :refer [error?]])
-  (:require [clojure.core.matrix.compliance-tester]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [mikera.cljutils.error :refer [error?]]
+            [clojure.core.matrix.compliance-tester :as compliance]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.impl.wrappers :refer :all]
+            [clojure.test :refer :all]))
 
 (deftest regressions
   (is (str (wrap-slice [[1 2] [3 4]] 1))))
@@ -68,7 +67,7 @@
 
 (deftest test-wrap-fill
   (let [a (wrap-nd [[1 2] [3 4]])]
-    (is (equals [[9 9] [9 9]] (fill a 9))))) 
+    (is (equals [[9 9] [9 9]] (fill a 9)))))
 
 (deftest test-as-vector
   (is (e== [1] (as-vector (wrap-scalar 1)))))
@@ -102,8 +101,7 @@
   (is (equals [[1 3] [2 4]] (transpose (wrap-nd [[1 2] [3 4]])))))
 
 (deftest instance-tests
-  (clojure.core.matrix.compliance-tester/instance-test (wrap-scalar 1))
-  (clojure.core.matrix.compliance-tester/instance-test (wrap-slice [[1 2] [3 4]] 1))
-  (clojure.core.matrix.compliance-tester/instance-test (wrap-submatrix [[1 2] [3 4]] [[1 1] [0 1]]))
-  (clojure.core.matrix.compliance-tester/instance-test (wrap-nd [[1 2] [3 4]])))
-
+  (compliance/instance-test (wrap-scalar 1))
+  (compliance/instance-test (wrap-slice [[1 2] [3 4]] 1))
+  (compliance/instance-test (wrap-submatrix [[1 2] [3 4]] [[1 1] [0 1]]))
+  (compliance/instance-test (wrap-nd [[1 2] [3 4]])))

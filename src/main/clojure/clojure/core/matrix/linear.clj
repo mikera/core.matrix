@@ -1,11 +1,10 @@
 (ns clojure.core.matrix.linear
-  (:use clojure.core.matrix)
-  (:require [clojure.core.matrix.impl default])
-  (:require [clojure.core.matrix.protocols :as mp]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix :refer :all]))
 
 
 (defn norm
-  "Computes the norm of a matrix or vector. 
+  "Computes the norm of a matrix or vector.
 
    By default calculates 2-norm for vectors and Frobenius 2-norm for matrices. The optinal p argument specifies use of the p-norm instead.
 

@@ -1,12 +1,11 @@
 (ns clojure.core.matrix.properties
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.linear)
-  (:use clojure.core.matrix.generators)
-  (:use clojure.test)
-  (:require [clojure.test.check :as sc]
+  (:require [clojure.test :refer :all]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [clojure.test.check.clojure-test :as ct :refer (defspec)]))
+            [clojure.test.check.clojure-test :refer (defspec)]
+            [clojure.core.matrix.generators :as genm]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.linear :refer :all]))
 
 ;; Property based testing of randomly generated core.matrix arrays
 
@@ -107,7 +106,7 @@
 
 (defspec qr-props num-tests
   (prop/for-all
-   [mtx (gen-matrix)]
+   [mtx (genm/gen-matrix)]
    (if (>= (row-count mtx) (column-count mtx)) ;; TODO: fix when rows < cols is supported
      (if-let [{:keys [Q R]} (qr mtx)]
        (do  (is (orthogonal? Q))

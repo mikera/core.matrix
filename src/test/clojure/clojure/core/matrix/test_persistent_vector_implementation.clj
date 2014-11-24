@@ -1,12 +1,12 @@
 (ns clojure.core.matrix.test-persistent-vector-implementation
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.impl.wrappers :as wrap])
-  (:require [clojure.core.matrix.compliance-tester])
-  (:require clojure.core.matrix.impl.persistent-vector)
-  (:refer-clojure :exclude [vector?]))
+  (:refer-clojure :exclude [vector?])
+  (:require [clojure.core.matrix.impl.wrappers :as wrap]
+            [clojure.core.matrix.compliance-tester]
+            clojure.core.matrix.impl.persistent-vector
+            [clojure.core.matrix.compliance-tester :as compliance]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.utils :refer [error?]]
+            [clojure.test :refer :all]))
 
 ;; Tests for the implementation of core.matrix on Clojure persistent vectors
 ;;
@@ -36,7 +36,7 @@
     (is (equals [[6 7] [8 9]] (emap + [[1 2] [3 4]] 5)))
     (is (equals [[6 7] [8 9]] (emap + 5 [[1 2] [3 4]])))))
 
-(deftest test-assign 
+(deftest test-assign
   (is (= [[1 2] [1 2]] (assign [[1 2] [3 4]] [1 2])))
   (is (error? (assign [1 2] [[1 2] [3 4]]))))
 
@@ -52,7 +52,7 @@
 
 (deftest test-fill
   (is (equals [[2 2] [2 2]] (fill [[1 2] [3 4]] 2)))
-  (is (equals [[2 2] [2 2]] (fill [[1 2] [3 4]] [2 2])))) 
+  (is (equals [[2 2] [2 2]] (fill [[1 2] [3 4]] [2 2]))))
 
 (deftest test-transpose
   (testing "vector transpose"
@@ -83,7 +83,7 @@
   (is (equals [2 4 6] (dot 2 [1 2 3])))
   (is (equals [2 4 6] (dot [1 2 3] 2)))
   (is (equals 20 (dot [1 2 3] [2 3 4])))
-  (is (equals [[1 2] [6 8]] (dot [[1 0] [0 2]] [[1 2] [3 4]])))) 
+  (is (equals [[1 2] [6 8]] (dot [[1 0] [0 2]] [[1 2] [3 4]]))))
 
 (deftest test-incompatible
   (is (error? (add [1 2] [3 4 5])))
@@ -204,7 +204,7 @@
 
 (deftest instance-tests
   (testing "empty persistent vectors are supported"
-    (clojure.core.matrix.compliance-tester/instance-test []))
+    (compliance/instance-test []))
   (testing "matrices of symbols are supported"
     (clojure.core.matrix.compliance-tester/instance-test ['a 'b]))
   (testing "matrices of heterogeneous submatrices"

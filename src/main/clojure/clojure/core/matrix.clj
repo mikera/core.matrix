@@ -1,12 +1,12 @@
 (ns clojure.core.matrix
-  (:use [clojure.core.matrix.utils])
-  (:require [clojure.core.matrix.impl default double-array object-array persistent-vector wrappers index])
-  (:require [clojure.core.matrix.impl sequence]) ;; TODO: figure out if we want this?
-  (:require [clojure.core.matrix.multimethods :as mm])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.impl.pprint :as pprint])
-  (:require [clojure.core.matrix.implementations :as imp :refer [*matrix-implementation*]])
-  (:require [clojure.core.matrix.impl.mathsops :as mops]))
+  (:require [clojure.core.matrix.impl.default :as default]
+            [clojure.core.matrix.impl double-array object-array persistent-vector index]
+            [clojure.core.matrix.impl sequence] ;; TODO: figure out if we want this?
+            [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.impl.pprint :as pprint]
+            [clojure.core.matrix.implementations :as imp :refer [*matrix-implementation*]]
+            [clojure.core.matrix.impl.mathsops :as mops]
+            [clojure.core.matrix.utils :as u :refer [TODO]]))
 
 ;; ==================================================================================
 ;; clojure.core.matrix API namespace
@@ -104,9 +104,9 @@
       (mp/index-coerce [] data))))
 
 (defn zero-vector
-  "Constructs a new zero-filled numerical vector with the given length. 
+  "Constructs a new zero-filled numerical vector with the given length.
 
-   Implementations are encouraged to return immutable vectors or sparse vectors 
+   Implementations are encouraged to return immutable vectors or sparse vectors
    for efficency whre available."
   ;; TODO: implement a specialised constructor protocol for zero vectors / arrays
   ([length]
@@ -225,10 +225,10 @@
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/mutable-matrix data)
-        (clojure.core.matrix.impl.default/construct-mutable-matrix data)))
+        (default/construct-mutable-matrix data)))
   ([data type]
     (or (mp/mutable-matrix data)
-        (clojure.core.matrix.impl.default/construct-mutable-matrix data))
+        (default/construct-mutable-matrix data))
     ;; TODO: support creation with specific element types
     ))
 
@@ -285,7 +285,7 @@
       (mp/compute-matrix m shape f))))
 
 (defn sparse-matrix
-  "Creates a sparse matrix with the given data, using a specified implementation 
+  "Creates a sparse matrix with the given data, using a specified implementation
   or the current implementation if not specified. Sparse matrices are required to store
   a M*N matrix with E non-zero elements in approx O(M+N+E) space or less.
 
@@ -294,7 +294,7 @@
     (sparse-matrix (implementation-check) data))
   ([implementation data]
     (or (mp/sparse-coerce implementation data)
-        (error "Sparse implementation not available"))))
+        (u/error "Sparse implementation not available"))))
 
 (defn sparse
   "Coerces an array to a sparse format if possible. Sparse arrays are expected to
@@ -563,7 +563,7 @@
       (double (/ (- elems zeros) elems)))))
 
 (defn mutable?
-  "Returns true if the matrix is mutable, i.e. supports setting of values. 
+  "Returns true if the matrix is mutable, i.e. supports setting of values.
 
    It is possible for some matrix implementations to have constraints on mutability (e.g. mutable only in diagonal elements),
    this method will still return true for such cases."
@@ -583,7 +583,7 @@
   ([a] true)
   ([a b] (let [sa (mp/get-shape a) sb (mp/get-shape b)]
            (and (>= (count sa) (count sb))
-                (every? identity (map #(= %1 %2) (reverse sa) (reverse sb)))))))
+                (every? identity (map = (reverse sa) (reverse sb)))))))
 
 (defn same-shape?
   "Returns true if the arrays have the same shape, false otherwise"
@@ -622,7 +622,7 @@
    (^doubles [m want-copy?]
      (let [arr (mp/as-double-array m)]
        (if want-copy?
-         (if arr (copy-double-array arr) (mp/to-double-array m))
+         (if arr (u/copy-double-array arr) (mp/to-double-array m))
          arr))))
 
 (defn to-object-array
@@ -637,7 +637,7 @@
    (^objects [m want-copy?]
      (let [arr (mp/as-object-array m)]
        (if want-copy?
-         (if arr (copy-object-array arr) (mp/to-object-array m))
+         (if arr (u/copy-object-array arr) (mp/to-object-array m))
          arr))))
 
 (defn pack
@@ -805,8 +805,8 @@
    coerce should never alter the shape of the array, but may convert element types where necessary
    (e.g. turning real values into complex values when converting to a complex array type)."
   ([param]
-    (let [m (imp/get-canonical-object)] 
-      (or 
+    (let [m (imp/get-canonical-object)]
+      (or
        (mp/coerce-param m param)
        (mp/coerce-param m (mp/convert-to-nested-vectors param)))))
   ([matrix-or-implementation param]
@@ -906,9 +906,9 @@
     (mp/main-diagonal m))
   ([m k]
     (cond
-     (< k 0) (mp/main-diagonal (mp/submatrix m [[(- k) (+ (mp/dimension-count m 0) k)]
+     (neg? k) (mp/main-diagonal (mp/submatrix m [[(- k) (+ (mp/dimension-count m 0) k)]
                                                  [0 (mp/dimension-count m 1)]]))
-     (> k 0) (mp/main-diagonal (mp/submatrix m [[0 (mp/dimension-count m 0)]
+     (pos? k) (mp/main-diagonal (mp/submatrix m [[0 (mp/dimension-count m 0)]
                                                  [k (- (mp/dimension-count m 1) k)]]))
      :else   (mp/main-diagonal m))))
 
@@ -920,9 +920,9 @@
 (defn join-along
   "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
   ([dimension & arrays]
-    (or 
+    (or
       (reduce #(mp/join-along %1 %2 dimension) arrays)
-      (error "Failure to joins arrays"))))
+      (u/error "Failure to joins arrays"))))
 
 (defn rotate
   "Rotates an array along specified dimensions."
@@ -963,7 +963,7 @@
    Will throw an exception if broadcast to the target shape is not possible."
   ([m shape]
     (or (mp/broadcast m shape)
-        (error "Broadcast to target shape: " (vec shape) " not possible."))))
+        (u/error "Broadcast to target shape: " (vec shape) " not possible."))))
 
 (defn broadcast-like
   "Broadcasts the second matrix to the shape of the first. See 'broadcast'."
@@ -1047,7 +1047,7 @@
     (vec (range (mp/dimension-count m dim))))
   ([m dim i]
     ;; TODO: implement labelling protocol
-    (if (and (<= 0 i) (< i (mp/dimension-count m dim))) i (error "Index out of range: " i)) )) 
+    (if (and (<= 0 i) (< i (mp/dimension-count m dim))) i (u/error "Index out of range: " i)) ))
 
 ;; ======================================
 ;; matrix maths / operations
@@ -1190,7 +1190,7 @@
     m))
 
 (defn add-scaled-product
-  "Adds the product of two numerical arrays scaled by a given factor to the first array. 
+  "Adds the product of two numerical arrays scaled by a given factor to the first array.
 
    This is equivalent to (add m (mul a b factor)) but may be optimised by the underlying implementation."
   ([m a b factor]
@@ -1226,7 +1226,7 @@
     a))
 
 (defn sub!
-  "Performs element-wise mutable subtraction on one or more numerical arrays.  
+  "Performs element-wise mutable subtraction on one or more numerical arrays.
    Returns the first array, after it has been mutated."
   ([a] a)
   ([a b]
@@ -1308,7 +1308,7 @@
     (reduce outer-product (outer-product a b) more)))
 
 (defn cross
-  "Computes the 3D cross-product of two numerical vectors. 
+  "Computes the 3D cross-product of two numerical vectors.
 
    Behavior on other types is undefined."
   ([a b]
@@ -1339,7 +1339,7 @@
     (mp/inverse m)))
 
 (defn negate
-  "Calculates the negation of a numerical array. 
+  "Calculates the negation of a numerical array.
    Generally equivalent to (scale m -1.0)"
   ([m]
     (mp/negate m)))
@@ -1561,7 +1561,7 @@
 
 (defn index-seq-for-shape [sh]
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"
-  (base-index-seq-for-shape sh))
+  (u/base-index-seq-for-shape sh))
 
 (defn index-seq [m]
   "Returns a sequence of all possible index vectors into a matrix, in row-major order"
@@ -1594,13 +1594,13 @@
   ([]
     (if-let [ik imp/*matrix-implementation*]
       (imp/get-canonical-object ik)
-      (error "No current clojure.core.matrix implementation available")))
+      (u/error "No current clojure.core.matrix implementation available")))
   ([impl]
     (if-let [im (imp/get-canonical-object impl)]
       im
       (cond
         (scalar? impl) (imp/get-canonical-object imp/*matrix-implementation*)
-        :else (error "No clojure.core.matrix implementation available - " (str impl))))))
+        :else (u/error "No clojure.core.matrix implementation available - " (str impl))))))
 
 (defn current-implementation-object
   "Gets the canonical object for the currently active matrix implementation. This object

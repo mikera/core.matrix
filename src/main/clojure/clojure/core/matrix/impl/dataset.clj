@@ -1,8 +1,8 @@
 (ns clojure.core.matrix.impl.dataset
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.impl.wrappers :as wrap])
-  (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.impl.wrappers :as wrap]
+            [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.utils :refer :all])
   (:import [clojure.lang IPersistentVector]))
 
 ;; TODO
@@ -168,7 +168,7 @@
     (let [col-set-1 (into #{} (mp/column-names ds1))
           col-set-2 (into #{} (mp/column-names ds2))
           intersection (clojure.set/intersection col-set-1 col-set-2)]
-      (if (= (count intersection) 0)
+      (if (zero? (count intersection))
         (dataset-from-columns
          (concat (mp/column-names ds1) (mp/column-names ds2))
          (concat (mp/get-columns ds1) (mp/get-columns ds2)))

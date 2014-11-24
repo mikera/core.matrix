@@ -1,10 +1,8 @@
 (ns clojure.core.matrix.impl.ndarray-magic
-  (:require [clojure.walk :as w])
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.multimethods :as mm])
-  (:refer-clojure :exclude [vector?]))
+  (:refer-clojure :exclude [vector?])
+  (:require [clojure.walk :as w]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.utils :refer :all]))
 
 (set! *warn-on-reflection* true)
 

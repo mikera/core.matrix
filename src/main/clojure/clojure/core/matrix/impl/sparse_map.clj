@@ -1,7 +1,8 @@
 (ns clojure.core.matrix.impl.sparse-map
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.implementations :as imp]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.utils :refer :all])
+  (:import [clojure.lang IPersistentMap]))
 
 ;; =============================================================
 ;; core.matrix implementation enabling a map with appropriate
@@ -22,14 +23,14 @@
     (vary-meta m assoc :shape (to-long-array shape))))
 
 (extend-protocol mp/PImplementation
-  clojure.lang.IPersistentMap
+  IPersistentMap
     (implementation-key [m] :persistent-map)
     (meta-info [m]
       {:doc "Core.matrix implementation enabling a map with appropriate
              metadata to be used as a core.matrix implementation."})
-    (new-vector [m length] 
+    (new-vector [m length]
       (vary-meta (with-shape {} [length]) assoc :default-value 0.0))
-    (new-matrix [m rows columns] 
+    (new-matrix [m rows columns]
       (vary-meta (with-shape {} [rows columns]) assoc :default-value 0.0))
     (new-matrix-nd [m dims]
       (with-shape {} dims))
@@ -45,7 +46,7 @@
       true))
 
 (extend-protocol mp/PDimensionInfo
-  clojure.lang.IPersistentMap
+  IPersistentMap
     (dimensionality [m]
       (if-let [sh (:shape (meta m))]
         (count sh)
@@ -62,7 +63,7 @@
       (nth (:shape (meta m)) x)))
 
 (extend-protocol mp/PIndexedAccess
-  clojure.lang.IPersistentMap
+  IPersistentMap
     (get-1d [m x]
       (or (m [x]) (:default-value (meta m))))
     (get-2d [m x y]
@@ -71,7 +72,7 @@
       (or (m (vec indexes)) (:default-value (meta m)))))
 
 (extend-protocol mp/PIndexedSetting
-  clojure.lang.IPersistentMap
+  IPersistentMap
     (set-1d [m row v]
       (assoc m [row] v))
     (set-2d [m row column v]
