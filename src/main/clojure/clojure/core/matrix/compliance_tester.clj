@@ -457,6 +457,7 @@
 (defn misc-numeric-tests [m]
   (is (equals m (sparse m)))
   (is (equals m (dense m)))
+  (is (equals m (clojure.core.matrix.impl.double-array/to-double-arrays m)))
   (is (equals (add m m) (scale m 2.0)))
   (is (equals (square m) (ops/** m 2)))
   (is (equals m (ops/** m 1)))

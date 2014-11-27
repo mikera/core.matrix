@@ -284,7 +284,7 @@
                (mp/element-map m #(/ %1 %2) a))))))
 
 (defn to-double-arrays
-  "Converts an array to nested double arrays with the same shape"
+  "Converts an array to nested double arrays with the same shape."
   [m]
   (if-let [dims (mp/dimensionality m)]
     (cond 
