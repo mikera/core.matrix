@@ -21,6 +21,18 @@
             :type-cast 'double
             :type-object Double/TYPE}})
 
+(defn new-double-array [shape]
+  "Creates a new zero-filled nested double array of the given shape"
+  (let [dims (count shape)]
+    (cond 
+      (== 0 dims) 0.0
+      (== 1 dims) (double-array (int (first shape)))
+      :else 
+        (let [ns (next shape)
+              rn (long (first shape))
+              ^Object r0 (new-double-array ns)]
+          (into-array (.getClass r0) (cons r0 (for [i (range (dec rn))] (new-double-array ns))))))))
+
 (defn construct-double-array [data]
   (let [dims (long (mp/dimensionality data))]
     (cond
@@ -42,10 +54,8 @@
       {:doc "Clojure.core.matrix implementation for Java double arrays"})
     (new-vector [m length] (double-array (int length)))
     (new-matrix [m rows columns] (error "Can't make a 2D matrix from a double array"))
-    (new-matrix-nd [m dims]
-      (if (== 1 (count dims))
-        (double-array (int (first dims)))
-        (error "Can't make a double array of dimensionality: " (count dims))))
+    (new-matrix-nd [m shape]
+      (new-double-array shape))
     (construct-matrix [m data]
       (construct-double-array data))
     (supports-dimensionality? [m dims]

@@ -27,6 +27,11 @@
       (is (= [2.0 4.0] (seq (coerce da [2 4]))))
       (is (= (class da) (class (coerce da [2 4])))))))
 
+(deftest test-higher-dimensions
+  (let [m [[[1 2] [3 4]]]
+        dm (array :double-array m)]
+    (is (equals m dm))))
+
 (deftest test-type
   (is (= Double/TYPE (element-type (double-array [1 2])))))
 
