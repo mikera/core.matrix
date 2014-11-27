@@ -142,6 +142,12 @@
 (deftest test-broadcast-coerce
   (is (= [1.0 2.0] (mp/broadcast-coerce [0 0] (double-array [1 2])))))
 
+(deftest test-to-double-arrays
+  (let [m [[1 2] [3 4]]
+        dm (clojure.core.matrix.impl.double-array/to-double-arrays m)]
+    (is (equals m dm)))
+  (is (= 1.0 (clojure.core.matrix.impl.double-array/to-double-arrays 1))))
+
 (deftest test-mutable-multiply
   (let [a (double-array [1 2])
         b (double-array [2 3])]
