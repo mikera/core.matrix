@@ -283,6 +283,17 @@
              (let [[m a] (mp/broadcast-compatible m a)]
                (mp/element-map m #(/ %1 %2) a))))))
 
+(defn to-double-arrays
+  "Converts an array to nested double arrays with the same shape"
+  [m]
+  (if-let [dims (mp/dimensionality m)]
+    (cond 
+      (== 0 dims) (double (mp/get-0d m))
+      (== 1 dims) (mp/to-double-array m)
+      :else (let [r0 (to-double-arrays (mp/get-major-slice m 0))
+                  c (.getClass ^Object r0)]
+              (into-array c (map to-double-arrays (mp/get-major-slice-seq m)))))))
+
 ;; registration
 
 (imp/register-implementation (double-array [1]))
