@@ -30,7 +30,8 @@
 (deftest test-higher-dimensions
   (let [m [[[1 2] [3 4]]]
         dm (array :double-array m)]
-    (is (equals m dm))))
+    (is (equals m dm)))
+  (is (= 1.0 (array :double-array 1))))
 
 (deftest test-type
   (is (= Double/TYPE (element-type (double-array [1 2])))))

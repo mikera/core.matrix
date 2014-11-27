@@ -53,7 +53,8 @@
     (meta-info [m]
       {:doc "Clojure.core.matrix implementation for Java double arrays"})
     (new-vector [m length] (double-array (int length)))
-    (new-matrix [m rows columns] (error "Can't make a 2D matrix from a double array"))
+    (new-matrix [m rows columns] 
+      (new-double-array [rows columns]))
     (new-matrix-nd [m shape]
       (new-double-array shape))
     (construct-matrix [m data]
