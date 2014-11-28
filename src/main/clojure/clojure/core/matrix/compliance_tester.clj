@@ -240,46 +240,39 @@
       (fill! mm e)
       (is (e= mm n)))))
 
-(defn check-joined-matrices [original joined]
-  (let [js (slices joined)]
-    (is (== (first (shape joined)) (* 2 (first (shape original)))))
-    (is (e= original (take (first (shape original)) js)))
-    (is (e= original (drop (first (shape original)) js)))))
+(defn check-joined-matrices [dim original joined]
+  (is (== (dimensionality original) (dimensionality joined)))
+  (let [js (slices joined dim)
+        os (slices original dim)
+        cnt (dimension-count original dim)]
+    (is (== (dimension-count joined dim) (* 2 cnt)))
+    (when (> cnt 0)
+      (is (e= os (take cnt js)))
+      (is (e= os (drop cnt js))))))
 
 (defn test-join
   "Test for joining matrices along major dimension"
   ([m]
    (when (and m (== 1 (dimensionality m)))
      (let [j (join m m)]
-       (check-joined-matrices m j)))))
+       (check-joined-matrices 0 m j)))))
 
 
 (defn test-join-along
   "Test for joining matrices along arbitrary dimensions"
   ([m]
-   (when m
-     (when (< 0 (dimensionality m))
-       (let [j (join-along 0 m m)]
-         (check-joined-matrices m j)))
-     (when (< 1 (dimensionality m))
-       (let [j (join-along 1 m m)]
-         (doseq [[slice1 slice2] (map vector
-                                      (slices m)
-                                      (slices j))]
-           (check-joined-matrices slice1 slice2))))
-     (when (< 2 (dimensionality m))
-       (let [j (join-along 2 m m)]
-         (doseq [[slice1 slice2] (map vector
-                                      (map #(slices % 1) (slices m 1))
-                                      (map #(slices % 1) (slices j 1)))]
-           (check-joined-matrices slice1 slice2)))))))
+    (test-join-along m 0)
+    (test-join-along m 1)
+    (test-join-along m 2))
+  ([m dim]
+    (when (< dim (dimensionality m))
+      (let [j (join-along dim m m)]
+        (check-joined-matrices dim m j)))))
 
 (defn test-pm
   "Test for matrix pretty-printing"
   ([m]
-    ;; TODO: fix issue #43 on GitHub
-    ;;(is (< 0 (count (with-out-str (pm m)))))
-    ))
+    (is (< 0 (count (with-out-str (pm m)))))))
 
 (defn test-to-string [m]
   (when m ;; guard for nil
@@ -800,6 +793,7 @@
    m can be either a matrix instance or the implementation keyword."
   [m]
   (let [im (or (imp/get-canonical-object m) (error "Implementation not registered: " (class m)))
+        im (clone im) ;; clone to avoid risk of modifying canonical object
         ik (imp/get-implementation-key im)]
     (binding [imp/*matrix-implementation* ik]
       (instance-test im)

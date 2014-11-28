@@ -256,13 +256,13 @@
   "Protocol to broadcast into a given matrix shape and perform coercion in one step.
 
    Equivalent to (coerce m (broadcast-like m a)) but likely to be more efficient."
-  (broadcast-coerce [m a]))
+  (broadcast-coerce [m a] "Broacasts and coerces a to the same shape and implementation as m"))
 
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers,
    however providing an efficient implementation is strongly encouraged to enable fast interop 
    with Clojure vectors."
-  (convert-to-nested-vectors [m]))
+  (convert-to-nested-vectors [m] "Converts an array to nested Clojure persistent vectors"))
 
 (defprotocol PReshaping
   "Protocol to reshape matrices. Should support any new shape allowed by the implementation.
@@ -711,13 +711,17 @@
     [m f]
     [m f a]
     [m f a more]
-    "Maps f over all elements of m (and optionally other matrices), returning a new matrix")
+    "Maps f over all elements of m (and optionally other matrices), returning a new matrix. 
+     f is expected to produce elements of a type supported by the implementation of m - failure
+     to do so may cause an error.")
   (element-map!
     [m f]
     [m f a]
     [m f a more]
     "Maps f over all elements of m (and optionally other matrices), mutating the elements of m in place.
-     Must throw an exception if m is not mutable.")
+     Must throw an exception if m is not mutable.
+     f is expected to produce elements of a type supported by the implementation of m - failure
+     to do so may cause an error.")
   (element-reduce
     [m f]
     [m f init]
@@ -863,9 +867,9 @@
 
 (defn persistent-vector-coerce [x]
   "Coerces a data structure to nested persistent vectors"
-  (let [dims (dimensionality x)]
+  (let [dims (long (dimensionality x))]
     (cond
-      (== dims 0) (get-0d x)
+      (== dims 0) (get-0d x) ;; first handle scalar / 0d case
       (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
       (== dims 1) (vec (element-seq x)) 
       (instance? java.util.List x) (mapv convert-to-nested-vectors x)
@@ -897,3 +901,17 @@
           (recur s (next ns))
           false)
         true)))) 
+
+(defn supports-type?
+  "Checks if an array can contain a specified Java type."
+  ([m ^Class klass]
+    (let [^Class mc (element-type m)]
+      (.isAssignableFrom mc klass))))
+
+(defn ensure-type 
+  "Checks if an array can contain a specified Java type, if so returns the orifginal array, otherwise
+   returns a copy of the array that can support the sepecified type."
+  [m ^Class klass]
+  (if (supports-type? m klass)
+    m
+    (convert-to-nested-vectors m))) ;; TODO: better format?

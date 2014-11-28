@@ -456,9 +456,10 @@
                   (mp/get-shape (m 0))
                   nil))))
     (dimension-count [m x]
-      (if (== x 0)
-        (.length m)
-        (mp/dimension-count (m 0) (dec x)))))
+      (let [x (long x)]
+        (if (== x 0)
+          (.length m)
+          (mp/dimension-count (m 0) (dec x))))))
 
 (extend-protocol mp/PElementCount
   IPersistentVector
@@ -479,6 +480,56 @@
           (if (every? (partial = (first m-shapes)) (rest m-shapes))
             m
             (error "Can't convert to persistent vector array: inconsistent shape."))))))
+
+(defn- copy-to-double-array [m ^doubles arr ^long off ^long size]
+  (let [ct (count m)]
+    (cond
+      (not (vector? m))
+        (doseq-indexed [v (mp/element-seq m) i]
+          (aset arr (+ off i) (double v)))
+      (and (== size ct) (not (vector? (nth m 0 nil)))) 
+        (dotimes [i size]
+          (aset arr (+ off i) (double (.nth ^IPersistentVector m i))))
+      :else
+        (let [skip (quot size ct)]
+          (dotimes [i ct]
+            (copy-to-double-array (nth m i) arr (+ off (* i skip)) skip))))
+    arr))
+
+(extend-protocol mp/PDoubleArrayOutput
+  IPersistentVector
+    (to-double-array [m]
+      (let [size (long (mp/element-count m))
+            arr (double-array size)
+            ct (count m)]
+        (copy-to-double-array m arr 0 size)
+        arr))
+    (as-double-array [m] nil))
+
+(defn- copy-to-object-array [m ^objects arr ^long off ^long size]
+  (let [ct (count m)]
+    (cond 
+      (not (vector? m))
+        (doseq-indexed [v (mp/element-seq m) i]
+          (aset arr (+ off i) v))
+      (and (== size ct) (not (vector? (nth m 0 nil)))) 
+        (dotimes [i size]
+          (aset arr (+ off i) (.nth ^IPersistentVector m i)))
+      :else
+        (let [skip (quot size ct)]
+          (dotimes [i ct]
+            (copy-to-object-array (nth m i) arr (+ off (* i skip)) skip))))
+    arr))
+
+(extend-protocol mp/PObjectArrayOutput
+  IPersistentVector
+    (to-object-array [m]
+      (let [size (long (mp/element-count m))
+            arr (object-array size)
+            ct (count m)]
+        (copy-to-object-array m arr 0 size)
+        arr))
+    (as-object-array [m] nil))
 
 (extend-protocol mp/PFunctionalOperations
   IPersistentVector

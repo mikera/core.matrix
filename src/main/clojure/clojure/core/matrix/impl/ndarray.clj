@@ -625,12 +625,12 @@
   ;;   (broadcast [m target-shape])
   ;; mp/PBroadcastLike
   ;;   (broadcast-like [m a])
-  
+
   mp/PBroadcastCoerce
     (broadcast-coerce [m a]
       (let [^typename# a (if (instance? typename# a) a (mp/coerce-param m a))]
         (mp/broadcast-like m a)))
-  
+
   ;; mp/PReshaping
   ;;   (reshape [m shape])
 
@@ -1177,5 +1177,3 @@
       (iae-when-not (== (aget shape 0) (aget shape 1))
         "inverse operates only on square matrices")
       (invert#t m)))
-
-(magic/spit-code)

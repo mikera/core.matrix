@@ -285,7 +285,8 @@
       (mp/compute-matrix m shape f))))
 
 (defn sparse-matrix
-  "Creates a sparse matrix with the given data. Sparse matrices are required to store
+  "Creates a sparse matrix with the given data, using a specified implementation 
+  or the current implementation if not specified. Sparse matrices are required to store
   a M*N matrix with E non-zero elements in approx O(M+N+E) space or less.
 
   Throws an exception if creation of a sparse matrix is not possible"
@@ -301,9 +302,10 @@
 
    Returns the array unchanged if such coercion is not possible, or if the array is already sparse."
   ([data]
-    (sparse (implementation-check) data))
+    (mp/sparse data))
   ([implementation data]
-    (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data))))
+    (let [implementation (implementation-check implementation)]
+      (or (mp/sparse-coerce implementation data) (mp/coerce-param implementation data)))))
 
 (defn dense
   "Coerces an array to a dense format if possible. Dense arrays are expected to
@@ -918,7 +920,9 @@
 (defn join-along
   "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
   ([dimension & arrays]
-   (reduce #(mp/join-along %1 %2 dimension) arrays)))
+    (or 
+      (reduce #(mp/join-along %1 %2 dimension) arrays)
+      (error "Failure to joins arrays"))))
 
 (defn rotate
   "Rotates an array along specified dimensions."

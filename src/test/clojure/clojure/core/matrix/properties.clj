@@ -111,6 +111,6 @@
    (if (>= (row-count mtx) (column-count mtx)) ;; TODO: fix when rows < cols is supported
      (if-let [{:keys [Q R]} (qr mtx)]
        (do  (is (orthogonal? Q))
-            (is (equals mtx (mmul Q R) 1.0E-10)))
+            (is (equals mtx (mmul Q R) 1.0E-8)))
        true)
      true)))
