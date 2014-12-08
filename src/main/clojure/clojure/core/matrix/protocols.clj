@@ -851,6 +851,7 @@
 ;; ============================================================
 ;; Dataset protocols
 
+;; TODO: break up and use generic labelling functionality?
 (defprotocol PDatasetImplementation
   "Protocol for general dataset functionality"
   (column-names [ds] "Returns a persistent vector containing column names in the same order as they are placed in the dataset")

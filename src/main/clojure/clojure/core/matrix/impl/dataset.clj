@@ -54,6 +54,19 @@
                         [] col-names)) m)]
        (dataset-from-rows col-names rows))))
 
+(extend-protocol mp/PDimensionLabels
+  DataSet
+    (label [m dim i]
+      (cond 
+        (== dim 1) (nth (:column-names m) i)
+        (<= 0 (long i) (dec (long (mp/dimension-count m dim)))) nil 
+        :else (error "Dimension index out of range: " i)))
+    (labels [m dim]
+      (cond 
+        (== dim 1) (:column-names m)
+        (<= 0 (long dim) (dec (long (mp/dimensionality m)))) nil
+        :else (error "Dimension out of range: " dim)))) 
+
 (extend-protocol mp/PMatrixSlices
   DataSet
   (get-column [ds i]
