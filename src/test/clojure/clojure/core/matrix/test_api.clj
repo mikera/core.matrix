@@ -23,9 +23,12 @@
 (deftest test-labels
   (testing "unlabelled array"
     (let [m [[7 8] [9 10]]]
-      (is (== 0 (label m 0 0)))
-      (is (== 1 (label m 0 1)))
-      (is (error? (label m 0 2))))))
+      (is (nil? (label m 0 0)))
+      (is (nil? (label m 0 1)))
+      (is (nil? (labels m 0)))
+      (is (nil? (labels m 1)))
+      (is (error? (label m 0 2)))
+      (is (error? (labels m -1))))))
 
 (deftest test-select
   (let [a [[1 2] [3 4]]]

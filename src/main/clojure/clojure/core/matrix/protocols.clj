@@ -806,6 +806,14 @@
   (index-coerce [m a]))
 
 ;; ==========================================================
+;; LABELLED DIMENSION PROTOCOLS
+
+(defprotocol PDimensionLabels
+  "Protocol for arrays supporting labelled dimensions"
+  (label [m dim i])
+  (labels [m dim])) 
+
+;; ==========================================================
 ;; LINEAR ALGEBRA PROTOCOLS
 
 (defprotocol PNorm

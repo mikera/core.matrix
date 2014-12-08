@@ -1719,6 +1719,21 @@
       (nth (mp/column-names ds) idx)))
 
 ;; =======================================================
+;; default label implementation
+
+(extend-protocol mp/PDimensionLabels
+  Object
+    (label [m dim i]
+      (if (<= 0 (long i) (dec (long (mp/dimension-count m dim)))) 
+        nil
+        (error "Dimension index out of range: " i)))
+    (labels [m dim]
+      (if (<= 0 (long dim) (dec (long (mp/dimensionality m)))) 
+        nil
+        (error "Dimension out of range: " dim)))) 
+
+
+;; =======================================================
 ;; default linear algebra implementations
 
 (extend-protocol mp/PNorm
