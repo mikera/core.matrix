@@ -1,15 +1,10 @@
 (ns clojure.core.matrix.docgen.bench
-  (:use [clojure.core.matrix.docgen.bench-suite])
   (:require [criterium.core :as cr]
-            [clojure.string :as s]
             [hiccup.page :as h]
             [clojure.core.matrix :as m]
-            [clojure.core.matrix.utils :as utils]
-            [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.multimethods :as mm]
-            [clojure.core.matrix.implementations :as mi]
-            [clojure.core.matrix.impl.common :as c]))
+            [clojure.core.matrix.utils :as u]
+            [clojure.core.matrix.impl.common :as c]
+            [clojure.core.matrix.docgen.bench-suite :refer :all]))
 
 ;; # Constants
 
@@ -194,7 +189,7 @@
                               first)]))))))
 
 (defn perform-bench []
-  (doseq [proto (utils/extract-protocols)]
+  (doseq [proto (u/extract-protocols)]
     (doseq [[_ {f-name :name}] (:sigs proto)
             :let [f-name-kw (keyword f-name)]]
       (doseq [[a-type a-info] array-types]
@@ -227,7 +222,7 @@
 
 (defn generate []
   (let [git-hash (c/get-git-hash)
-        protos (utils/extract-protocols)
+        protos (u/extract-protocols)
         header (render-header git-hash)
         table (render-table protos)]
     (render-page header table)))

@@ -1,8 +1,7 @@
 (ns clojure.core.matrix.impl.pprint
   (:require [clojure.core.matrix.protocols :as mp])
-  (:use clojure.core.matrix.utils)
-  (:import [java.lang StringBuilder])
-  (:import [clojure.lang IPersistentVector]))
+  (:import [java.lang StringBuilder]
+           [clojure.lang IPersistentVector]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -22,22 +21,23 @@
   "Finds the longest string length of each column in an array of Strings."
   [m]
   (let [ss (mp/get-slice-seq m (dec (mp/dimensionality m)))]
-    (mapv 
-      (fn [s] (mp/element-reduce s 
-                                 (fn [acc ^String e] (max acc (.length e))) 
+    (mapv
+      (fn [s] (mp/element-reduce s
+                                 (fn [acc ^String e] (max acc (.length e)))
                                  0))
       ss)))
 
-(defn- format-array 
-  "Fromats an array accordsing to the given formatter function"
+(defn- format-array
+  "Formats an array according to the given formatter function"
   ([m formatter]
-    (cond 
-      (mp/is-scalar? m) (formatter m)
-      :else (mp/element-map 
-              (if (= java.lang.Object (mp/element-type m))
-                m
-                (mp/convert-to-nested-vectors m))
-              formatter))))
+    (let [m (mp/ensure-type m String)]
+      (cond
+        (mp/is-scalar? m) (formatter m)
+        :else (mp/element-map
+                (if (= Object (mp/element-type m))
+                  m
+                  (mp/convert-to-nested-vectors m))
+                formatter)))))
 
 (defn- append-elem
   "Appends an element, right-padding up to a given column length."
@@ -80,7 +80,7 @@
 
 (defn pm
   "Pretty-prints an array. Returns a String containing the pretty-printed representation."
-  ([a] 
+  ([a]
     (pm a nil))
   ([a {:keys [prefix formatter]}]
     (let [formatter (or formatter default-formatter)
@@ -89,8 +89,8 @@
           sb (StringBuilder.)]
       (cond
         (mp/is-scalar? m) (.append sb (str prefix m))
-        (== 1 (mp/dimensionality m)) 
+        (== 1 (mp/dimensionality m))
           (append-row sb m (column-lengths m))
-        :else 
+        :else
           (let [clens (column-lengths m)] (rprint sb m prefix clens)))
       (.toString sb))))

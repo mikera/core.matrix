@@ -1,12 +1,13 @@
 (ns clojure.core.matrix.compliance-tester
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.linear)
-  (:use clojure.test)
-  (:require [clojure.core.matrix.operators :as ops])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.generic :as generic])
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.utils :as utils :refer [error error?]]))
+  (:require [clojure.core.matrix.operators :as ops]
+            [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.generic :as generic]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.impl.persistent-vector :as pvector]
+            [clojure.core.matrix.utils :as u :refer [error error?]]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.linear :refer :all]
+            [clojure.test :refer :all]))
 
 ;; ====================================
 ;; COMPLIANCE TESTING
@@ -48,7 +49,7 @@
   "Creates a set of vector matrices of supported dimensionalities from 1 to 4"
   ([m]
     (map
-      #(create-dimensioned %)
+      create-dimensioned
       (filter #(supports-dimensionality? m %)
               (range 1 5)))))
 
@@ -93,7 +94,7 @@
   (testing "shape"
     (let [sh (shape m)
           dims (dimensionality m)]
-      (is (utils/valid-shape? sh))
+      (is (u/valid-shape? sh))
       (is (== (count sh) dims))
       (is (= (seq sh) ;; we need the seqs to account for empty shapes (need to comapre equal to nil)
              (seq (for [i (range dims)] (dimension-count m i)))))))
@@ -140,16 +141,16 @@
               (is (equals v1 (apply mget m ix)))
               (is (equals v2 (apply mget cm ix))))))
   (testing "attempt to modify an immutable array results in an exception"
-    (when (not (mutable? m))
-            (let [cm (clone m)
-                  ix (first (index-seq m))
-                  v1 (first (eseq m))
-                  v2 (if (and (number? v1) (== v1 0)) 1 0)]
-              (is (thrown? Throwable (apply mset! cm (concat ix [v2]))))))))
+    (when-not (mutable? m)
+      (let [cm (clone m)
+            ix (first (index-seq m))
+            v1 (first (eseq m))
+            v2 (if (and (number? v1) (== v1 0)) 1 0)]
+        (is (thrown? Throwable (apply mset! cm (concat ix [v2]))))))))
 
 (defn test-reshape [m]
   (let [c (ecount m)]
-    (when (> c 0)
+    (when (pos? c)
       (when (supports-dimensionality? m 1)
         (= (eseq m) (eseq (reshape m [c]))))
       (when (supports-dimensionality? m 2)
@@ -158,14 +159,14 @@
 
 (defn test-broadcast [m]
   (let [c (ecount m)]
-    (when (> c 0)
+    (when (pos? c)
       (e= m (first (slices (broadcast m (cons 2 (shape m))))))
       (== c (ecount (broadcast m (cons 1 (shape m)))))
       (== (* 3 c) (ecount (broadcast m (cons 3 (shape m))))))))
 
 (defn test-slice-assumptions [m]
   (let [dims (dimensionality m)]
-    (when (> dims 0) ;; slices only valid for dimensionality 1 or above
+    (when (pos? dims) ;; slices only valid for dimensionality 1 or above
       (let [slcs (slices m)]
         (doseq [sl slcs]
           (is (== (dec dims) (dimensionality sl)))
@@ -177,7 +178,7 @@
           (is (e= m slcs)))))))
 
 (defn test-slice-returns-scalar-on-1d [m]
-  (when (and (= 1 (dimensionality m)) (> (ecount m) 0))
+  (when (and (= 1 (dimensionality m)) (pos? (ecount m)))
     (is (scalar? (slice m 0)))))
 
 (defn test-submatrix-assumptions [m]
@@ -190,7 +191,7 @@
     ))
 
 (defn test-general-transpose [m]
-  (when (> (ecount m) 0)
+  (when (pos? (ecount m))
     (let [mt (transpose m)]
       (is (e= m (transpose mt)))
       (is (= (seq (shape m))
@@ -210,7 +211,7 @@
   ;; (is (identical? m (coerce m m))) ;; TODO: figure out if we should enforce this?
   (let [vm (mp/convert-to-nested-vectors m)]
     (is (or (clojure.core/vector? vm) (== 0 (mp/dimensionality vm))))
-    (is (clojure.core.matrix.impl.persistent-vector/is-nested-persistent-vectors? vm))
+    (is (pvector/is-nested-persistent-vectors? vm))
     (is (e= m vm))))
 
 (defn test-pack [m]
@@ -230,7 +231,7 @@
     (is (e= (reshape av (shape m)) m))))
 
 (defn test-assign [m]
-  (when (and m (> (ecount m) 0)) ;; guard for nil and empty arrays
+  (when (and m (pos? (ecount m))) ;; guard for nil and empty arrays
     (let [e (first (eseq m))
           n (assign m e)
           mm (mutable-matrix m)]
@@ -240,50 +241,43 @@
       (fill! mm e)
       (is (e= mm n)))))
 
-(defn check-joined-matrices [original joined]
-  (let [js (slices joined)]
-    (is (== (first (shape joined)) (* 2 (first (shape original)))))
-    (is (e= original (take (first (shape original)) js)))
-    (is (e= original (drop (first (shape original)) js)))))
+(defn check-joined-matrices [dim original joined]
+  (is (== (dimensionality original) (dimensionality joined)))
+  (let [js (slices joined dim)
+        os (slices original dim)
+        cnt (dimension-count original dim)]
+    (is (== (dimension-count joined dim) (* 2 cnt)))
+    (when (pos? cnt)
+      (is (e= os (take cnt js)))
+      (is (e= os (drop cnt js))))))
 
 (defn test-join
   "Test for joining matrices along major dimension"
   ([m]
    (when (and m (== 1 (dimensionality m)))
      (let [j (join m m)]
-       (check-joined-matrices m j)))))
+       (check-joined-matrices 0 m j)))))
 
 
 (defn test-join-along
   "Test for joining matrices along arbitrary dimensions"
   ([m]
-   (when m
-     (when (< 0 (dimensionality m))
-       (let [j (join-along 0 m m)]
-         (check-joined-matrices m j)))
-     (when (< 1 (dimensionality m))
-       (let [j (join-along 1 m m)]
-         (doseq [[slice1 slice2] (map vector
-                                      (slices m)
-                                      (slices j))]
-           (check-joined-matrices slice1 slice2))))
-     (when (< 2 (dimensionality m))
-       (let [j (join-along 2 m m)]
-         (doseq [[slice1 slice2] (map vector
-                                      (map #(slices % 1) (slices m 1))
-                                      (map #(slices % 1) (slices j 1)))]
-           (check-joined-matrices slice1 slice2)))))))
+    (test-join-along m 0)
+    (test-join-along m 1)
+    (test-join-along m 2))
+  ([m dim]
+    (when (< dim (dimensionality m))
+      (let [j (join-along dim m m)]
+        (check-joined-matrices dim m j)))))
 
 (defn test-pm
   "Test for matrix pretty-printing"
   ([m]
-    ;; TODO: fix issue #43 on GitHub
-    ;;(is (< 0 (count (with-out-str (pm m)))))
-    ))
+    (is (pos? (count (with-out-str (pm m)))))))
 
 (defn test-to-string [m]
   (when m ;; guard for nil
-    (is (string? (.toString m)))))
+    (is (string? (str m)))))
 
 (defn test-elements [m]
   (let [es (eseq m)]
@@ -342,7 +336,7 @@
       (let [v (matrix im [1])]
         (is (== 1.0 (mget v 0))))
       (let [a (new-array im [1])]
-        (is (= (mget a 0) (clojure.core.matrix.generic/default-value im))))))
+        (is (= (mget a 0) (generic/default-value im))))))
   (testing "Matrix construction"
     (when (supports-dimensionality? im 2)
       (let [m (matrix im [[1 2] [3 4]])]
@@ -399,7 +393,7 @@
            :slice-wrapper
            :scalar-wrapper} im-name)
       true
-      (doseq [proto (utils/extract-protocols)]
+      (doseq [proto (u/extract-protocols)]
         (doseq [[_ {:keys [name arglists]}] (:sigs proto)
                 :let [method (ns-resolve 'clojure.core.matrix.protocols
                                          name)]]
@@ -463,6 +457,7 @@
 (defn misc-numeric-tests [m]
   (is (equals m (sparse m)))
   (is (equals m (dense m)))
+  (is (equals m (clojure.core.matrix.impl.double-array/to-double-arrays m)))
   (is (equals (add m m) (scale m 2.0)))
   (is (equals (square m) (ops/** m 2)))
   (is (equals m (ops/** m 1)))
@@ -800,6 +795,7 @@
    m can be either a matrix instance or the implementation keyword."
   [m]
   (let [im (or (imp/get-canonical-object m) (error "Implementation not registered: " (class m)))
+        im (clone im) ;; clone to avoid risk of modifying canonical object
         ik (imp/get-implementation-key im)]
     (binding [imp/*matrix-implementation* ik]
       (instance-test im)

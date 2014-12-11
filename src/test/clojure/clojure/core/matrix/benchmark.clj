@@ -1,7 +1,6 @@
 (ns clojure.core.matrix.benchmark
-  (:use clojure.core.matrix)
-  (:require [criterium.core :as c])
-  (:require [clojure.core.matrix.impl.persistent-vector]))
+  (:require [criterium.core :as c]
+            [clojure.core.matrix :refer [add esum]]))
 
 ;; miscellaneous benchmark code
 ;;
@@ -15,7 +14,7 @@
 
   (let [da (double-array [1 1])]
     (c/quick-bench (add da da)))
-  
+
   (let [da (double-array (range 100))]
     (c/quick-bench (esum da)))
 

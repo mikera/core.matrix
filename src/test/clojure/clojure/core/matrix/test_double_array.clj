@@ -1,11 +1,9 @@
 (ns clojure.core.matrix.test-double-array
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.compliance-tester])
-  (:require clojure.core.matrix.impl.double-array))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.compliance-tester]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.utils :refer [error?]]
+            [clojure.test :refer :all]))
 
 ;; This namespace contains tests for the Java double[] array implementation
 ;;
@@ -28,6 +26,12 @@
     (let [da (matrix :double-array [1 2])]
       (is (= [2.0 4.0] (seq (coerce da [2 4]))))
       (is (= (class da) (class (coerce da [2 4])))))))
+
+(deftest test-higher-dimensions
+  (let [m [[[1 2] [3 4]]]
+        dm (array :double-array m)]
+    (is (equals m dm)))
+  (is (= 1.0 (array :double-array 1))))
 
 (deftest test-type
   (is (= Double/TYPE (element-type (double-array [1 2])))))
@@ -62,7 +66,7 @@
           fs (first (slice-views da))]
       (is (not (scalar? fs)))
       (is (== 0 (dimensionality fs)))
-      (fill! fs 10) 
+      (fill! fs 10)
       (is (equals [10 2 3] da))
       (is (array? fs))))
   (testing "wrong dimension"
@@ -89,7 +93,7 @@
       (is (= [2.0 4.0] (seq da)))))
   (testing "assign from a Number array"
     (let [da (double-array [1 2])]
-      (mp/assign-array! da (into-array java.lang.Number [2 5]))
+      (mp/assign-array! da (into-array Number [2 5]))
       (is (= [2.0 5.0] (seq da))))))
 
 (deftest test-equals
@@ -143,6 +147,12 @@
 
 (deftest test-broadcast-coerce
   (is (= [1.0 2.0] (mp/broadcast-coerce [0 0] (double-array [1 2])))))
+
+(deftest test-to-double-arrays
+  (let [m [[1 2] [3 4]]
+        dm (clojure.core.matrix.impl.double-array/to-double-arrays m)]
+    (is (equals m dm)))
+  (is (= 1.0 (clojure.core.matrix.impl.double-array/to-double-arrays 1))))
 
 (deftest test-mutable-multiply
   (let [a (double-array [1 2])

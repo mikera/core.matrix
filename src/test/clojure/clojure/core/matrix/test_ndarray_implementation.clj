@@ -1,15 +1,17 @@
 (ns clojure.core.matrix.test-ndarray-implementation
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.compliance-tester :as ct])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.generic :as gen])
-  (:require clojure.core.matrix.impl.persistent-vector)
-  (:require [clojure.core.matrix.impl.ndarray])
-  (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
-  (:require [clojure.core.matrix.impl.ndarray-macro :as macro])
-  (:use clojure.core.matrix.impl.ndarray))
+  (:require [clojure.core.matrix.operators :as op]
+            [clojure.core.matrix.compliance-tester :as ct]
+            [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.generic :as gen]
+            clojure.core.matrix.impl.persistent-vector
+            [clojure.core.matrix.impl.ndarray]
+            [clojure.core.matrix.impl.ndarray-magic :as magic]
+            [clojure.core.matrix.impl.ndarray-macro :as macro]
+            [clojure.test :refer :all]
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.impl.ndarray :refer :all]
+            [clojure.core.matrix.impl.ndarray-double :refer :all]
+            [clojure.core.matrix.impl.ndarray-object :refer :all]))
 
 ;; Tests for the NDArray implementation
 
@@ -77,7 +79,7 @@
       (is (== 10 (ereduce + m)))
       (is (== 4 (ereduce (fn [acc _] (inc acc)) 0 m)))
       (is (== 4 (ereduce (fn [acc _] (inc acc)) 0 (eseq m))))))
-  
+
   (testing "Elementwise divide"
     (is (equals [2 2] (div (array :ndarray [6 4]) [3 2])))))
 
@@ -106,7 +108,7 @@
   (let [a (array :ndarray [[1 2] [3 4]])]
     (is (equals [[9 9] [9 9]] (fill a 9)))
     (is (equals [[9 9] [9 9]] (fill a [9 9])))
-    (is (equals [[1 2] [3 4]] a)))) 
+    (is (equals [[1 2] [3 4]] a))))
 
 (deftest test-contained-vectors
   (let [a (array :ndarray :foo)]
@@ -171,7 +173,7 @@
                first
                (mget 1))))
   (is (equals [10] (add-product! (array :ndarray [4]) [2] [3])))
-  (is (equals [30 70 110] (mmul (array :ndarray-double [[1 2 3 4] [5 6 7 8] [9 10 11 12]]) [1 2 3 4]))) 
+  (is (equals [30 70 110] (mmul (array :ndarray-double [[1 2 3 4] [5 6 7 8] [9 10 11 12]]) [1 2 3 4])))
   (is (equals [10] (add-product (array :ndarray [4]) [2] [3]))))
 
 (deftest ndarray-test

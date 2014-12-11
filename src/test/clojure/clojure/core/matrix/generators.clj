@@ -1,10 +1,6 @@
 (ns clojure.core.matrix.generators
-  (:use clojure.core.matrix)
-  (:use clojure.test)
-  (:require [clojure.test.check :as sc]
-            [clojure.test.check.generators :as gen]
-            [clojure.test.check.properties :as prop]
-            [clojure.test.check.clojure-test :as ct :refer (defspec)]))
+  (:require [clojure.test.check.generators :as gen]
+            [clojure.core.matrix :refer :all]))
 
 ;; =============================================================================
 ;; Array generators for test.check generative testing
@@ -14,7 +10,7 @@
 (def gen-double (gen/fmap double gen/ratio))
 
 
-(defn gen-nested-vectors 
+(defn gen-nested-vectors
   "Generator for nested vectors in a given shape, using a specified element generator"
   ([shape elem-gen]
     (reduce (fn [g s] (gen/vector g s)) elem-gen (reverse shape))))
@@ -22,7 +18,7 @@
 (defn gen-shape
   "Generator for valid core.matrix array shapes."
   ([] (gen/vector gen/s-pos-int))
-  ([& {:keys [dimensionality]}] (gen/vector gen/s-pos-int dimensionality))) 
+  ([& {:keys [dimensionality]}] (gen/vector gen/s-pos-int dimensionality)))
 
 (defn gen-array
   "Generator for arbitrary n-dimensional arrays"

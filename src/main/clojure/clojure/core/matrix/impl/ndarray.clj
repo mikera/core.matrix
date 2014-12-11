@@ -1,14 +1,14 @@
 (ns clojure.core.matrix.impl.ndarray
-  (:require [clojure.walk :as w])
-  (:use clojure.core.matrix.utils)
-  (:use clojure.core.matrix.impl.ndarray-macro)
-  (:require [clojure.core.matrix.impl.default])
-  (:require [clojure.core.matrix.impl.ndarray-magic :as magic])
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.impl.mathsops :as mops])
-  (:require [clojure.core.matrix.multimethods :as mm])
-  (:refer-clojure :exclude [vector?]))
+  (:refer-clojure :exclude [vector?])
+  (:require [clojure.walk :as w]
+            [clojure.core.matrix.impl.default]
+            [clojure.core.matrix.impl.ndarray-magic :as magic]
+            [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.impl.mathsops :as mops]
+            [clojure.core.matrix.multimethods :as mm]
+            [clojure.core.matrix.utils :refer :all]
+            [clojure.core.matrix.impl.ndarray-macro :refer :all]))
 
 ;; (error "NDArray loaded!")
 
@@ -115,7 +115,7 @@
 (defn c-strides [shape]
   (let [shape-ints (int-array shape)
         n (alength shape-ints)]
-    (if-not (> n 0)
+    (if-not (pos? n)
       (int-array [1])
       (let [strides (int-array n)]
         (aset strides (dec n) (int 1))
@@ -289,7 +289,7 @@
     "Returns a sequence of row-major slices of given NDArray. Always
      returns NDArrays, even on 1d vector (0d NDArrays in this case)"
     [^typename# m]
-    (iae-when-not (> (.ndims m) 0)
+    (iae-when-not (pos? (.ndims m))
       (str "can't get slices on [" (.ndims m) "]-dimensional object"))
     (let [^ints shape (.shape m)]
       (map (partial row-major-slice#t m) (range (aget shape 0))))))
@@ -355,7 +355,7 @@
                 pivot (aget-2d* m i-pivot j)]
             ;; when maximum element is not on diagonal, swap rows, update
             ;; permutations and permutation counter
-            (when (not (== i-pivot j))
+            (when-not (== i-pivot j)
               (c-for [k (int 0) (< k n) (inc k)]
                 (let [swap (aget-2d* m i-pivot k)]
                   (aset-2d* m i-pivot k (aget-2d* m j k))
@@ -507,8 +507,8 @@
       (iae-when-not (= 2 (.ndims m))
         "can't use get-2d on non-matrix")
       (let [idx (+ offset
-                   (+ (* (aget strides 0) (int x))
-                      (* (aget strides 1) (int y))))]
+                   (* (aget strides 0) (int x))
+                   (* (aget strides 1) (int y)))]
         (aget data idx)))
     (get-nd [m indexes]
       (iae-when-not (= (count indexes) ndims)
@@ -625,12 +625,12 @@
   ;;   (broadcast [m target-shape])
   ;; mp/PBroadcastLike
   ;;   (broadcast-like [m a])
-  
+
   mp/PBroadcastCoerce
     (broadcast-coerce [m a]
       (let [^typename# a (if (instance? typename# a) a (mp/coerce-param m a))]
         (mp/broadcast-like m a)))
-  
+
   ;; mp/PReshaping
   ;;   (reshape [m shape])
 
@@ -1177,5 +1177,3 @@
       (iae-when-not (== (aget shape 0) (aget shape 1))
         "inverse operates only on square matrices")
       (invert#t m)))
-
-(magic/spit-code)

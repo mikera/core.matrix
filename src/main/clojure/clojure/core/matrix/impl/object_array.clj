@@ -1,10 +1,11 @@
 (ns clojure.core.matrix.impl.object-array
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:use clojure.core.matrix.utils)
-  (:require clojure.core.matrix.impl.persistent-vector)
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.impl.mathsops :as mops])
-  (:require [clojure.core.matrix.multimethods :as mm])
+  (:require [clojure.core.matrix.protocols :as mp]
+            clojure.core.matrix.impl.persistent-vector
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.impl.mathsops :as mops]
+            [clojure.core.matrix.multimethods :as mm]
+            [clojure.core.matrix.impl.wrappers :as wrap]
+            [clojure.core.matrix.utils :refer :all])
   (:import [java.util Arrays]))
 
 (set! *warn-on-reflection* true)
@@ -34,10 +35,10 @@
         (object-array (map construct-object-array (mp/get-major-slice-seq data))))))
 
 (defn construct-nd ^objects [shape]
-  (let [dims (long (count shape))] 
-        (cond 
+  (let [dims (long (count shape))]
+        (cond
           (== 1 dims) (object-array (long (first shape)))
-          (> dims 1)  
+          (> dims 1)
             (let [n (long (first shape))
                   m (object-array n)
                   ns (next shape)]
@@ -46,10 +47,10 @@
               m)
           :else (error "Can't make a nested object array of dimensionality: " dims))))
 
-(defn object-array-coerce 
+(defn object-array-coerce
   "Coerce to object array format, avoids copying sub-arrays if possible."
   ([m]
-  (if (> (mp/dimensionality m) 0) 
+  (if (> (mp/dimensionality m) 0)
     (if (is-object-array? m)
       (let [^objects m m
             n (count m)]
@@ -79,7 +80,7 @@
     (meta-info [m]
       {:doc "Clojure.core.matrix implementation for Java Object arrays"})
     (new-vector [m length] (construct-object-vector (long length)))
-    (new-matrix [m rows columns] 
+    (new-matrix [m rows columns]
       (let [columns (long columns)
             m (object-array rows)]
         (dotimes [i rows]
@@ -95,24 +96,24 @@
 
 (extend-protocol mp/PDimensionInfo
   (Class/forName "[Ljava.lang.Object;")
-    (dimensionality [m] 
-      (let [^objects m m] 
-        (+ 1 (mp/dimensionality (aget m 0)))))
-    (is-vector? [m] 
+    (dimensionality [m]
       (let [^objects m m]
-        (or 
+        (+ 1 (mp/dimensionality (aget m 0)))))
+    (is-vector? [m]
+      (let [^objects m m]
+        (or
          (== 0 (alength m))
          (== 0 (mp/dimensionality (aget m 0))))))
     (is-scalar? [m] false)
-    (get-shape [m] 
+    (get-shape [m]
       (let [^objects m m]
         (if (== 0 (alength m))
            1
            (cons (alength m) (mp/get-shape (aget m 0))))))
     (dimension-count [m x]
       (let [^objects m m
-            x (long x)] 
-        (cond 
+            x (long x)]
+        (cond
           (== x 0)
             (alength m)
           (> x 0)
@@ -124,7 +125,11 @@
 (extend-protocol mp/PTypeInfo
   (Class/forName "[Ljava.lang.Object;")
     (element-type [m]
-      java.lang.Object))
+      (let [^objects m m]
+        (cond
+         (== 1 (mp/dimensionality m)) Object
+         :else (mp/element-type (aget m 0))))))
+
 
 (extend-protocol mp/PIndexedAccess
   (Class/forName "[Ljava.lang.Object;")
@@ -138,8 +143,8 @@
         (cond
           (== 1 dims)
             (aget m (int (first indexes)))
-          (> dims 1) 
-            (mp/get-nd (aget m (int (first indexes))) (next indexes)) 
+          (> dims 1)
+            (mp/get-nd (aget m (int (first indexes))) (next indexes))
           (== 0 dims) m
           :else
             (error "Invalid dimensionality access with index: " (vec indexes))))))
@@ -157,7 +162,7 @@
         arr))
     (set-nd [m indexes v]
       (let [dims (long (count indexes))]
-        (cond 
+        (cond
           (== 1 dims)
             (let [^objects arr (copy-object-array m)
                   x (int (first indexes))]
@@ -167,8 +172,8 @@
             (let [^objects arr (copy-object-array m)
                   x (int (first indexes))]
               (aset arr x (mp/set-nd (aget ^objects m x) (next indexes) v))
-              arr)  
-          :else 
+              arr)
+          :else
             (error "Can't set on object array with dimensionality: " (count indexes)))))
     (is-mutable? [m] true))
 
@@ -181,7 +186,7 @@
     (set-nd! [m indexes v]
       (let [^objects m m
             dims (long (count indexes))]
-        (cond 
+        (cond
           (== 1 dims)
             (aset m (int (first indexes)) v)
           (> dims 1)
@@ -196,7 +201,7 @@
             dims (long (count mshape))
             tdims (long (count target-shape))]
         (cond
-          (> dims tdims) 
+          (> dims tdims)
             (error "Can't broadcast to a lower dimensional shape")
           (not (every? identity (map #(== %1 %2) mshape (take-last dims target-shape))))
             (error "Incompatible shapes, cannot broadcast " (vec mshape) " to " (vec target-shape))
@@ -240,26 +245,26 @@
 
 (extend-protocol mp/PSliceView
   (Class/forName "[Ljava.lang.Object;")
-    (get-major-slice-view [m i] 
+    (get-major-slice-view [m i]
       (let [^objects m m
             v (aget m i)]
         (if (mp/is-scalar? v)
-          (clojure.core.matrix.impl.wrappers/wrap-slice m i)
+          (wrap/wrap-slice m i)
           v))))
 
 (extend-protocol mp/PSliceSeq
   (Class/forName "[Ljava.lang.Object;")
     (get-major-slice-seq [m]
       (let [^objects m m]
-        (if (and (> 0 (alength m)) (== 0 (mp/dimensionality (aget m 0)))) 
+        (if (and (> 0 (alength m)) (== 0 (mp/dimensionality (aget m 0))))
           (seq (map mp/get-0d m))
           (seq m)))))
 
 (extend-protocol mp/PElementCount
   (Class/forName "[Ljava.lang.Object;")
-    (element-count [m] 
+    (element-count [m]
       (let [^objects m m
-            n (alength m)] 
+            n (alength m)]
         (if (== n 0)
           0
           (* n (mp/element-count (aget m 0)))))))
@@ -271,14 +276,14 @@
             shapes (map mp/validate-shape (seq m))]
         (if (mp/same-shapes? shapes)
           (cons (alength m) (first shapes))
-          (error "Inconsistent shapes for sub arrays in object array"))))) 
+          (error "Inconsistent shapes for sub arrays in object array")))))
 
 (extend-protocol mp/PFunctionalOperations
   (Class/forName "[Ljava.lang.Object;")
     (element-seq [m]
       (let [^objects m m]
         (cond
-          (== 0 (alength m)) 
+          (== 0 (alength m))
             '()
           (> (mp/dimensionality (aget m 0)) 0)
             (mapcat mp/element-seq m)
@@ -293,11 +298,11 @@
         (object-array (apply map #(apply mp/element-map %1 f %2 %&) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
     (element-map!
       ([m f]
-        (dotimes [i (count m)] 
+        (dotimes [i (count m)]
           (let [^objects m m
                 s (aget m i)]
-            (if (mp/is-mutable? s) 
-              (mp/element-map! s f) 
+            (if (mp/is-mutable? s)
+              (mp/element-map! s f)
               (aset m i (mp/element-map s f)))))
         m)
       ([m f a]
@@ -305,7 +310,7 @@
           (let [^objects m m
                 s (aget m i)
                 as (mp/get-major-slice a i)]
-            (if (mp/is-mutable? s) 
+            (if (mp/is-mutable? s)
               (mp/element-map! s f as)
               (aset m i (mp/element-map s f as)))))
         m)
@@ -315,7 +320,7 @@
                 s (aget m i)
                 as (mp/get-major-slice a i)
                 ms (map #(mp/get-major-slice % i) more)]
-            (if (mp/is-mutable? s) 
+            (if (mp/is-mutable? s)
               (apply mp/element-map! s f as ms)
               (aset m i (apply mp/element-map s f as ms)))))
         m))

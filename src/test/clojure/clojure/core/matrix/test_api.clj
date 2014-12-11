@@ -1,15 +1,16 @@
 (ns clojure.core.matrix.test-api
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
-  (:use clojure.core.matrix.select)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.linear :as li])
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require clojure.core.matrix.examples)
-  (:require clojure.core.matrix.impl.persistent-vector)
   (:refer-clojure :exclude [vector?])
-  (:use clojure.test))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.linear :as li]
+            [clojure.core.matrix.operators :as op]
+            [clojure.core.matrix.implementations :as imp]
+            clojure.core.matrix.examples
+            clojure.core.matrix.impl.persistent-vector
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.utils :refer [error? broadcast-shape]]
+            [clojure.core.matrix.select :refer :all]
+            [clojure.test :refer :all])
+  (:import [java.io StringWriter]))
 
 ;; This namespace is intended for general purpose tests og the core.matrix API functions
 
@@ -22,9 +23,12 @@
 (deftest test-labels
   (testing "unlabelled array"
     (let [m [[7 8] [9 10]]]
-      (is (== 0 (label m 0 0)))
-      (is (== 1 (label m 0 1)))
-      (is (error? (label m 0 2)))))) 
+      (is (nil? (label m 0 0)))
+      (is (nil? (label m 0 1)))
+      (is (nil? (labels m 0)))
+      (is (nil? (labels m 1)))
+      (is (error? (label m 0 2)))
+      (is (error? (labels m -1))))))
 
 (deftest test-select
   (let [a [[1 2] [3 4]]]
@@ -60,8 +64,8 @@
 (deftest test-set-selection
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
     (testing "set-selection"
-      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (set-selection a 0 0 2))
-      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (set-selection a [0 2] [0 3] 3)))))
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] (set-selection a 0 0 2)))
+      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]] (set-selection a [0 2] [0 3] 3))))))
 
 (deftest test-set-selection!
   (let [a (matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
@@ -75,10 +79,10 @@
 (deftest test-set-sel
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
     (testing "set-sel"
-      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]]) (set-sel a 0 0 2))
-      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]]) (set-sel a [0 2] [0 3] 3))
-      (is (= [[1 2 3 4] [5 5 5 5] [5 5 5 5]])
-          (set-sel a (where (partial < 5)) 5)))))
+      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] (set-sel a 0 0 2)))
+      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]] (set-sel a [0 2] [0 3] 3)))
+      (is (= [[1 2 3 4] [5 5 5 5] [5 5 5 5]]
+             (set-sel a (where (partial < 5)) 5))))))
 
 (deftest test-set-sel!
   (let [a (matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
@@ -138,7 +142,7 @@
   (is (equals [3 8] (add-product [0 0] [1 2] [3 4]))))
 
 (deftest test-reshape
-  (is (equals [[0 1] [2 3] [4 5]] (reshape (range 6) [3 2])))) 
+  (is (equals [[0 1] [2 3] [4 5]] (reshape (range 6) [3 2]))))
 
 (deftest test-square
   (is (equals 81 (square 9)))
@@ -218,7 +222,7 @@
   (is (equals [[3]] (submatrix (array [[1 2] [3 4]]) [[1 1] [0 1]])))
   (is (equals [[2] [4]] (submatrix (array [[1 2] [3 4]]) 1 [1 1])))
   (is (equals [2 3] (submatrix (array [1 2 3 4]) [[1 2]])))
-  (is (equals [[4]] (submatrix [[1 2] [3 4]] 1 1 1 1))) 
+  (is (equals [[4]] (submatrix [[1 2] [3 4]] 1 1 1 1)))
   (is (equals [2 3] (submatrix (array [1 2 3 4]) 0 [1 2]))))
 
 (deftest test-element-seq
@@ -407,7 +411,7 @@
   ;; (is (e== [1 4] (diagonal [[1 2] [3 4]] 0)))
   ;; (is (e== [2] (diagonal [[1 2] [3 4]] 1)))
   ;; (is (e== [3] (diagonal [[1 2] [3 4]] -1)))
-  ) 
+  )
 
 (deftest test-diagonal
   (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]   )))
@@ -494,7 +498,7 @@
     (is (e== [0 1] (sub [1 2] 1.0)))
     (is (e== [0 -1] (sub 1.0 [1 2])))))
 
-(deftest test-sparsity 
+(deftest test-sparsity
   (testing "sparse?"
     (is (not (sparse? [0 1 2]))))
   (testing "density"
@@ -516,19 +520,19 @@
   (is (= [[1 0.0 0.0] [0.0 2 3] [0.0 4 5]] (block-diagonal-matrix [[[1]][[2 3][4 5]]]))))
 
 (deftest test-non-zero-indices
-  (is (= []                                    
+  (is (= []
          (non-zero-indices [0])))
-  (is (= [0]                                   
+  (is (= [0]
          (non-zero-indices [1])))
-  (is (= [0 3 4]                               
+  (is (= [0 3 4]
          (non-zero-indices [1 0 0 2 5 0])))
-  (is (= [[[0]] [[]] [[0]] [[]]]               
+  (is (= [[[0]] [[]] [[0]] [[]]]
          (non-zero-indices [[[1.0]][[0]][[9.0]][[0]]])))
-  (is (= [[[1] [1]] [[0 1] [0]] [[0 1] [0 1]]] 
+  (is (= [[[1] [1]] [[0 1] [0]] [[0 1] [0 1]]]
          (non-zero-indices [[[0.0 2.0][0 4.0]][[5.0 6.0][7.0 0]][[9.0 10.0][11.0 12.0]]]))))
 
 (deftest check-examples
-  (binding [*out* (java.io.StringWriter.)]
+  (binding [*out* (StringWriter.)]
     (testing "example code"
       (clojure.core.matrix.examples/all-examples))))
 
@@ -620,9 +624,9 @@
   (is (= 30.0 (li/norm (matrix [[1 2][3 4]]) 2)))
   (is (= 10.0 (li/norm (matrix [[1 2][3 4]]) 1)))
   (is (= 100.0 (li/norm (matrix [[1 2][3 4]]) 3)))
-  (is (= 4 (li/norm (matrix [[1 2][3 4]]) java.lang.Double/POSITIVE_INFINITY)))
+  (is (= 4 (li/norm (matrix [[1 2][3 4]]) Double/POSITIVE_INFINITY)))
   (is (= 30.0 (li/norm (vector 1 2 3 4))))
   (is (= 30.0 (li/norm (vector 1 2 3 4) 2)))
   (is (= 10.0 (li/norm (vector 1 2 3 4) 1)))
   (is (= 100.0 (li/norm (vector 1 2 3 4) 3)))
-  (is (= 4 (li/norm (vector 1 2 3 4) java.lang.Double/POSITIVE_INFINITY))))
+  (is (= 4 (li/norm (vector 1 2 3 4) Double/POSITIVE_INFINITY))))

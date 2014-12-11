@@ -1,8 +1,8 @@
 (ns clojure.core.matrix.impl.wrappers
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.multimethods :as mm]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.utils :as u :refer [TODO error]])
+  (:import [clojure.lang Seqable Indexed]))
 
 ;; =============================================
 ;; WRAPPER IMPLEMENTATIONS
@@ -21,7 +21,7 @@
 ;; wraps a single scalar as a mutable 0-D array
 
 (deftype ScalarWrapper [^{:volatile-mutable true} value]
-  java.lang.Object
+  Object
     (toString [m] (str value))
 
   mp/PImplementation
@@ -98,7 +98,7 @@
 ;; wraps a row-major slice of an array
 
 (deftype SliceWrapper [array ^long slice]
-  clojure.lang.Seqable
+  Seqable
     (seq [m]
       (mp/get-major-slice-seq m))
 
@@ -180,7 +180,7 @@
   mp/PMatrixCloning
     (clone [m] (wrap-slice (mp/clone array) slice))
 
-  java.lang.Object
+  Object
     (toString [m] (str (mp/convert-to-nested-vectors m))))
 
 
@@ -205,9 +205,19 @@
    ^objects index-maps ;; maps of each NDWrapper dimension's indexes to source dimension indexes
    ^longs source-position ;; position in source array for non-specified dimensions
    ]
-  clojure.lang.Seqable
+  Seqable
     (seq [m]
       (mp/get-major-slice-seq m))
+
+  Indexed
+    (count [m]
+      (aget shape 0))
+    (nth [m i]
+      (mp/get-major-slice m i))
+    (nth [m i not-found]
+      (if (and (integer? i) (<= 0 i) (< i (aget shape 0)))
+        (mp/get-major-slice m i)
+        not-found))
 
   mp/PImplementation
     (implementation-key [m]
@@ -250,9 +260,9 @@
           (aset new-index-map i (aget old-index-map (+ start i))))
         (NDWrapper.
           array
-          (long-array-of length)
+          (u/long-array-of length)
           dim-map
-          (object-array-of new-index-map)
+          (u/object-array-of new-index-map)
           source-position)))
 
   mp/PDimensionInfo
@@ -275,38 +285,38 @@
 
   mp/PIndexedAccess
     (get-1d [m row]
-      (let [ix (copy-long-array source-position)
+      (let [ix (u/copy-long-array source-position)
             ^longs im (aget index-maps 0)]
         (set-source-index ix 0 row)
         (mp/get-nd array ix)))
     (get-2d [m row column]
-      (let [ix (copy-long-array source-position)]
+      (let [ix (u/copy-long-array source-position)]
         (set-source-index ix 0 row)
         (set-source-index ix 1 column)
         (mp/get-nd array ix)))
     (get-nd [m indexes]
-      (let [^longs ix (copy-long-array source-position)]
+      (let [^longs ix (u/copy-long-array source-position)]
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
         (mp/get-nd array ix)))
     mp/PIndexedSettingMutable
     (set-1d! [m row v]
-      (let [ix (copy-long-array source-position)
+      (let [ix (u/copy-long-array source-position)
             ^longs im (aget index-maps 0)]
         (set-source-index ix 0 row)
         (mp/set-nd! array ix v)))
     (set-2d! [m row column v]
-      (let [ix (copy-long-array source-position)]
+      (let [ix (u/copy-long-array source-position)]
         (set-source-index ix 0 row)
         (set-source-index ix 1 column)
         (mp/set-nd! array ix v)))
     (set-nd! [m indexes v]
-      (let [^longs ix (copy-long-array source-position)]
+      (let [^longs ix (u/copy-long-array source-position)]
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
         (mp/set-nd! array ix v)))
 
-  java.lang.Object
+  Object
     (toString [m]
       (str (mp/persistent-vector-coerce m))))
 
@@ -324,8 +334,8 @@
             dims (alength shp)]
         (NDWrapper. m
                   shp
-                  (long-range dims)
-                  (object-array (map #(long-range (mp/dimension-count m %)) (range dims)))
+                  (u/long-range dims)
+                  (object-array (map #(u/long-range (mp/dimension-count m %)) (range dims)))
                   (long-array (repeat dims 0))))))
 (defn wrap-selection
   [m indices]

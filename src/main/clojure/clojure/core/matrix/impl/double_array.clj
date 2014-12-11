@@ -1,10 +1,7 @@
 (ns clojure.core.matrix.impl.double-array
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:use clojure.core.matrix.utils)
-  (:require clojure.core.matrix.impl.persistent-vector)
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.impl.mathsops :as mops])
-  (:require [clojure.core.matrix.multimethods :as mm]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.utils :refer :all]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -15,7 +12,7 @@
 
 (def ^:const DOUBLE-ARRAY-CLASS (Class/forName "[D"))
 
-(def array-magic-data 
+(def array-magic-data
   {:double {:class DOUBLE-ARRAY-CLASS
             :regname :ndarray-double
             :fn-suffix 'double
@@ -23,6 +20,18 @@
             :array-cast 'double-array
             :type-cast 'double
             :type-object Double/TYPE}})
+
+(defn new-double-array [shape]
+  "Creates a new zero-filled nested double array of the given shape"
+  (let [dims (count shape)]
+    (cond 
+      (== 0 dims) 0.0
+      (== 1 dims) (double-array (int (first shape)))
+      :else 
+        (let [ns (next shape)
+              rn (long (first shape))
+              ^Object r0 (new-double-array ns)]
+          (into-array (.getClass r0) (cons r0 (for [i (range (dec rn))] (new-double-array ns))))))))
 
 (defn construct-double-array [data]
   (let [dims (long (mp/dimensionality data))]
@@ -44,11 +53,10 @@
     (meta-info [m]
       {:doc "Clojure.core.matrix implementation for Java double arrays"})
     (new-vector [m length] (double-array (int length)))
-    (new-matrix [m rows columns] (error "Can't make a 2D matrix from a double array"))
-    (new-matrix-nd [m dims]
-      (if (== 1 (count dims))
-        (double-array (int (first dims)))
-        (error "Can't make a double array of dimensionality: " (count dims))))
+    (new-matrix [m rows columns] 
+      (new-double-array [rows columns]))
+    (new-matrix-nd [m shape]
+      (new-double-array shape))
     (construct-matrix [m data]
       (construct-double-array data))
     (supports-dimensionality? [m dims]
@@ -177,13 +185,13 @@
 
 (extend-protocol mp/PVectorOps
   (Class/forName "[D")
-    (vector-dot [a b] 
+    (vector-dot [a b]
       (cond
         (is-double-array? b)
           (let [^doubles a a
                 ^doubles b b
                 n (alength a)]
-            (when (not (== n (alength b))) (error "Incompatible double array lengths"))
+            (when-not (== n (alength b)) (error "Incompatible double array lengths"))
             (loop [i 0 res 0.0]
               (if (< i n)
                 (recur (inc i) (+ res (* (aget a i) (aget b i))))
@@ -198,13 +206,13 @@
                 res)))
         :else nil))
     (length [a] (Math/sqrt (doubles-squared-sum a)))
-    (length-squared [a] 
+    (length-squared [a]
       (doubles-squared-sum a))
     (normalise [a]
       (let [a ^doubles a
             len (doubles-squared-sum a)]
         (cond
-          (> len 0.0) (mp/scale a (/ 1.0 (Math/sqrt len))) 
+          (> len 0.0) (mp/scale a (/ 1.0 (Math/sqrt len)))
           :else (double-array (alength a))))))
 
 (extend-protocol mp/PCoercion
@@ -225,10 +233,12 @@
       (seq m))
     (element-map
       ([m f]
-        (let [^doubles m (double-array m)]
-          (dotimes [i (alength m)]
-            (aset m i (double (f (aget m i)))))
-          m))
+        (let [m ^doubles m
+              cnt (alength m)
+              ^doubles r (double-array cnt)]
+          (dotimes [i cnt]
+            (aset r i (double (f (aget m i)))))
+          r))
       ([m f a]
         (let [^doubles m (double-array m)
               ^doubles a (mp/broadcast-coerce m a)]
@@ -283,6 +293,17 @@
              (mp/element-map m #(/ % a))
              (let [[m a] (mp/broadcast-compatible m a)]
                (mp/element-map m #(/ %1 %2) a))))))
+
+(defn to-double-arrays
+  "Converts an array to nested double arrays with the same shape."
+  [m]
+  (if-let [dims (mp/dimensionality m)]
+    (cond 
+      (== 0 dims) (double (mp/get-0d m))
+      (== 1 dims) (mp/to-double-array m)
+      :else (let [r0 (to-double-arrays (mp/get-major-slice m 0))
+                  c (.getClass ^Object r0)]
+              (into-array c (map to-double-arrays (mp/get-major-slice-seq m)))))))
 
 ;; registration
 
