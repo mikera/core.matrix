@@ -4,7 +4,7 @@
 ;; dependencies / configuration in this file may be out of date
 ;; if in doubt, please refer to the latest pom.xml
 
-(defproject net.mikera/core.matrix "0.30.3-SNAPSHOT"
+(defproject net.mikera/core.matrix "0.31.2-SNAPSHOT"
   :url "https://github.com/mikera/matrix-api"
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -23,8 +23,8 @@
                                   [criterium/criterium "0.4.3"]
                                   [org.clojure/tools.macro "0.1.5"]
                                   [hiccup "1.0.5"]
-                                  [net.mikera/vectorz-clj "0.26.1"]
-                                  [org.clojure/test.check "0.5.9"]]
+                                  [net.mikera/vectorz-clj "0.26.2"]
+                                  [org.clojure/test.check "0.6.1"]]
                    
                    :source-paths ["src/main/clojure" "src/dev/clojure"]
                    :jvm-opts ^:replace []}
