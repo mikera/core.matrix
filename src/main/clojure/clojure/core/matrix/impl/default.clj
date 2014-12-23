@@ -98,6 +98,12 @@
     (sparse [m]
       m))
 
+(extend-protocol mp/PNewSparseArray
+  Object
+    (new-sparse-array [m shape]
+      ;; we don't support sparse arrays by default, so just return nil
+      nil))
+
 (extend-protocol mp/PDense
   nil
     (dense-coerce [m data]

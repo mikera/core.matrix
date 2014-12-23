@@ -365,6 +365,10 @@
    less storage than an equivalent dense array, assuming a high proportion of zero values in the array."
   (is-sparse? [m]))
 
+(defprotocol PNewSparseArray
+  "Protocol for constructing sparse arrays. Should return nil if the sparse array shape is not supported."
+  (new-sparse-array [m shape]))
+
 (defprotocol PZeroCount
   "Protocol for counting the number of zeros in an array"
   (zero-count [m]))

@@ -6,7 +6,7 @@
             [clojure.core.matrix.impl.pprint :as pprint]
             [clojure.core.matrix.implementations :as imp :refer [*matrix-implementation*]]
             [clojure.core.matrix.impl.mathsops :as mops]
-            [clojure.core.matrix.utils :as u :refer [TODO]]))
+            [clojure.core.matrix.utils :as u :refer [TODO error]]))
 
 ;; ==================================================================================
 ;; clojure.core.matrix API namespace
@@ -156,6 +156,17 @@
     (or (mp/new-matrix-nd (implementation-check implementation) shape)
         (mp/new-matrix-nd (implementation-check) shape)
         (mp/new-matrix-nd :persistent-vector shape)))) ;; todo: what is the right default?
+
+(defn new-sparse-array
+  "Creates a new sparse array with the given shape.
+   New array will contain default values as defined by the implementation (usually zero).
+   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+  ([shape]
+    (mp/new-sparse-array (implementation-check) shape))
+  ([implementation shape]
+    (or (mp/new-sparse-array (implementation-check implementation) shape)
+        (error "Implementation " (mp/implementation-key implementation) 
+               " does not support sparse arrays of shape " (vec shape)))))
 
 (defn new-scalar-array
   "Returns a new mutable scalar array containing the scalar value zero."
