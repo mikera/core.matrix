@@ -305,7 +305,18 @@
     (sparse-matrix (implementation-check) data))
   ([implementation data]
     (or (mp/sparse-coerce implementation data)
-        (u/error "Sparse implementation not available"))))
+        (error "Sparse implementation not available"))))
+
+(defn sparse-array
+  "Creates a sparse array with the given data, using a specified implementation
+  or the current implementation if not specified. 
+
+  Throws an exception if creation of a sparse array is not possible"
+  ([data]
+    (sparse-matrix (implementation-check) data))
+  ([implementation data]
+    (or (mp/sparse-coerce implementation data)
+        (error "Sparse implementation not available"))))
 
 (defn sparse
   "Coerces an array to a sparse format if possible. Sparse arrays are expected to
