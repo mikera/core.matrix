@@ -954,11 +954,12 @@
     (mp/rotate-all m shifts)))
 
 (defn order
-  "Reorders columns of an array along specified dimension."
-  ([m cols]
-     (mp/order m cols))
-  ([m dimension cols]
-     (mp/order m dimension cols)))
+  "Reorders slices of an array along a specified dimension. Re-orders along major dimension
+   if no dimension is specified."
+  ([m indices]
+    (mp/order m indices))
+  ([m dimension indices]
+    (mp/order m dimension indices)))
 
 (defn as-vector
   "Creates a view of an array as a single flattened vector.

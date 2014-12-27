@@ -577,12 +577,22 @@
 
 (extend-protocol mp/POrder
   nil
-    (order [m dim cols] nil)
+    (order 
+      ([m indices] (error "Can't reorder a scalar nil"))
+      ([m dim indices] (error "Can't reorder a scalar nil")))
   Number
-    (order [m dim cols] m)
+    (order 
+      ([m indices] (error "Can't reorder a scalar number"))
+      ([m dim indices] (error "Can't reorder a scalar number")))
   Object
-    (order [m dim cols]
-      (mp/order (mp/convert-to-nested-vectors m) dim cols)))
+    (order 
+      ([m indices] 
+        (let [mshape (vec (mp/get-shape m))
+              subshape (assoc m 0 1)
+              ss (map #(mp/broadcast (mp/get-major-slice m %) subshape) indices)]
+          (reduce #(mp/join %1 %2) ss)))
+      ([m dim indices]
+        (mp/order (mp/convert-to-nested-vectors m) dim indices))))
 
 
 (extend-protocol mp/PMatrixProducts

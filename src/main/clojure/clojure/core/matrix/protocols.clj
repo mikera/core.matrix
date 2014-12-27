@@ -569,10 +569,10 @@
     "Transposes a mutable 2D matrix in place"))
 
 (defprotocol POrder
-  "Protocol for matrix reorder"
+  "Protocol for matrix reorder. May reorder along any dimension."
   (order
-    [m cols]
-    [m dimension cols]))
+    [m indices]
+    [m dimension indices]))
 
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
