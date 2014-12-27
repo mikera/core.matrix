@@ -1,8 +1,8 @@
 (ns clojure.core.matrix.impl.dataset
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.impl.wrappers :as wrap])
-  (:require [clojure.core.matrix.protocols :as mp])
+  (:require [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.impl.wrappers :as wrap]
+            [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.utils :refer :all])
   (:import [clojure.lang IPersistentVector]))
 
 ;; TODO
@@ -53,6 +53,19 @@
                         (fn [acc c] (conj acc (get row c)))
                         [] col-names)) m)]
        (dataset-from-rows col-names rows))))
+
+(extend-protocol mp/PDimensionLabels
+  DataSet
+    (label [m dim i]
+      (cond 
+        (== dim 1) (nth (:column-names m) i)
+        (<= 0 (long i) (dec (long (mp/dimension-count m dim)))) nil 
+        :else (error "Dimension index out of range: " i)))
+    (labels [m dim]
+      (cond 
+        (== dim 1) (:column-names m)
+        (<= 0 (long dim) (dec (long (mp/dimensionality m)))) nil
+        :else (error "Dimension out of range: " dim)))) 
 
 (extend-protocol mp/PMatrixSlices
   DataSet
@@ -168,7 +181,7 @@
     (let [col-set-1 (into #{} (mp/column-names ds1))
           col-set-2 (into #{} (mp/column-names ds2))
           intersection (clojure.set/intersection col-set-1 col-set-2)]
-      (if (= (count intersection) 0)
+      (if (zero? (count intersection))
         (dataset-from-columns
          (concat (mp/column-names ds1) (mp/column-names ds2))
          (concat (mp/get-columns ds1) (mp/get-columns ds2)))

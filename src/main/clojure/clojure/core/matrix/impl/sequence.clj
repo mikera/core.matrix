@@ -1,10 +1,8 @@
 (ns clojure.core.matrix.impl.sequence
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.impl.mathsops :as mops])
-  (:require [clojure.core.matrix.impl.wrappers :as wrap])
-  (:require [clojure.core.matrix.multimethods :as mm]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.utils :refer [scalar-coerce error]])
+  (:import [clojure.lang ISeq]))
 
 ;; core.matrix implementation for Clojure ISeq objects
 ;;
@@ -16,13 +14,13 @@
 (set! *unchecked-math* true)
 
 (extend-protocol mp/PImplementation
-  clojure.lang.ISeq
+  ISeq
     (implementation-key [m] :sequence)
     (meta-info [m]
       {:doc "Core.matrix implementation for Clojure ISeq objects"})
-    (new-vector [m length] 
+    (new-vector [m length]
       (mp/new-vector [] length))
-    (new-matrix [m rows columns] 
+    (new-matrix [m rows columns]
       (mp/new-matrix [] rows columns))
     (new-matrix-nd [m dims]
       (mp/new-matrix-nd [] dims))
@@ -32,7 +30,7 @@
       true))
 
 (extend-protocol mp/PIndexedAccess
-  clojure.lang.ISeq
+  ISeq
     (get-1d [m x]
       (scalar-coerce (nth m x)))
     (get-2d [m x y]
@@ -48,7 +46,7 @@
         )))
 
 (extend-protocol mp/PIndexedSetting
-  clojure.lang.ISeq
+  ISeq
     (set-1d [m row v]
       (mp/set-1d (mp/convert-to-nested-vectors m) row v))
     (set-2d [m row column v]
@@ -59,33 +57,33 @@
       false))
 
 (extend-protocol mp/PBroadcast
-  clojure.lang.ISeq
+  ISeq
     (broadcast [m new-shape]
       (mp/broadcast (mp/convert-to-nested-vectors m) new-shape)))
 
 (extend-protocol mp/PBroadcastLike
-  clojure.lang.ISeq
+  ISeq
     (broadcast-like [m a]
       (mp/broadcast (mp/convert-to-nested-vectors a) (mp/get-shape m))))
 
 (extend-protocol mp/PSliceView
-  clojure.lang.ISeq
+  ISeq
     (get-major-slice-view [m i]
       (nth m i)))
 
 (extend-protocol mp/PSliceSeq
-  clojure.lang.ISeq
+  ISeq
     (get-major-slice-seq [m] m))
 
 (extend-protocol mp/PConversion
-  clojure.lang.ISeq
+  ISeq
     (convert-to-nested-vectors [m]
-      (if (> (mp/dimensionality (first m)) 0) 
+      (if (> (mp/dimensionality (first m)) 0)
         (mapv mp/convert-to-nested-vectors m)
         (mapv mp/get-0d m))))
 
 (extend-protocol mp/PDimensionInfo
-  clojure.lang.ISeq
+  ISeq
     (dimensionality [m]
       (inc (mp/dimensionality (first m))))
     (is-vector? [m]
@@ -100,7 +98,7 @@
         (mp/dimension-count (first m) (dec x)))))
 
 (extend-protocol mp/PFunctionalOperations
-  clojure.lang.ISeq
+  ISeq
     (element-seq [m]
       (mapcat mp/element-seq m))
     (element-map

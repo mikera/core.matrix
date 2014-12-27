@@ -1,7 +1,6 @@
 (ns clojure.core.matrix.test-index
-  (:use clojure.test)
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils))
+  (:require [clojure.test :refer :all]
+            [clojure.core.matrix :refer :all]))
 
 (deftest test-int-index
   (let [xs (int-array [1 2 3])]

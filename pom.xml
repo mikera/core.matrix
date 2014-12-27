@@ -3,11 +3,11 @@
 	<artifactId>core.matrix</artifactId>
 	<groupId>net.mikera</groupId>
 	<description>N-dimensional array programming API for Clojure</description>
-	<version>0.31.1</version>
+	<version>0.32.1</version>
 	<packaging>jar</packaging>
 
 	<url>https://github.com/mikera/core.matrix</url>
-	
+
 	<parent>
 		<groupId>net.mikera</groupId>
 		<artifactId>clojure-pom</artifactId>
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>clojure</artifactId>
-			<version>1.6.0</version>
+			<version>1.7.0-alpha4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
@@ -53,13 +53,13 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>vectorz-clj</artifactId>
-			<version>0.26.1</version>
+			<version>0.26.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>test.check</artifactId>
-			<version>0.5.9</version>
+			<version>0.6.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -177,6 +177,6 @@
 		<connection>scm:git:git@github.com:mikera/core.matrix.git</connection>
 		<url>https://github.com/mikera/core.matrix</url>
 		<developerConnection>scm:git:git@github.com:mikera/core.matrix.git</developerConnection>
-		<tag>core.matrix-0.31.1</tag>
+		<tag>core.matrix-0.32.1</tag>
 	</scm>
 </project>

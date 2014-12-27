@@ -1,7 +1,7 @@
 (ns clojure.core.matrix.operators
-  (:use clojure.core.matrix.utils) 
   (:refer-clojure :exclude [* - + / vector? ==])
-  (:require [clojure.core.matrix :as m]))
+  (:require [clojure.core.matrix :as m]
+            [clojure.core.matrix.utils :refer [error]]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -59,18 +59,18 @@
 (defmacro Σ
   "Computes array summation over a range of values for one or more variables"
   ([[sym vals & more :as bindings] exp]
-    (cond 
+    (cond
       (odd? (count bindings)) (error "Summation requires an even number of forms in binding vector")
       (seq more) `(Σ [~sym ~vals] (Σ [~@more] ~exp))
-      :else `(reduce m/add (map (fn [i#] (let [~sym i#] ~exp)) ~vals))))) 
+      :else `(reduce m/add (map (fn [i#] (let [~sym i#] ~exp)) ~vals)))))
 
 (defmacro Π
   "Computes array products over a range of values for one or more variables"
   ([[sym vals & more :as bindings] exp]
-    (cond 
+    (cond
       (odd? (count bindings)) (error "Summation requires an even number of forms in binding vector")
       (seq more) `(Σ [~sym ~vals] (Σ [~@more] ~exp))
-      :else `(reduce m/mul (map (fn [i#] (let [~sym i#] ~exp)) ~vals))))) 
+      :else `(reduce m/mul (map (fn [i#] (let [~sym i#] ~exp)) ~vals)))))
 
 ;; ===================================================
 ;; inplace operators

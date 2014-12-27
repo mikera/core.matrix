@@ -1,8 +1,7 @@
 (ns clojure.core.matrix.query-benchmark
-  (:require [criterium.core :as c])
-  (:use clojure.core.matrix)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:import [clojure.core.matrix ClassPair]))
+  (:require [criterium.core :as c]
+            [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix :refer :all]))
 
 ;; benchmark for querying array properties
 

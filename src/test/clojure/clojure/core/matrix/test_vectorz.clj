@@ -1,12 +1,10 @@
 (ns clojure.core.matrix.test-vectorz
-  (:use clojure.core.matrix)
-  (:use clojure.core.matrix.utils)
-  (:require [clojure.core.matrix.protocols :as mp])
-  (:require [clojure.core.matrix.implementations :as imp])
-  (:require [clojure.core.matrix.operators :as op])
-  (:require [clojure.core.matrix.compliance-tester])
-  (:require [mikera.vectorz.matrix-api])
-  (:use clojure.test))
+  (:require [clojure.core.matrix.impl.pprint :as pprint]
+            [mikera.vectorz.matrix-api]
+            [clojure.core.matrix.compliance-tester :as compliance]
+            [clojure.core.matrix :refer :all]
+            [clojure.test :refer :all])
+  (:import (mikera.arrayz INDArray)) )
 
 ;; Tests for the Vectorz implementation, an important high speed JVM array library
 ;;
@@ -16,17 +14,20 @@
 (deftest regression-201
   (let [m (matrix :vectorz [[2 2][2 2]])
         mm (mutable m)]
-    (is (instance? mikera.arrayz.INDArray mm))
+    (is (instance? INDArray mm))
     (is (equals [[4 4] [4 4]] (pow! mm 2)))))
 
 (deftest test-sparse
-  (is (instance? mikera.arrayz.INDArray (sparse (matrix :vectorz [[1 2] [3 4]]))))
-  (is (instance? mikera.arrayz.INDArray (sparse :vectorz [[1 2] [3 4]]))))
+  (is (instance? INDArray (sparse (matrix :vectorz [[1 2] [3 4]]))))
+  (is (instance? INDArray (sparse :vectorz [[1 2] [3 4]])))
+  ;; TODO: enable once we have latest vectorz version with sparse support
+  ;; (is (instance? INDArray (sparse-array :vectorz [[[1 2] [3 4]]])))
+  )
 
 (deftest test-pm
-  (is (string? (clojure.core.matrix.impl.pprint/pm (array :vectorz [1 2]))))) 
+  (is (string? (pprint/pm (array :vectorz [1 2])))))
 
 (deftest compliance-tests
-  (clojure.core.matrix.compliance-tester/instance-test (array :vectorz [1 2 3]))
-  (clojure.core.matrix.compliance-tester/instance-test (array :vectorz [[1 2] [3 4]]))
-  (clojure.core.matrix.compliance-tester/instance-test (array :vectorz [[[1 2] [3 4]] [[5 6] [7 8]]])))
+  (compliance/instance-test (array :vectorz [1 2 3]))
+  (compliance/instance-test (array :vectorz [[1 2] [3 4]]))
+  (compliance/instance-test (array :vectorz [[[1 2] [3 4]] [[5 6] [7 8]]])))

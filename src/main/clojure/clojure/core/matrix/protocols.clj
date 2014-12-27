@@ -1,6 +1,8 @@
 (ns clojure.core.matrix.protocols
-  (:require [clojure.core.matrix.utils :refer [error same-shape-object? broadcast-shape]])
-  (:require [clojure.core.matrix.impl.mathsops :as mops]))
+  (:import [java.util List]
+           [clojure.lang Seqable])
+  (:require [clojure.core.matrix.utils :refer [error same-shape-object? broadcast-shape]]
+            [clojure.core.matrix.impl.mathsops :as mops]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -141,18 +143,18 @@
   (nonzero-count [m]))
 
 (defprotocol PValidateShape
-  "Optional protocol to validate the shape of a matrix. If the matrix has an incorrect shape, should 
+  "Optional protocol to validate the shape of a matrix. If the matrix has an incorrect shape, should
    throw an error. Otherwise it should return the correct shape."
-  (validate-shape [m])) 
+  (validate-shape [m]))
 
 (defprotocol PRowColMatrix
   "Protocol to support construction of row and column matrices from 1D vectors.
 
-   A vector of length N should be converted to a 1xN or Nx1 matrix respectively.   
+   A vector of length N should be converted to a 1xN or Nx1 matrix respectively.
 
    Should throw an error if the data is not a 1D vector"
   (column-matrix [m data])
-  (row-matrix [m data])) 
+  (row-matrix [m data]))
 
 (defprotocol PMutableMatrixConstruction
   "Protocol for creating a mutable copy of a matrix. If implemented, must return either a fully mutable
@@ -260,7 +262,7 @@
 
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers,
-   however providing an efficient implementation is strongly encouraged to enable fast interop 
+   however providing an efficient implementation is strongly encouraged to enable fast interop
    with Clojure vectors."
   (convert-to-nested-vectors [m] "Converts an array to nested Clojure persistent vectors"))
 
@@ -273,7 +275,7 @@
   (reshape [m shape]))
 
 (defprotocol PPack
-  "Protocol to efficiently pack an array, according to the most efficient representation for a given 
+  "Protocol to efficiently pack an array, according to the most efficient representation for a given
    implementation.
 
    Definition of pack is up to the implementation to interpret, but the general rules are:
@@ -281,10 +283,10 @@
    2. Must not change the shape of the array
    3. May preserve sparse representation
    4. Should convert to most efficient format for common operations (e.g. mget, inner-product)"
-  (pack [m])) 
+  (pack [m]))
 
 (defprotocol PSameShape
-  "Protocol to test if two arrays have the same shape. Implementations may have an optimised 
+  "Protocol to test if two arrays have the same shape. Implementations may have an optimised
    method for shape equality tests, and this is a frequently required operations so it may
    make sense to provide an optimised implementation."
   (same-shape? [a b]))
@@ -315,7 +317,7 @@
   (get-major-slice-view [m i] "Gets a view of a major array slice"))
 
 (defprotocol PSliceSeq
-  "Returns the row-major slices of the array as a sequence. 
+  "Returns the row-major slices of the array as a sequence.
 
    These must be views or immutable sub-arrays for higher order slices, or scalars
    for the slices of a 1D vector.
@@ -324,14 +326,14 @@
   (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
 
 (defprotocol PSliceSeq2
-  "Returns slices of the array as a sequence. 
+  "Returns slices of the array as a sequence.
 
    These must be views or immutable sub-arrays for higher order slices, or scalars
    for the slices of a 1D vector."
   (get-slice-seq [m dim] "Gets a sequence of all array slices"))
 
 (defprotocol PSliceViewSeq
-  "Returns the row-major slice views of the array. 
+  "Returns the row-major slice views of the array.
 
    These must be arrays if the array is mutable, i.e. slices of a 1D vector
    must be 0-dimensional mutable arrays."
@@ -362,6 +364,10 @@
    its own sparse formats, but in general the intention should be that a sparse array uses significantly
    less storage than an equivalent dense array, assuming a high proportion of zero values in the array."
   (is-sparse? [m]))
+
+(defprotocol PNewSparseArray
+  "Protocol for constructing sparse arrays. Should return nil if the sparse array shape is not supported."
+  (new-sparse-array [m shape]))
 
 (defprotocol PZeroCount
   "Protocol for counting the number of zeros in an array"
@@ -514,7 +520,7 @@
   (pre-scale! [m factor]))
 
 (defprotocol PMatrixAdd
-  "Protocol to support addition and subtraction on arbitrary matrices. 
+  "Protocol to support addition and subtraction on arbitrary matrices.
    These are elementwise operations that should support broadcasting."
   (matrix-add [m a])
   (matrix-sub [m a]))
@@ -549,24 +555,24 @@
   "Rotates an array along a specified dimension by the given number of places.
 
    Rotating a dimension that does not exist has no effect on the array."
-  (rotate [m dim places])) 
+  (rotate [m dim places]))
 
 (defprotocol PRotateAll
   "Rotates an array using the specified shifts for each dimension.
 
-   shifts may be any sequence of iteger shift amounts."
-  (rotate-all [m shifts])) 
+   shifts may be any sequence of integer shift amounts."
+  (rotate-all [m shifts]))
 
-(defprotocol PTransposeInPlace 
+(defprotocol PTransposeInPlace
   "Protocol for mutable 2D matrix transpose in place"
   (transpose! [m]
     "Transposes a mutable 2D matrix in place"))
 
 (defprotocol POrder
-  "Protocol for matrix reorder"
+  "Protocol for matrix reorder. May reorder along any dimension."
   (order
-    [m cols]
-    [m dimension cols]))
+    [m indices]
+    [m dimension indices]))
 
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
@@ -577,13 +583,13 @@
 (defprotocol PVectorOps
   "Protocol to support common numerical vector operations."
   (vector-dot [a b]
-     "Numerical dot product of two vectors. Must return a scalar value if the two parameters are 
+     "Numerical dot product of two vectors. Must return a scalar value if the two parameters are
       vectors of equal length.
 
       If the vectors are of unequal length, should throw an exception (however returning nil is
       also acceptable).
 
-      Otherwise the implementation may optionally either return nil or compute a higher dimensional 
+      Otherwise the implementation may optionally either return nil or compute a higher dimensional
       inner-product (if it is able to do so).")
   (length [a]
      "Euclidian length of a vector.")
@@ -695,7 +701,7 @@
   (element-count [m]))
 
 (defprotocol PElementMinMax
-  "Protocol to return the minimum and maximum elements in a numerical array. Must throw an exception 
+  "Protocol to return the minimum and maximum elements in a numerical array. Must throw an exception
    if the array is not numerical."
   (element-min [m])
   (element-max [m]))
@@ -711,7 +717,7 @@
     [m f]
     [m f a]
     [m f a more]
-    "Maps f over all elements of m (and optionally other matrices), returning a new matrix. 
+    "Maps f over all elements of m (and optionally other matrices), returning a new matrix.
      f is expected to produce elements of a type supported by the implementation of m - failure
      to do so may cause an error.")
   (element-map!
@@ -804,6 +810,14 @@
   (index-coerce [m a]))
 
 ;; ==========================================================
+;; LABELLED DIMENSION PROTOCOLS
+
+(defprotocol PDimensionLabels
+  "Protocol for arrays supporting labelled dimensions"
+  (label [m dim i])
+  (labels [m dim])) 
+
+;; ==========================================================
 ;; LINEAR ALGEBRA PROTOCOLS
 
 (defprotocol PNorm
@@ -841,6 +855,7 @@
 ;; ============================================================
 ;; Dataset protocols
 
+;; TODO: break up and use generic labelling functionality?
 (defprotocol PDatasetImplementation
   "Protocol for general dataset functionality"
   (column-names [ds] "Returns a persistent vector containing column names in the same order as they are placed in the dataset")
@@ -860,7 +875,7 @@
   "EXPERIMENTAL: Protocol for querying multi-dimensioned datasets"
   (dimension-name [ds idx dim] "Returns the name of the specified index along a given numbered dimension")
   (row-name [ds idx] "Returns the name of the row (dimension 0) at a specified index")
-  (column-name [ds idx] "returns the name of the column (dimension 1) at a specified column index")) 
+  (column-name [ds idx] "returns the name of the column (dimension 1) at a specified column index"))
 
 ;; ============================================================
 ;; Utility functions
@@ -871,10 +886,10 @@
     (cond
       (== dims 0) (get-0d x) ;; first handle scalar / 0d case
       (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
-      (== dims 1) (vec (element-seq x)) 
-      (instance? java.util.List x) (mapv convert-to-nested-vectors x)
-      (instance? java.lang.Iterable x) (mapv convert-to-nested-vectors x)
-      (instance? clojure.lang.Seqable x) (mapv convert-to-nested-vectors x)
+      (== dims 1) (vec (element-seq x))
+      (instance? List x) (mapv convert-to-nested-vectors x)
+      (instance? Iterable x) (mapv convert-to-nested-vectors x)
+      (instance? Seqable x) (mapv convert-to-nested-vectors x)
       (.isArray (class x)) (mapv convert-to-nested-vectors (seq x))
       (not (is-scalar? x)) (mapv convert-to-nested-vectors (get-major-slice-seq x))
       :default (error "Can't coerce to vector: " (class x)))))
@@ -900,7 +915,7 @@
         (if (same-shape-object? s (first ns))
           (recur s (next ns))
           false)
-        true)))) 
+        true))))
 
 (defn supports-type?
   "Checks if an array can contain a specified Java type."
@@ -908,7 +923,7 @@
     (let [^Class mc (element-type m)]
       (.isAssignableFrom mc klass))))
 
-(defn ensure-type 
+(defn ensure-type
   "Checks if an array can contain a specified Java type, if so returns the orifginal array, otherwise
    returns a copy of the array that can support the sepecified type."
   [m ^Class klass]

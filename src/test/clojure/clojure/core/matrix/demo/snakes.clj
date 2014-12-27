@@ -1,10 +1,10 @@
 (ns clojure.core.matrix.demo.snakes
-  (:use [clojure.core.matrix]))
+  (:require [clojure.core.matrix :refer :all]))
 
 (def start (vec (cons 1.0 (repeat 100 0.0))))
 
 (def snakes {16 6,
-             49 11, 
+             49 11,
              47 26,
              56 53,
              62 19,
@@ -21,7 +21,7 @@
               36 44,
               28 84,
               51 67,
-              71 91, 
+              71 91,
               80 100})
 
 (def snakes-and-ladders (merge snakes ladders))

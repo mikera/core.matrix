@@ -1,6 +1,6 @@
 (ns clojure.core.matrix.implementations
-  (:use [clojure.core.matrix.utils])
-  (:require [clojure.core.matrix.protocols :as mp]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.utils :refer [error]]))
 
 ;; =====================================================
 ;; Implementation utilities

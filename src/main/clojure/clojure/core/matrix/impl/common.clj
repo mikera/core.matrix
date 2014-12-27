@@ -1,12 +1,8 @@
 (ns clojure.core.matrix.impl.common
-  (:use [clojure.java.shell :only [sh]])
-  (:require [clojure.reflect :as r]
-            [clojure.string :as s]
-            [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.utils :as utils]
-            [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.multimethods :as mm]
-            [clojure.core.matrix.implementations :as mi]))
+  (:require [clojure.string :as s]
+            [clojure.core.matrix.utils :as u]
+            [clojure.core.matrix.implementations :as mi]
+            [clojure.java.shell :refer [sh]]))
 
 (defn get-impl-objs
   "Returns a list of available implementations' objects"
@@ -23,7 +19,7 @@
    support provided protocol"
   [protocol impl-objs]
   (->> impl-objs
-       (filter #(->> % :obj class (utils/extends-deep? protocol)))
+       (filter #(->> % :obj class (u/extends-deep? protocol)))
        (map :name)
        (into #{})))
 
