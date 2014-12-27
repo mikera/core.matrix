@@ -560,7 +560,7 @@
 (defprotocol PRotateAll
   "Rotates an array using the specified shifts for each dimension.
 
-   shifts may be any sequence of iteger shift amounts."
+   shifts may be any sequence of integer shift amounts."
   (rotate-all [m shifts]))
 
 (defprotocol PTransposeInPlace

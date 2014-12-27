@@ -1366,7 +1366,7 @@
         (error "Can't create a column matrix: input must be 1D vector")))
     (row-matrix [m data]
       (if (== 1 (mp/dimensionality data))
-        (mp/coerce-param m (vector data))
+        (mp/coerce-param m (vector data)) ;; i.e. just wrap in a 
         (error "Can't create a row matrix: input must be 1D vector"))))
 
 (extend-protocol mp/PVectorView
