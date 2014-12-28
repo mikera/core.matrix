@@ -814,8 +814,8 @@
 
 (defprotocol PDimensionLabels
   "Protocol for arrays supporting labelled dimensions"
-  (label [m dim i])
-  (labels [m dim])) 
+  (label [m dim i] "Returns the label at a specific index along the given dimension")
+  (labels [m dim] "Returns all labels along a given dimension, as a vector")) 
 
 ;; ==========================================================
 ;; LINEAR ALGEBRA PROTOCOLS

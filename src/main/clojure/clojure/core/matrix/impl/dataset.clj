@@ -5,7 +5,6 @@
             [clojure.core.matrix.utils :refer :all])
   (:import [clojure.lang IPersistentVector]))
 
-;; TODO
 ;; a column based DataSet implementation.
 ;; columns are arbitrary core.matrix arrays, treated as vectors
 
