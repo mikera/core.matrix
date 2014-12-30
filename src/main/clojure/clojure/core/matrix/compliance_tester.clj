@@ -612,7 +612,7 @@
 (defn test-order [im]
   (testing "order"
     (let [m (matrix im [[1 2 4] [4 5 6]])]
-      (is (equals [[1 4] [2 5]] (order m 1 [0 1]))))))
+      (is (equals [[1 2] [4 5]] (order m 1 [0 1]))))))
 
 (defn test-negate [im]
   (testing "negate"

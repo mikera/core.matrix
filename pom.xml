@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>core.matrix</artifactId>
 	<groupId>net.mikera</groupId>
 	<description>N-dimensional array programming API for Clojure</description>
-	<version>0.31.2-SNAPSHOT</version>
+	<version>0.32.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<url>https://github.com/mikera/core.matrix</url>
@@ -54,13 +53,13 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>vectorz-clj</artifactId>
-			<version>0.26.2</version>
+			<version>0.28.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>test.check</artifactId>
-			<version>0.6.1</version>
+			<version>0.6.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

@@ -257,10 +257,12 @@
 (extend-protocol mp/POrder
   IPersistentVector
   (order
-    ([m cols]
-       (mp/order m 0 cols))
-    ([m dimension cols]
-       (mapmatrix #(mp/get-slice m dimension %) cols))))
+    ([m indices]
+      (mapv #(nth m %) (mp/element-seq indices)))
+    ([m dimension indices]
+      (if (== dimension 0)
+        (mp/order m indices)
+        (mapv #(mp/order % (dec dimension) indices) m)))))
 
 (extend-protocol mp/PSubVector
   IPersistentVector

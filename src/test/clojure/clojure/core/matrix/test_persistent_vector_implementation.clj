@@ -75,7 +75,8 @@
 
 (deftest test-order
   (is (equals [1 3 3] (order [1 2 3 4] [0 2 2])))
-  (is (equals [[1 4] [2 5]] (order [[1 2 3] [4 5 6]] 1 [0 1])))
+  (is (equals [4] (order [1 2 3 4] [3])))
+  (is (equals [[1 2] [4 5]] (order [[1 2 3] [4 5 6]] 1 [0 1])))
   (is (error? (order [1 2] 1 [0])))
   (is (error? (order [1 2] [2]))))
 

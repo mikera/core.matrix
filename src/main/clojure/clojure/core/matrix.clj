@@ -6,7 +6,7 @@
             [clojure.core.matrix.impl.pprint :as pprint]
             [clojure.core.matrix.implementations :as imp :refer [*matrix-implementation*]]
             [clojure.core.matrix.impl.mathsops :as mops]
-            [clojure.core.matrix.utils :as u :refer [TODO]]))
+            [clojure.core.matrix.utils :as u :refer [TODO error]]))
 
 ;; ==================================================================================
 ;; clojure.core.matrix API namespace
@@ -157,6 +157,17 @@
         (mp/new-matrix-nd (implementation-check) shape)
         (mp/new-matrix-nd :persistent-vector shape)))) ;; todo: what is the right default?
 
+(defn new-sparse-array
+  "Creates a new sparse array with the given shape.
+   New array will contain default values as defined by the implementation (usually zero).
+   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+  ([shape]
+    (mp/new-sparse-array (implementation-check) shape))
+  ([implementation shape]
+    (or (mp/new-sparse-array (implementation-check implementation) shape)
+        (error "Implementation " (mp/implementation-key implementation) 
+               " does not support sparse arrays of shape " (vec shape)))))
+
 (defn new-scalar-array
   "Returns a new mutable scalar array containing the scalar value zero."
   ([]
@@ -294,7 +305,18 @@
     (sparse-matrix (implementation-check) data))
   ([implementation data]
     (or (mp/sparse-coerce implementation data)
-        (u/error "Sparse implementation not available"))))
+        (error "Sparse implementation not available"))))
+
+(defn sparse-array
+  "Creates a sparse array with the given data, using a specified implementation
+  or the current implementation if not specified. 
+
+  Throws an exception if creation of a sparse array is not possible"
+  ([data]
+    (sparse-matrix (implementation-check) data))
+  ([implementation data]
+    (or (mp/sparse-coerce implementation data)
+        (error "Sparse implementation not available"))))
 
 (defn sparse
   "Coerces an array to a sparse format if possible. Sparse arrays are expected to
@@ -932,11 +954,12 @@
     (mp/rotate-all m shifts)))
 
 (defn order
-  "Reorders columns of an array along specified dimension."
-  ([m cols]
-     (mp/order m cols))
-  ([m dimension cols]
-     (mp/order m dimension cols)))
+  "Reorders slices of an array along a specified dimension. Re-orders along major dimension
+   if no dimension is specified."
+  ([m indices]
+    (mp/order m indices))
+  ([m dimension indices]
+    (mp/order m dimension indices)))
 
 (defn as-vector
   "Creates a view of an array as a single flattened vector.

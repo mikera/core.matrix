@@ -366,6 +366,10 @@
    less storage than an equivalent dense array, assuming a high proportion of zero values in the array."
   (is-sparse? [m]))
 
+(defprotocol PNewSparseArray
+  "Protocol for constructing sparse arrays. Should return nil if the sparse array shape is not supported."
+  (new-sparse-array [m shape]))
+
 (defprotocol PZeroCount
   "Protocol for counting the number of zeros in an array"
   (zero-count [m]))
@@ -557,7 +561,7 @@
 (defprotocol PRotateAll
   "Rotates an array using the specified shifts for each dimension.
 
-   shifts may be any sequence of iteger shift amounts."
+   shifts may be any sequence of integer shift amounts."
   (rotate-all [m shifts]))
 
 (defprotocol PTransposeInPlace
@@ -566,10 +570,10 @@
     "Transposes a mutable 2D matrix in place"))
 
 (defprotocol POrder
-  "Protocol for matrix reorder"
+  "Protocol for matrix reorder. May reorder along any dimension."
   (order
-    [m cols]
-    [m dimension cols]))
+    [m indices]
+    [m dimension indices]))
 
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
@@ -811,8 +815,8 @@
 
 (defprotocol PDimensionLabels
   "Protocol for arrays supporting labelled dimensions"
-  (label [m dim i])
-  (labels [m dim])) 
+  (label [m dim i] "Returns the label at a specific index along the given dimension")
+  (labels [m dim] "Returns all labels along a given dimension, as a vector")) 
 
 ;; ==========================================================
 ;; LINEAR ALGEBRA PROTOCOLS
