@@ -2,7 +2,8 @@
   (:import [java.util List]
            [clojure.lang Seqable])
   (:require [clojure.core.matrix.utils :refer [error same-shape-object? broadcast-shape]]
-            [clojure.core.matrix.impl.mathsops :as mops]))
+            [clojure.core.matrix.impl.mathsops :as mops])
+  (:gen-class))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
