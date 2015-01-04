@@ -40,10 +40,10 @@
 (declare to-nested-vectors)
 
 (defn matrix
-  "Constructs a matrix from the given numerical data.
+  "Constructs a new n-dimensional matrix from the given numerical data.
 
    The data may be in one of the following forms:
-   - A valid existing matrix
+   - A valid existing numerical array
    - Nested sequences of scalar values, e.g. Clojure vectors
    - A sequence of slices, each of which must be valid matrix data
 
@@ -64,7 +64,7 @@
    The data may be in one of the following forms:
    - A valid existing array
    - Nested sequences of scalar values, e.g. Clojure vectors (must have regular shape)
-   - A sequence of slices, each of which must be valid matrix data
+   - A sequence of slices, each of which must be valid array data
 
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*
@@ -431,7 +431,7 @@
     (not (mp/is-scalar? m))))
 
 (defn matrix?
-  "Returns true if parameter is a valid matrix (dimensionality == 2)"
+  "Returns true if parameter is a valid matrix (i.e. an array with dimensionality == 2)"
   ([m]
     (== (long (mp/dimensionality m)) 2)))
 
@@ -458,7 +458,7 @@
   (mp/identity-matrix? m))
 
 (defn zero-matrix?
-  "Returns true if all the elements of the parameter are zeros."
+  "Returns true if all the elements of the parameter are zero."
   [m]
   (mp/zero-matrix? m))
 
