@@ -927,12 +927,13 @@
   ([m]
     (mp/main-diagonal m))
   ([m k]
-    (cond
-     (neg? k) (mp/main-diagonal (mp/submatrix m [[(- k) (+ (mp/dimension-count m 0) k)]
-                                                 [0 (mp/dimension-count m 1)]]))
-     (pos? k) (mp/main-diagonal (mp/submatrix m [[0 (mp/dimension-count m 0)]
-                                                 [k (- (mp/dimension-count m 1) k)]]))
-     :else   (mp/main-diagonal m))))
+    (let [k (long k)]
+      (cond
+        (neg? k) (mp/main-diagonal (mp/submatrix m [[(- k) (+ (mp/dimension-count m 0) k)]
+                                                    [0 (mp/dimension-count m 1)]]))
+        (pos? k) (mp/main-diagonal (mp/submatrix m [[0 (mp/dimension-count m 0)]
+                                                    [k (- (mp/dimension-count m 1) k)]]))
+        :else   (mp/main-diagonal m)))))
 
 (defn join
   "Joins arrays together, along dimension 0. Other dimensions must be compatible"
