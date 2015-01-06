@@ -198,8 +198,8 @@
       (is (equals [1.0 4.0 9.0] (pow a 2)))
       (is (equals [[1.0 4.0 9.0] [16.0 25.0 36.0] [49.0 64.0 81.0]] (pow m 2))))
     (testing "pow works when base is a scalar and exponent is an array"
-      (is (equals [5.0 25.0 125.0] (pow 5 a))
-          (equals [[2.0 4.0 8.0] [16.0 32.0 64.0] [128.0 256.0 512.0]] (pow 2 m))))
+      (is (equals [5.0 25.0 125.0] (pow 5 a)))
+      (is (equals [[2.0 4.0 8.0] [16.0 32.0 64.0] [128.0 256.0 512.0]] (pow 2 m))))
     (testing "pow works when both the base and the exponent are arrays"
       (is (equals [1.0 4.0 27.0] (pow a a)))
       (is (equals [[1.0 2.0 3.0] [16.0 25.0 36.0] [343.0 512.0 729.0]] (pow m a))))))
@@ -256,7 +256,7 @@
   (is (error? (scale! [1 2] 2)))
   (is (equals (scale! (mutable-matrix [1 2]) 2) [2 4])))
 
-(deftest test-reshape
+(deftest test-reshape-2
   (is (equals 1 (reshape [1 2 3] [])))
   (is (equals [1 2 3 4] (reshape [[1.0 2.0] [3.0 4.0]] [4])))
   (is (equals [1 2] (reshape [[1.0 2.0] [3.0 4.0]] [2])))
@@ -350,7 +350,7 @@
   (is (equals [2 1] (div 4 [2 4])))
   (is (equals [[1 2] [2 1]] (div [[4 8] [4 4]] [[4 4] [2 4]]))))
 
-(deftest test-pow
+(deftest test-pow-2
   (is (== 8 (pow 2 3)))
   (is (equals [0.5 2] (pow [2 0.5] -1))))
 
@@ -609,9 +609,9 @@
   (is (op/== (matrix [5 7])
              (op/+= (mutable (matrix [1 2]))
                     (matrix [4 5]))))
-  (is (op/== (matrix [-4 6]))
+  (is (op/== (matrix [-4 6])
              (op/-= (mutable (matrix [5 8]))
-                    (matrix [9 2])))
+                    (matrix [9 2]))))
   (is (op/== (matrix [6 8])
              (op/*= (mutable (matrix [3 2]))
                     (matrix [2 4]))))

@@ -165,7 +165,7 @@
   ;(is (= 0 (gen/default-value :ndarray-long)))   ;; TODO add back when NDArray loading is fixed
   )
 
-(deftest regressions
+(deftest regressions-2
   (is (= 3 (-> [[1 2] [3 4]]
                array
                transpose

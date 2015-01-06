@@ -96,8 +96,9 @@
               (every? is-nested-persistent-vectors? x)
               (check-vector-shape x (mp/get-shape x))))))
 
-(defn persistent-vector-coerce [x]
+(defn persistent-vector-coerce
   "Coerces to nested persistent vectors"
+  [x]
   (let [dims (long (mp/dimensionality x))]
     (cond
       (> dims 0) (mp/convert-to-nested-vectors x) ;; any array with 1 or more dimensions
@@ -113,8 +114,9 @@
       ;; treat as a scalar value
       :default x)))
 
-(defn vector-dimensionality [m]
+(defn vector-dimensionality
   "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
+  [m]
   (cond
     (clojure.core/vector? m)
       (if (> (count m) 0)
