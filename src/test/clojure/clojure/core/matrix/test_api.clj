@@ -202,7 +202,7 @@
       (is (equals [[2.0 4.0 8.0] [16.0 32.0 64.0] [128.0 256.0 512.0]] (pow 2 m))))
     (testing "pow works when both the base and the exponent are arrays"
       (is (equals [1.0 4.0 27.0] (pow a a)))
-      (is (equals [[1.0 2.0 3.0] [16.0 25.0 36.0] [343.0 512.0 729.0]] (pow m a))))))
+      (is (equals [[1.0 4.0 27.0] [4.0 25.0 216.0] [7.0 64.0 729.0]] (pow m a))))))
 
 (deftest test-slices
   (testing "rows and columns of clojure vector matrix"

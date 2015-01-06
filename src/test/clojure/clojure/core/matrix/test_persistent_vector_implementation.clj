@@ -142,7 +142,7 @@
   (testing "nested implementations"
     (is (= [1 2] (eseq [[1 2]])))
     (is (= [1 2] (eseq [[1] [2]])))
-    (is (= [1 2] (eseq [(double-array [1 2])])))
+    (is (equals [1 2] (eseq [(double-array [1 2])])))
     (is (= [1 2] (eseq [[(wrap/wrap-scalar 1) (wrap/wrap-scalar 2)]])))))
 
 (deftest test-contained-scalar-array
