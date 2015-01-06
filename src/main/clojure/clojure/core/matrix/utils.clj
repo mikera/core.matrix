@@ -25,11 +25,6 @@
        (catch Throwable t#
          true))))
 
-(defmacro error
-  "Throws an error with the provided message(s)"
-  ([& vals]
-    `(throw (RuntimeException. (str ~@vals)))))
-
 ;; useful TODO macro: facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO
   ([] `(error "TODO: not yet implemented"))
@@ -168,8 +163,9 @@
       (doseq-indexed [x more i] (aset arr (+ 2 i) x))
       arr)))
 
-(defn base-index-seq-for-shape [sh]
+(defn base-index-seq-for-shape
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"
+  [sh]
   (let [gen (fn gen [prefix rem]
               (if rem
                 (let [nrem (next rem)]

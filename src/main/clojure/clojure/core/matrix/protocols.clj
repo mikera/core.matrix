@@ -881,8 +881,9 @@
 ;; ============================================================
 ;; Utility functions
 
-(defn persistent-vector-coerce [x]
+(defn persistent-vector-coerce
   "Coerces a data structure to nested persistent vectors"
+  [x]
   (let [dims (long (dimensionality x))]
     (cond
       (== dims 0) (get-0d x) ;; first handle scalar / 0d case

@@ -342,12 +342,13 @@
   ([implementation data]
     (or (mp/dense-coerce implementation data) (mp/coerce-param implementation data))))
 
-(defmacro with-implementation [impl & body]
+(defmacro with-implementation
   "Runs a set of expressions using a specified matrix implementation.
 
    Example:
      (with-implementation :vectorz
        (new-matrix 10 10))"
+  [impl & body]
   `(binding [imp/*matrix-implementation* (imp/get-canonical-object ~impl)]
      ~@body))
 
@@ -1585,12 +1586,14 @@
   ([f m a & more]
     (mp/element-map! m f a more) m))
 
-(defn index-seq-for-shape [sh]
+(defn index-seq-for-shape
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"
+  [sh]
   (u/base-index-seq-for-shape sh))
 
-(defn index-seq [m]
+(defn index-seq
   "Returns a sequence of all possible index vectors into a matrix, in row-major order"
+  [m]
   (index-seq-for-shape (mp/get-shape m)))
 
 ;; =========================================================
