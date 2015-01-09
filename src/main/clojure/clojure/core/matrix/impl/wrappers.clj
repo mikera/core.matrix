@@ -190,8 +190,9 @@
 ;; wraps an N-dimensional subset or broadcast of an array
 ;; supports aritrary permutations of dimensions and indexes
 
-(defmacro set-source-index [ix i val]
+(defmacro set-source-index
   "Sets up an index into the source vector for dimension i at position val"
+  [ix i val]
   (let [isym (gensym "i")]
     `(let [~isym ~i
            tdim# (aget ~'dim-map ~isym)]
