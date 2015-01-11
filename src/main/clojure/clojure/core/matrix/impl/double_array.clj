@@ -21,8 +21,9 @@
             :type-cast 'double
             :type-object Double/TYPE}})
 
-(defn new-double-array [shape]
+(defn new-double-array
   "Creates a new zero-filled nested double array of the given shape"
+  [shape]
   (let [dims (count shape)]
     (cond 
       (== 0 dims) 0.0

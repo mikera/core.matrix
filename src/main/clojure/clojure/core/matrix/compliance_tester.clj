@@ -152,17 +152,17 @@
   (let [c (ecount m)]
     (when (pos? c)
       (when (supports-dimensionality? m 1)
-        (= (eseq m) (eseq (reshape m [c]))))
+        (is (= (eseq m) (eseq (reshape m [c])))))
       (when (supports-dimensionality? m 2)
-        (= (eseq m) (eseq (reshape m [1 c])))
-        (= (eseq m) (eseq (reshape m [c 1])))))))
+        (is (= (eseq m) (eseq (reshape m [1 c]))))
+        (is (= (eseq m) (eseq (reshape m [c 1]))))))))
 
 (defn test-broadcast [m]
   (let [c (ecount m)]
     (when (pos? c)
-      (e= m (first (slices (broadcast m (cons 2 (shape m))))))
-      (== c (ecount (broadcast m (cons 1 (shape m)))))
-      (== (* 3 c) (ecount (broadcast m (cons 3 (shape m))))))))
+      (is (e= m (first (slices (broadcast m (cons 2 (shape m)))))))
+      (is (== c (ecount (broadcast m (cons 1 (shape m))))))
+      (is (== (* 3 c) (ecount (broadcast m (cons 3 (shape m)))))))))
 
 (defn test-slice-assumptions [m]
   (let [dims (dimensionality m)]
@@ -344,19 +344,19 @@
   (testing "All supported sizes")
     (doseq [vm (create-supported-matrices im)]
       (let [m (matrix im vm)]
-        (e== vm m))))
+        (is (e== vm m)))))
 
 (defn test-coerce-via-vectors [m]
   (testing "Vector coercion"
     (when (supports-dimensionality? m 1)
       (testing "coerce works"
-        (or (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [1])))))
+        (is (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [1])))))
       (let [v (matrix [1])]
         (is (equals [1] (to-nested-vectors v))))))
   (testing "Matrix coercion"
     (when (supports-dimensionality? m 2)
       (testing "coerce works"
-        (or (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [[1 2] [3 4]])))))
+        (is (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [[1 2] [3 4]])))))
       (let [m (matrix [[1 2] [3 4]])]
         (is (equals [[1 2] [3 4]] (to-nested-vectors m))))))
 ;  (testing "Invalid vectors"
@@ -761,19 +761,20 @@
 
 (defn test-qr
   [im]
-  (map
-   #(let [m (matrix im %)
-          {:keys [Q R]} (qr m)]
-      (is (equals m (mmul Q R) 0.000001)))
-   [[[1 2 3 4]
-     [0 0 10 0]
-     [3 0 5 6]]
-    [[1 1 1
-      0 1 1
-      0 0 1]]]
-   [[1 7 3]
-    [7 4 -5]
-    [3 -5 6]])
+  (dorun
+   (map
+    #(let [m (matrix im %)
+           {:keys [Q R]} (qr m)]
+       (is (equals m (mmul Q R) 0.000001)))
+    [[[1 2 3 4]
+      [0 0 10 0]
+      [3 0 5 6]]
+     [[1 1 1
+       0 1 1
+       0 0 1]]
+     [[1 7 3]
+      [7 4 -5]
+      [3 -5 6]]]))
 
   (let [m (matrix im [[1 2] [3 4] [5 6] [7 8]])]
     (let [{:keys [R]} (qr m {:return [:R]

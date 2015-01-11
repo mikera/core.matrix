@@ -40,10 +40,10 @@
 (declare to-nested-vectors)
 
 (defn matrix
-  "Constructs a matrix from the given numerical data.
+  "Constructs a new n-dimensional matrix from the given numerical data.
 
    The data may be in one of the following forms:
-   - A valid existing matrix
+   - A valid existing numerical array
    - Nested sequences of scalar values, e.g. Clojure vectors
    - A sequence of slices, each of which must be valid matrix data
 
@@ -64,7 +64,7 @@
    The data may be in one of the following forms:
    - A valid existing array
    - Nested sequences of scalar values, e.g. Clojure vectors (must have regular shape)
-   - A sequence of slices, each of which must be valid matrix data
+   - A sequence of slices, each of which must be valid array data
 
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*
@@ -342,12 +342,13 @@
   ([implementation data]
     (or (mp/dense-coerce implementation data) (mp/coerce-param implementation data))))
 
-(defmacro with-implementation [impl & body]
+(defmacro with-implementation
   "Runs a set of expressions using a specified matrix implementation.
 
    Example:
      (with-implementation :vectorz
        (new-matrix 10 10))"
+  [impl & body]
   `(binding [imp/*matrix-implementation* (imp/get-canonical-object ~impl)]
      ~@body))
 
@@ -431,7 +432,7 @@
     (not (mp/is-scalar? m))))
 
 (defn matrix?
-  "Returns true if parameter is a valid matrix (dimensionality == 2)"
+  "Returns true if parameter is a valid matrix (i.e. an array with dimensionality == 2)"
   ([m]
     (== (long (mp/dimensionality m)) 2)))
 
@@ -458,7 +459,7 @@
   (mp/identity-matrix? m))
 
 (defn zero-matrix?
-  "Returns true if all the elements of the parameter are zeros."
+  "Returns true if all the elements of the parameter are zero."
   [m]
   (mp/zero-matrix? m))
 
@@ -927,12 +928,13 @@
   ([m]
     (mp/main-diagonal m))
   ([m k]
-    (cond
-     (neg? k) (mp/main-diagonal (mp/submatrix m [[(- k) (+ (mp/dimension-count m 0) k)]
-                                                 [0 (mp/dimension-count m 1)]]))
-     (pos? k) (mp/main-diagonal (mp/submatrix m [[0 (mp/dimension-count m 0)]
-                                                 [k (- (mp/dimension-count m 1) k)]]))
-     :else   (mp/main-diagonal m))))
+    (let [k (long k)]
+      (cond
+        (neg? k) (mp/main-diagonal (mp/submatrix m [[(- k) (+ (mp/dimension-count m 0) k)]
+                                                    [0 (mp/dimension-count m 1)]]))
+        (pos? k) (mp/main-diagonal (mp/submatrix m [[0 (mp/dimension-count m 0)]
+                                                    [k (- (mp/dimension-count m 1) k)]]))
+        :else   (mp/main-diagonal m)))))
 
 (defn join
   "Joins arrays together, along dimension 0. Other dimensions must be compatible"
@@ -1584,12 +1586,14 @@
   ([f m a & more]
     (mp/element-map! m f a more) m))
 
-(defn index-seq-for-shape [sh]
+(defn index-seq-for-shape
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"
+  [sh]
   (u/base-index-seq-for-shape sh))
 
-(defn index-seq [m]
+(defn index-seq
   "Returns a sequence of all possible index vectors into a matrix, in row-major order"
+  [m]
   (index-seq-for-shape (mp/get-shape m)))
 
 ;; =========================================================
