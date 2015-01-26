@@ -11,6 +11,7 @@
 
 (defn *
   "Array multiply operator. Uses elementwise multiplication."
+  ([] (m/mul))
   ([a] a)
   ([a b]
     (m/mul a b))
