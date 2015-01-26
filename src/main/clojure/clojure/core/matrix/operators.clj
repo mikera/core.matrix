@@ -9,20 +9,15 @@
 ;; =====================================================================
 ;; Mathematical operators defined for numerical arrays as applicable
 
-(defn *
-  "Array multiply operator. Uses elementwise multiplication."
-  ([] (m/mul))
-  ([a] a)
-  ([a b]
-    (m/mul a b))
-  ([a b & more]
-    (reduce m/mul (m/mul a b) more)))
+(def 
+  ^{:doc "Array multiply operator. Uses elementwise multiplication."}
+  *
+  m/mul)
 
-(defn **
-  "array exponent operator. Raises every element in matrix a to the given exponent.
-   Equivalent to clojure.core.matrix/pow."
-  ([a exponent]
-    (m/pow a exponent)))
+(def **
+  ^{:doc "Array exponent operator. Raises every element in matrix a to the given exponent.
+   Equivalent to clojure.core.matrix/pow."}
+  m/pow)
 
 (defn +
   "Array addition operator. Equivalent to clojure.core.matrix/add."
