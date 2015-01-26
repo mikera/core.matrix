@@ -25,6 +25,7 @@
 
 (defn +
   "Array addition operator. Equivalent to clojure.core.matrix/add."
+  ([] (m/add))
   ([a] a)
   ([a b]
     (if (and (number? a) (number? b))

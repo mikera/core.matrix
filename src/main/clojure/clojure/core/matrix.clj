@@ -1187,6 +1187,7 @@
 
 (defn add
   "Performs element-wise addition on one or more numerical arrays."
+  ([] 0.0)
   ([a] a)
   ([a b]
     (mp/matrix-add a b))
