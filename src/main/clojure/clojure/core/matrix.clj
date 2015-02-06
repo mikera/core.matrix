@@ -1643,5 +1643,4 @@
    This is used primarily for functions that construct new matrices, i.e. it determines the
    implementation used for expressions like: (matrix [[1 2] [3 4]])"
   ([m]
-    (alter-var-root (var imp/*matrix-implementation*)
-                    (fn [_] (imp/get-implementation-key m)))))
+    (imp/set-current-implementation m)))
