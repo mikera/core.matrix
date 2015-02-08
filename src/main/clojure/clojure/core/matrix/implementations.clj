@@ -55,7 +55,9 @@
   "Registers a matrix implementation for use. Should be called by all implementations
    when they are loaded."
   ([canonical-object]
-    (swap! canonical-objects assoc (mp/implementation-key canonical-object) canonical-object)))
+    (let [key (mp/implementation-key canonical-object)]
+      ;; (println (str "Registering core.matrix implementation [" key "]"))
+      (swap! canonical-objects assoc key canonical-object))))
 
 (defn- try-load-implementation
   "Attempts to load an implementation for the given keyword.
