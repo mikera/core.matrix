@@ -12,6 +12,7 @@
 (def KNOWN-IMPLEMENTATIONS
   (array-map
    :vectorz 'mikera.vectorz.matrix-api
+   :clojure 'clojure.core.matrix.impl.clojure
    :ndarray 'clojure.core.matrix.impl.ndarray-object
    :ndarray-double 'clojure.core.matrix.impl.ndarray-double
    :ndarray-float 'clojure.core.matrix.impl.ndarray
@@ -53,11 +54,12 @@
 
 (defn register-implementation
   "Registers a matrix implementation for use. Should be called by all implementations
-   when they are loaded."
+   when they are loaded, once for each implementation keyword registered. Safe to call multiple times."
   ([canonical-object]
-    (let [key (mp/implementation-key canonical-object)]
-      ;; (println (str "Registering core.matrix implementation [" key "]"))
-      (swap! canonical-objects assoc key canonical-object))))
+    (register-implementation (mp/implementation-key canonical-object) canonical-object))
+  ([key canonical-object]
+    (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: " (class key))) 
+    (swap! canonical-objects assoc key canonical-object)))
 
 (defn- try-load-implementation
   "Attempts to load an implementation for the given keyword.
