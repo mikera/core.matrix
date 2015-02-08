@@ -40,6 +40,8 @@
 ;; current implementation in use
 (def ^:dynamic *matrix-implementation* DEFAULT-IMPLEMENTATION)
 
+(def ^:dynamic *debug-options* {:print-registrations false})
+
 ;; hashmap of implementation keys to canonical objects
 ;; objects must implement PImplementation protocol at a minimum
 (defonce canonical-objects (atom {}))
@@ -59,6 +61,8 @@
     (register-implementation (mp/implementation-key canonical-object) canonical-object))
   ([key canonical-object]
     (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: " (class key))) 
+    (when (:print-registrations *debug-options*)
+      (println (str "Registering core.matrix implementation [" key "] with canonical object [" (class canonical-object) "]")))
     (swap! canonical-objects assoc key canonical-object)))
 
 (defn- try-load-implementation
