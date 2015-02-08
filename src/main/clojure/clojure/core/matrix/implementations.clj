@@ -57,9 +57,9 @@
   ([canonical-object]
     (swap! canonical-objects assoc (mp/implementation-key canonical-object) canonical-object)))
 
-(defn try-load-implementation
+(defn- try-load-implementation
   "Attempts to load an implementation for the given keyword.
-   Returns nil if not possible, a non-nil value otherwise."
+   Returns nil if not possible, a non-nil matrix value of the correct implementation otherwise."
   ([k]
     (or
       (@canonical-objects k)
@@ -67,8 +67,16 @@
        (try
          (do
            (require ns-sym)
-           (if (@canonical-objects k) :ok :warning-implementation-not-registered?))
+           (@canonical-objects k))
          (catch Throwable t nil))))))
+
+(defn load-implementation 
+  "Attempts to load the implementation for a given keyword or matrix object.
+   Returns nil if not possible, a non-nil matrix value of the correct implementation otherwise."
+  ([korm] 
+    (if (keyword? korm)
+      (try-load-implementation korm)
+      (try-load-implementation (mp/implementation-key korm)))))
 
 (defn get-canonical-object
   "Gets the canonical object for a specific implementation. The canonical object is used
@@ -107,3 +115,5 @@
     (when (keyword? m) (try-load-implementation m))
     (alter-var-root (var *matrix-implementation*)
                     (fn [_] (get-implementation-key m)))))
+
+
