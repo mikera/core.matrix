@@ -1620,28 +1620,33 @@
   ([] imp/*matrix-implementation*))
 
 (defn- implementation-check
-  "Gets the currently active matrix implementation (as a matrix object). Throws an exception if none is available."
+  "Gets a canonical matrix object for a given implementation (keyword or array), or the current implementation
+   if not otherwise specified. Scalars are regarded as conforming to the current implementation
+   Throws an exception if none is available."
   ([]
-    (if-let [ik imp/*matrix-implementation*]
-      (imp/get-canonical-object ik)
+    (or
+      (imp/get-canonical-object imp/*matrix-implementation*)
       (u/error "No current clojure.core.matrix implementation available")))
   ([impl]
     (if-let [im (imp/get-canonical-object impl)]
       im
       (cond
+        ;; for scalars, we default to using the current matrix implementation
         (scalar? impl) (imp/get-canonical-object imp/*matrix-implementation*)
-        :else (u/error "No clojure.core.matrix implementation available - " (str impl))))))
+        :else (or 
+                (imp/load-implementation impl)
+                (u/error "No clojure.core.matrix implementation available - " (str impl)))))))
 
 (defn current-implementation-object
-  "Gets the canonical object for the currently active matrix implementation. This object
-   can be used to pass as an implementation parameter, or to query implementation internals."
+  "Gets a canonical object for the currently active matrix implementation. This object
+   can be used to pass as an implementation parameter, or to query implementation internals via core.matrix protocols."
   ([] (imp/get-canonical-object (current-implementation))))
 
 (defn set-current-implementation
-  "Sets the currently active core.matrix implementation.
+  "Sets the currently active core.matrix implementation. Parameter may be either a keyword identifying the 
+   imnplementation, or an array instance from the implementation.
 
    This is used primarily for functions that construct new matrices, i.e. it determines the
    implementation used for expressions like: (matrix [[1 2] [3 4]])"
   ([m]
-    (alter-var-root (var imp/*matrix-implementation*)
-                    (fn [_] (imp/get-implementation-key m)))))
+    (imp/set-current-implementation m)))

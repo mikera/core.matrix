@@ -237,6 +237,8 @@
         (mp/set-nd! m indexes v)
         m))
     (is-mutable? [m]
+      ;; assume an object is mutable unless we know otherwise. 
+      ;; certainly true for arbitrary Java arrays, for example.
       true))
 
 (extend-protocol mp/PNumerical

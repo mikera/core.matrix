@@ -12,6 +12,7 @@
 (def KNOWN-IMPLEMENTATIONS
   (array-map
    :vectorz 'mikera.vectorz.matrix-api
+   :clojure 'clojure.core.matrix.impl.clojure
    :ndarray 'clojure.core.matrix.impl.ndarray-object
    :ndarray-double 'clojure.core.matrix.impl.ndarray-double
    :ndarray-float 'clojure.core.matrix.impl.ndarray
@@ -39,12 +40,14 @@
 ;; current implementation in use
 (def ^:dynamic *matrix-implementation* DEFAULT-IMPLEMENTATION)
 
+(def ^:dynamic *debug-options* {:print-registrations false})
+
 ;; hashmap of implementation keys to canonical objects
 ;; objects must implement PImplementation protocol at a minimum
 (defonce canonical-objects (atom {}))
 
 (defn get-implementation-key
-  "Returns the implementation code for a given object"
+  "Returns the implementation keyword  for a given object"
   ([m]
     (cond
       (keyword? m) m
@@ -53,20 +56,35 @@
 
 (defn register-implementation
   "Registers a matrix implementation for use. Should be called by all implementations
-   when they are loaded."
+   when they are loaded, once for each implementation keyword registered. Safe to call multiple times."
   ([canonical-object]
-    (swap! canonical-objects assoc (mp/implementation-key canonical-object) canonical-object)))
+    (register-implementation (mp/implementation-key canonical-object) canonical-object))
+  ([key canonical-object]
+    (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: " (class key))) 
+    (when (:print-registrations *debug-options*)
+      (println (str "Registering core.matrix implementation [" key "] with canonical object [" (class canonical-object) "]")))
+    (swap! canonical-objects assoc key canonical-object)))
 
-(defn try-load-implementation
+(defn- try-load-implementation
   "Attempts to load an implementation for the given keyword.
-   Returns nil if not possible, a non-nil value otherwise."
+   Returns nil if not possible, a non-nil matrix value of the correct implementation otherwise."
   ([k]
-    (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
-      (try
-        (do
-          (require ns-sym)
-          (if (@canonical-objects k) :ok :warning-implementation-not-registered?))
-        (catch Throwable t nil)))))
+    (or
+      (@canonical-objects k)
+      (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
+       (try
+         (do
+           (require ns-sym)
+           (@canonical-objects k))
+         (catch Throwable t nil))))))
+
+(defn load-implementation 
+  "Attempts to load the implementation for a given keyword or matrix object.
+   Returns nil if not possible, a non-nil matrix value of the correct implementation otherwise."
+  ([korm] 
+    (if (keyword? korm)
+      (try-load-implementation korm)
+      (try-load-implementation (mp/implementation-key korm)))))
 
 (defn get-canonical-object
   "Gets the canonical object for a specific implementation. The canonical object is used
@@ -92,3 +110,18 @@
         ;; TODO: use current implementation?
         (mp/coerce-param m data)
         (mp/coerce-param [] data))))
+
+(defn set-current-implementation
+  "Sets the currently active core.matrix implementation. 
+
+   Parameter may be 
+    - A known keyword for the implementation e.g. :vectorz
+
+   This is used primarily for functions that construct new matrices, i.e. it determines the
+   implementation used for expressions like: (matrix [[1 2] [3 4]])"
+  ([m]
+    (when (keyword? m) (try-load-implementation m))
+    (alter-var-root (var *matrix-implementation*)
+                    (fn [_] (get-implementation-key m)))))
+
+
