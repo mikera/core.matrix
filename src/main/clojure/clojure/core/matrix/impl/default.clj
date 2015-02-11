@@ -474,7 +474,7 @@
         (.isArray (.getClass m))
           (if (== i 0) (count m) (mp/dimension-count (nth m 0) (dec i)))
         (== 0 i)
-          (count i)
+          (count m)
         :else (error "Can't determine count of dimension " i " on Object: " (class m)))))
 
 (extend-protocol mp/PSameShape
