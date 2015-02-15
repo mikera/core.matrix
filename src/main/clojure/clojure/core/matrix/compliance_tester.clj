@@ -149,13 +149,14 @@
         (is (thrown? Throwable (apply mset! cm (concat ix [v2]))))))))
 
 (defn test-reshape [m]
-  (let [c (ecount m)]
+  (let [eq (if (numerical? m) equals =)
+        c (ecount m)]
     (when (pos? c)
       (when (supports-dimensionality? m 1)
-        (is (= (eseq m) (eseq (reshape m [c])))))
+        (is (eq (eseq m) (eseq (reshape m [c])))))
       (when (supports-dimensionality? m 2)
-        (is (= (eseq m) (eseq (reshape m [1 c]))))
-        (is (= (eseq m) (eseq (reshape m [c 1]))))))))
+        (is (eq (eseq m) (eseq (reshape m [1 c]))))
+        (is (eq (eseq m) (eseq (reshape m [c 1]))))))))
 
 (defn test-broadcast [m]
   (let [c (ecount m)]
