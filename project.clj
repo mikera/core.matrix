@@ -36,7 +36,4 @@
   :codox {:sources ["src/main/clojure"]
           :src-dir-uri "https://github.com/mikera/core.matrix/blob/master/"
           :src-linenum-anchor-prefix "L"
-          :exclude clojure.core.matrix.examples}
-
-  :aot [clojure.core.matrix.impl.ndarray-double
-        clojure.core.matrix.impl.ndarray-object])
+          :exclude clojure.core.matrix.examples})
