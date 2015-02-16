@@ -3,7 +3,7 @@ core.matrix
 
 Leiningen coordinates:
 
-[![Clojars Project](http://clojars.org/mikera/core.matrix/latest-version.svg)](http://clojars.org/mikera/core.matrix)
+[![Clojars Project](http://clojars.org/net.mikera/core.matrix/latest-version.svg)](http://clojars.org/net.mikera/core.matrix)
 
 
 core.matrix provides array programming as a language extension for Clojure, with a focus on numerical computing.
