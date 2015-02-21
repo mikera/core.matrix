@@ -1,10 +1,9 @@
 core.matrix
 ===========
 
-Leiningen coordinates:
-
 [![Clojars Project](http://clojars.org/net.mikera/core.matrix/latest-version.svg)](http://clojars.org/net.mikera/core.matrix)
 
+[![Build Status](https://travis-ci.org/mikera/core.matrix.png?branch=master)](https://travis-ci.org/mikera/core.matrix) [![Dependency Status](https://www.versioneye.com/user/projects/54deecf4271c9379ed000042/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54deecf4271c9379ed000042)
 
 core.matrix provides array programming as a language extension for Clojure, with a focus on numerical computing.
 
@@ -66,7 +65,7 @@ so users should be prepared to deal with potential breaking changes when updatin
 
 The plan is to become an official Clojure Contrib language extension once the API has been well tested.
 
-[![Build Status](https://travis-ci.org/mikera/core.matrix.png?branch=master)](https://travis-ci.org/mikera/core.matrix) [![Dependency Status](https://www.versioneye.com/user/projects/54deecf4271c9379ed000042/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54deecf4271c9379ed000042)
+
 
 ### Contributing
 
