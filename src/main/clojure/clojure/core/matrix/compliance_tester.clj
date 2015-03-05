@@ -453,7 +453,7 @@
 (defn numeric-scalar-tests [m]
   (is (equals (scalar-array 0) (new-scalar-array m)))
   (is (equals m (add m (new-scalar-array m))))
-  (is (equals m (add (scalar-array 0) m))))
+  (is (equals m (add (scalar-array m 0) m))))
 
 (defn misc-numeric-tests [m]
   (is (equals m (sparse m)))
