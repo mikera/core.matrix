@@ -294,7 +294,7 @@
             ;; b (persistent-vector-coerce b)
             ]
         (cond
-          (and (== dims 1) (instance? Indexed b))
+          (and (== dims 1) (instance? Indexed b) (== 1 (mp/dimensionality b)))
             (let [ca (count a)
                   cb (count b)]
               (when-not (== ca cb) (error "Mismatched vector sizes"))
