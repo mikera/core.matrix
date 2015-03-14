@@ -295,9 +295,13 @@
             ]
         (cond
           (and (== dims 1) (instance? Indexed b))
-            (do
-              (when-not (== (count a) (count b)) (error "Mismatched vector sizes"))
-              (reduce + 0 (map * a b)))
+            (let [ca (count a)
+                  cb (count b)]
+              (when-not (== ca cb) (error "Mismatched vector sizes"))
+              (loop [i (long 0) res 0.0]
+                (if (>= i ca)
+                  res
+                  (recur (inc i) (+ res (* (nth a i) (nth b i)))))))
           (== dims 0) (mp/scale a b)
           :else (mp/inner-product a b))))
     (length [a]

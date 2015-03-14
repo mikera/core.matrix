@@ -93,21 +93,21 @@
 
 (deftest test-functional-op
   (testing "map"
-    (is (= 2 (emap inc 1)))
-    (is (= [1 2] (emap inc [0 1])))
-    (is (= [1 2] (emap + [0 1] [1 1])))
-    (is (= [3 5] (emap + [0 1] [1 1] [0 0] [2 3])))
-    (is (= [[2.0 0.0] [0.0 2.0]] (emap #(* 2 %) [[1.0 0.0] [0.0 1.0]])))))
+    (is (equals 2 (emap inc 1)))
+    (is (equals [1 2] (emap inc [0 1])))
+    (is (equals [1 2] (emap + [0 1] [1 1])))
+    (is (equals [3 5] (emap + [0 1] [1 1] [0 0] [2 3])))
+    (is (equals [[2.0 0.0] [0.0 2.0]] (emap #(* 2 %) [[1.0 0.0] [0.0 1.0]])))))
 
 (deftest test-matrix-multiply
   (testing "matrix multiplication"
-    (is (= [[5 10] [15 20]] (mmul [[1 2] [3 4]] 5)))
-    (is (= [[1 0] [2 2] [5 0]] (mmul [[1 0] [0 2] [5 0]] [[1 0] [1 1]])))
-    (is (= [[1 2] [3 4]] (mmul [[1 2] [3 4]] [[1 0] [0 1]])))
-    (is (= [[5]] (mmul [[1 2]] [[1] [2]])))
-    (is (= [7 10] (mmul [1 2] [[1 2] [3 4]]))))
+    (is (equals [[5 10] [15 20]] (mmul [[1 2] [3 4]] 5)))
+    (is (equals [[1 0] [2 2] [5 0]] (mmul [[1 0] [0 2] [5 0]] [[1 0] [1 1]])))
+    (is (equals [[1 2] [3 4]] (mmul [[1 2] [3 4]] [[1 0] [0 1]])))
+    (is (equals [[5]] (mmul [[1 2]] [[1] [2]])))
+    (is (equals [7 10] (mmul [1 2] [[1 2] [3 4]]))))
   (testing "elementwise multiplication"
-    (is (= [2 4] (mul [1 2] 2)))))
+    (is (equals [2 4] (mul [1 2] 2)))))
 
 (deftest test-division
   (testing "unary division"
@@ -117,9 +117,9 @@
 
 (deftest test-transform
   (testing "matrix transform"
-    (is (= [5 10] (transform [[1 0] [0 2]] [5 5]))))
+    (is (equals [5 10] (transform [[1 0] [0 2]] [5 5]))))
   (testing "function transform"
-    (is (= [1 2] (transform (fn [_] [1 2]) [5 5])))))
+    (is (equals [1 2] (transform (fn [_] [1 2]) [5 5])))))
 
 (deftest test-nested-implementation
   (testing "nested double arrays"
