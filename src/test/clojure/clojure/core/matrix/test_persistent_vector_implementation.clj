@@ -97,7 +97,12 @@
     (is (equals [1 2] (emap inc [0 1])))
     (is (equals [1 2] (emap + [0 1] [1 1])))
     (is (equals [3 5] (emap + [0 1] [1 1] [0 0] [2 3])))
-    (is (equals [[2.0 0.0] [0.0 2.0]] (emap #(* 2 %) [[1.0 0.0] [0.0 1.0]])))))
+    (is (equals [[2.0 0.0] [0.0 2.0]] (emap #(* 2 %) [[1.0 0.0] [0.0 1.0]]))))
+  (testing "map-indexed"
+    (is (equals 2 (emap-indexed #(+ (reduce + %1) (inc %2)) 1)))
+    (is (equals [1 3] (emap-indexed #(+ (reduce + %1) (inc %2)) [0 1])))
+    (is (equals [1 3] (emap-indexed #(apply + (reduce + %1) %&) [0 1] [1 1])))
+    (is (equals [3 6] (emap-indexed #(apply + (reduce + %1) %&) [0 1] [1 1] [0 0] [2 3])))))
 
 (deftest test-matrix-multiply
   (testing "matrix multiplication"

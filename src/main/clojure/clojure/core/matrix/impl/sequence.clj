@@ -108,9 +108,32 @@
         (let [[m a] (mp/broadcast-compatible m a)]
           (mapv #(mp/element-map % f %2) m (mp/get-major-slice-seq a))))
       ([m f a more]
-        (let [[m a & more] (apply mp/broadcast-compatible m a more)]
+        (let [[m a & more] (apply mp/broadcast-compatible m a more)] ; FIXME
           (mapv #(mp/element-map % f %2 %3) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
+    (element-map-indexed
+      ([ms f]
+        (mapv (fn [i m] (mp/element-map-indexed m #(apply f (cons i %1) %&)))
+              (range (count ms)) ms))
+      ([ms f as]
+        (let [[ms as] (mp/broadcast-compatible ms as)]
+          (mapv (fn [i m a]
+                  (mp/element-map-indexed m #(apply f (cons i %1) %&) a))
+                (range (count ms)) ms (mp/get-major-slice-seq as))))
+      ([ms f as more]
+        (let [[ms as & more] (apply mp/broadcast-compatible ms as more)] ; FIXME
+          (mapv (fn [i m a & mr]
+                  (mp/element-map-indexed m #(apply f (cons i %1) %&) a mr))
+                (range (count ms)) ms
+                (mp/get-major-slice-seq as)
+                (map mp/get-major-slice-seq more)))))
     (element-map!
+      ([m f]
+        (error "Sequence arrays are not mutable!"))
+      ([m f a]
+        (error "Sequence arrays are not mutable!"))
+      ([m f a more]
+        (error "Sequence arrays are not mutable!")))
+    (element-map-indexed!
       ([m f]
         (error "Sequence arrays are not mutable!"))
       ([m f a]

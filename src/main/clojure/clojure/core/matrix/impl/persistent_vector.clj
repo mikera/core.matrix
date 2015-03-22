@@ -556,6 +556,36 @@
         (mapmatrix f m (mp/broadcast-like m a)))
       ([m f a more]
         (apply mapmatrix f m a more)))
+    (element-map-indexed
+      ([ms f]
+       (let [dims (long (mp/dimensionality ms))]
+         (cond
+           (== 0 dims) (f [] (scalar-coerce ms))
+           (== 1 dims) (mapv #(f [%1] (scalar-coerce %2)) (range (count ms)) ms)
+           :else (mapv (fn [i m] (mp/element-map-indexed m #(f (cons i %1) %2)))
+                       (range (count ms)) ms))))
+      ([ms f as]
+       (let [as   (mp/broadcast-like ms as)
+             dima (long (mp/dimensionality as))]
+         (if (mp/is-vector? ms)
+           (do
+             (when (> dima 1)
+               (error "mapping with array of higher dimensionality?"))
+             (when (and (== 1 dima)
+                        (not= (mp/dimension-count ms 0) (mp/dimension-count as 0)))
+               (error "Incompatible vector sizes"))
+             (if (== 0 dima)
+               (let [v (scalar-coerce as)]
+                 (mapv #(f [%1] %2 v) (range (count ms))) ms)
+               (mapv #(apply f [%1] %&) (range (count ms)) ms (mp/element-seq as))))
+           (mapv (fn [i m a] (mp/element-map-indexed m #(apply f (cons i %1) %&) a))
+                 (range (count ms)) ms (mp/get-major-slice-seq as)))))
+      ([ms f as more]
+       (if (mp/is-vector? ms)
+         (apply mapv #(apply f [%1] %&) (range (count ms)) ms as more)
+         (apply mapv (fn [i m a & mr]
+                       (mp/element-map-indexed m #(apply f (cons i %1) %&) a mr))
+                     (range (count ms)) ms as more))))
     (element-map!
       ([m f]
         (doseq [s m]
@@ -568,6 +598,21 @@
       ([m f a more]
         (dotimes [i (count m)]
           (apply mp/element-map! (m i) f (mp/get-major-slice a i) (map #(mp/get-major-slice % i) more)))
+        m))
+    (element-map-indexed!
+      ([m f]
+        (dotimes [i (count m)]
+          (mp/element-map-indexed! (m i) #(f (cons i %1) %2)))
+        m)
+      ([m f a]
+        (dotimes [i (count m)]
+          (mp/element-map-indexed! (m i) #(apply f (cons i %1) %&)
+                                   (mp/get-major-slice a i)))
+        m)
+      ([m f a more]
+        (dotimes [i (count m)]
+          (apply mp/element-map-indexed! (m i) #(apply f (cons i %1) %&)
+                 (mp/get-major-slice a i) (map #(mp/get-major-slice % i) more)))
         m))
     (element-reduce
       ([m f]

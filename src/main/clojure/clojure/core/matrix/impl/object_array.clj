@@ -295,7 +295,23 @@
       ([m f a]
         (object-array (map #(mp/element-map %1 f %2) m (mp/get-major-slice-seq a))))
       ([m f a more]
-        (object-array (apply map #(apply mp/element-map %1 f %2 %&) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
+        (object-array (apply map #(mp/element-map %1 f %2 %&) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
+    (element-map-indexed
+      ([ms f]
+        (object-array (map (fn [i m]
+                             (mp/element-map-indexed m #(apply f (cons i %1) %&)))
+                           (range (count ms)) ms)))
+      ([ms f as]
+        (object-array (map (fn [i m a]
+                             (mp/element-map-indexed m #(apply f (cons i %1) %&) a))
+                           (range (count ms)) ms (mp/get-major-slice-seq as))))
+      ([ms f as more]
+        (object-array (apply map (fn [i m a & mr]
+                                   (mp/element-map-indexed
+                                     m #(apply f (cons i %1) %&) a mr))
+                             (range (count ms)) ms
+                             (mp/get-major-slice-seq as)
+                             (map mp/get-major-slice-seq more)))))
     (element-map!
       ([m f]
         (dotimes [i (count m)]
@@ -323,6 +339,34 @@
             (if (mp/is-mutable? s)
               (apply mp/element-map! s f as ms)
               (aset m i (apply mp/element-map s f as ms)))))
+        m))
+    (element-map-indexed!
+      ([m f]
+        (dotimes [i (count m)]
+          (let [^objects m m
+                s (aget m i)]
+            (if (mp/is-mutable? s)
+              (mp/element-map-indexed! s #(apply f (cons i %1) %&))
+              (aset m i (mp/element-map-indexed s #(apply f (cons i %1) %&))))))
+        m)
+      ([m f a]
+        (dotimes [i (count m)]
+          (let [^objects m m
+                s (aget m i)
+                as (mp/get-major-slice a i)]
+            (if (mp/is-mutable? s)
+              (mp/element-map-indexed! s #(apply f (cons i %1) %&) as)
+              (aset m i (mp/element-map-indexed s #(apply f (cons i %1) %&) as)))))
+        m)
+      ([m f a more]
+        (dotimes [i (count m)]
+          (let [^objects m m
+                s (aget m i)
+                as (mp/get-major-slice a i)
+                ms (map #(mp/get-major-slice % i) more)]
+            (if (mp/is-mutable? s)
+              (apply mp/element-map-indexed! s #(apply f (cons i %1) %&) as ms)
+              (aset m i (apply mp/element-map-indexed s #(apply f (cons i %1) %&) as ms)))))
         m))
     (element-reduce
       ([m f]

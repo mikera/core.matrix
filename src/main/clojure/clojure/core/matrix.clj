@@ -1531,6 +1531,20 @@
   ([f m a & more]
     (mp/element-map m f a more)))
 
+(defn emap-indexed
+  "Element-wise map-indexed over all elements of one or more arrays.
+
+   f must accept as first argument the index vector of the current element,
+   and return a result compatible with the element-type of the array m
+
+   Returns a new array of the same element-type and shape as the array m."
+  ([f m]
+    (mp/element-map-indexed m f))
+  ([f m a]
+    (mp/element-map-indexed m f a))
+  ([f m a & more]
+    (mp/element-map-indexed m f a more)))
+
 ;(defn slice-map
 ;  "Maps a function over all all slices of an array"
 ;  ([f m]
@@ -1586,6 +1600,20 @@
     (mp/element-map! m f a) m)
   ([f m a & more]
     (mp/element-map! m f a more) m))
+
+(defn emap-indexed!
+  "Element-wise map-indexed over all elements of one or more arrays.
+
+   f must accept as first argument the index vector of the current element,
+   and return a result compatible with the element-type of the array m
+
+   Performs in-place modification of the first array argument."
+  ([f m]
+    (mp/element-map-indexed! m f))
+  ([f m a]
+    (mp/element-map-indexed! m f a))
+  ([f m a & more]
+    (mp/element-map-indexed! m f a more)))
 
 (defn index-seq-for-shape
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"
