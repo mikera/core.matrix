@@ -295,7 +295,7 @@
       ([m f a]
         (object-array (map #(mp/element-map %1 f %2) m (mp/get-major-slice-seq a))))
       ([m f a more]
-        (object-array (apply map #(apply mp/element-map %1 f %2 %&) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
+        (object-array (apply map #(mp/element-map %1 f %2 %&) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
     (element-map!
       ([m f]
         (dotimes [i (count m)]
