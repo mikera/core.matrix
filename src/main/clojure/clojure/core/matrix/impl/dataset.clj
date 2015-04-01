@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.impl.dataset
   (:require [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.wrappers :as wrap]
+            [clojure.core.matrix.impl default persistent-vector] ;; these are needed during loading
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.utils :refer :all])
   (:import [clojure.lang IPersistentVector]))

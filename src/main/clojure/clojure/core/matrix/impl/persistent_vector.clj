@@ -221,6 +221,11 @@
           (let [sd (dec dimension)]
             (mapv #(mp/get-slice % sd i) m))))))
 
+(extend-protocol mp/PMatrixRows
+  IPersistentVector
+	  (get-rows [m]
+      (seq m)))
+
 (extend-protocol mp/PSliceView
   IPersistentVector
     (get-major-slice-view [m i] (.nth m i)))
