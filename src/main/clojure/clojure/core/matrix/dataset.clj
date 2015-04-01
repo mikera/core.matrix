@@ -5,6 +5,9 @@
             [clojure.core.matrix.utils :refer [error]])
   (:import [clojure.core.matrix.impl.dataset DataSet]))
 
+;; ===============================================================
+;; Specialised functions for dataset handling
+
 (defmacro dataset?
   "Returns true if argument is a dataset."
   ([d]

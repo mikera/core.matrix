@@ -6,7 +6,7 @@
             [clojure.core.matrix.utils :refer :all])
   (:import [clojure.lang IPersistentVector]))
 
-;; a column based DataSet implementation.
+;; a column-based DataSet implementation.
 ;; columns are arbitrary core.matrix arrays, treated as vectors
 
 (defrecord DataSet
@@ -42,9 +42,9 @@
      (let [col-count (mp/dimension-count m 1)
            col-indexes (range col-count)]
        (dataset-from-columns
-        (into [] col-indexes)
-        (vec (for [i col-indexes]
-               (mp/get-slice m 1 i)))))))
+         (into [] col-indexes)
+         (vec (for [i col-indexes]
+                (mp/get-slice m 1 i)))))))
 
 (defn dataset-from-row-maps
   ([col-names m]
