@@ -1034,16 +1034,6 @@
       (dotimes [j (mp/dimension-count column 0)]
         (mp/set-2d! m j i (mp/get-1d column j))))))
 
-(defn- cart [colls]
-  (if (empty? colls)
-    [[]]
-    (for [x    (first colls)
-          more (cart (rest colls))]
-      (cons x more))))
-
-(defn- indices-seq [m]
-  (cart (map range (mp/get-shape m))))
-
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
   Number
@@ -1058,23 +1048,7 @@
         (if-let [moremore (next more)]
           (mp/element-map a #(apply f m %1 %2 %&) (first more) moremore)
           (mp/element-map a #(f m %1 %2) (first more)))))
-    (element-map-indexed
-      ([m f]
-        (f [] m))
-      ([m f a]
-        (mp/element-map a #(f [] m %)))
-      ([m f a more]
-        (if-let [moremore (next more)]
-          (mp/element-map a #(apply f [] m %1 %2 %&) (first more) moremore)
-          (mp/element-map a #(f [] m %1 %2) (first more)))))
     (element-map!
-      ([m f]
-        (error "java.lang.Number instance is not mutable!"))
-      ([m f a]
-        (error "java.lang.Number instance is not mutable!"))
-      ([m f a more]
-        (error "java.lang.Number instance is not mutable!")))
-    (element-map-indexed!
       ([m f]
         (error "java.lang.Number instance is not mutable!"))
       ([m f a]
@@ -1122,6 +1096,61 @@
                                     (map mp/element-seq more)))]
           (mp/reshape (mp/coerce-param m s)
                       (mp/get-shape m)))))
+    (element-map!
+      ([m f]
+        (mp/assign! m (mp/element-map m f)))
+      ([m f a]
+        (mp/assign! m (mp/element-map m f a)))
+      ([m f a more]
+        (mp/assign! m (mp/element-map m f a more))))
+    (element-reduce
+      ([m f]
+        (reduce f (mp/element-seq m)))
+      ([m f init]
+        (reduce f init (mp/element-seq m))))
+  nil
+    (element-seq [m] '(nil))
+    (element-map
+      ([m f] (f nil))
+      ([m f a] (f nil a))
+      ([m f a more] (apply f nil a more)))
+    (element-map!
+      ([m f] (error "Can't do element-map! on nil"))
+      ([m f a] (error "Can't do element-map! on nil"))
+      ([m f a more] (error "Can't do element-map! on nil")))
+    (element-reduce
+      ([m f] nil)
+      ([m f init] (f init nil))))
+
+(defn- cart [colls]
+  (if (empty? colls)
+    [[]]
+    (for [x    (first colls)
+          more (cart (rest colls))]
+      (cons x more))))
+
+(defn- indices-seq [m]
+  (cart (map range (mp/get-shape m))))
+
+(extend-protocol mp/PMapIndexed
+  Number
+    (element-map-indexed
+      ([m f]
+        (f [] m))
+      ([m f a]
+        (mp/element-map a #(f [] m %)))
+      ([m f a more]
+        (if-let [moremore (next more)]
+          (mp/element-map a #(apply f [] m %1 %2 %&) (first more) moremore)
+          (mp/element-map a #(f [] m %1 %2) (first more)))))
+    (element-map-indexed!
+      ([m f]
+        (error "java.lang.Number instance is not mutable!"))
+      ([m f a]
+        (error "java.lang.Number instance is not mutable!"))
+      ([m f a more]
+        (error "java.lang.Number instance is not mutable!")))
+  Object
     (element-map-indexed
       ([m f]
         (if (== 0 (mp/dimensionality m))
@@ -1145,13 +1174,6 @@
                                     (map mp/element-seq more)))]
           (mp/reshape (mp/coerce-param m s)
                       (mp/get-shape m)))))
-    (element-map!
-      ([m f]
-        (mp/assign! m (mp/element-map m f)))
-      ([m f a]
-        (mp/assign! m (mp/element-map m f a)))
-      ([m f a more]
-        (mp/assign! m (mp/element-map m f a more))))
     (element-map-indexed!
       ([m f]
         (mp/assign! m (mp/element-map-indexed m f)))
@@ -1159,32 +1181,15 @@
         (mp/assign! m (mp/element-map-indexed m f a)))
       ([m f a more]
         (mp/assign! m (mp/element-map-indexed m f a more))))
-    (element-reduce
-      ([m f]
-        (reduce f (mp/element-seq m)))
-      ([m f init]
-        (reduce f init (mp/element-seq m))))
   nil
-    (element-seq [m] '(nil))
-    (element-map
-      ([m f] (f nil))
-      ([m f a] (f nil a))
-      ([m f a more] (apply f nil a more)))
     (element-map-indexed
       ([m f] (f [] nil))
       ([m f a] (f [] nil a))
       ([m f a more] (apply f [] nil a more)))
-    (element-map!
-      ([m f] (error "Can't do element-map! on nil"))
-      ([m f a] (error "Can't do element-map! on nil"))
-      ([m f a more] (error "Can't do element-map! on nil")))
     (element-map-indexed!
       ([m f] (error "Can't do element-map-indexed! on nil"))
       ([m f a] (error "Can't do element-map-indexed! on nil"))
-      ([m f a more] (error "Can't do element-map-indexed! on nil")))
-    (element-reduce
-      ([m f] nil)
-      ([m f init] (f init nil))))
+      ([m f a more] (error "Can't do element-map-indexed! on nil"))))
 
 (extend-protocol mp/PElementCount
   nil (element-count [m] 1)

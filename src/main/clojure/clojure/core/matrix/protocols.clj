@@ -720,14 +720,6 @@
     "Maps f over all elements of m (and optionally other matrices), returning a new matrix.
      f is expected to produce elements of a type supported by the implementation of m - failure
      to do so may cause an error.")
-  (element-map-indexed
-    [m f]
-    [m f a]
-    [m f a more]
-    "Maps f over all elements of m (and optionally other matrices), returning a new matrix.
-     f is expected to accept an index vector and the current element value, and produce 
-     elements of a type supported by the implementation of m - failure
-     to do so may cause an error.")
   (element-map!
     [m f]
     [m f a]
@@ -735,6 +727,23 @@
     "Maps f over all elements of m (and optionally other matrices), mutating the elements of m in place.
      Must throw an exception if m is not mutable.
      f is expected to produce elements of a type supported by the implementation of m - failure
+     to do so may cause an error.")
+  (element-reduce
+    [m f]
+    [m f init]
+    "Reduces with the function f over all elements of m."))
+
+(defprotocol PMapIndexed
+  "Protocol for map-indexed operation on matrices"
+  ;; This protocol is created instead of adding element-map-indexed to PFunctionalOperations to
+  ;; avoid breaking backward compatibility of existing implementations
+  (element-map-indexed
+    [m f]
+    [m f a]
+    [m f a more]
+    "Maps f over all elements of m (and optionally other matrices), returning a new matrix.
+     f is expected to accept an index vector and the current element value, and produce 
+     elements of a type supported by the implementation of m - failure
      to do so may cause an error.")
   (element-map-indexed!
     [m f]
@@ -744,12 +753,7 @@
      Must throw an exception if m is not mutable.
      f is expected to accept an index vector and the current element value, and produce 
      elements of a type supported by the implementation of m - failure
-     to do so may cause an error.")
-  (element-reduce
-    [m f]
-    [m f init]
-    "Reduces with the function f over all elements of m."))
-
+     to do so may cause an error."))
 
 (defprotocol PMatrixPredicates
   "Protocol for matrix predicates like identity-matrix? or zero-matrix?"

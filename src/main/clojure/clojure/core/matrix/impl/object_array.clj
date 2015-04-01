@@ -296,22 +296,6 @@
         (object-array (map #(mp/element-map %1 f %2) m (mp/get-major-slice-seq a))))
       ([m f a more]
         (object-array (apply map #(mp/element-map %1 f %2 %&) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
-    (element-map-indexed
-      ([ms f]
-        (object-array (map (fn [i m]
-                             (mp/element-map-indexed m #(apply f (cons i %1) %&)))
-                           (range (count ms)) ms)))
-      ([ms f as]
-        (object-array (map (fn [i m a]
-                             (mp/element-map-indexed m #(apply f (cons i %1) %&) a))
-                           (range (count ms)) ms (mp/get-major-slice-seq as))))
-      ([ms f as more]
-        (object-array (apply map (fn [i m a & mr]
-                                   (mp/element-map-indexed
-                                     m #(apply f (cons i %1) %&) a mr))
-                             (range (count ms)) ms
-                             (mp/get-major-slice-seq as)
-                             (map mp/get-major-slice-seq more)))))
     (element-map!
       ([m f]
         (dotimes [i (count m)]
@@ -340,6 +324,30 @@
               (apply mp/element-map! s f as ms)
               (aset m i (apply mp/element-map s f as ms)))))
         m))
+    (element-reduce
+      ([m f]
+        (reduce f (mp/element-seq m)))
+      ([m f init]
+        (reduce f init (mp/element-seq m)))))
+
+(extend-protocol mp/PMapIndexed
+  (Class/forName "[Ljava.lang.Object;")
+    (element-map-indexed
+      ([ms f]
+        (object-array (map (fn [i m]
+                             (mp/element-map-indexed m #(apply f (cons i %1) %&)))
+                           (range (count ms)) ms)))
+      ([ms f as]
+        (object-array (map (fn [i m a]
+                             (mp/element-map-indexed m #(apply f (cons i %1) %&) a))
+                           (range (count ms)) ms (mp/get-major-slice-seq as))))
+      ([ms f as more]
+        (object-array (apply map (fn [i m a & mr]
+                                   (mp/element-map-indexed
+                                     m #(apply f (cons i %1) %&) a mr))
+                             (range (count ms)) ms
+                             (mp/get-major-slice-seq as)
+                             (map mp/get-major-slice-seq more)))))
     (element-map-indexed!
       ([m f]
         (dotimes [i (count m)]
@@ -367,12 +375,7 @@
             (if (mp/is-mutable? s)
               (apply mp/element-map-indexed! s #(apply f (cons i %1) %&) as ms)
               (aset m i (apply mp/element-map-indexed s #(apply f (cons i %1) %&) as ms)))))
-        m))
-    (element-reduce
-      ([m f]
-        (reduce f (mp/element-seq m)))
-      ([m f init]
-        (reduce f init (mp/element-seq m)))))
+        m)))
 
 
 (imp/register-implementation (object-array [1]))

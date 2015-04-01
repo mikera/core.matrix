@@ -556,6 +556,27 @@
         (mapmatrix f m (mp/broadcast-like m a)))
       ([m f a more]
         (apply mapmatrix f m a more)))
+    (element-map!
+      ([m f]
+        (doseq [s m]
+          (mp/element-map! s f))
+        m)
+      ([m f a]
+        (dotimes [i (count m)]
+          (mp/element-map! (m i) f (mp/get-major-slice a i)))
+        m)
+      ([m f a more]
+        (dotimes [i (count m)]
+          (apply mp/element-map! (m i) f (mp/get-major-slice a i) (map #(mp/get-major-slice % i) more)))
+        m))
+    (element-reduce
+      ([m f]
+        (reduce f (mp/element-seq m)))
+      ([m f init]
+        (reduce f init (mp/element-seq m)))))
+
+(extend-protocol mp/PMapIndexed
+  IPersistentVector
     (element-map-indexed
       ([ms f]
        (let [dims (long (mp/dimensionality ms))]
@@ -586,19 +607,6 @@
          (apply mapv (fn [i m a & mr]
                        (mp/element-map-indexed m #(apply f (cons i %1) %&) a mr))
                      (range (count ms)) ms as more))))
-    (element-map!
-      ([m f]
-        (doseq [s m]
-          (mp/element-map! s f))
-        m)
-      ([m f a]
-        (dotimes [i (count m)]
-          (mp/element-map! (m i) f (mp/get-major-slice a i)))
-        m)
-      ([m f a more]
-        (dotimes [i (count m)]
-          (apply mp/element-map! (m i) f (mp/get-major-slice a i) (map #(mp/get-major-slice % i) more)))
-        m))
     (element-map-indexed!
       ([m f]
         (dotimes [i (count m)]
@@ -614,11 +622,7 @@
           (apply mp/element-map-indexed! (m i) #(apply f (cons i %1) %&)
                  (mp/get-major-slice a i) (map #(mp/get-major-slice % i) more)))
         m))
-    (element-reduce
-      ([m f]
-        (reduce f (mp/element-seq m)))
-      ([m f init]
-        (reduce f init (mp/element-seq m)))))
+  )
 
 ;; =====================================
 ;; Register implementation

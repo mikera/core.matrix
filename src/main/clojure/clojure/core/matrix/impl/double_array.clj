@@ -256,6 +256,23 @@
             (dotimes [j more-count] (aset vs j (aget ^doubles (more j) i)))
             (aset m i (double (apply f (aget m i) (aget a i) vs))))
           m)))
+    (element-map!
+      ([m f]
+        (mp/assign! m (mp/element-map m f)))
+      ([m f a]
+        (mp/assign! m (mp/element-map m f a)))
+      ([m f a more]
+        (mp/assign! m (mp/element-map m f a more))))
+    (element-reduce
+      ([m f]
+        (let [^doubles m m]
+          (reduce f m)))
+      ([m f init]
+        (let [^doubles m m]
+          (reduce f init m)))))
+
+(extend-protocol mp/PMapIndexed
+  (Class/forName "[D")
     (element-map-indexed
       ([m f]
         (let [m ^doubles m
@@ -280,27 +297,13 @@
             (dotimes [j more-count] (aset vs j (aget ^doubles (more j) i)))
             (aset m i (double (apply f [i] (aget m i) (aget a i) vs))))
           m)))
-    (element-map!
-      ([m f]
-        (mp/assign! m (mp/element-map m f)))
-      ([m f a]
-        (mp/assign! m (mp/element-map m f a)))
-      ([m f a more]
-        (mp/assign! m (mp/element-map m f a more))))
     (element-map-indexed!
       ([m f]
         (mp/assign! m (mp/element-map-indexed m f)))
       ([m f a]
         (mp/assign! m (mp/element-map-indexed m f a)))
       ([m f a more]
-        (mp/assign! m (mp/element-map-indexed m f a more))))
-    (element-reduce
-      ([m f]
-        (let [^doubles m m]
-          (reduce f m)))
-      ([m f init]
-        (let [^doubles m m]
-          (reduce f init m)))))
+        (mp/assign! m (mp/element-map-indexed m f a more)))))
 
 (extend-protocol mp/PMatrixDivideMutable
   (Class/forName "[D")

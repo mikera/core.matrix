@@ -110,6 +110,21 @@
       ([m f a more]
         (let [[m a & more] (apply mp/broadcast-compatible m a more)] ; FIXME
           (mapv #(mp/element-map % f %2 %3) m (mp/get-major-slice-seq a) (map mp/get-major-slice-seq more)))))
+    (element-map!
+      ([m f]
+        (error "Sequence arrays are not mutable!"))
+      ([m f a]
+        (error "Sequence arrays are not mutable!"))
+      ([m f a more]
+        (error "Sequence arrays are not mutable!")))
+    (element-reduce
+      ([m f]
+        (reduce f (mapcat mp/element-seq m)))
+      ([m f init]
+        (reduce f init (mapcat mp/element-seq m)))))
+
+(extend-protocol mp/PMapIndexed
+  ISeq
     (element-map-indexed
       ([ms f]
         (mapv (fn [i m] (mp/element-map-indexed m #(apply f (cons i %1) %&)))
@@ -126,25 +141,13 @@
                 (range (count ms)) ms
                 (mp/get-major-slice-seq as)
                 (map mp/get-major-slice-seq more)))))
-    (element-map!
-      ([m f]
-        (error "Sequence arrays are not mutable!"))
-      ([m f a]
-        (error "Sequence arrays are not mutable!"))
-      ([m f a more]
-        (error "Sequence arrays are not mutable!")))
     (element-map-indexed!
       ([m f]
         (error "Sequence arrays are not mutable!"))
       ([m f a]
         (error "Sequence arrays are not mutable!"))
       ([m f a more]
-        (error "Sequence arrays are not mutable!")))
-    (element-reduce
-      ([m f]
-        (reduce f (mapcat mp/element-seq m)))
-      ([m f init]
-        (reduce f init (mapcat mp/element-seq m)))))
+        (error "Sequence arrays are not mutable!"))))
 
 ;; =====================================
 ;; Register implementation
