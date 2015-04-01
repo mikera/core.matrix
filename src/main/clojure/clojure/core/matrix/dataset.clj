@@ -43,25 +43,25 @@
 
       (and (= (mp/dimensionality data) 1)
            (map? (first data)))
-      (let [col-names (keys (first data))
-            col-map (-> (zipmap col-names (repeat []))
-                        (vector)
-                        (#(apply conj % data))
-                        (#(apply merge-with conj %)))]
-        ;; check that there all the maps have the same keys
-        ;; no additional keys in all but the first maps and
-        ;; lengths of rows are equal
-        (if (and (= (into #{} col-names)
-                    (into #{} (keys col-map)))
-                 (->> (vals col-map)
-                      (map count)
-                      (into #{})
-                      (count)
-                      (= 1)))
-          (impl/dataset-from-columns
-           col-names
-           (reduce #(conj %1 (get col-map %2)) [] col-names))
-          (error "Can't create dataset from incomplete maps"))))))
+        (let [col-names (keys (first data))
+              col-map (-> (zipmap col-names (repeat []))
+                          (vector)
+                          (#(apply conj % data))
+                          (#(apply merge-with conj %)))]
+          ;; check that there all the maps have the same keys
+          ;; no additional keys in all but the first maps and
+          ;; lengths of rows are equal
+          (if (and (= (into #{} col-names)
+                      (into #{} (keys col-map)))
+                   (->> (vals col-map)
+                        (map count)
+                        (into #{})
+                        (count)
+                        (= 1)))
+            (impl/dataset-from-columns
+             col-names
+             (reduce #(conj %1 (get col-map %2)) [] col-names))
+            (error "Can't create dataset from incomplete maps"))))))
 
 (defn column-names
   "Returns a persistent vector containing column names in the same order as they are placed in the dataset"
@@ -71,7 +71,7 @@
 (defn column-name
   "Returns column name at given index. Returns nil if index is not found"
   ([ds idx]
-     (get (mp/column-names ds) idx)))
+     (nth (mp/column-names ds) idx)))
 
 (defn dimension-name
   "Returns the name for a given index along the specified dimension"
