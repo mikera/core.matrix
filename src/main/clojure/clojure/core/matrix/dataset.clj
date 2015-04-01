@@ -6,7 +6,7 @@
   (:import [clojure.core.matrix.impl.dataset DataSet]))
 
 (defmacro dataset?
-  "Returns true if argument is a dataset"
+  "Returns true if argument is a dataset."
   ([d]
      `(instance? DataSet ~d)))
 
@@ -64,37 +64,37 @@
             (error "Can't create dataset from incomplete maps"))))))
 
 (defn column-names
-  "Returns a persistent vector containing column names in the same order as they are placed in the dataset"
+  "Returns a persistent vector containing column names in the same order as they are placed in the dataset."
   ([ds]
      (mp/column-names ds)))
 
 (defn column-name
-  "Returns column name at given index. Returns nil if index is not found"
+  "Returns column name at given index. Returns nil if index is not found."
   ([ds idx]
      (nth (mp/column-names ds) idx)))
 
 (defn dimension-name
-  "Returns the name for a given index along the specified dimension"
+  "Returns the name for a given index along the specified dimension."
   ([ds dim idx]
     (mp/dimension-name ds dim idx)))
 
 (defn add-column
-  "Adds column to the dataset"
+  "Adds column to the dataset."
   ([ds col-name col]
      (mp/add-column ds col-name col)))
 
 (defn select-columns
-  "Produces a new dataset with the columns in the specified order"
+  "Produces a new dataset with the columns in the specified order."
   ([ds col-names]
      (mp/select-columns ds col-names)))
 
 (defn select-rows
-  "Produces a new dataset with the rows in the specified order"
+  "Produces a new dataset with the rows in the specified order."
   ([ds rows]
      (mp/select-rows ds rows)))
 
 (defn except-columns
-  "Returns new dataset with all columns except specified"
+  "Returns new dataset with all columns except specified."
   ([ds col-names]
      (let [col-names (clojure.set/difference
                       (into #{} (column-names ds))
@@ -102,23 +102,24 @@
        (mp/select-columns ds col-names))))
 
 (defn row-maps
-  "Returns vector of maps with row values"
+  "Returns vector of maps with row values."
   ([ds]
      (mp/row-maps ds)))
 
 (defn to-map
-  "Returns map of columns with associated list of values"
+  "Returns map of columns with associated list of values."
   ([ds]
      (mp/to-map ds)))
 
 (defn merge-datasets
   "Returns a dataset created by combining columns of the given datasets. In case of columns with duplicate names, last-one-wins strategy is applied."
-  ([ds1 ds2] (mp/merge-datasets ds1 ds2))
+  ([ds1 ds2] 
+    (mp/merge-datasets ds1 ds2))
   ([ds1 ds2 & args]
-     (apply merge-datasets (merge-datasets ds1 ds2) args)))
+    (apply merge-datasets (merge-datasets ds1 ds2) args)))
 
 (defn rename-columns
-  "Renames columns based on map of old new column name pairs"
+  "Renames columns based on map of old column name -> new column name pairs"
   ([ds col-map]
      (mp/rename-columns ds col-map)))
 
