@@ -145,14 +145,16 @@
 (defprotocol PValidateShape
   "Optional protocol to validate the shape of a matrix. If the matrix has an incorrect shape, should
    throw an error. Otherwise it should return the correct shape."
-  (validate-shape [m]))
+  (validate-shape 
+    [m]
+    "Returns the shape of the array, performing validation and throwing an error if the shape is inconsistent"))
 
 (defprotocol PRowColMatrix
   "Protocol to support construction of row and column matrices from 1D vectors.
 
    A vector of length N should be converted to a 1xN or Nx1 matrix respectively.
 
-   Should throw an error if the data is not a 1D vector"
+   Must throw an error if the data is not a 1D vector"
   (column-matrix [m data])
   (row-matrix [m data]))
 
@@ -196,8 +198,12 @@
     - They may be mutable (in which case set-0d! is expected to work)
     - They are not considered themselves to be scalars. Hence you must use get-0d to access the
       contained scalar value"
-  (get-0d [m])
-  (set-0d! [m value]))
+  (get-0d 
+    [m]
+    "Gets the scalar value in an 0d array.")
+  (set-0d! 
+    [m value]
+    "Sets the scalar value in the 0d array to a given value. Throws an error if not mutable."))
 
 (defprotocol PZeroDimensionSet
   "Protocol for setting the scalar value in zero-dimensional arrays."
@@ -205,8 +211,12 @@
 
 (defprotocol PSpecialisedConstructors
   "Protocol for construction of special matrices."
-  (identity-matrix [m dims] "Create a 2D identity matrix with the given number of dimensions")
-  (diagonal-matrix [m diagonal-values] "Create a diagonal matrix with the specified leading diagonal values"))
+  (identity-matrix 
+    [m dims] 
+    "Create a 2D identity matrix with the given number of dimensions")
+  (diagonal-matrix 
+    [m diagonal-values] 
+    "Create a diagonal matrix with the specified leading diagonal values"))
 
 (defprotocol PPermutationMatrix
   "Protocol for construction of a permutation matrix."
@@ -294,18 +304,22 @@
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of an array.  If implemented, must return either a view, a scalar
    or an immutable sub-matrix: it must *not* return copied data. i.e. making a full copy must be avoided."
-  (get-row [m i])
-  (get-column [m i])
-  (get-major-slice [m i])
-  (get-slice [m dimension i]))
+  (get-row [m i] 
+    "Gets a row of a matrix with the given row index.")
+  (get-column [m i] 
+    "Gets a column of a matrix with the given row index.")
+  (get-major-slice [m i]
+    "Gets the major slice of an array with the given index. For a 2D matrix, equivalent to get-row")
+  (get-slice [m dimension i]
+    "Gets a slice of an array along a specified dimension with the given index."))
 
 (defprotocol PMatrixRows
   "Protocol for accessing rows of a matrix"
-  (get-rows [m]))
+  (get-rows [m] "Returns the rows of a matrix, as a sequence"))
 
 (defprotocol PMatrixColumns
   "Protocol for accessing columns of a matrix"
-  (get-columns [m]))
+  (get-columns [m] "Returns the columns of a matrix, as a sequence"))
 
 (defprotocol PSliceView
   "Protocol for quick view access into a row-major slices of an array. If implemented, must return
@@ -323,14 +337,16 @@
    for the slices of a 1D vector.
 
    The default implementation uses get-major-slice-view to obtain the slices."
-  (get-major-slice-seq [m] "Gets a sequence of all major array slices"))
+  (get-major-slice-seq [m] 
+    "Gets a sequence of all major array slices"))
 
 (defprotocol PSliceSeq2
   "Returns slices of the array as a sequence.
 
    These must be views or immutable sub-arrays for higher order slices, or scalars
    for the slices of a 1D vector."
-  (get-slice-seq [m dim] "Gets a sequence of all array slices"))
+  (get-slice-seq [m dim] 
+    "Gets a sequence of all array slices"))
 
 (defprotocol PSliceViewSeq
   "Returns the row-major slice views of the array.
@@ -351,27 +367,34 @@
   "Protocol for getting a sub-vector view of a vector. Must return a mutable view
    if the original vector is mutable. Should throw an exception if the specified
    subvector is out of bounds for the target vector."
-  (subvector [m start length]))
+  (subvector [m start length] 
+    "Gets a sub-vector of a vector. Must return a view if the vector is mutable."))
 
 ;; TODO: should return either an immutable sub-matrix or a mutable view
 (defprotocol PMatrixSubComponents
   "Protocol for picking out subsections of a 2D matrix. Should return a mutable view if possible.
    The default implementation creates a new vector containing the diagonal values."
-  (main-diagonal [m]))
+  (main-diagonal [m]
+    "Returns the main (leading) diagonal of a matrix."))
 
 (defprotocol PSparseArray
   "Protocol for determining if an array is in a sparse format. It is up to the implementation to define
    its own sparse formats, but in general the intention should be that a sparse array uses significantly
    less storage than an equivalent dense array, assuming a high proportion of zero values in the array."
-  (is-sparse? [m]))
+  (is-sparse? [m]
+    "Returns true if the array is in a sparse format, as defined by the implementation."))
 
 (defprotocol PNewSparseArray
   "Protocol for constructing sparse arrays. Should return nil if the sparse array shape is not supported."
-  (new-sparse-array [m shape]))
+  (new-sparse-array 
+    [m shape]
+    "Creates a new sparse array with the given shape."))
 
 (defprotocol PZeroCount
   "Protocol for counting the number of zeros in an array"
-  (zero-count [m]))
+  (zero-count 
+    [m]
+    "Returns the number of zeros in the array"))
 
 (defprotocol PAssignment
   "Protocol for assigning values element-wise to mutable arrays."
@@ -398,40 +421,48 @@
 
 (defprotocol PDoubleArrayOutput
   "Protocol for getting data as a double array"
-  (to-double-array [m]
+  (to-double-array 
+    [m]
     "Returns a double array containing the values of m in row-major order. May or may not be
      the internal double array used by m, depending on the implementation.")
-  (as-double-array [m]
+  (as-double-array 
+    [m]
     "Returns the internal double array used by m. If no such array is used, returns nil.
      Provides an opportunity to avoid copying the internal array."))
 
 (defprotocol PObjectArrayOutput
   "Protocol for getting data as an object array"
-  (to-object-array [m]
+  (to-object-array 
+    [m]
     "Returns an object array containing the values of m in row-major order. May or may not be
      the internal object array used by m, depending on the implementation.")
-  (as-object-array [m]
+  (as-object-array 
+    [m]
     "Returns the internal object array used by m. If no such array is used, returns nil.
      Provides an opportunity to avoid copying the internal array."))
 
 (defprotocol PValueEquality
   "Protocol for comparing two arrays, with the semantics of clojure.core/=.
    Returns false if the arrays are not of equal shape, or if any elements are not equal."
-  (value-equals [m a]))
+  (value-equals 
+    [m a]
+    "Returns true if two arrays are equal both in shape and according to clojure.core/= for each element."))
 
 (defprotocol PMatrixEquality
   "Protocol for numerical array equality operations."
-  (matrix-equals [a b]
-     "Return true if a equals b, i.e. if a and b are have the same shape and all elements are equal.
-      Must use numerical value comparison on numbers (==) to account for matrices that may hold a mix of
-      numercial types (e.g. java.lang.Long and java.lang.Double). Implementations that only support doubles
-      should use Number.doubleValue() to get a numeric value to compare.
-      May throw an exception if the matrices are non-numeric"))
+  (matrix-equals 
+    [a b]
+    "Return true if a equals b, i.e. if a and b are have the same shape and all elements are equal.
+     Must use numerical value comparison on numbers (==) to account for matrices that may hold a mix of
+     numercial types (e.g. java.lang.Long and java.lang.Double). Implementations that only support doubles
+     should use Number.doubleValue() to get a numeric value to compare.
+     May throw an exception if the matrices are non-numeric"))
 
 (defprotocol PMatrixEqualityEpsilon
   "Protocol for numerical array equality operations with a specified tolerance."
-  (matrix-equals-epsilon [a b eps]
-     "As matrix-equals, but provides a numerical tolerance for equality testing."))
+  (matrix-equals-epsilon 
+    [a b eps]
+    "As matrix-equals, but provides a numerical tolerance for equality testing."))
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar.
