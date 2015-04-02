@@ -795,11 +795,12 @@
   (mp/get-indices a indices))
 
 (defn set-selection
-  "Like select but sets the elements in the selection to the values in (last
-   args). Leaves a unchanged and returns the modified array"
+  "Like select but sets the elements in the selection to the value of the final argument. 
+   Leaves a unchanged and returns the modified array"
   [a & args]
-  (let [sel-args (butlast args) values (last args)]
-    (mp/set-selection a (map normalise-arg sel-args (mp/get-shape a)) values)))
+  (let [sel-args (butlast args) 
+        value (last args)]
+    (mp/set-selection a (map normalise-arg sel-args (mp/get-shape a)) value)))
 
 (defn set-selection!
   "Like set-selection but destructively modifies a in place"
