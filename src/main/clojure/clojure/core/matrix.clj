@@ -803,7 +803,7 @@
     (mp/set-selection a (map normalise-arg sel-args (mp/get-shape a)) value)))
 
 (defn set-selection!
-  "Like set-selection but destructively modifies a in place"
+  "Like set-selection but destructively modifies the array a in place"
   [a & args]
   (let [sel-args (butlast args) values (last args)]
     (assign! (mp/select a (map normalise-arg sel-args (mp/get-shape a))) values)
@@ -811,7 +811,7 @@
 
 (defn set-indices
   "like select-indices but sets the elements at the specified indices to values.
-   Leaves a unchanged and returns a modified array"
+   Leaves the original array (a) unchanged and returns a modified array"
   [a indices values]
   (mp/set-indices a indices values))
 
