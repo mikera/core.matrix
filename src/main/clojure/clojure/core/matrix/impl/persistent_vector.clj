@@ -582,9 +582,10 @@
        (let [dims (long (mp/dimensionality ms))]
          (cond
            (== 0 dims) (f [] (scalar-coerce ms))
-           (== 1 dims) (mapv #(f [%1] (scalar-coerce %2)) (range (count ms)) ms)
-           :else (mapv (fn [i m] (mp/element-map-indexed m #(f (cons i %1) %2)))
-                       (range (count ms)) ms))))
+           (== 1 dims) (vec (for [i (range (count ms))]
+                              (f [i] (nth ms i))))
+           :else       (vec (for [i (range (count ms))]
+                              (mp/element-map-indexed (nth ms i) #(f (cons i %1) %2)))))))
       ([ms f as]
        (let [as   (mp/broadcast-like ms as)
              dima (long (mp/dimensionality as))]
