@@ -31,3 +31,10 @@
   (compliance/instance-test (array :vectorz [1 2 3]))
   (compliance/instance-test (array :vectorz [[1 2] [3 4]]))
   (compliance/instance-test (array :vectorz [[[1 2] [3 4]] [[5 6] [7 8]]])))
+
+(deftest test-emap-indexed
+  (is (equals [[1 12] 
+               [103 114]] 
+              (emap-indexed 
+                (fn [[i j] x] (+ x (* 100 i) (* 10 j)))
+                (array :vectorz [[1 2] [3 4]])))))
