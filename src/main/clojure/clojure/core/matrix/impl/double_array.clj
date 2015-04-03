@@ -271,6 +271,40 @@
         (let [^doubles m m]
           (reduce f init m)))))
 
+(extend-protocol mp/PMapIndexed
+  (Class/forName "[D")
+    (element-map-indexed
+      ([m f]
+        (let [m ^doubles m
+              cnt (alength m)
+              ^doubles r (double-array cnt)]
+          (dotimes [i cnt]
+            (aset r i (double (f [i] (aget m i)))))
+          r))
+      ([m f a]
+        (let [^doubles m (double-array m)
+              ^doubles a (mp/broadcast-coerce m a)]
+          (dotimes [i (alength m)]
+            (aset m i (double (f [i] (aget m i) (aget a i)))))
+          m))
+      ([m f a more]
+        (let [^doubles m (double-array m)
+              ^doubles a (mp/broadcast-coerce m a)
+              more (mapv #(mp/broadcast-coerce m %) more)
+              more-count (long (count more))
+              ^doubles vs (double-array more-count)]
+          (dotimes [i (alength m)]
+            (dotimes [j more-count] (aset vs j (aget ^doubles (more j) i)))
+            (aset m i (double (apply f [i] (aget m i) (aget a i) vs))))
+          m)))
+    (element-map-indexed!
+      ([m f]
+        (mp/assign! m (mp/element-map-indexed m f)))
+      ([m f a]
+        (mp/assign! m (mp/element-map-indexed m f a)))
+      ([m f a more]
+        (mp/assign! m (mp/element-map-indexed m f a more)))))
+
 (extend-protocol mp/PMatrixDivideMutable
   (Class/forName "[D")
   (element-divide!

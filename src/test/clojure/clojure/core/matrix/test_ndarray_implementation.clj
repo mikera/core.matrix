@@ -136,11 +136,28 @@
     (assign! m vm)
     (is (= (eseq m) (range 8)))))
 
+(deftest test-3d-emap-indexed
+  (let [m (empty-ndarray [2 2 2])
+        vm [[[0 1] [2 3]] [[4 5] [6 7]]]]
+    (assign! m vm)
+    (is (equals [[[0 1] [2 3]] [[4 5] [6 7]]] (emap-indexed (fn [_     x] x) m)))
+    (is (equals [[[0 0] [0 0]] [[1 1] [1 1]]] (emap-indexed (fn [[i _ _] _] i) m)))
+    (is (equals [[[0 0] [1 1]] [[0 0] [1 1]]] (emap-indexed (fn [[_ j _] _] j) m)))
+    (is (equals [[[0 1] [0 1]] [[0 1] [0 1]]] (emap-indexed (fn [[_ _ k] _] k) m)))))
+
 (deftest test-object-emap
   (let [m (new-array :ndarray [2 2])
         vecs (for [i (range 4)] [i (inc i)])]
     (assign-array! m (object-array vecs))
     (is (equals [[2 2] [2 2]] (emap count m)))))
+
+(deftest test-object-emap-indexed
+  (let [m (new-array :ndarray [2 2])
+        vecs (for [i (range 4)] [i (inc i)])]
+    (assign-array! m (object-array vecs))
+    (is (equals [[2 2] [2 2]] (emap-indexed #(count %2) m)))
+    (is (equals [[0 0] [1 1]] (emap-indexed (fn [[i _] _] i) m)))
+    (is (equals [[0 1] [0 1]] (emap-indexed (fn [[_ j] _] j) m)))))
 
 #_(deftest test-helper-functions
   (is (== 35 (calc-index [1 5] (long-array [100 30]))))

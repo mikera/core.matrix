@@ -11,6 +11,22 @@
 (deftest regressions
   (is (= [2] (seq (emap inc (object-array [1]))))))
 
+(deftest test-functional-ops
+  (testing "map"
+    (let [oa  (object-array [1 2])
+          oa2 (object-array [3 4])
+          oa3 (object-array [5 6])]
+      (is (= [2 3] (seq (emap inc oa))))
+      (is (= [4 6] (seq (emap + oa oa2))))
+      (is (= [9 12] (seq (emap + oa oa2 oa3))))))
+  (testing "map indexed"
+    (let [oa  (object-array [4 5])
+          oa2 (object-array [6 7])
+          oa3 (object-array [8 9])]
+      (is (= [5 7]   (seq (emap-indexed #(+ (reduce + %1) (inc %2)) oa))))
+      (is (= [10 13] (seq (emap-indexed #(apply + (reduce + %1) %&) oa oa2))))
+      (is (= [18 22] (seq (emap-indexed #(apply + (reduce + %1) %&) oa oa2 oa3)))))))
+
 (deftest to-objects
   (is (equals [0 1 2] (to-object-array (range 3))))
   (is (e= [1 2 3 :foo] (to-object-array [[1 2] [3 :foo]]))))

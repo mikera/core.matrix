@@ -712,7 +712,7 @@
 	  (element-divide!
 	    ([m] (error "Can't do mutable divide on a scalar number"))
 	    ([m a] (error "Can't do mutable divide on a scalar numer")))
-	Object
+  Object
 	  (element-divide!
 	    ([m] (mp/element-map! m #(/ %)))
 	    ([m a]
@@ -1121,6 +1121,75 @@
     (element-reduce
       ([m f] nil)
       ([m f init] (f init nil))))
+
+(defn- cart [colls]
+  (if (empty? colls)
+    [[]]
+    (for [x    (first colls)
+          more (cart (rest colls))]
+      (cons x more))))
+
+(defn- indices-seq [m]
+  (cart (map range (mp/get-shape m))))
+
+(extend-protocol mp/PMapIndexed
+  Number
+    (element-map-indexed
+      ([m f]
+        (f [] m))
+      ([m f a]
+        (mp/element-map a #(f [] m %)))
+      ([m f a more]
+        (if-let [moremore (next more)]
+          (mp/element-map a #(apply f [] m %1 %2 %&) (first more) moremore)
+          (mp/element-map a #(f [] m %1 %2) (first more)))))
+    (element-map-indexed!
+      ([m f]
+        (error "java.lang.Number instance is not mutable!"))
+      ([m f a]
+        (error "java.lang.Number instance is not mutable!"))
+      ([m f a more]
+        (error "java.lang.Number instance is not mutable!")))
+  Object
+    (element-map-indexed
+      ([m f]
+        (if (== 0 (mp/dimensionality m))
+          (f [] (mp/get-0d m)) ;; handle case of single element
+          (let [s (map f (indices-seq m) (mp/element-seq m))]
+            (mp/reshape (mp/coerce-param m s)
+                        (mp/get-shape m)))))
+      ([m f a]
+        (if (== 0 (mp/dimensionality m))
+          (let [v (mp/get-0d m)]
+            (mp/element-map-indexed a #(f %1 v %2)))
+          (let [[m a] (mp/broadcast-compatible m a)
+                s (map f (indices-seq m) (mp/element-seq m) (mp/element-seq a))]
+            (mp/reshape (mp/coerce-param m s) ;; TODO: faster construction method?
+                        (mp/get-shape m)))))
+      ([m f a more]
+        (let [s (map f (mp/element-seq m) (mp/element-seq a))
+              s (apply map f (list* (indices-seq m)
+                                    (mp/element-seq m)
+                                    (mp/element-seq a)
+                                    (map mp/element-seq more)))]
+          (mp/reshape (mp/coerce-param m s)
+                      (mp/get-shape m)))))
+    (element-map-indexed!
+      ([m f]
+        (mp/assign! m (mp/element-map-indexed m f)))
+      ([m f a]
+        (mp/assign! m (mp/element-map-indexed m f a)))
+      ([m f a more]
+        (mp/assign! m (mp/element-map-indexed m f a more))))
+  nil
+    (element-map-indexed
+      ([m f] (f [] nil))
+      ([m f a] (f [] nil a))
+      ([m f a more] (apply f [] nil a more)))
+    (element-map-indexed!
+      ([m f] (error "Can't do element-map-indexed! on nil"))
+      ([m f a] (error "Can't do element-map-indexed! on nil"))
+      ([m f a more] (error "Can't do element-map-indexed! on nil"))))
 
 (extend-protocol mp/PElementCount
   nil (element-count [m] 1)

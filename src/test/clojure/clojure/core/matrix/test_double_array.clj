@@ -80,7 +80,14 @@
       (emap! inc da)
       (is (= [2.0 3.0] (eseq da)))))
   (testing "nested double arrays"
-    (is (= [1.0 2.0 3.0 4.0] (eseq [(double-array [1 2]) (double-array [3 4])])))))
+    (is (= [1.0 2.0 3.0 4.0] (eseq [(double-array [1 2]) (double-array [3 4])]))))
+  (testing "mapping indexed"
+    (let [da  (matrix :double-array [4 5])
+          da2 (matrix :double-array [6 7])
+          da3 (matrix :double-array [8 9])]
+      (is (= [5.0 7.0]   (seq (emap-indexed #(+ (reduce + %1) (inc %2)) da))))
+      (is (= [10.0 13.0] (seq (emap-indexed #(apply + (reduce + %1) %&) da da2))))
+      (is (= [18.0 22.0] (seq (emap-indexed #(apply + (reduce + %1) %&) da da2 da3)))))))
 
 (deftest test-assign
   (testing "assign from a persistent vector"

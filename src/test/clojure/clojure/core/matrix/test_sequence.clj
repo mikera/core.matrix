@@ -24,6 +24,18 @@
 (deftest test-to-vectors
   (is (vector? (emap inc '(1 2 3)))))
 
+(deftest test-emap
+  (is (= [2 3 4] (emap inc '(1 2 3))))
+  (is (= [5 7 9] (emap + '(1 2 3) '(4 5 6))))
+  ;(is (= [7 9 11] (emap + '(1 2 3) '(4 5 6) '(2 2 2)))) ; FIXME throws exception
+  )
+
+(deftest test-emap-indexed
+  (is (= [2 4 6] (emap-indexed #(+ (reduce + %1) (inc %2)) '(1 2 3))))
+  (is (= [5 8 11] (emap-indexed #(apply + (reduce + %1) %&) '(1 2 3) '(4 5 6))))
+  ;(is (= [7 10 13] (emap-indexed #(apply + (reduce + %1) %&) '(1 2 3) '(4 5 6) '(2 2 2)))) ; FIXME throws exception
+  )
+
 (deftest test-empty-sequence
   (let [v '()]
     (is (== 0 (ecount v)))
