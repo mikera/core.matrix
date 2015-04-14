@@ -1,6 +1,8 @@
 core.matrix
 ===========
 
+[![Join the chat at https://gitter.im/mikera/core.matrix](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mikera/core.matrix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Clojars Project](http://clojars.org/net.mikera/core.matrix/latest-version.svg)](http://clojars.org/net.mikera/core.matrix)
 
 [![Build Status](https://travis-ci.org/mikera/core.matrix.png?branch=master)](https://travis-ci.org/mikera/core.matrix) [![Dependency Status](https://www.versioneye.com/user/projects/54deecf4271c9379ed000042/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54deecf4271c9379ed000042)
