@@ -56,6 +56,12 @@
 			<version>0.7.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>net.mikera</groupId>
+			<artifactId>core.matrix.testing</artifactId>
+			<scope>test</scope>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<licenses>
