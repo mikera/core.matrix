@@ -4,7 +4,7 @@
 ;; dependencies / configuration in this file may be out of date
 ;; if in doubt, please refer to the latest pom.xml
 
-(defproject net.mikera/core.matrix "0.31.2-SNAPSHOT"
+(defproject net.mikera/core.matrix "0.34.1-SNAPSHOT"
   :url "https://github.com/mikera/matrix-api"
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -14,17 +14,17 @@
 
   :test-paths ["src/test/clojure" "src/test/java"]
 
-  :dependencies [[org.clojure/clojure "1.7.0-alpha4"]]
+  :dependencies [[org.clojure/clojure "1.7.0-alpha6"]]
 
   :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
 
   :profiles {:dev {:dependencies [[net.mikera/cljunit "0.3.1"]
-                                  [com.google.caliper/caliper "0.5-rc1"]
                                   [criterium/criterium "0.4.3"]
                                   [org.clojure/tools.macro "0.1.5"]
                                   [hiccup "1.0.5"]
-                                  [net.mikera/vectorz-clj "0.26.2"]
-                                  [org.clojure/test.check "0.6.1"]]
+                                  [net.mikera/vectorz-clj "0.29.0"]
+                                  [org.clojure/test.check "0.7.0"]
+                                  [net.mikera/core.matrix.testing "0.0.1-SNAPSHOT"]]
                    
                    :source-paths ["src/main/clojure" "src/dev/clojure"]
                    :jvm-opts ^:replace []}
