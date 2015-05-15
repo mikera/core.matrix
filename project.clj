@@ -5,7 +5,7 @@
 ;; if in doubt, please refer to the latest pom.xml
 
 (defproject net.mikera/core.matrix "0.34.1-SNAPSHOT"
-  :url "https://github.com/mikera/matrix-api"
+  :url "https://github.com/mikera/core.matrix"
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
@@ -14,7 +14,7 @@
 
   :test-paths ["src/test/clojure" "src/test/java"]
 
-  :dependencies [[org.clojure/clojure "1.7.0-alpha6"]]
+  :dependencies [[org.clojure/clojure "1.7.0-beta3"]]
 
   :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
 
