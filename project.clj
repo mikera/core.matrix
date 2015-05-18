@@ -24,7 +24,7 @@
                                   [hiccup "1.0.5"]
                                   [net.mikera/vectorz-clj "0.29.0"]
                                   [org.clojure/test.check "0.7.0"]
-                                  [net.mikera/core.matrix.testing "0.0.1-SNAPSHOT"]]
+                                  [net.mikera/core.matrix.testing "0.0.1"]]
                    
                    :source-paths ["src/main/clojure" "src/dev/clojure"]
                    :jvm-opts ^:replace []}
