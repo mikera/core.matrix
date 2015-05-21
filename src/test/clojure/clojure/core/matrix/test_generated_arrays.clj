@@ -8,10 +8,12 @@
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :refer (defspec)]))
 
-(def instance-tests
-  (prop/for-all [a (g/gen-array)]
-    (when (supports-shape? a (shape a))
-      (compliance/instance-test a))))
 
-(deftest generated-instance-tests
-  (is (sc/quick-check 20 instance-tests :seed 2964321771959749102)))
+(defspec instance-tests
+  (let [array-generator (g/gen-array (g/gen-shape) g/gen-double)]
+    (prop/for-all [a array-generator]
+      (when (supports-shape? a (shape a))
+        (compliance/instance-test a)))))
+;
+;(deftest generated-instance-tests
+;  (is (sc/quick-check 20 instance-tests :seed 2964321771959749102)))

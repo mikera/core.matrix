@@ -57,15 +57,15 @@
 (extend-protocol mp/PDimensionLabels
   DataSet
     (label [m dim i]
-      (cond 
+      (cond
         (== dim 1) (nth (:column-names m) i)
-        (<= 0 (long i) (dec (long (mp/dimension-count m dim)))) nil 
+        (<= 0 (long i) (dec (long (mp/dimension-count m dim)))) nil
         :else (error "Dimension index out of range: " i)))
     (labels [m dim]
-      (cond 
+      (cond
         (== dim 1) (:column-names m)
         (<= 0 (long dim) (dec (long (mp/dimensionality m)))) nil
-        :else (error "Dimension out of range: " dim)))) 
+        :else (error "Dimension out of range: " dim))))
 
 (extend-protocol mp/PMatrixSlices
   DataSet
@@ -86,8 +86,8 @@
 (extend-protocol mp/PMatrixRows
   DataSet
   (get-rows [ds]
-    (map #(mp/get-row ds %)
-         (range (mp/dimension-count ds 0)))))
+    (->> (mp/get-columns ds)
+         (apply map vector))))
 
 (extend-protocol mp/PColumnSetting
   DataSet
@@ -131,13 +131,8 @@
                           (conj (mp/get-columns ds) col)))
   (row-maps [ds]
     (let [col-names (mp/column-names ds)]
-      (map
-      (fn [row]
-        (->> (map-indexed
-              (fn [idx v] [(nth col-names idx) v])
-              row)
-             (into {})))
-      (mp/get-rows ds))))
+      (map #(zipmap col-names %)
+           (mp/get-rows ds))))
   (to-map [ds]
     (into {} (map (fn [k v] [k v])
                   (mp/column-names ds)

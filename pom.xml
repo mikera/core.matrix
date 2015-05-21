@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>clojure</artifactId>
-			<version>1.7.0-alpha6</version>
+			<version>1.7.0-beta3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
@@ -52,8 +52,14 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>test.check</artifactId>
-			<version>0.7.0</version>
+			<version>0.8.0-ALPHA</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.mikera</groupId>
+			<artifactId>core.matrix.testing</artifactId>
+			<scope>test</scope>
+			<version>0.0.1</version>
 		</dependency>
 	</dependencies>
 
