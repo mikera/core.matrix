@@ -1078,7 +1078,7 @@
       ([m f]
         (if (== 0 (mp/dimensionality m))
           (f (mp/get-0d m)) ;; handle case of single element
-          (let [s (map f (mp/element-seq m))]
+          (let [s (mapv f (mp/element-seq m))]
             (mp/reshape (mp/coerce-param m s)
                         (mp/get-shape m)))))
       ([m f a]
@@ -1086,14 +1086,14 @@
           (let [v (mp/get-0d m)]
             (mp/element-map a #(f v %)))
           (let [[m a] (mp/broadcast-compatible m a)
-                s (map f (mp/element-seq m) (mp/element-seq a))]
+                s (mapv f (mp/element-seq m) (mp/element-seq a))]
             (mp/reshape (mp/coerce-param m s) ;; TODO: faster construction method?
                         (mp/get-shape m)))))
       ([m f a more]
-        (let [s (map f (mp/element-seq m) (mp/element-seq a))
-              s (apply map f (list* (mp/element-seq m)
-                                    (mp/element-seq a)
-                                    (map mp/element-seq more)))]
+        (let [s (mapv f (mp/element-seq m) (mp/element-seq a))
+              s (apply mapv f (list* (mp/element-seq m)
+                                     (mp/element-seq a)
+                                     (map mp/element-seq more)))]
           (mp/reshape (mp/coerce-param m s)
                       (mp/get-shape m)))))
     (element-map!
