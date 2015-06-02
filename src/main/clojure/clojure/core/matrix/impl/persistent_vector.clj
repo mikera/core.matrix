@@ -155,7 +155,7 @@
           (> dims tdims)
             (error "Can't broadcast to a lower dimensional shape")
           (not (every? identity (map #(== %1 %2) mshape (take-last dims target-shape))))
-            (error "Incompatible shapes, cannot broadcast " (vec mshape) " to " (vec target-shape))
+            (error "Incompatible shapes, cannot broadcast shape " (vec mshape) " to " (vec target-shape))
           :else
             (reduce
               (fn [m dup] (vec (repeat dup m)))
