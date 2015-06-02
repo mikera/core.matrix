@@ -239,11 +239,11 @@
 
   mp/PIndexedSetting
     (set-1d [m x v]
-      (TODO))
+      (mp/set-1d (mp/coerce-param (imp/get-canonical-object) m) x v))
     (set-2d [m x y v]
-      (TODO))
+      (mp/set-2d (mp/coerce-param (imp/get-canonical-object) m) x y v))
     (set-nd [m indexes v]
-      (TODO))
+      (mp/set-nd (mp/coerce-param (imp/get-canonical-object) m) indexes v))
     (is-mutable? [m] (mp/is-mutable? array))
 
   mp/PSubVector
