@@ -251,8 +251,7 @@
   Object
     (numerical? [m]
       (if (mp/is-scalar? m)
-        false ;; it's a scalar but not a number, so must not be numerical
-              ;; TODO: probably needs special handling for generic numerical types?
+        false ;; it's a scalar but not a number, so we do not recognise it as numerical
         (every? number? (mp/element-seq m)))))
 
 (extend-protocol mp/PVectorOps
@@ -278,7 +277,10 @@
 
 (extend-protocol mp/PVectorDistance
   Number
-    (distance [a b] (Math/abs (double (- b a))))
+    (distance [a b] 
+      (if (number? b) 
+        (Math/abs (double (- b a)))
+        (mp/distance b a)))
   Object
     (distance [a b] (double (mp/length (mp/matrix-sub a b)))))
 
