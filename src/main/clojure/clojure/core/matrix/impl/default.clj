@@ -749,7 +749,7 @@
 (extend-protocol mp/PAddProduct
   Number
     (add-product [m a b]
-      (+ m (* a b)))
+      (mp/matrix-add (mp/element-multiply a b) m ))
   Object
     (add-product [m a b]
       (mp/matrix-add m (mp/element-multiply a b))))
@@ -765,7 +765,7 @@
 (extend-protocol mp/PAddScaled
   Number
     (add-scaled [m a factor]
-      (+ m (* a factor)))
+      (mp/matrix-add (mp/scale a factor) m))
   Object
     (add-scaled [m a factor]
       (mp/matrix-add m (mp/scale a factor))))
@@ -781,7 +781,7 @@
 (extend-protocol mp/PAddScaledProduct
   Number
     (add-scaled-product [m a b factor]
-      (+ m (* a b factor)))
+      (mp/matrix-add (mp/scale (mp/element-multiply a b) factor) m))
   Object
     (add-scaled-product [m a b factor]
       (mp/matrix-add m (mp/scale (mp/element-multiply a b) factor))))
