@@ -1267,7 +1267,9 @@
     a))
 
 (defn scale
-  "Scales a numerical array by one or more scalar factors.
+  "Scales a array by one or more scalar factors. The default implementation supports numerical arrays and
+   numbers as scalar values, however matrix implementations may extend this to support other scalar types.
+
    Returns a new scaled matrix."
   ([m factor]
     (mp/scale m factor))
@@ -1275,7 +1277,9 @@
     (mp/scale m (mp/element-multiply factor (reduce mp/element-multiply more-factors)))))
 
 (defn scale!
-  "Scales a numerical array by one or more scalar factors (in place).
+  "Scales a numerical array by one or more scalar factors (in place). The default implementation supports numerical arrays and
+   numbers as scalar values, however matrix implementations may extend this to support other scalar types.
+
    Returns the matrix after it has been mutated."
   ([m factor]
     (mp/scale! m factor)
