@@ -727,7 +727,7 @@
     (element-sum [a] a)
   Object
     (element-sum [a]
-      (mp/element-reduce a +)))
+      (mp/element-reduce a (if (mp/numerical? a) + mp/matrix-add))))
 
 (extend-protocol mp/PElementMinMax
   Number
