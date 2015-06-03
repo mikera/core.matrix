@@ -1,9 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>core.matrix</artifactId>
 	<description>N-dimensional array programming API for Clojure</description>
-	<version>0.34.1-SNAPSHOT</version>
+	<version>0.35.0</version>
 	<packaging>jar</packaging>
 
 	<url>https://github.com/mikera/core.matrix</url>
@@ -180,6 +179,6 @@
 		<connection>scm:git:git@github.com:mikera/core.matrix.git</connection>
 		<url>https://github.com/mikera/core.matrix</url>
 		<developerConnection>scm:git:git@github.com:mikera/core.matrix.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>core.matrix-0.35.0</tag>
 	</scm>
 </project>
