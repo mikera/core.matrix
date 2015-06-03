@@ -691,7 +691,7 @@
       (error "Can't do mutable multiply on a scalar number"))
   Object
     (element-multiply! [m a]
-      (mp/element-map! m * (mp/broadcast-like m a)))
+      (mp/assign! m (mp/element-multiply m a)))
     (matrix-multiply! [m a]
       (mp/assign! m (mp/matrix-multiply m a))))
 
