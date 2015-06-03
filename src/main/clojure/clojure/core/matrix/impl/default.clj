@@ -699,13 +699,15 @@
   Number
     (element-divide
       ([m] (/ m))
-      ([m a] (mp/element-map a #(/ m %))))
+      ([m a] (mp/pre-scale (mp/element-divide a) m)))
   Object
     (element-divide
-      ([m] (mp/element-map m #(/ %)))
+      ([m] 
+        (if (mp/get-shape m) 
+          (mp/element-map m mp/element-divide)
+          (error "Don't know how to take reciprocal of " (type m))))
       ([m a]
-        (let [[m a] (mp/broadcast-compatible m a)]
-          (mp/element-map m #(/ %1 %2) a)))))
+        (mp/element-multiply m (mp/element-divide a)))))
 
 (extend-protocol mp/PMatrixDivideMutable
   Number
