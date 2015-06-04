@@ -508,11 +508,11 @@
             (recur (inc i) (+ res (double (mp/get-2d m i i))))))))
     (determinant [m]
       (->> m
-           (mp/coerce-param (imp/get-canonical-object :ndarray-double))
+           (mp/coerce-param (imp/get-canonical-object :vectorz))
            (mp/determinant)))
     (inverse [m]
       (->> m
-           (mp/coerce-param (imp/get-canonical-object :ndarray-double))
+           (mp/coerce-param (imp/get-canonical-object :vectorz))
            (mp/inverse))))
 
 (extend-protocol mp/PTranspose
