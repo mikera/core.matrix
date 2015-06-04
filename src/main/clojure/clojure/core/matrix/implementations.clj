@@ -89,7 +89,9 @@
 (defn get-canonical-object
   "Gets the canonical object for a specific implementation. The canonical object is used
    to call implementation-specific protocol functions where required (e.g. creation of new
-   arrays of the correct type for the implementation)"
+   arrays of the correct type for the implementation).
+
+   Returns nil if the implementation cannot be found."
   ([]
     (get-canonical-object *matrix-implementation*))
   ([m]
@@ -99,7 +101,7 @@
         (or obj
            (if (try-load-implementation k) (@canonical-objects k))
            (when-not (keyword? m) m)
-           (error "Unable to find implementation: [" k "]"))
+           nil)
         nil))))
 
 (defn construct
