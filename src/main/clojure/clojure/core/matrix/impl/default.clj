@@ -507,13 +507,13 @@
             res
             (recur (inc i) (+ res (double (mp/get-2d m i i))))))))
     (determinant [m]
-      (->> m
-           (mp/coerce-param (imp/get-canonical-object :vectorz))
-           (mp/determinant)))
+      (let [imp (or (imp/get-canonical-object :vectorz) (error "(let Need to load an implementation which supports determinant, e.g. vectorz-clj"))
+            m (mp/coerce-param imp m)]
+        (mp/determinant m)))
     (inverse [m]
-      (->> m
-           (mp/coerce-param (imp/get-canonical-object :vectorz))
-           (mp/inverse))))
+      (let [imp (or (imp/get-canonical-object :vectorz) (error "Need to load an implementation which supports inverse, e.g. vectorz-clj"))
+            mm (mp/coerce-param imp m)]
+        (mp/coerce-param m (mp/inverse mm)))))
 
 (extend-protocol mp/PTranspose
   nil
