@@ -1361,13 +1361,16 @@
     (mp/distance a b)))
 
 (defn det
-  "Calculates the determinant of a 2D square numerical matrix."
+  "Calculates the determinant of a 2D square numerical matrix.
+
+   May throw an exception if the implementation does not support computation of determinants."
   ([a]
     (mp/determinant a)))
 
 (defn inverse
-  "Calculates the inverse of a 2D numerical matrix."
-  ;; TODO: document behaviour for singular matrix?
+  "Calculates the inverse of a 2D numerical matrix. 
+
+   Returns nil if the matrix is singular. May throw an exception if the implementation does not support inverses."
   ([m]
     (mp/inverse m)))
 
