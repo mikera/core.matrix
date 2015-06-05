@@ -541,11 +541,13 @@
   Object
     (transpose! [m]
       (let [n (long (mp/dimension-count m 0))]
+        (when (not= n (long (mp/dimension-count m 1))) (error "transpose! requires a quare matrix"))
         (dotimes [i n]
           (dotimes [j i]
             (let [t (mp/get-2d m i j)]
               (mp/set-2d! m i j (mp/get-2d m j i))
-              (mp/set-2d! m j i t)))))))
+              (mp/set-2d! m j i t)))))
+      m))
 
 (extend-protocol mp/PRotate
   nil
@@ -810,14 +812,7 @@
 (extend-protocol mp/PGenericValues
   Object
     (generic-zero [m]
-       0)
-    (generic-one [m]
-       1)
-    (generic-value [m]
-       nil)
-  Object
-    (generic-zero [m]
-       0)
+      0)
     (generic-one [m]
       1)
     (generic-value [m]
