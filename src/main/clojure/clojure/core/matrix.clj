@@ -956,6 +956,14 @@
   ([m shifts]
     (mp/rotate-all m shifts)))
 
+(defn shift
+  "Shifts all elements of an array along specified dimensions, maintaining the shape of the array.
+   New spaces shifted into the array are filled with the appropriate zero value."
+  ([m dimension shift-amount]
+    (mp/shift m dimension shift-amount))
+  ([m shifts]
+    (mp/shift-all m shifts)))
+
 (defn order
   "Reorders slices of an array along a specified dimension. Re-orders along major dimension
    if no dimension is specified."

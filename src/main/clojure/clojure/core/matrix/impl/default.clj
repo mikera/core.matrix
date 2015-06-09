@@ -577,9 +577,38 @@
     (rotate-all [m shifts] m)
   Object
     (rotate-all [m shifts]
-      (reduce (fn [m [dim shift]] (mp/rotate m dim shift))
+      (reduce (fn [m [dim shift]] (if (zero? shift) m (mp/rotate m dim shift)))
          m
          (map-indexed (fn [i v] [i v]) shifts))))
+
+(extend-protocol mp/PShift
+  Object
+    (shift [m dim shift] 
+      (let [z (mp/generic-zero m)
+            c (long (mp/dimension-count m dim))
+            sh (vec (mp/get-shape m))]
+        (cond 
+          (== shift 0) m
+          (>= shift c) (mp/broadcast-coerce m z)
+          (<= shift (- c)) (mp/broadcast-coerce m z)
+          (< shift 0) (mp/join-along 
+                        (mp/broadcast (mp/construct-matrix m z) (assoc sh dim (- shift)))
+                        (mp/submatrix m (map vector 
+                                             (vec (repeat (count sh) 0)) 
+                                             (assoc sh dim (+ c shift))))
+                        dim)
+          (> shift 0) (mp/join-along 
+                        (mp/submatrix m (map vector 
+                                             (assoc (vec (repeat (count sh) 0)) dim shift) 
+                                             (assoc sh dim (- c shift))))
+                        (mp/broadcast (mp/construct-matrix m z) (assoc sh dim shift))
+                        dim)
+          :else (error "Shouldn't be possible!!"))))
+    (shift-all [m shifts]
+      (reduce (fn [m [dim shift]] (if (zero? shift) m (mp/shift m dim shift)))
+         m
+         (map-indexed (fn [i v] [i v]) shifts))))
+
 
 (extend-protocol mp/POrder
   nil

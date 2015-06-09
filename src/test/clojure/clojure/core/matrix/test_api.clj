@@ -619,6 +619,12 @@
              (op/div= (mutable (matrix [4 2]))
                     (matrix [2 4])))))
 
+(deftest test-shift
+  (is (equals [1 2 3] (shift [1 2 3] [0])))
+  (is (equals [0 0 0] (shift [1 2 3] [4])))
+  (is (equals [[4 0] [0 0]] (shift [[1 2] [3 4]] [1 1])))
+  (is (equals [0 0 0] (shift [1 2 3] [-5]))))
+
 (deftest test-norm
   (is (= 30.0 (li/norm (matrix [[1 2][3 4]]))))
   (is (= 30.0 (li/norm (matrix [[1 2][3 4]]) 2)))

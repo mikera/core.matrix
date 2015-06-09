@@ -26,7 +26,7 @@
 
 (def snakes-and-ladders (merge snakes ladders))
 
-(defn shift [pos]
+(defn accumulate [pos]
      (add (apply add
                 (for [start (range 0 100)
                       roll (range 1 7)]
@@ -37,6 +37,6 @@
                     (vec (concat (repeat end 0.0) [chance] (repeat (- 100 end) 0.0))))))
           (vec (concat (repeat 100 0.0) [(pos 100)]))))
 
-(def states (iterate shift start))
+(def states (iterate accumulate start))
 
 (def winning-chance (map last states))

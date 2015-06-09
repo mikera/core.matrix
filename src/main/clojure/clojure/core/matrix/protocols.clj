@@ -594,6 +594,13 @@
    shifts may be any sequence of integer shift amounts."
   (rotate-all [m shifts]))
 
+(defprotocol PShift
+  "Rotates an array using the specified shifts for each dimension.
+
+   shifts may be any sequence of integer shift amounts."
+  (shift [m dim places])
+  (shift-all [m shifts]))
+
 (defprotocol PTransposeInPlace
   "Protocol for mutable 2D matrix transpose in place"
   (transpose! [m]
