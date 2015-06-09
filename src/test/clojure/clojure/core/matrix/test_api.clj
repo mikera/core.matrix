@@ -621,6 +621,8 @@
 
 (deftest test-shift
   (is (equals [1 2 3] (shift [1 2 3] [0])))
+  (is (equals [0 1 2] (shift [1 2 3] [-1])))
+  (is (equals [2 3 0] (shift [1 2 3] [1])))
   (is (equals [0 0 0] (shift [1 2 3] [4])))
   (is (equals [[4 0] [0 0]] (shift [[1 2] [3 4]] [1 1])))
   (is (equals [0 0 0] (shift [1 2 3] [-5]))))
