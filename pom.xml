@@ -58,14 +58,14 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>test.check</artifactId>
-			<version>0.8.0-ALPHA</version>
+			<version>0.8.0-alpha3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>core.matrix.testing</artifactId>
 			<scope>test</scope>
-			<version>0.0.2</version>
+			<version>0.0.3</version>
 			<exclusions>
 				<exclusion>  
 					<groupId>net.mikera</groupId>
