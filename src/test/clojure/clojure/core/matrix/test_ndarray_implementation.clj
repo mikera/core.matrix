@@ -193,6 +193,10 @@
   (is (equals [30 70 110] (mmul (array :ndarray-double [[1 2 3 4] [5 6 7 8] [9 10 11 12]]) [1 2 3 4])))
   (is (equals [10] (add-product (array :ndarray [4]) [2] [3]))))
 
+(deftest test-regression-239
+  (let [m (array :ndarray [[1 2] [3 4]])]
+    (is (equals m (coerce m (array :vectorz [[1 2] [3 4]]))))))
+
 (deftest ndarray-test
   (ct/test-ndarray-implementation (empty-ndarray [3 3])))
 
@@ -203,3 +207,5 @@
 (deftest compliance-test-primitives
   (doseq [m (get-primitive-ndarrays)]
     (ct/compliance-test m)))
+
+

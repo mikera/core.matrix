@@ -1237,9 +1237,10 @@
         (== 0 (mp/dimensionality m))
           (if (mp/is-scalar? m) nil [])
         :else
-          (let [shapes (map mp/validate-shape (mp/get-major-slice-seq m))]
-            (if (mp/same-shapes? shapes)
-              (cons (mp/dimension-count m 0) (first shapes))
+          (let [ss (mp/get-major-slice-seq m)
+                shapes (mapv mp/validate-shape ss)]
+            (if (mp/same-shapes? ss)
+              (vec (cons (mp/dimension-count m 0) (first shapes)))
               (error "Inconsistent shapes for sub arrays in " (class m)))))))
 
 

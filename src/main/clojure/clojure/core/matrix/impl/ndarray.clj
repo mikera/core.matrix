@@ -234,7 +234,7 @@
   (defn ndarray
     "Returns NDArray with given data, preserving shape of the data"
     [data]
-    (let [mtx (empty-ndarray#t (mp/validate-shape data))]
+    (let [mtx (empty-ndarray#t (mp/get-shape data))]
       (mp/assign! mtx data)
       mtx)))
 
