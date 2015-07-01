@@ -62,16 +62,17 @@
   "Constructs a new n-dimensional array from the given data.
 
    The data may be in one of the following forms:
-   - A valid existing array
+   - A valid existing array (which will be converted to the implementation)
    - Nested sequences of scalar values, e.g. Clojure vectors (must have regular shape)
    - A sequence of slices, each of which must be valid array data
+   - A single scalar value, which will be wrapped or coerced as necessary for the implementation
 
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*
 
    If the implementation does not support the shape of data provided, may either
    create an array using a different implementation on a best-efforts basis or
-   alternatively throw an error. Users should not rely on this behaviour."
+   alternatively throw an error. This behaviour is implementation-specific."
   ([data]
     (or
       (mp/construct-matrix (implementation-check) data)
@@ -124,7 +125,9 @@
     (mp/new-vector (implementation-check implementation) length)))
 
 (defn zero-matrix
-  "Constructs a new zero-filled numerical matrix with the given dimensions."
+  "Constructs a new zero-filled numerical matrix with the given dimensions.
+
+   May produce a lightweight immutable zero matrix if supported by the implementation."
   ([rows columns]
     (mp/new-matrix (implementation-check) rows columns))
   ([implementation rows columns]
@@ -160,7 +163,7 @@
 (defn new-sparse-array
   "Creates a new sparse array with the given shape.
    New array will contain default values as defined by the implementation (usually zero).
-   If the implementation supports mutable matrices, then the new matrix will be fully mutable."
+   If the implementation supports mutable sparse matrices, then the new matrix will be fully mutable."
   ([shape]
     (mp/new-sparse-array (implementation-check) shape))
   ([implementation shape]
