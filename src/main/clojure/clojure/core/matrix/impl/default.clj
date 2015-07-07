@@ -84,7 +84,22 @@
     (new-matrix-nd [m shape]
       (mp/new-matrix-nd [] shape))
     (supports-dimensionality? [m dimensions]
-      true))
+      true)
+  
+  ;; keyword implementation looks up implementation by keyword
+  clojure.lang.Keyword
+    (implementation-key [m] m)
+    (meta-info [m] (mp/meta-info (imp/get-canonical-object-or-throw m)))
+    (construct-matrix [m data]
+      (mp/construct-matrix (imp/get-canonical-object-or-throw m) data))
+    (new-vector [m length]
+      (mp/new-vector (imp/get-canonical-object-or-throw m) length))
+    (new-matrix [m rows columns]
+      (mp/new-matrix (imp/get-canonical-object-or-throw m) rows columns))
+    (new-matrix-nd [m shape]
+      (mp/new-matrix-nd (imp/get-canonical-object-or-throw m) shape))
+    (supports-dimensionality? [m dimensions]
+      (mp/supports-dimensionality? (imp/get-canonical-object-or-throw m) dimensions)))
 
 (extend-protocol mp/PSparse
   nil

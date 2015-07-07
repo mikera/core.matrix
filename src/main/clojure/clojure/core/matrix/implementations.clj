@@ -104,6 +104,11 @@
            nil)
         nil))))
 
+(defn get-canonical-object-or-throw
+  "Like get-canonical-object, except it throws an exception if the implementation cannot be found"
+  ([mk]
+    (or (get-canonical-object mk) (error "Cannot find implementation for " mk))))
+
 (defn construct
   "Attempts to construct an array according to the type of array m. If not possible,
    returns another array type."
