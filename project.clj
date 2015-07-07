@@ -4,7 +4,7 @@
 ;; dependencies / configuration in this file may be out of date
 ;; if in doubt, please refer to the latest pom.xml
 
-(defproject net.mikera/core.matrix "0.34.1-SNAPSHOT"
+(defproject net.mikera/core.matrix "0.36.2-SNAPSHOT"
   :url "https://github.com/mikera/core.matrix"
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
