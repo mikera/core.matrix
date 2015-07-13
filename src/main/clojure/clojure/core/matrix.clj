@@ -1324,10 +1324,11 @@
 
 (defn dot
   "Computes the dot product (1Dx1D inner product) of two numerical vectors.
-   If either argument is not a vector, computes a higher dimensional inner product."
+   
+   If either argument is not a vector, should compute a higher dimensional inner product."
   ([a b]
     (or
-      (mp/vector-dot a b)
+      (mp/vector-dot a b) ;; this allows a optimised implementation of 'dot' for vectors, which should be faster
       (mp/inner-product a b))))
 
 (defn inner-product
@@ -1667,7 +1668,7 @@
 ;; Implementation management functions
 
 (defn current-implementation
-  "Gets the currently active matrix implementation (as a keyword)"
+  "Gets the currently active matrix implementation as a keyword, e.g. :vectorz"
   ;;{:inline (fn [] imp/*matrix-implementation*)} ;; Seems to cause caching issues when setting implementations?
   ([] imp/*matrix-implementation*))
 
