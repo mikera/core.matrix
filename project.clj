@@ -22,7 +22,7 @@
                                   [criterium/criterium "0.4.3"]
                                   [org.clojure/tools.macro "0.1.5"]
                                   [hiccup "1.0.5"]
-                                  [net.mikera/vectorz-clj "0.30.1"]
+                                  [net.mikera/vectorz-clj "0.32.1"]
                                   [org.clojure/test.check "0.7.0"]
                                   [net.mikera/core.matrix.testing "0.0.4"]]
                    

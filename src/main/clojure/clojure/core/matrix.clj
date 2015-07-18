@@ -4,6 +4,7 @@
             [clojure.core.matrix.impl sequence] ;; TODO: figure out if we want this?
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.pprint :as pprint]
+            [mikera.vectorz.matrix-api]
             [clojure.core.matrix.implementations :as imp :refer [*matrix-implementation*]]
             [clojure.core.matrix.impl.mathsops :as mops]
             [clojure.core.matrix.utils :as u :refer [TODO error]]))
