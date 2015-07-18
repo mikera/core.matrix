@@ -892,9 +892,8 @@
    otherwise slices along the first dimension. If the matrix implementation supports mutable views, these views
    can be used to mutate portions of the original array.
 
-   The key difference between 'slices' and 'slice-views' is that 'slice-views' will always return views, including
-   for the 0-dimensional case. Hence it will return a sequence of 0-dimensional scalar arrays if
-   the array is 1-dimensional."
+   The key difference between 'slices' and 'slice-views' is that 'slice-views' must always return views. In order 
+   to ensure this behaviour on mutable 1-dimensioanal arrays, it must return a sequence of 0-dimensioanal arrays."
   ([m]
     (mp/get-major-slice-view-seq m))
   ([m dimension]
@@ -942,19 +941,25 @@
         :else   (mp/main-diagonal m)))))
 
 (defn join
-  "Joins arrays together, along dimension 0. Other dimensions must be compatible"
+  "Joins arrays together, along dimension 0. For 1D vectors, this behaves as simple concatenation. 
+
+   Other dimensions must be compatible. To join arrays along a different dimension, use 'join-along' instead."
   ([& arrays]
     (reduce mp/join arrays)))
 
 (defn join-along
-  "Joins arrays together, along a specified dimension. Other dimensions must be compatible."
+  "Joins arrays together, concatenating them along the specified dimension.
+
+   Other dimensions must be compatible."
   ([dimension & arrays]
     (or
       (reduce #(mp/join-along %1 %2 dimension) arrays)
       (u/error "Failure to joins arrays"))))
 
 (defn rotate
-  "Rotates an array along specified dimensions."
+  "Rotates an array along specified dimensions. 
+
+   Elements rotated off will re-appear at the other side. The shape of the array will not be modified."
   ([m dimension shift-amount]
     (mp/rotate m dimension shift-amount))
   ([m shifts]
@@ -1320,10 +1325,11 @@
 
 (defn dot
   "Computes the dot product (1Dx1D inner product) of two numerical vectors.
-   If either argument is not a vector, computes a higher dimensional inner product."
+   
+   If either argument is not a vector, should compute a higher dimensional inner product."
   ([a b]
     (or
-      (mp/vector-dot a b)
+      (mp/vector-dot a b) ;; this allows a optimised implementation of 'dot' for vectors, which should be faster
       (mp/inner-product a b))))
 
 (defn inner-product
@@ -1663,7 +1669,7 @@
 ;; Implementation management functions
 
 (defn current-implementation
-  "Gets the currently active matrix implementation (as a keyword)"
+  "Gets the currently active matrix implementation as a keyword, e.g. :vectorz"
   ;;{:inline (fn [] imp/*matrix-implementation*)} ;; Seems to cause caching issues when setting implementations?
   ([] imp/*matrix-implementation*))
 
