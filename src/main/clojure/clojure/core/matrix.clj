@@ -346,13 +346,20 @@
     (or (mp/dense-coerce implementation data) (mp/coerce-param implementation data))))
 
 (defn native
-  "Coerces an array into a native format array if possible. Returns nil if no good native format
-   exists for the given implementation"
+  "Coerces an array into a native format array if possible. Natiev arrays may offer superior performance for some operations.
+   Returns nil if no appropriate native format exists."
   ([a]
-    (or (mp/native a) nil))
+    (or (mp/native a) (native (implementation-check) a)))
   ([impl a]
     (let [a (mp/coerce-param impl a)]
-      (native a))))
+      (mp/native a))))
+
+(defn native?
+  "Returns true if the array is in a native format. 
+
+   Native formats are implementation defined, and may use non-Java resources (e.g. GPU memory)."
+  ([a]
+    (mp/native? a)))
 
 (defmacro with-implementation
   "Runs a set of expressions using a specified matrix implementation.
