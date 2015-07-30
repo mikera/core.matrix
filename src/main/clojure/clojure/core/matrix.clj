@@ -346,7 +346,8 @@
     (or (mp/dense-coerce implementation data) (mp/coerce-param implementation data))))
 
 (defn native
-  "Coerces an array into a native format array if possible. Natiev arrays may offer superior performance for some operations.
+  "Coerces an array into a native format array if possible. Native arrays may offer 
+   superior performance for some operations, depending on the implementation.
    Returns nil if no appropriate native format exists."
   ([a]
     (or (mp/native a) (native (implementation-check) a)))
