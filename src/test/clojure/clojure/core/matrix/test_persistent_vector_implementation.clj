@@ -200,6 +200,10 @@
     (testing "add row j to i and replace i with the result"
       (is (= (matrix [[3 3] [1 1]]) (add-row (matrix [[1 1] [1 1]]) 0 1 2)))))
 
+(deftest test-native
+  (is (nil? (native [1 2 3])))
+  (is (not (native? [1 2 3]))))
+
 (deftest test-bad-shapes
   (is (error? (array [1 [2 3]])))
   (is (error? (array [[1 2] [2 3 4]])))
