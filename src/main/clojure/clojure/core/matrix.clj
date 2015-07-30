@@ -345,6 +345,12 @@
   ([implementation data]
     (or (mp/dense-coerce implementation data) (mp/coerce-param implementation data))))
 
+(defn native
+  "Coerces an array into a native format array if possible. Returns nil if no good native format
+   exists for the given implementation"
+  ([a]
+    (or (mp/native a) nil)))
+
 (defmacro with-implementation
   "Runs a set of expressions using a specified matrix implementation.
 

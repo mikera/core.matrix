@@ -174,6 +174,12 @@
   (sparse-coerce [m data] "Attempts to coerce data to a sparse array of implementation m. May return nil if not supported")
   (sparse [m] "Attempts to make array into a sparse format. Must return the same array unchanged if not possible."))
 
+(defprotocol PNative
+  "Protocol for creating and handling native arrays. Implementations must return a native format array if they
+   are able to, or nil otherwise."
+  (native [m] "Attempts to coerce data to a native array of implementation m. May return nil if not supported")
+  (native? [m] "Returns true if an array is in a native format, false otherwise."))
+
 (defprotocol PDense
   "Protocol for constructing a dense array from the given data."
   (dense-coerce [m data] "Attempts to coerce data to a dense array of implementation m. May return nil if not supported")

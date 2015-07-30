@@ -113,6 +113,17 @@
     (sparse [m]
       m))
 
+(extend-protocol mp/PNative
+  nil
+    (native [m]
+      nil)
+    (native? [m] false)
+  Object
+    (native [m]
+      nil) ;; allow fall through if native coercion is not directly supported
+    (native? [m]
+      false))
+
 (extend-protocol mp/PNewSparseArray
   Object
     (new-sparse-array [m shape]
