@@ -102,6 +102,15 @@
   ([m options] (mp/svd m options))
   ([m] (svd m {:return [:U :S :V*]})))
 
+(defn condition-number
+  "Computes the cndition number of a matrix.
+   Returns the ratio of the largest to smallest singular value of a matrix"
+  [m]
+  (let [d (diagonal (:S (svd m)))
+        lo (apply min d)
+        hi (apply max d)]
+    (/ hi lo)))
+
 (defn eigen
   "Computes the Eigen decomposition of a diagonalisable matrix.
    Returns a map containing matrices for each of the the keys [:Q :A] such that:
