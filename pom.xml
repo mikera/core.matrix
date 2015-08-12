@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>clojure</artifactId>
-			<version>1.8.0-alpha2</version>
+			<version>1.8.0-alpha4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
@@ -46,7 +46,7 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>vectorz-clj</artifactId>
-			<version>0.30.1</version>
+			<version>0.32.0</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>  
@@ -58,7 +58,7 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>test.check</artifactId>
-			<version>0.8.0-alpha3</version>
+			<version>0.8.0-RC3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
