@@ -1,4 +1,7 @@
 (ns clojure.core.matrix.protocols
+  "Namespace for core.matrix protocols. These protocols are intended to be implemented by 
+   core.matrix array implemntations. End sers should avoid using this namespace directly
+   and instead use the functions in the main clojure.core.matrix API"
   (:import [java.util List]
            [clojure.lang Seqable])
   (:require [clojure.core.matrix.utils :refer [error same-shape-object? broadcast-shape]]

@@ -1,4 +1,6 @@
 (ns clojure.core.matrix.implementations
+  "Namespace for management of core.matrix implementations. Users hould avoid using these
+   functions directly as they are intended for library and tool writers."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.utils :refer [error]]))
 

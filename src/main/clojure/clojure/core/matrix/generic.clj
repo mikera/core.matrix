@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.generic
+  "EXPERIMENTAL: namespace for core.matrix generic array operations"
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.utils :refer [TODO]]))

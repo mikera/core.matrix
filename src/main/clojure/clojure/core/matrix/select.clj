@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.select
+  "Namespace for advanced core.matrix select API"
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix :refer :all]))
 

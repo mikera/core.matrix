@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.dataset
-  "Namespace for core.matrix dataset API"
+  "Namespace for the core.matrix dataset API"
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.dataset :as impl]
             [clojure.core.matrix :refer :all]

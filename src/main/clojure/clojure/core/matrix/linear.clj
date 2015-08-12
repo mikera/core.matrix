@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.linear
+  "Namespace for core.matrix linear algebra API"
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix :refer :all]))
 
