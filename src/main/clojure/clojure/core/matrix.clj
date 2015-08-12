@@ -1,4 +1,5 @@
 (ns clojure.core.matrix
+  "Namespace for core.matrix API"
   (:require [clojure.core.matrix.impl.default :as default]
             [clojure.core.matrix.impl double-array object-array persistent-vector index]
             [clojure.core.matrix.impl sequence] ;; TODO: figure out if we want this?
