@@ -1,10 +1,15 @@
 (ns clojure.core.matrix.impl.dataset
+  "Namespace for core.matrix dataset implementation"
   (:require [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.impl default persistent-vector] ;; these are needed during loading
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.utils :refer :all])
-  (:import [clojure.lang IPersistentVector]))
+  (:import [clojure.lang IPersistentVector]
+           [java.util List]))
+
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
 
 ;; a column-based DataSet implementation.
 ;; columns are arbitrary core.matrix arrays, treated as vectors
@@ -103,7 +108,7 @@
   (column-names [ds]
     (.column-names ds))
   (select-columns [ds col-names]
-    (let [all-col-names (mp/column-names ds)
+    (let [^List all-col-names (mp/column-names ds)
           indices (map #(.indexOf all-col-names %) col-names)
           cols (map #(mp/get-column ds %) indices)]
       (if (every? #(> % -1) indices)
@@ -140,7 +145,7 @@
   (merge-datasets [ds1 ds2]
     (reduce
      (fn [acc [k v]]
-       (let [colnames (mp/column-names acc)
+       (let [^List colnames (mp/column-names acc)
              cols (mp/get-columns acc)
              idx (.indexOf colnames k)]
          (if (> idx -1)
@@ -150,14 +155,14 @@
   (rename-columns [ds col-map]
     (reduce
      (fn [acc [k v]]
-       (let [colnames (mp/column-names acc)
+       (let [^List colnames (mp/column-names acc)
              idx (.indexOf colnames k)]
          (if (> idx -1)
            (dataset-from-columns (assoc colnames idx v) (mp/get-columns acc))
            (error "Column " k " is not found in the dataset"))))
      ds col-map))
   (replace-column [ds col-name vs]
-    (let [col-names (.column-names ds)
+    (let [^List col-names (.column-names ds)
           idx (.indexOf col-names col-name)]
       (if (> idx -1)
         (mp/set-column ds idx vs)
