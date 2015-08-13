@@ -58,6 +58,7 @@
                         target (if (snakes-and-ladders target) (snakes-and-ladders target) target)]
                     
                     ;; use core.matrix "join" operation to create the result vector
+                    ;; i.e. with the chance of being at the target position
                     (join (repeat target 0.0) [chance] (repeat (- 100 target) 0.0)))))
           
           ;; a vector representing the chance that we have already won
@@ -69,3 +70,13 @@
 
 ;; A lazy vector of all the probabilities of being in the winning position 100
 (def winning-chance (map last states))
+
+(comment
+  ;; run this at the REPL to see the cumulative winning probabilities after each move
+  (take 50 winning-chance)
+  
+  ;; run this at the REPL to see the probability of winning on a specific move
+  ;; i.e. the difference in cumulative winning chance
+  (take 50 (map - winning-chance (cons 0.0 winning-chance)))
+  
+  )
