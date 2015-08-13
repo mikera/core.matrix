@@ -21,13 +21,14 @@ idiomatic, productive, elegant and fast in the Clojure environment.
 ;; Note: nested Clojure vectors can be used as matrices
 ```
 
-Key goals of `core.matrix`:
+Key goals of *core.matrix*:
 
  - Provide a clear, standard API / abstraction for **matrix and array programming** in Clojure
  - Enable **pluggable** support for different underlying matrix library implementations
- - Provide a general purpose **n-dimensional array** implementation (NDArray)
+ - Provide a general purpose **n-dimensional array** implementations 
  - Provide a **foundation** library for other projects (e.g. Incanter)
  - Enable **high performance** numerical computing
+ - Allow idiomatic Clojure coding for numerical code
 
 ### Getting Started
 
