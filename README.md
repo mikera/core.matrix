@@ -25,10 +25,10 @@ Key goals of *core.matrix*:
 
  - Provide a clear, standard API / abstraction for **matrix and array programming** in Clojure
  - Enable **pluggable** support for different underlying matrix library implementations
- - Provide a general purpose **n-dimensional array** implementations 
- - Provide a **foundation** library for other projects (e.g. Incanter)
+ - Provide general purpose **n-dimensional array** implementations 
+ - Provide a **foundation** for other projects in the ecosystem (e.g. Incanter)
  - Enable **high performance** numerical computing
- - Allow idiomatic Clojure coding for numerical code
+ - Allow **idiomatic** Clojure coding for numerical code
 
 ### Getting Started
 
