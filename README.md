@@ -30,26 +30,16 @@ Key goals of *core.matrix*:
  - Enable **high performance** numerical computing
  - Allow **idiomatic** Clojure coding for numerical code
 
-### Getting Started
-
-To use `core.matrix`, you can get the latest released version from Clojars:
-
- - https://clojars.org/net.mikera/core.matrix
-
-For code examples see:
-
- - https://github.com/mikera/core.matrix/blob/master/src/main/clojure/clojure/core/matrix/examples.clj
-
 ### Documentation
+
+For `core.matrix` documentation and examples see the Wiki:
+
+ - https://github.com/mikera/core.matrix/wiki
 
 For a general introduction, the slide and video from the 2013 Clojure Conj talk are available here:
 
  - http://www.slideshare.net/mikeranderson/2013-1114-enter-thematrix
  - http://www.youtube.com/watch?v=_h9TLJtjSJo
-
-For `core.matrix` documentation and further examples see the Wiki:
-
- - https://github.com/mikera/core.matrix/wiki
 
 ### Status
 
