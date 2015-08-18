@@ -58,7 +58,7 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>test.check</artifactId>
-			<version>0.8.0-RC3</version>
+			<version>0.8.1</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
