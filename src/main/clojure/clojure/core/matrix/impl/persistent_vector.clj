@@ -630,6 +630,15 @@
         m))
   )
 
+(extend-protocol mp/PSelect
+  IPersistentVector
+    (select
+      ([a args]
+       (if (= (count args) 1)
+         (apply vector (mapv #(nth a %) (first args)))
+         (apply vector (mapv #(mp/select (nth a %) (next args))
+                             (first args)))))))
+
 ;; =====================================
 ;; Register implementation
 

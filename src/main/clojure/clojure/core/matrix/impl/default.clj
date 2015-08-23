@@ -1804,6 +1804,11 @@
   (select [a area]
     (wrap/wrap-selection a area)))
 
+(extend-protocol mp/PSelect
+  Number
+  (select [a area]
+    a))
+
 (defn- area-indices [area]
   (reduce (fn [io in]
             (for [a in b io]
