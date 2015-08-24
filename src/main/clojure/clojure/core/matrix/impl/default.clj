@@ -1807,7 +1807,9 @@
 (extend-protocol mp/PSelect
   Number
   (select [a area]
-    a))
+    (if (empty? area)
+      a
+      (error "Non empty area argument in select, called on Number " a))))
 
 (defn- area-indices [area]
   (reduce (fn [io in]
