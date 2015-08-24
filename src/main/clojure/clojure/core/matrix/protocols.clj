@@ -846,11 +846,13 @@
 ;; Protocols for higher-level array indexing
 
 (defprotocol PSelect
-  "Protocol for the sel function"
+  "Protocol for the sel function. See the docstring for clojure.core.matrix/select for
+   more information on possible argument values."
   (select [a args] "selects all elements at indices which are in the cartesian product of args"))
 
 (defprotocol PSetSelection
-  "Protocol for setting the elements of an array returned by (select a args) to values"
+  "Protocol for setting the elements of an array returned by (select a args) to values.
+   See the docstring for clojure.core.matrix/select for more information on possible argument values."
   (set-selection [a args values] "sets the elements in the selection of a to values"))
 
 (defprotocol PIndicesAccess
