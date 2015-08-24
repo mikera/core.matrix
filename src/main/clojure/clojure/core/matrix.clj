@@ -164,7 +164,7 @@
 (defn new-sparse-array
   "Creates a new sparse array with the given shape.
    New array will contain default values as defined by the implementation (usually zero).
-   If the implementation supports mutable sparse matrices, then the new matrix will be fully mutable."
+   If the implementation supports mutable sparse matrices, then the new matrix should be fully mutable."
   ([shape]
     (mp/new-sparse-array (implementation-check) shape))
   ([implementation shape]
