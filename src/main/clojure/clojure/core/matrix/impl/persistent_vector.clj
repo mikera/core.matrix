@@ -630,6 +630,18 @@
         m))
   )
 
+(extend-protocol mp/PSelect
+  IPersistentVector
+    (select
+      ([a args]
+       (if (= 1 (count args))
+         (do
+           (if (= 1 (mp/dimensionality a))
+             (apply vector (mapv #(nth a %) (first args)))
+             (error "Array dimension does not match length of args")))
+         (apply vector (mapv #(mp/select (nth a %) (next args))
+                             (first args)))))))
+
 ;; =====================================
 ;; Register implementation
 
