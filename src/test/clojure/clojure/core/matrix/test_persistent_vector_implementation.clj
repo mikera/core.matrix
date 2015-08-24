@@ -6,6 +6,7 @@
             [clojure.core.matrix.compliance-tester :as compliance]
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [error?]]
+            [clojure.core.matrix.protocols :as mp]
             [clojure.test :refer :all]))
 
 ;; Tests for the implementation of core.matrix on Clojure persistent vectors
@@ -209,6 +210,17 @@
   (is (error? (array [[1 2] [2 3 4]])))
   (is (error? (array [[1 2 3 4] [2 3 4]])))
   (is (error? (array [[1 2 3 4] 5]))))
+
+(deftest test-select
+  (let [m [[0 1 2 3] [4 5 6 7] [8 9 10 11]]]
+    (testing "proper select usage behaviour"
+      (is (= (select m :all :all) m))
+      (is (= (select m :all 0) [0 4 8]))
+      (is (= (select m [0 2] [1 3]) [[1 3] [9 11]])))
+    (testing "invalid argument to mp/select"
+      (is (thrown? RuntimeException (mp/select m [[0]]))))
+    (testing "invlaid argument to select"
+      (is (thrown? RuntimeException (select m nil))))))
 
 ;; run complicance tests
 
