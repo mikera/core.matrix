@@ -1,4 +1,6 @@
 (ns clojure.core.matrix.operators
+  "Namespace for core.matrix operators. These operators provide convenient notation for
+   common array operations (e.g. +, *, -=) that replace equivalent functions in clojure.core"
   (:refer-clojure :exclude [* - + / vector? ==])
   (:require [clojure.core.matrix :as m]
             [clojure.core.matrix.utils :refer [error]]))

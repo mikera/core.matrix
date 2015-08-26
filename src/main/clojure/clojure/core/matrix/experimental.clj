@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.experimental
+  "EXPERIMENTAL namespace for new core.matrix functionality. Use with caution."
   (:require [clojure.core.matrix.protocols :as mp]))
 
 ;; Namespace for experimental functions and macros, building on core.matrix

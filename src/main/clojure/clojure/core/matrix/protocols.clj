@@ -1,4 +1,7 @@
 (ns clojure.core.matrix.protocols
+  "Namespace for core.matrix protocols. These protocols are intended to be implemented by 
+   core.matrix array implemntations. End sers should avoid using this namespace directly
+   and instead use the functions in the main clojure.core.matrix API"
   (:import [java.util List]
            [clojure.lang Seqable])
   (:require [clojure.core.matrix.utils :refer [error same-shape-object? broadcast-shape]]
@@ -173,6 +176,12 @@
    May return nil if no sparse conversion is available."
   (sparse-coerce [m data] "Attempts to coerce data to a sparse array of implementation m. May return nil if not supported")
   (sparse [m] "Attempts to make array into a sparse format. Must return the same array unchanged if not possible."))
+
+(defprotocol PNative
+  "Protocol for creating and handling native arrays. Implementations must return a native format array if they
+   are able to, or nil otherwise."
+  (native [m] "Attempts to coerce data to a native array of implementation m. May return nil if not supported")
+  (native? [m] "Returns true if an array is in a native format, false otherwise."))
 
 (defprotocol PDense
   "Protocol for constructing a dense array from the given data."
@@ -837,11 +846,13 @@
 ;; Protocols for higher-level array indexing
 
 (defprotocol PSelect
-  "Protocol for the sel function"
+  "Protocol for the sel function. See the docstring for clojure.core.matrix/select for
+   more information on possible argument values."
   (select [a args] "selects all elements at indices which are in the cartesian product of args"))
 
 (defprotocol PSetSelection
-  "Protocol for setting the elements of an array returned by (select a args) to values"
+  "Protocol for setting the elements of an array returned by (select a args) to values.
+   See the docstring for clojure.core.matrix/select for more information on possible argument values."
   (set-selection [a args values] "sets the elements in the selection of a to values"))
 
 (defprotocol PIndicesAccess

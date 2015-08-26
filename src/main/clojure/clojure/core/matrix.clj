@@ -1,4 +1,5 @@
 (ns clojure.core.matrix
+  "Namespace for core.matrix API"
   (:require [clojure.core.matrix.impl.default :as default]
             [clojure.core.matrix.impl double-array object-array persistent-vector index]
             [clojure.core.matrix.impl sequence] ;; TODO: figure out if we want this?
@@ -163,7 +164,7 @@
 (defn new-sparse-array
   "Creates a new sparse array with the given shape.
    New array will contain default values as defined by the implementation (usually zero).
-   If the implementation supports mutable sparse matrices, then the new matrix will be fully mutable."
+   If the implementation supports mutable sparse matrices, then the new matrix should be fully mutable."
   ([shape]
     (mp/new-sparse-array (implementation-check) shape))
   ([implementation shape]
@@ -344,6 +345,23 @@
     (mp/dense data))
   ([implementation data]
     (or (mp/dense-coerce implementation data) (mp/coerce-param implementation data))))
+
+(defn native
+  "Coerces an array into a native format array if possible. Native arrays may offer 
+   superior performance for some operations, depending on the implementation.
+   Returns nil if no appropriate native format exists."
+  ([a]
+    (or (mp/native a) (native (implementation-check) a)))
+  ([impl a]
+    (let [a (mp/coerce-param impl a)]
+      (mp/native a))))
+
+(defn native?
+  "Returns true if the array is in a native format. 
+
+   Native formats are implementation defined, and may use non-Java resources (e.g. GPU memory)."
+  ([a]
+    (mp/native? a)))
 
 (defmacro with-implementation
   "Runs a set of expressions using a specified matrix implementation.

@@ -1,9 +1,14 @@
 (ns clojure.core.matrix.dataset
+  "Namespace for the core.matrix dataset API"
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.dataset :as impl]
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [error]])
-  (:import [clojure.core.matrix.impl.dataset DataSet]))
+  (:import [clojure.core.matrix.impl.dataset DataSet]
+           [java.util List]))
+
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
 
 ;; ===============================================================
 ;; Specialised functions for dataset handling
@@ -137,7 +142,7 @@
 (defn update-column
   "Applies function f to column in a dataset"
   ([ds col-name f & args]
-     (let [col-names (mp/column-names ds)
+     (let [^List col-names (mp/column-names ds)
            col (mp/get-column ds (.indexOf col-names col-name))]
        (mp/replace-column
          ds col-name

@@ -25,9 +25,7 @@
     (is (= (into #{} (columns ds4)) #{[1 4] [2 5]}))
     (is (= (column-names ds5) [:c :a :b]))
     (is (= (columns ds5) [[3 6] [1 4] [2 5]]))
-    (is (= (mapv type (columns ds6)) [(type (matrix :persistent-vector []))
-                                      (type (matrix :ndarray []))
-                                      (type ( matrix :double-array []))]))))
+    (is (instance? clojure.lang.IPersistentVector (first (columns ds6))))))
 
 (deftest test-column-name
   (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]
