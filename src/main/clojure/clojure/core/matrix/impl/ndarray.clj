@@ -740,7 +740,7 @@
                         step-row-a (- (aget strides 0)
                                       (* step-col-a ncols))
                         step-col-b (aget strides-b 1)
-                        step-row-b (- (aget strides 0)
+                        step-row-b (- (aget strides-b 0)
                                       (* step-col-b ncols))
                         end (+ offset (+ (* nrows step-row-a)
                                          (* ncols step-col-a)))]
