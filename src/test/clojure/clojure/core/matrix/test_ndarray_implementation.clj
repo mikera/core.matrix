@@ -197,6 +197,11 @@
   (let [m (array :ndarray [[1 2] [3 4]])]
     (is (equals m (coerce m (array :vectorz [[1 2] [3 4]]))))))
 
+(deftest test-regression-245
+  ;; problem with equality testing
+  (is (e== (array :ndarray [[1 0 0] [0 0 2] ]) (array :ndarray [[1 0 0] [0 0 2]])))
+  (is (not (e== (array :ndarray [[1 0 0] [0 0 0] ]) (array :ndarray [[1 0 0] [0 9 0]])))))
+
 (deftest ndarray-test
   (ct/test-ndarray-implementation (empty-ndarray [3 3])))
 
