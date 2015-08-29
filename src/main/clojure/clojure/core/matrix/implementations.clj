@@ -23,6 +23,7 @@
    :persistent-map 'clojure.core.matrix.impl.sparse-map
    :sequence 'clojure.core.matrix.impl.sequence
    :double-array 'clojure.core.matrix.impl.double-array
+   :double-array-2d 'clojure.core.matrix.impl.double-array-2d
    :scalar-wrapper 'clojure.core.matrix.impl.wrappers
    :slice-wrapper 'clojure.core.matrix.impl.wrappers
    :nd-wrapper 'clojure.core.matrix.impl.wrappers

@@ -37,9 +37,17 @@
 (defn construct-double-array [data]
   (let [dims (long (mp/dimensionality data))]
     (cond
+     (== dims 2)
+      (let [x (long (mp/dimension-count data 0))
+            y (long (mp/dimension-count data 1))
+            r (make-array Double/TYPE x y)]
+        (dotimes [i x]
+          (dotimes [j y]
+            (aset-double r i j (double (mp/get-2d data i j)))))
+        r)
      (== dims 1)
        (let [n (long (mp/dimension-count data 0))
-               r (double-array n)]
+             r (double-array n)]
            (dotimes [i n]
              (aset r i (double (mp/get-1d data i))))
            r)
@@ -52,7 +60,7 @@
   (Class/forName "[D")
     (implementation-key [m] :double-array)
     (meta-info [m]
-      {:doc "Clojure.core.matrix implementation for Java double arrays"})
+      {:doc "Clojure.core.matrix implementation for 1D Java double arrays"})
     (new-vector [m length] (double-array (int length)))
     (new-matrix [m rows columns] 
       (new-double-array [rows columns]))
