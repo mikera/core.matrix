@@ -71,7 +71,7 @@
 
 (extend-protocol mp/PObjectArrayOutput
   (Class/forName "[[D")
-    (to-object-array [m] (into-array Object
+    (to-object-array [m] (into-array (Class/forName "[Ljava.lang.Object;")
                                      (mapv object-array m)))
     (as-object-array [m] nil))
 
@@ -258,6 +258,8 @@
     ([m f a more]
       (mp/assign! m (mp/element-map m f a more))))
   (element-reduce
+    ([m f]
+     (mp/element-reduce m f 0))
     ([m f init]
       (let [[x y] (mp/get-shape m)]
         (areduce m i res-outer (double init)

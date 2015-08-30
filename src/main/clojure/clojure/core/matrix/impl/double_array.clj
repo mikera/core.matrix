@@ -317,7 +317,7 @@
   (element-divide!
     ([m] (let [^doubles m m]
              (dotimes [i (alength m)]
-               (aset m i (/ 1.0 / (aget m i))))
+               (aset m i (/ 1.0 (aget m i))))
              nil))
     ([m a] (if (number? a)
              (let [^doubles m m]
