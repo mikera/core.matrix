@@ -13,6 +13,9 @@
 
 ; Utilities:
 
+(defmacro is-2d-double-array? [m]
+  `(instance? ~(Class/forName "[[D") ~m))
+
 (defn ^"[[D" copy-2d-double-array [^"[[D" m]
   (into-array (Class/forName "[D")
               (mapv copy-double-array ^"[[D" m)))
@@ -162,6 +165,99 @@
       (->> m
            (mapv vec)
            (mapv vec))))
+
+(extend-protocol mp/PVectorOps
+  (Class/forName "[[D")
+    (vector-dot [m b]
+      (cond
+        (== 1 (mp/dimensionality b))
+        (let [x (mp/dimension-count m 0)
+              ^doubles final-results (double-array x)]
+          (loop [i 0]
+            (if (< i x)
+              (do
+                (aset final-results i
+                  (let [^doubles a (aget m i)]
+                    (areduce a j res 0.0
+                             (+ res (* (mp/get-1d b j) 
+                                    (aget a j))))))
+                (recur (inc i))) 
+              final-results)))
+        (== 2 (mp/dimensionality b))
+        (let [x (mp/dimension-count m 0)
+              ^doubles final-results (double-array x)]
+          (loop [i 0]
+            (if (< i x)
+              (do
+                (aset final-results i
+                      (let [^doubles a (aget m i)]
+                        (areduce a j res 0.0
+                                 (+ res (* (mp/get-2d b i j)
+                                           (aget a j))))))
+                (recur (inc i)))
+              final-results)))
+        :else nil)))
+
+(extend-protocol mp/PCoercion
+  (Class/forName "[[D")
+    (coerce-param [m param]
+      (cond
+        (is-2d-double-array? param) param
+        :else (construct-double-array param))))
+
+
+(extend-protocol mp/PMatrixCloning
+  (Class/forName "[[D")
+    (clone [m]
+      (java.util.Arrays/copyOf ^"[[D" m (alength m))))
+
+(extend-protocol mp/PFunctionalOperations
+  (Class/forName "[[D")
+  (element-seq [m]
+    (seq (apply concat m)))
+  (element-map
+    ([m f]
+      (let [[x y] (mp/get-shape m)
+            ^"[[D" res (make-array Double/TYPE x y)]
+        (dotimes [i x]
+          (dotimes [j y]
+            (aset-double res i j (double (f (aget m i j))))))
+        res))
+    ([m f a]
+      (let [^"[[D" a (mp/broadcast-coerce m a)
+            [x y] (mp/get-shape m)
+            ^"[[D" res (make-array Double/TYPE x y)]
+        (dotimes [i x]
+          (dotimes [j y]
+            (aset-double res i j (double (f (aget m i j)
+                                            (aget a i j))))))
+        res))
+    ([m f a more]
+     (let [^"[[D" m (copy-2d-double-array m)
+           ^"[[D" a (mp/broadcast-coerce m a)
+           [x y] (mp/get-shape m)
+           more (mapv #(mp/broadcast-coerce m %) more)
+           more-count (count more)
+           ^doubles vs (double-array more-count)]
+       (dotimes [i x]
+         (dotimes [j y]
+           (dotimes [k more-count] (aset vs k (aget ^"[[D" (more k) i j)))
+           (aset-double m i j (apply f (aget m i j) (aget a i j) vs))))
+       m)))
+  (element-map!
+    ([m f]
+      (mp/assign! m (mp/element-map m f)))
+    ([m f a]
+      (mp/assign! m (mp/element-map m f a)))
+    ([m f a more]
+      (mp/assign! m (mp/element-map m f a more))))
+  (element-reduce
+    ([m f init]
+      (let [[x y] (mp/get-shape m)]
+        (areduce m i res-outer (double init)
+                 (let [^doubles arr (aget m i)]
+                   (areduce arr j res-inner res-outer
+                            (f res-inner (aget arr j)))))))))
 
 ; registration
 (imp/register-implementation (make-array Double/TYPE 1 1))
