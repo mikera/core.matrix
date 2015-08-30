@@ -16,6 +16,12 @@
 (defmacro is-2d-double-array? [m]
   `(instance? ~(Class/forName "[[D") ~m))
 
+(defmacro loop-over-2d [m i j & body]
+  `(let [[x# y#] (mp/get-shape ~m)]
+    (dotimes [~i x#]
+      (dotimes [~j y#]
+        ~@body))))
+
 (defn ^"[[D" copy-2d-double-array [^"[[D" m]
   (into-array (Class/forName "[D")
               (mapv copy-double-array ^"[[D" m)))
@@ -258,6 +264,70 @@
                  (let [^doubles arr (aget m i)]
                    (areduce arr j res-inner res-outer
                             (f res-inner (aget arr j)))))))))
+
+(extend-protocol mp/PMapIndexed
+  (Class/forName "[[D")
+  (element-map-indexed
+    ([m f]
+      (let [[x y] (mp/get-shape m)
+            ^"[[D" res (make-array Double/TYPE x y)]
+        (dotimes [i x]
+          (dotimes [j y]
+            (aset ^"[[D" res i j (double (f [i j] (aget m i j))))))
+        res))
+    ([m f a]
+     (let [[x y] (mp/get-shape m)
+           ^"[[D" a (mp/broadcast-coerce m a)
+           ^"[[D" res (make-array Double/TYPE x y)]
+       (dotimes [i x]
+         (dotimes [j y]
+           (aset ^"[[D" res i j (double (f [i j] (aget m i j) (aget a i j))))))
+       res))
+    ([m f a more]
+     (let [[x y] (mp/get-shape m)
+           ^"[[D" a (mp/broadcast-coerce m a)
+           ^"[[D" res (make-array Double/TYPE x y)
+           more (mapv #(mp/broadcast-coerce m %) more)
+           more-count (long (count more))
+           ^doubles vs (double-array more-count)]
+       (dotimes [i x]
+         (dotimes [j y]
+           (dotimes [k more-count] (aset vs k (aget ^"[[D" (more k) i j)))
+           (aset-double res i j (double (apply f [i j] (aget m i j) (aget a i j)
+                                               vs)))))
+       res)))
+  (element-map-indexed!
+    ([m f]
+     (mp/assign! m (mp/element-map-indexed m f)))
+    ([m f a]
+     (mp/assign! m (mp/element-map-indexed m f a)))
+    ([m f a more]
+     (mp/assign! m (mp/element-map-indexed m f a more)))))
+
+(extend-protocol mp/PMatrixDivide
+  (Class/forName "[[D")
+  (element-divide
+    ([m] (mp/element-map m #(/ %)))
+    ([m a] (if (number? a)
+             (mp/element-map m #(/ % a))
+             (mp/element-map m #(/ %1 %2) a)))))
+
+(extend-protocol mp/PMatrixDivideMutable
+  (Class/forName "[[D")
+  (element-divide!
+    ([^"[[D" m]
+     (loop-over-2d
+       m i j
+       (aset-double ^"[[D" m i j ^double (/ 1.0 ^double (aget m i j)))))
+    ([^"[[D" m a]
+     (if (number? a)
+       (loop-over-2d
+         m i j
+         (aset-double ^"[[D" m i j ^double (/ ^double (aget m i j) a)))
+       (loop-over-2d
+         m i j
+         (aset-double ^"[[D" m i j ^double (/ ^double (aget m i j)
+                                              ^double (aget a i j))))))))
 
 ; registration
 (imp/register-implementation (make-array Double/TYPE 1 1))
