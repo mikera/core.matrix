@@ -331,5 +331,21 @@
          (aset-double ^"[[D" m i j ^double (/ ^double (aget m i j)
                                               ^double (aget a i j))))))))
 
+(extend-protocol mp/PSelect
+  (Class/forName "[[D")
+  (select [m [x y :as args]]
+    (if (= 2 (count args))
+      (let [count-x (count x)
+            count-y (count y)
+            ^"[[D" res (make-array Double/TYPE count-x count-y)]
+        (dotimes [i count-x]
+          (dotimes [j count-y]
+            (aset-double ^"[[D" res i j
+                         (aget ^"[[D" m
+                               (nth x i)
+                               (nth y j)))))
+        res)
+      (error "select on 2D double array takes only 2 arguments"))))
+
 ; registration
 (imp/register-implementation (make-array Double/TYPE 1 1))

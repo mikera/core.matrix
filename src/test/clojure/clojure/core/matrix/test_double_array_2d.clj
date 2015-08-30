@@ -177,3 +177,15 @@
              (div! m golden-ratio)
              (is (== m (emap #(/ % golden-ratio) 
                              default-value)))))
+
+(deftest test-select
+  (wrap-test "test select" m
+    (let [selected (select m 0 0)]
+      (is (scalar? selected))
+      (is (or (instance? Double/TYPE selected)
+              (instance? java.lang.Double selected))))
+    (let [selected (select m [0] [0])]
+      (is (instance? (Class/forName "[[D") selected)))
+    (let [selected (select m 0 :all)]
+      (is (== selected [1.0 2.0 3.0]))
+      (is (instance? (Class/forName "[D") selected)))))
