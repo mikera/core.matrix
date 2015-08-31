@@ -152,36 +152,40 @@
 (extend-protocol mp/PMatrixScaling
   (Class/forName "[[D")
     (scale [m a]
-      (let [^"[[D" m (copy-2d-double-array m)
-            x (alength m)
-            y (alength ^doubles (aget m 0))]
+      (let [x (alength ^"[[D" m)
+            y (alength ^doubles (aget ^"[[D" m 0))
+            ^"[[D" res (make-array Double/TYPE x y)]
         (dotimes [i x]
-          (dotimes [j y]
-            (aset-double m i j (* a (aget m i j)))))
-        m))
+          (let [^doubles res-i (aget res i)
+                ^doubles m-i (aget ^"[[D" m i)]
+            (dotimes [j y]
+              (aset-double res-i j (* a (aget m-i j))))))
+        res))
     (pre-scale [m a]
-      (let [m (copy-2d-double-array m)
-            x (alength m)
-            y (alength ^doubles (aget m 0))]
+      (let [x (alength ^"[[D" m)
+            y (alength ^doubles (aget ^"[[D" m 0))
+            ^"[[D" res (make-array Double/TYPE x y)]
         (dotimes [i x]
-          (dotimes [j y]
-            (aset-double m i j (* a ^double (aget m i j)))))
-        m)))
+          (let [^doubles res-i (aget res i)
+                ^doubles m-i (aget ^"[[D" m i)]
+            (dotimes [j y]
+              (aset-double res-i j (* a (aget m-i j))))))
+        res)))
 
 (extend-protocol mp/PMatrixMutableScaling
   (Class/forName "[[D")
     (scale! [m a]
       (let [x (alength ^"[[D" m)
             y (alength ^doubles (aget ^"[[D" m 0))]
-        (dotimes [i x]
-          (dotimes [j y]
-            (aset-double m i j (* a ^double (aget m i j)))))))
+        (loop-over-2d
+          m i j
+          (aset-double m-i j (* a (double (aget m-i j)))))))
     (pre-scale! [m a]
       (let [x (alength ^"[[D" m)
             y (alength ^doubles (aget ^"[[D" m 0))]
-        (dotimes [i x]
-          (dotimes [j y]
-            (aset-double m i j (* a ^double (aget m i j))))))))
+        (loop-over-2d
+          m i j
+          (aset-double m-i j (* a (double (aget m-i j))))))))
 
 (extend-protocol mp/PConversion
   (Class/forName "[[D")
@@ -245,30 +249,38 @@
       (let [[x y] (mp/get-shape m)
             ^"[[D" res (make-array Double/TYPE x y)]
         (dotimes [i x]
-          (dotimes [j y]
-            (aset-double res i j (double (f (aget m i j))))))
+          (let [^doubles m-i (aget ^"[[D" m i)
+                ^doubles res-i (aget res i)]
+            (dotimes [j y]
+              (aset-double res-i j (double (f (aget m-i j)))))))
         res))
     ([m f a]
-      (let [^"[[D" a (mp/broadcast-coerce m a)
-            [x y] (mp/get-shape m)
+      (let [[x y] (mp/get-shape m)
+            ^"[[D" a (mp/broadcast-coerce m a)
             ^"[[D" res (make-array Double/TYPE x y)]
         (dotimes [i x]
-          (dotimes [j y]
-            (aset-double res i j (double (f (aget m i j)
-                                            (aget a i j))))))
+          (let [^doubles m-i (aget ^"[[D" m i)
+                ^doubles res-i (aget res i)
+                ^doubles a-i (aget ^"[[D" a i)]
+            (dotimes [j y]
+              (aset-double res-i j (double (f (aget m-i j) (aget a-i j)))))))
         res))
     ([m f a more]
-     (let [^"[[D" m (copy-2d-double-array m)
+     (let [[x y] (mp/get-shape m)
            ^"[[D" a (mp/broadcast-coerce m a)
-           [x y] (mp/get-shape m)
+           ^"[[D" res (make-array Double/TYPE x y) 
            more (mapv #(mp/broadcast-coerce m %) more)
            more-count (count more)
            ^doubles vs (double-array more-count)]
        (dotimes [i x]
-         (dotimes [j y]
-           (dotimes [k more-count] (aset vs k (double (aget ^"[D" (more k) i j))))
-           (aset-double m i j (apply f (aget m i j) (aget a i j) vs))))
-       m)))
+         (let [^doubles m-i (aget ^"[[D" m i)
+               ^doubles a-i (aget ^"[[D" m i)
+               ^doubles res-i (aget ^"[[D" res i)
+               more-i (mapv #(aget ^"[[D" % i) more)]
+           (dotimes [j y]
+             (dotimes [k more-count] (aset ^doubles vs k (double (aget ^doubles (more-i k) j))))
+             (aset-double res-i j (double (apply f (aget m i j) (aget a i j) vs))))))
+       res)))
   (element-map!
     ([m f]
       (mp/assign! m (mp/element-map m f)))
@@ -294,16 +306,21 @@
       (let [[x y] (mp/get-shape m)
             ^"[[D" res (make-array Double/TYPE x y)]
         (dotimes [i x]
-          (dotimes [j y]
-            (aset ^"[[D" res i j (double (f [i j] (aget m i j))))))
+          (let [^doubles m-i (aget ^"[[D" m i)
+                ^doubles res-i (aget res i)]
+            (dotimes [j y]
+              (aset-double res-i j (double (f [i j] (aget m-i j)))))))
         res))
     ([m f a]
      (let [[x y] (mp/get-shape m)
            ^"[[D" a (mp/broadcast-coerce m a)
            ^"[[D" res (make-array Double/TYPE x y)]
        (dotimes [i x]
-         (dotimes [j y]
-           (aset ^"[[D" res i j (double (f [i j] (aget m i j) (aget a i j))))))
+         (let [^doubles m-i (aget ^"[[D" m i)
+               ^doubles res-i (aget res i)
+               ^doubles a-i (aget ^"[[D" a i)]
+           (dotimes [j y]
+             (aset-double res-i j (double (f [i j] (aget m-i j)))))))
        res))
     ([m f a more]
      (let [[x y] (mp/get-shape m)
@@ -313,10 +330,16 @@
            more-count (long (count more))
            ^doubles vs (double-array more-count)]
        (dotimes [i x]
-         (dotimes [j y]
-           (dotimes [k more-count] (aset vs k ^double (aget ^"[[D" (more k) i j)))
-           (aset-double res i j (double (apply f [i j] (aget m i j) (aget a i j)
-                                               vs)))))
+         (let [^doubles m-i (aget ^"[[D" m i)
+               ^doubles a-i (aget ^"[[D" m i)
+               ^doubles res-i (aget ^"[[D" res i)
+               more-i (mapv #(aget ^"[[D" % i) more)]
+           (dotimes [j y]
+             (dotimes [k more-count] (aset ^doubles vs k (double (aget ^doubles (more-i k) j))))
+             (aset-double res-i j (double (apply f [i j]
+                                                 (aget m i j)
+                                                 (aget a i j)
+                                                 vs))))))
        res)))
   (element-map-indexed!
     ([m f]
@@ -340,30 +363,32 @@
     ([^"[[D" m]
      (loop-over-2d
        m i j
-       (aset-double ^"[[D" m i j ^double (/ 1.0 ^double (aget m i j)))))
+       (aset-double ^"[[D" m-i j (double (/ 1.0 ^double (aget m-i j))))))
     ([^"[[D" m a]
      (if (number? a)
        (loop-over-2d
          m i j
-         (aset-double ^"[[D" m i j ^double (/ ^double (aget m i j) a)))
+         (aset-double ^"[[D" m-i j (double (/ ^double (aget m-i j) a))))
        (loop-over-2d
          m i j
-         (aset-double ^"[[D" m i j ^double (/ ^double (aget m i j)
-                                              ^double (aget a i j))))))))
+         (aset-double ^"[[D" m-i j (double (/ ^double (aget m-i j)
+                                              ^double (aget a i j)))))))))
 
 (extend-protocol mp/PSelect
   (Class/forName "[[D")
   (select [m [x y :as args]]
     (if (= 2 (count args))
-      (let [count-x (count x)
+      (let [x (vec x)
+            y (vec y)
+            count-x (count x)
             count-y (count y)
             ^"[[D" res (make-array Double/TYPE count-x count-y)]
         (dotimes [i count-x]
-          (dotimes [j count-y]
-            (aset-double ^"[[D" res i j
-                         (aget ^"[[D" m
-                               (nth x i)
-                               (nth y j)))))
+          (let [^doubles m-i (aget ^"[[D" m (x i))
+                ^doubles res-i (aget ^"[[D" res (x i))]
+            (dotimes [j count-y]
+              (aset-double res-i j
+                           (aget m-i (y j)))))) 
         res)
       (error "select on 2D double array takes only 2 arguments"))))
 

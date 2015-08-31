@@ -188,5 +188,6 @@
     (let [selected (select m [0] [0])]
       (is (instance? (Class/forName "[[D") selected)))
     (let [selected (select m 0 :all)]
+      (is (= 1 (mp/dimensionality selected)))
       (is (== selected [1.0 2.0 3.0]))
       (is (instance? (Class/forName "[D") selected)))))
