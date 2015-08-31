@@ -16,11 +16,19 @@
 (defmacro is-2d-double-array? [m]
   `(instance? ~(Class/forName "[[D") ~m))
 
-(defmacro loop-over-2d [m i j & body]
-  `(let [[x# y#] (mp/get-shape ~m)]
-    (dotimes [~i x#]
-      (dotimes [~j y#]
-        ~@body))))
+(defmacro loop-over-2d
+  "Defines a convinient way to loop through 2D Java arrays, binding i and j
+  to the indices of the row and column respectively. It also binds the current row
+  to the symbol m-{i} (in an optimized manner).
+
+  This macro should only be used when there is no row-specific computation."
+  ([m i j & body]
+   (let [row-symbol (symbol (str "m-" (name i)))]
+     `(let [[x# y#] (mp/get-shape ~m)]
+       (dotimes [~i x#]
+         (let [~(with-meta row-symbol {:tag 'doubles}) (aget ~m ~i)]
+           (dotimes [~j y#]
+             ~@body)))))))
 
 (defn ^"[[D" copy-2d-double-array [^"[[D" m]
   (into-array (Class/forName "[D")
