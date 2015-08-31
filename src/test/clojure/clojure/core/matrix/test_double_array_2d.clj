@@ -56,18 +56,19 @@
       (set-column! da 1 [10 11])
       (is (== da [[1.0 10.0 3.0] [4.0 11.0 6.0]])))))
 
-(deftest test-array-outputs
-  (wrap-test "test object array outputs" m
-             (let [m2 (mp/to-object-array m)]
-               (is (not= m m2))
-               (is (== m m2))
-               (is (= (class m2) (class (make-array Object 1 1))))))
-  (wrap-test "test double array outputs" m
-             (let [m2 (mp/to-double-array m)]
-               (is (not= m m2))
-               (is (== m m2)))
-             (let [m2 (mp/as-double-array m)]
-               (is (= m m2)))))
+(comment
+  (deftest test-array-outputs
+    (wrap-test "test object array outputs" m
+               (let [m2 (mp/to-object-array m)]
+                 (is (not= m m2))
+                 (is (== m m2))
+                 (is (= (class m2) (class (make-array Object 1 1))))))
+    (wrap-test "test double array outputs" m
+               (let [m2 (mp/to-double-array m)]
+                 (is (not= m m2))
+                 (is (== m m2)))
+               (let [m2 (mp/as-double-array m)]
+                 (is (= m m2))))))
 
 (deftest test-summable
   (testing "element sum"

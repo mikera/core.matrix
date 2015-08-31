@@ -27,10 +27,10 @@
   This macro should only be used when there is no row-specific computation."
   ([m i j & body]
    (let [row-symbol (symbol (str "m-" (name i)))]
-     `(let [[x# y#] (mp/get-shape ^"[[D" ~m)]
+     `(let [[x# y#] (mp/get-shape ^"[[D" ~m)
+            ~(with-meta 'm {:tag "[[D"}) ~m]
        (dotimes [~i x#]
-         (let [~(with-meta row-symbol {:tag 'doubles}) 
-               (aget ^"[[D" ~m ~i)]
+         (let [~(with-meta row-symbol {:tag 'doubles}) (aget ~'m ~i)]
            (dotimes [~j y#]
              ~@body)))))))
 
@@ -74,16 +74,24 @@
     (element-type [m]
       Double/TYPE))
 
-(extend-protocol mp/PDoubleArrayOutput
-  (Class/forName "[[D")
-    (to-double-array [m] (copy-2d-double-array m))
-    (as-double-array [m] m))
+(comment
+  (extend-protocol mp/PDoubleArrayOutput
+    (Class/forName "[[D")
+      (to-double-array [m]
+        (let [[x y] (mp/get-shape m)
+              res (make-array Double/TYPE x y)]
+          (dotimes [i x]
+            (dotimes [j y]
+              (aset-double res i j (double (aget m i j)))))
+          res))
+      (as-double-array [m] m))
 
-(extend-protocol mp/PObjectArrayOutput
-  (Class/forName "[[D")
-    (to-object-array [m] (into-array (Class/forName "[Ljava.lang.Object;")
-                                     (mapv object-array m)))
-    (as-object-array [m] nil))
+
+  (extend-protocol mp/PObjectArrayOutput
+    (Class/forName "[[D")
+      (to-object-array [m] (into-array (Class/forName "[Ljava.lang.Object;")
+                                       (mapv object-array m)))
+      (as-object-array [m] nil)))
 
 (extend-protocol mp/PSummable
   (Class/forName "[[D")
