@@ -11,6 +11,9 @@
 ; TODO : Is it safe to assume that all columns have the
 ; same length?
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* true)
+
 ; Utilities:
 
 (defmacro is-2d-double-array? [m]
@@ -24,9 +27,10 @@
   This macro should only be used when there is no row-specific computation."
   ([m i j & body]
    (let [row-symbol (symbol (str "m-" (name i)))]
-     `(let [[x# y#] (mp/get-shape ~m)]
+     `(let [[x# y#] (mp/get-shape ^"[[D" ~m)]
        (dotimes [~i x#]
-         (let [~(with-meta row-symbol {:tag 'doubles}) (aget ~m ~i)]
+         (let [~(with-meta row-symbol {:tag 'doubles}) 
+               (aget ^"[[D" ~m ~i)]
            (dotimes [~j y#]
              ~@body)))))))
 
@@ -57,11 +61,11 @@
     (is-vector? [m] false)
     (is-scalar? [m] false)
     (get-shape [m] (list (count m)
-                         (count (aget m 0))))
+                         (count (aget ^"[[D" m 0))))
     (dimension-count [m x]
       (condp == (long x)
         0 (count m)
-        1 (count (aget m 0))
+        1 (count (aget ^"[[D" m 0))
         (error "Double array does not have dimension: " x))))
 
 ;; explicitly specify we use a primitive type
@@ -72,9 +76,7 @@
 
 (extend-protocol mp/PDoubleArrayOutput
   (Class/forName "[[D")
-    (to-double-array [m]
-      (into-array (Class/forName "[D")
-                  (mapv copy-double-array m)))
+    (to-double-array [m] (copy-2d-double-array m))
     (as-double-array [m] m))
 
 (extend-protocol mp/PObjectArrayOutput
@@ -142,9 +144,9 @@
 (extend-protocol mp/PMatrixScaling
   (Class/forName "[[D")
     (scale [m a]
-      (let [m (copy-2d-double-array m)
+      (let [^"[[D" m (copy-2d-double-array m)
             x (alength m)
-            y (alength (aget m 0))]
+            y (alength ^doubles (aget m 0))]
         (dotimes [i x]
           (dotimes [j y]
             (aset-double m i j (* a (aget m i j)))))
@@ -152,7 +154,7 @@
     (pre-scale [m a]
       (let [m (copy-2d-double-array m)
             x (alength m)
-            y (alength (aget m 0))]
+            y (alength ^doubles (aget m 0))]
         (dotimes [i x]
           (dotimes [j y]
             (aset-double m i j (* a ^double (aget m i j)))))
@@ -161,14 +163,14 @@
 (extend-protocol mp/PMatrixMutableScaling
   (Class/forName "[[D")
     (scale! [m a]
-      (let [x (alength m)
-            y (alength (aget m 0))]
+      (let [x (alength ^"[[D" m)
+            y (alength ^doubles (aget ^"[[D" m 0))]
         (dotimes [i x]
           (dotimes [j y]
             (aset-double m i j (* a ^double (aget m i j)))))))
     (pre-scale! [m a]
-      (let [x (alength m)
-            y (alength (aget m 0))]
+      (let [x (alength ^"[[D" m)
+            y (alength ^doubles (aget ^"[[D" m 0))]
         (dotimes [i x]
           (dotimes [j y]
             (aset-double m i j (* a ^double (aget m i j))))))))
@@ -186,15 +188,16 @@
       (cond
         (== 1 (mp/dimensionality b))
         (let [x (mp/dimension-count m 0)
-              ^doubles final-results (double-array x)]
+              ^doubles final-results (double-array x)
+              ^"[[D" m m]
           (loop [i 0]
             (if (< i x)
               (do
-                (aset final-results i
-                  (let [^doubles a (aget m i)]
-                    (areduce a j res 0.0
-                             (+ res (* (mp/get-1d b j) 
-                                    (aget a j))))))
+                (aset-double final-results i
+                             (let [^doubles a (aget m i)]
+                               (areduce a j res 0.0
+                                        (+ res (* (mp/get-1d b j) 
+                                         (aget a j))))))
                 (recur (inc i))) 
               final-results)))
         (== 2 (mp/dimensionality b))
@@ -203,11 +206,11 @@
           (loop [i 0]
             (if (< i x)
               (do
-                (aset final-results i
-                      (let [^doubles a (aget m i)]
-                        (areduce a j res 0.0
-                                 (+ res (* (mp/get-2d b i j)
-                                           (aget a j))))))
+                (aset-double final-results i
+                             (let [^doubles a (aget ^"[[D" m i)]
+                               (areduce a j res 0.0
+                                        (+ res (* (mp/get-2d b i j)
+                                                  (aget a j))))))
                 (recur (inc i)))
               final-results)))
         :else nil)))
@@ -223,7 +226,7 @@
 (extend-protocol mp/PMatrixCloning
   (Class/forName "[[D")
     (clone [m]
-      (java.util.Arrays/copyOf ^"[[D" m (alength m))))
+      (java.util.Arrays/copyOf ^"[[D" m (int (alength ^"[[D" m)))))
 
 (extend-protocol mp/PFunctionalOperations
   (Class/forName "[[D")
@@ -255,7 +258,7 @@
            ^doubles vs (double-array more-count)]
        (dotimes [i x]
          (dotimes [j y]
-           (dotimes [k more-count] (aset vs k (aget ^"[[D" (more k) i j)))
+           (dotimes [k more-count] (aset vs k (double (aget ^"[D" (more k) i j))))
            (aset-double m i j (apply f (aget m i j) (aget a i j) vs))))
        m)))
   (element-map!
@@ -270,10 +273,10 @@
      (mp/element-reduce m f 0))
     ([m f init]
       (let [[x y] (mp/get-shape m)]
-        (areduce m i res-outer (double init)
-                 (let [^doubles arr (aget m i)]
+        (areduce ^"[[D" m i res-outer (double init)
+                 (let [^doubles arr (aget ^"[[D" m i)]
                    (areduce arr j res-inner res-outer
-                            (f res-inner (aget arr j)))))))))
+                            ^double (f res-inner ^double (aget arr j)))))))))
 
 (extend-protocol mp/PMapIndexed
   (Class/forName "[[D")
@@ -302,7 +305,7 @@
            ^doubles vs (double-array more-count)]
        (dotimes [i x]
          (dotimes [j y]
-           (dotimes [k more-count] (aset vs k (aget ^"[[D" (more k) i j)))
+           (dotimes [k more-count] (aset vs k ^double (aget ^"[[D" (more k) i j)))
            (aset-double res i j (double (apply f [i j] (aget m i j) (aget a i j)
                                                vs)))))
        res)))
