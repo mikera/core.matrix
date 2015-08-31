@@ -283,8 +283,9 @@
       (let [[x y] (mp/get-shape m)]
         (areduce ^"[[D" m i res-outer (double init)
                  (let [^doubles arr (aget ^"[[D" m i)]
-                   (areduce arr j res-inner res-outer
-                            ^double (f res-inner ^double (aget arr j)))))))))
+                   (double
+                     (areduce ^doubles arr j res-inner res-outer
+                              (double (f res-inner (aget arr j)))))))))))
 
 (extend-protocol mp/PMapIndexed
   (Class/forName "[[D")
