@@ -63,7 +63,6 @@
     (supports-dimensionality? [m dims]
       (== dims 1)))
 
-
 (extend-protocol mp/PDimensionInfo
   (Class/forName "[D")
     (dimensionality [m] 1)
@@ -328,6 +327,19 @@
              (mp/element-map m #(/ % a))
              (let [[m a] (mp/broadcast-compatible m a)]
                (mp/element-map m #(/ %1 %2) a))))))
+
+(extend-protocol mp/PSelect
+  (Class/forName "[D")
+  (select
+    [m args]
+    (if (= 1 (count args))
+      (let [indices (vec (first args))
+            ^doubles res (make-array Double/TYPE (count indices))]
+        (dotimes [i (count indices)]
+          (aset-double res i
+                       ^double (aget ^doubles m (nth indices i))))
+        res)
+      (error "Cannot select " (count args) "dimension(s) on 1D double array"))))
 
 (defn to-double-arrays
   "Converts an array to nested double arrays with the same shape."

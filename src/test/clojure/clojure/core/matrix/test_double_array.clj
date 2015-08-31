@@ -2,6 +2,7 @@
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.compliance-tester]
             [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.operators :refer [==]]
             [clojure.core.matrix.utils :refer [error?]]
             [clojure.test :refer :all]))
 
@@ -184,6 +185,20 @@
   (clojure.core.matrix.compliance-tester/instance-test (double-array [1]))
   (clojure.core.matrix.compliance-tester/instance-test (double-array [1 2]))
   (clojure.core.matrix.compliance-tester/instance-test (double-array [-1 4 2 7 -3])))
+
+(deftest test-select
+  (testing "select ops"
+    (let [da (double-array [1.2 3.4 5.6 7.8 9.1])]
+      (let [selected (select da :all)]
+        (is (= (class selected) (Class/forName "[D")))
+        (is (== selected da))
+        (is (not= selected da)))
+      (let [selected (select da 0)]
+        (is (scalar? selected))
+        (is (= 1.2 selected)))
+      (let [selected (select da [1 2])]
+        (is (= (class selected) (Class/forName "[D")))
+        (is (== selected [3.4 5.6]))))))
 
 (deftest compliance-test
   (clojure.core.matrix.compliance-tester/compliance-test (double-array [0.23])))
