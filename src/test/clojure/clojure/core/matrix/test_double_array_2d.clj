@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.test-double-array-2d
+  (:refer-clojure :exclude [==])
   (:require [clojure.test :refer :all]
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.compliance-tester]

@@ -146,24 +146,30 @@
     (to-object-array [m] (object-array m))
     (as-object-array [m] nil))
 
-; TODO : This implementation can cause some test too fail!
-(comment
-  (extend-protocol mp/PDoubleArrayOutput
-    (Class/forName "[[D")
-      (to-double-array [m]
-        (let [[x y] (mp/get-shape m)
-              res (make-array Double/TYPE x y)]
-          (dotimes [i x]
-            (dotimes [j y]
-              (aset-double res i j (double (aget m i j)))))
-          res))
-      (as-double-array [m] m))
+(extend-protocol mp/PDoubleArrayOutput
+  (Class/forName "[[D")
+    (to-double-array [m]
+      (let [[^long rows ^long cols] (mp/get-shape m)
+            ^doubles res (double-array (* rows cols))]
+        (dotimes [i rows]
+          (let [^doubles row (aget ^"[[D" m i)]
+            (dotimes [j cols]
+              (aset res (+ j (* i cols)) (aget row j)))))
+        res))
+    (as-double-array [m] nil))
 
-  (extend-protocol mp/PObjectArrayOutput
-    (Class/forName "[[D")
-      (to-object-array [m] (into-array (Class/forName "[Ljava.lang.Object;")
-                                       (mapv object-array m)))
-      (as-object-array [m] nil)))
+(extend-protocol mp/PObjectArrayOutput
+  (Class/forName "[[D")
+    (to-object-array [m] 
+      (let [[^long rows ^long cols] (mp/get-shape m)
+            ^"[Ljava.lang.Object;" res (object-array (* rows cols))]
+        (dotimes [i rows]
+          (let [^doubles row (aget ^"[[D" m i)]
+            (dotimes [j cols]
+              ;; TODO: fix identity hack that is needed to fix reflection warning
+              (aset res (+ j (* i cols)) (identity (aget row j))))))
+        res))
+    (as-object-array [m] nil))
 
 (extend-protocol mp/PIndexedAccess
   (Class/forName "[D")
