@@ -4,7 +4,7 @@
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.operators :refer [==]]
             [clojure.core.matrix.utils :refer :all]
-            [clojure.core.matrix.impl.double-array-2d :refer :all]))
+            [clojure.core.matrix.impl.double-array :refer :all]))
 
 (def golden-ratio 1.61803398875)
 (def default-value [[1.0 2.0 3.0]
@@ -13,12 +13,12 @@
 (defmacro wrap-test 
   ([clause m & body]
   `(testing ~clause
-    (let [~m (matrix :double-array-2d default-value)]
+    (let [~m (matrix :double-array default-value)]
       ~@body))))
 
 ; utilities test
 (deftest test-copy-2d-double-array
-  (let [m (matrix :double-array-2d [[1.0 2.0 3.0] [4.0 5.0 6.0]])
+  (let [m (matrix :double-array [[1.0 2.0 3.0] [4.0 5.0 6.0]])
         m2 (copy-2d-double-array m)]
     (is (== m m2))
     (aset-double m2 0 0 23.0)
@@ -26,33 +26,33 @@
 
 ; == Specification tests (dimensionality and types)
 (deftest test-element-type
-  (= Double/TYPE (element-type (matrix :double-array-2d [[1]]))))
+  (= Double/TYPE (element-type (matrix :double-array [[1]]))))
 
 (deftest test-dimensionality
-  (== 2 (dimensionality (matrix :double-array-2d [[1]]))))
+  (== 2 (dimensionality (matrix :double-array [[1]]))))
 
 (deftest test-is-mutable-matrix
-  (is (true? (mutable? (matrix :double-array-2d [[1]])))))
+  (is (true? (mutable? (matrix :double-array [[1]])))))
 
 ; == core API tests
 (deftest test-create
   (testing "Making a 2D double array"
-    (let [da (matrix :double-array-2d [[1 2]])]
+    (let [da (matrix :double-array [[1 2]])]
       (is (= (mapv seq da) [[1.0 2.0]]))
       (is (= (eseq da) [1.0 2.0]))
       (is (= (Class/forName "[[D") (class da)))))
   (testing "coerce from a perssistent vector"
-    (let [da (matrix :double-array-2d [[1 2]])]
+    (let [da (matrix :double-array [[1 2]])]
       (is (= [[2.0 4.0]] (mapv seq (coerce da [[2 4]]))))
       (is (= (class da) (class (coerce da [[2 4]])))))))
 
 (deftest test-setting
   (testing "row setting"
-    (let [da (matrix :double-array-2d [[1 2 3] [4 5 6]])]
+    (let [da (matrix :double-array [[1 2 3] [4 5 6]])]
       (set-row! da 0 [7.0 8.0 9.0])
       (is (== da [[7.0 8.0 9.0] [4.0 5.0 6.0]]))))
   (testing "column setting"
-    (let [da (matrix :double-array-2d [[1 2 3] [4 5 6]])]
+    (let [da (matrix :double-array [[1 2 3] [4 5 6]])]
       (set-column! da 1 [10 11])
       (is (== da [[1.0 10.0 3.0] [4.0 11.0 6.0]])))))
 
@@ -72,7 +72,7 @@
 
 (deftest test-summable
   (testing "element sum"
-    (let [da (matrix :double-array-2d [[1 2] [3 4]])]
+    (let [da (matrix :double-array [[1 2] [3 4]])]
       (is (== (esum da) 10.0)))))
 
 (deftest indexed-access
