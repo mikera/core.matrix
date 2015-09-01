@@ -182,7 +182,8 @@
                        [size ])]
         (into {} (for [[size args-raw] bench
                        :let [args (args-prepare constructor args-raw)
-                             bench-call (construct-bench-call f 'dyn-args args)]]
+                             sym (->> #'dyn-args str next next (apply str) symbol)
+                             bench-call (construct-bench-call f sym args)]]
                    [size (->> (binding [dyn-args args]
                                 (eval bench-call))
                               :mean
