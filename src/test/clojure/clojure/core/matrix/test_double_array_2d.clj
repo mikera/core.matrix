@@ -1,6 +1,7 @@
 (ns clojure.core.matrix.test-double-array-2d
   (:require [clojure.test :refer :all]
             [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.compliance-tester]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.operators :refer [==]]
             [clojure.core.matrix.utils :refer :all]
@@ -191,3 +192,10 @@
       (is (= 1 (mp/dimensionality selected)))
       (is (== selected [1.0 2.0 3.0]))
       (is (instance? (Class/forName "[D") selected)))))
+
+(deftest instance-test
+  (clojure.core.matrix.compliance-tester/instance-test (construct-double-array [[1 1 2]
+                                                                                [-13 -8 -5]])))
+
+(deftest compliance-test
+  (clojure.core.matrix.compliance-tester/compliance-test (construct-double-array [[0.23]])))
