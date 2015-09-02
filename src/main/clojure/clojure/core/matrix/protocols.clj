@@ -573,6 +573,13 @@
   (matrix-add! [m a])
   (matrix-sub! [m a]))
 
+(defprotocol PScaleAdd
+  "Protocol to support the mutable scale-add! operation. This is a common operation that may be 
+   optimised by the underlying implementation. Implementations should consider extra optimisations for
+   specific constant values e.g. 0.0 and 1.0 but this is not mandatory."
+  (scale-add! [m1 a m2 b constant]
+    "Scales array m1 in place by factor b, then adds array m2 scaled by factor b, then adds the constant"))
+
 (defprotocol PSubMatrix
   "Protocol to get a subarray of another array. dim-ranges should be a sequence of [start len]
    pairs, one for each dimension. If a pair is nil, it should be interpreted to take the whole dimension.

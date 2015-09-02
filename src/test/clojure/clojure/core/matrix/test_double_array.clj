@@ -170,6 +170,13 @@
     (is (equals [2.0 6.0] (vec a)))
     (is (equals [2.0 6.0] a))))
 
+(deftest test-scale-add
+  (let [v (double-array [1 2 3])]
+    (scale-add! v 2.0 [10 20 30] 3 100)
+    (is (equals [132 164 196] (array [] v)))
+    (scale-add! v 0.0 [1 2 3] 2 [-1 -10 10])
+    (is (equals [1 -6 16] v))))
+
 (deftest test-element-ops
   (let [a (double-array [5 1 7 8 4])]
     (is (== 1 (emin a)))

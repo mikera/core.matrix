@@ -851,6 +851,14 @@
     (add-scaled-product! [m a b factor]
       (mp/matrix-add! m (mp/scale (mp/element-multiply a b) factor))))
 
+(extend-protocol mp/PScaleAdd
+  Object
+    (scale-add! [m1 a m2 b constant]
+      (mp/element-multiply! m1 a)
+      (when-not (and (number? b) (== b 0.0)) (mp/add-product! m1 m2 b))
+      (when-not (and (number? constant) (== constant 0.0)) (mp/matrix-add! m1 constant))
+      m1))
+
 ;; type of matrix element
 ;; the default is to assume any type is possible
 (extend-protocol mp/PTypeInfo
