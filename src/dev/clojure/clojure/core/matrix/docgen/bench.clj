@@ -227,3 +227,12 @@
         header (render-header git-hash)
         table (render-table protos)]
     (render-page header table)))
+
+(defn -main
+  ([html-file]
+   (perform-bench)
+   (spit html-file (generate)))
+  ([html-file dump-file]
+   (perform-bench)
+   (spit html-file (generate))
+   (dump-bench-results dump-file)))
