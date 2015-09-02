@@ -185,9 +185,7 @@
     (is (= [[1 2] [3 4]] (coerce [1] [[1 2] [3 4]])))
     (is (= [[1 2] [3 4]] (coerce [1] '((1 2) (3 4))))))
   (testing "coerce to a number"
-     ;; (is (= 1 (coerce 2 1))) ;; TODO: what should happen here?
-    )
-  )
+     (is (= 1 (coerce 2 1)))))
 
 (deftest test-pow
   (let [a (array :persistent-vector [1 2 3])
