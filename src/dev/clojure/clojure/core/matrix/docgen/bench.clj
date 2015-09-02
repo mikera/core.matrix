@@ -6,6 +6,11 @@
             [clojure.core.matrix.impl.common :as c]
             [clojure.core.matrix.docgen.bench-suite :refer :all]))
 
+;; To run the bench suit, simply run:
+;; lein run -m clojure.core.matrix.docgen.bench "index.html" "data.dump"
+;; where index.html is the page to display the benchmark results, 
+;; and data.dump is the dump of the results
+
 ;; # Constants
 
 (def repo-url "https://github.com/mikera/matrix-api")
@@ -182,7 +187,8 @@
                        [size ])]
         (into {} (for [[size args-raw] bench
                        :let [args (args-prepare constructor args-raw)
-                             bench-call (construct-bench-call f 'dyn-args args)]]
+                             sym (->> #'dyn-args str next next (apply str) symbol)
+                             bench-call (construct-bench-call f sym args)]]
                    [size (->> (binding [dyn-args args]
                                 (eval bench-call))
                               :mean
@@ -226,3 +232,12 @@
         header (render-header git-hash)
         table (render-table protos)]
     (render-page header table)))
+
+(defn -main
+  ([html-file]
+   (perform-bench)
+   (spit html-file (generate)))
+  ([html-file dump-file]
+   (perform-bench)
+   (spit html-file (generate))
+   (dump-bench-results dump-file)))
