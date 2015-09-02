@@ -317,9 +317,9 @@
 
   Throws an exception if creation of a sparse array is not possible"
   ([data]
-    (sparse-matrix (implementation-check) data))
+    (sparse-array (implementation-check) data))
   ([implementation data]
-    (or (mp/sparse-coerce implementation data)
+    (or (mp/sparse-coerce (implementation-check implementation) data)
         (error "Sparse implementation not available"))))
 
 (defn sparse
