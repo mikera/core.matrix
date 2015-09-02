@@ -361,7 +361,7 @@
                   (aset-2d* m i-pivot k (aget-2d* m j k))
                   (aset-2d* m j k swap)))
               (let [swap (aget permutations i-pivot)]
-                (aset permutations i-pivot j)
+                (aset permutations i-pivot (aget permutations j))
                 (aset permutations j swap))
               (aset sign 0 (* -1 (aget sign 0))))
             (c-for [i (inc j) (< i n) (inc i)]

@@ -202,6 +202,10 @@
   (is (e== (array :ndarray [[1 0 0] [0 0 2] ]) (array :ndarray [[1 0 0] [0 0 2]])))
   (is (not (e== (array :ndarray [[1 0 0] [0 0 0] ]) (array :ndarray [[1 0 0] [0 9 0]])))))
 
+(deftest test-inverse
+  (is (e== (invert-double (ndarray-double [[0 1 0] [1 1 0] [1 -1 -1]])) 
+           (ndarray-double [[-1.0,1.0,0.0],[1.0,-0.0,0.0],[-2.0,1.0,-1.0]]))))
+
 (deftest ndarray-test
   (ct/test-ndarray-implementation (empty-ndarray [3 3])))
 
