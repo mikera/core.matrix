@@ -406,11 +406,9 @@
   (is (e== [1 4] (diagonal [[1 2] [3 4]]))))
 
 (deftest test-diagonals
-  ;; TODO: enable once diagonal function is complete
-  ;; (is (e== [1 4] (diagonal [[1 2] [3 4]] 0)))
-  ;; (is (e== [2] (diagonal [[1 2] [3 4]] 1)))
-  ;; (is (e== [3] (diagonal [[1 2] [3 4]] -1)))
-  )
+  (is (e== [1 4] (diagonal [[1 2] [3 4]] 0)))
+  (is (e== [2] (diagonal [[1 2] [3 4]] 1)))
+  (is (e== [3] (diagonal [[1 2] [3 4]] -1))))
 
 (deftest test-diagonal
   (is (= [1 4] (diagonal [[1 2] [3 4] [5 6]]   )))
