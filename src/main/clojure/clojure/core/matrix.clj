@@ -1247,7 +1247,8 @@
     (mp/add-scaled m a factor)))
 
 (defn scale-add!
-  "Scales array m1 by gactor a, then adds an array m2 scaled by factor b. May optionally add a constant."
+  "Scales array m1 by factor a, then adds an array m2 scaled by factor b. May optionally add a constant.
+   Broadly equivalent to (add! (mul! m1 a) (mul m2 b) constant) "
   ([m1 a m2 b] 
     (scale-add! m1 a m2 b 0.0))
   ([m1 a m2 b constant] 
