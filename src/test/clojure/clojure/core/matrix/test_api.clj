@@ -185,7 +185,8 @@
     (is (= [[1 2] [3 4]] (coerce [1] [[1 2] [3 4]])))
     (is (= [[1 2] [3 4]] (coerce [1] '((1 2) (3 4))))))
   (testing "coerce to a number"
-     (is (= 1 (coerce 2 1)))))
+     (is (= 1 (coerce 2 1)))
+     (is (equals [1 2] (coerce 2 [1 2])))))
 
 (deftest test-pow
   (let [a (array :persistent-vector [1 2 3])
@@ -386,9 +387,8 @@
 
 (deftest test-det
   (testing "determinant"
-    ;; (is (== 3 (det 3))) ;; TODO fix for Number
-    ;; (is (== -1 (det [[0 1] [1 0]]))) ;; TODO standard implementation
-    ))
+    (is (== 3 (det [[3]])))
+    (is (== -1 (det [[0 1] [1 0]])))))
 
 (deftest test-join
   (is (= [1 2 3] (join [1 2] 3)))
