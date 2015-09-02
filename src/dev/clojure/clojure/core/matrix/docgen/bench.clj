@@ -6,6 +6,11 @@
             [clojure.core.matrix.impl.common :as c]
             [clojure.core.matrix.docgen.bench-suite :refer :all]))
 
+;; To run the bench suit, simply run:
+;; lein run -m clojure.core.matrix.docgen.bench "index.html" "data.dump"
+;; where index.html is the page to display the benchmark results, 
+;; and data.dump is the dump of the results
+
 ;; # Constants
 
 (def repo-url "https://github.com/mikera/matrix-api")
