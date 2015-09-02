@@ -1,5 +1,5 @@
 (ns clojure.core.matrix
-  "Namespace for core.matrix API"
+  "Main namespace for the core.matrix API"
   (:require [clojure.core.matrix.impl.default :as default]
             [clojure.core.matrix.impl double-array object-array persistent-vector index]
             [clojure.core.matrix.impl sequence] ;; TODO: figure out if we want this?
@@ -759,7 +759,7 @@
      (mp/get-column m y)))
 
 (defn- slice-dims
-  "Strips all leading dimensions whole count is 1"
+  "Strips all leading dimensions whose count is 1"
   [erg dims-to-slice]
   (let [shape (mp/get-shape erg)]
     (loop [erg erg ds dims-to-slice acc (long 0)]
