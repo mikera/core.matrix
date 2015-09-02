@@ -87,7 +87,7 @@
 (defprotocol PIndexedSetting
   "Protocol for indexed 'setter' operations. These are like Clojure's 'assoc'
    function, i.e. they return an updated copy of the original array, which is itself unchanged.
-   Must be supported for any immutable array type."
+   Should be supported for any immutable array type."
   (set-1d [m row v])
   (set-2d [m row column v])
   (set-nd [m indexes v])
@@ -137,7 +137,7 @@
 
 (defprotocol PTypeInfo
   "Protocol for querying the type of matrix elements. If not provided, the default implementation will
-   return java.lang.Object, and the matrix object must accept any type of value.
+   return java.lang.Object, and the matrix object is assumed to accept any type of value.
    If a matrix is primitive-backed, it should return the appropriate primitive type e.g. Double/TYPE."
   (element-type [m]))
 
@@ -400,7 +400,8 @@
     "Creates a new sparse array with the given shape."))
 
 (defprotocol PZeroCount
-  "Protocol for counting the number of zeros in an array"
+  "Protocol for counting the number of zeros in a numerical array. Must return an integer value 
+   representing the precise number of zeros."
   (zero-count 
     [m]
     "Returns the number of zeros in the array"))
@@ -410,11 +411,11 @@
   (assign!
     [m source]
     "Sets all the values in an array from a given source. Source may be a scalar
-     or a smaller array that can be broadcast to the shape of m.")
+     or any smaller array that can be broadcast to the shape of m.")
   (assign-array!
     [m arr]
     [m arr start length]
-    "Sets the elements in an array from an Java array source, in row-major order."))
+    "Sets the elements in an array from a Java array source, in row-major order."))
 
 (defprotocol PImmutableAssignment
   "Protocol for assigning values element-wise to an array, broadcasting as needed."
@@ -429,7 +430,7 @@
     "Fills the array with the given scalar value."))
 
 (defprotocol PDoubleArrayOutput
-  "Protocol for getting data as a double array"
+  "Protocol for getting element data as a flattened double array"
   (to-double-array 
     [m]
     "Returns a double array containing the values of m in row-major order. May or may not be
@@ -440,7 +441,7 @@
      Provides an opportunity to avoid copying the internal array."))
 
 (defprotocol PObjectArrayOutput
-  "Protocol for getting data as an object array"
+  "Protocol for getting element data as a flattened object array"
   (to-object-array 
     [m]
     "Returns an object array containing the values of m in row-major order. May or may not be
@@ -452,7 +453,7 @@
 
 (defprotocol PValueEquality
   "Protocol for comparing two arrays, with the semantics of clojure.core/=.
-   Returns false if the arrays are not of equal shape, or if any elements are not equal."
+   Must return false if the arrays are not of equal shape, or if any elements are not equal."
   (value-equals 
     [m a]
     "Returns true if two arrays are equal both in shape and according to clojure.core/= for each element."))
@@ -474,7 +475,7 @@
     "As matrix-equals, but provides a numerical tolerance for equality testing."))
 
 (defprotocol PMatrixMultiply
-  "Protocol to support matrix multiplication on an arbitrary matrix, vector or scalar.
+  "Protocol to support matrix multiplication on numerical arrays.
 
    Implementation may return nil if the implementation does not support one of the parameters, in
    which case a more general operation will be attempted."
@@ -482,7 +483,7 @@
   (element-multiply [m a]))
 
 (defprotocol PMatrixProducts
-  "Protocol for general inner and outer products of arrays.
+  "Protocol for general inner and outer products of numerical arrays.
    Products should use + and * as normally defined for numerical types"
   (inner-product [m a])
   (outer-product [m a]))
@@ -494,12 +495,14 @@
 
 (defprotocol PAddProductMutable
   "Protocol for mutable add-product! operation."
-  (add-product! [m a b]))
+  (add-product! 
+    [m a b] "Adds the elementwise product of a and b to m"))
 
 (defprotocol PAddScaledProduct
   "Protocol for add-product operation.
    Intended to implement a fast version for result = m + a * b * factor"
-  (add-scaled-product [m a b factor]))
+  (add-scaled-product 
+    [m a b factor] "Adds the elementwise product of a, b and a scalar factor to m"))
 
 (defprotocol PAddScaledProductMutable
   "Protocol for mutable add-product! operation."
@@ -623,7 +626,7 @@
 
 (defprotocol PNumerical
   "Protocol for identifying numerical arrays. Should return true if every element in the
-   array is a valid numerical value."
+   array is guaranteed to be a valid numerical value."
   (numerical? [m]
     "Returns true if the array is numerical."))
 
@@ -806,16 +809,16 @@
   "Protocol for matrix predicates like identity-matrix? or zero-matrix?"
   (identity-matrix?
     [m]
-    "returns true if the matrix m is an identity-matrix")
+    "Returns true if the matrix m is an identity matrix")
   (zero-matrix?
     [m]
-    "returns true if all the elements of matrix m are zeros")
+    "Returns true if all the elements of matrix m are zeros")
   (symmetric?
     [m]
-    "returns true if matrix m is symmetric"))
+    "Returns true if matrix m is symmetric"))
 
 (defprotocol PMatrixTypes
-  (diagonal? [m] "Returns true if the matrix is diagonal")
+  (diagonal? [m] "Returns true if the matrix is diagonal, i.e. zero everywhere except the main diagonal")
   (upper-triangular? [m] "Returns true if the matrix m is upper triangualar")
   (lower-triangular? [m] "Returns true if the matrix m is lower triangualar")
   (positive-definite? [m] "Returns true if the matrix is positive definite")
