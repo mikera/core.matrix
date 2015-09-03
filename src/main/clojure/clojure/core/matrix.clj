@@ -1252,7 +1252,8 @@
   ([m1 a m2 b] 
     (scale-add! m1 a m2 b 0.0))
   ([m1 a m2 b constant] 
-    (mp/scale-add! m1 a m2 b constant)))
+    (mp/scale-add! m1 a m2 b constant)
+    m1))
 
 (defn add-scaled!
   "Adds a numerical array scaled by a given factor to the first array. Returns the mutated array."
