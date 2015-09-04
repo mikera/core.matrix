@@ -746,7 +746,7 @@
     (mp/set-nd! m [x y z] v)
     m)
   ([m x y z t & more]
-    (mp/set-nd! m (cons x (cons y (cons z (cons t (butlast more))))) (last more))
+    (mp/set-nd! m (into [x y z t] (butlast more)) (last more))
     m))
 
 (defn get-row
