@@ -742,8 +742,11 @@
   ([m x y v]
     (mp/set-2d! m x y v)
     m)
-  ([m x y z & more]
-    (mp/set-nd! m (cons x (cons y (cons z (butlast more)))) (last more))
+  ([m x y z v]
+    (mp/set-nd! m [x y z] v)
+    m)
+  ([m x y z t & more]
+    (mp/set-nd! m (cons x (cons y (cons z (cons t (butlast more))))) (last more))
     m))
 
 (defn get-row
