@@ -1618,7 +1618,7 @@
 
 (extend-protocol mp/PSquare
   Number
-   (square [m] (* m m))
+   (square [m] (* m m)) ;; can't eliminate boxing warning, may be any numerical type
   Object
    (square [m] (mp/element-multiply m m)))
 
@@ -1704,7 +1704,7 @@
   "Returns true iff square matrix m is symmetric."
   [m]
   (let [dim (long (first (mp/get-shape m)))]
-    (letfn [(f [i j]
+    (letfn [(f [^long i ^long j]
               (cond
                 (>= i dim) true                         ; all entries match: symmetric
                 (>= j dim) (recur (+ 1 i) (+ 2 i))      ; all j's OK: restart with new i
@@ -1727,8 +1727,8 @@
                       (if (nil? elem)
                         false
                         (if (== i j)
-                          (if (== elem 1) (recur (inc j)) false)
-                          (if (== elem 0) (recur (inc j)) false))))
+                          (if (== (double elem) 1.0) (recur (inc j)) false)
+                          (if (zero? elem) (recur (inc j)) false))))
                     true))
               (recur (inc i))
               false)
@@ -1786,15 +1786,15 @@
   Object
   (diagonal? [m]
     (if (= (long (mp/dimensionality m)) 2)
-      (let [[mrows mcols] (mp/get-shape m)]
+      (let [[^long mrows ^long mcols] (mp/get-shape m)]
         (->> (mp/element-seq m)
-             (map #(vector (quot %1 mcols) (rem %1 mcols) %2)
+             (map (fn [^long i elem] (vector (quot i mcols) (rem i mcols) elem))
                   (range (* mrows mcols)))
-             (every? (fn [[i j v]]
+             (every? (fn [[^long i ^long j v]]
                        (cond
-                        (= i j) true
-                        (and (not= i j) (== v 0)) true
-                        :else false)))))
+                         (= i j) true
+                         (and (not= i j) (== v 0)) true
+                         :else false)))))
       false))
   (upper-triangular? [m]
     (if (square? m)
@@ -1807,7 +1807,7 @@
     (if (square? m)
       (->> (mp/get-slice-seq m 0)
            (map vector (range))
-           (mapcat (fn [[idx xs]] (drop (inc idx) xs)))
+           (mapcat (fn [[^long idx xs]] (drop (inc idx) xs)))
            (every? zero?))
       false))
   (positive-definite? [m]
@@ -1962,8 +1962,6 @@
                        (fn [^long i ^long j]
                          (aget q (+ (* i mrows) j))))))
 
-
-
 (defn compute-r [m ^doubles data mcols mrows min-len compact?]
   (let [mrows (long mrows)
         mcols (long mcols)
@@ -1977,10 +1975,13 @@
                   (aget data (+ (* i mcols) j))
                   0)))]
     (if compact?
-      (->> (mp/get-major-slice-seq cm)
-           (reduce 
-             (fn [^long cnt slice] (if (every? zero? slice) (inc cnt) cnt)) 0)
-           (#(mp/reshape cm [mcols (- mrows %)])))
+      (let [slcs (mp/get-major-slice-seq cm)
+            non-zero-rows (long (reduce 
+                            (fn [^long cnt slice] (if (every? zero? slice) (inc cnt) cnt)) 
+                            0 
+                            slcs))]
+        ;; TODO: is this broken? Looks like mcols and mrows in wrong order?
+        (mp/reshape cm [mcols (- mrows non-zero-rows)]))
       cm)))
 
 (defn householder-qr [^doubles qr-data idx mcols
