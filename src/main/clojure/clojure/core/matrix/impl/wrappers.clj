@@ -11,7 +11,7 @@
 ;; that are useful to implement certain array operations (typically as return values)
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+(set! *unchecked-math* :warn-on-boxed)
 
 (declare wrap-slice wrap-nd wrap-scalar)
 
@@ -37,13 +37,13 @@
     (new-matrix-nd [m dims]
       (mp/new-matrix-nd [] dims))
     (construct-matrix [m data]
-      (if (== 0 (mp/dimensionality data))
+      (if (== 0 (long (mp/dimensionality data)))
         (if (mp/is-scalar? data)
           (ScalarWrapper. data)
           (ScalarWrapper. (mp/get-0d data)))
         (mp/clone data)))
     (supports-dimensionality? [m dims]
-      (== dims 0))
+      (== (long dims) 0))
 
   mp/PDimensionInfo
     (dimensionality [m]
@@ -121,17 +121,18 @@
 
   mp/PDimensionInfo
     (dimensionality [m]
-      (dec (mp/dimensionality array)))
+      (dec (long (mp/dimensionality array))))
     (get-shape [m]
       (next (mp/get-shape array)))
     (is-scalar? [m]
       false)
     (is-vector? [m]
-      (== 2 (mp/dimensionality array))) ;; i.e. the slice has dimensionality 1
+      (== 2 (long (mp/dimensionality array)))) ;; i.e. the slice has dimensionality 1
     (dimension-count [m dimension-number]
-      (if (< dimension-number 0)
-        (error "Can't access negative dimension!")
-        (mp/dimension-count array (inc dimension-number))))
+      (let [dimension-number (long dimension-number)]
+        (if (< dimension-number 0)
+         (error "Can't access negative dimension!")
+         (mp/dimension-count array (inc dimension-number)))))
 
   mp/PIndexedAccess
     (get-1d [m row]
@@ -325,7 +326,7 @@
   "Creates a view of a major slice of an array."
   ([m slice]
     (let [slice (long slice)]
-      (when (>= slice (mp/dimension-count m 0)) (error "Slice " slice " does not exist on " (class m)))
+      (when (>= slice (long (mp/dimension-count m 0))) (error "Slice " slice " does not exist on " (class m)))
       (SliceWrapper. m slice))))
 
 (defn wrap-nd
@@ -362,7 +363,7 @@
       new-shape
       (long-array (range (count shp)))
       (object-array
-        (map (fn [[start len]] (long-array (range start (+ start len))))
+        (map (fn [[^long start ^long len]] (long-array (range start (+ start len))))
              dim-ranges))
       (long-array (repeat dims 0)))))
 
@@ -370,9 +371,9 @@
   "Wraps an array with broadcasting to the given target shape."
   [m target-shape]
   (let [tshape (long-array target-shape)
-        tdims (count tshape)
+        tdims (alength tshape)
         mshape (long-array (mp/get-shape m))
-        mdims (count mshape)
+        mdims (alength mshape)
         dim-map (long-array (concat (repeat (- tdims mdims) -1) (range mdims)))]
     ;;(println "mshape:" (seq mshape))
     ;;(println "mdims:" mdims)
@@ -383,7 +384,8 @@
       dim-map
       (object-array
         (for [i (range tdims)]
-          (let [arr (long-array (aget tshape i))
+          (let [i (long i)
+                arr (long-array (aget tshape i))
                 mdim (- i (- tdims mdims))]
             (when (>= mdim 0)
               (let [mdc (aget mshape mdim)
