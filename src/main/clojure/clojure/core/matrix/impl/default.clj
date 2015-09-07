@@ -20,7 +20,8 @@
 ;;
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* :warn-on-boxed)
+(set! *unchecked-math* true)
+;; (set! *unchecked-math* :warn-on-boxed) ;; use to check for boxing
 
 ;; ============================================================
 ;; Utility functions for default implementations
