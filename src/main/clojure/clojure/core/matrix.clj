@@ -31,6 +31,7 @@
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
+;; (set! *unchecked-math* :warn-on-boxed) ;; use to check for boxing if needed 
 
 ;; =============================================================
 ;; matrix construction functions
@@ -523,60 +524,69 @@
 (defn element-type
   "Returns the class of elements that can be in the array. For example, a numerical array may return
    the class java.lang.Double."
-  ([m]
+  (^java.lang.Class [m]
     (mp/element-type m)))
 
 (defn dimensionality
   "Returns the dimensionality of an array. The dimensionality is equal to
    the number of dimensions in the array's shape."
-  {:inline (fn ([m] `(mp/dimensionality ~m)))}
-  ([m]
-    (mp/dimensionality m)))
-
-(defn row-count
-  "Returns the number of rows in a matrix or vector (array must be 1D or more)"
-  {:inline (fn ([m] `(mp/dimension-count ~m 0)))}
-  ([m]
-    (mp/dimension-count m 0)))
-
-(defn column-count
-  "Returns the number of columns in a matrix (array must be 2D or more)"
-  {:inline (fn ([m] `(mp/dimension-count ~m 1)))}
-  ([m]
-    (mp/dimension-count m 1)))
+  {:inline (fn ([m] `(long (mp/dimensionality ~m))))}
+  (^long [m]
+    (long (mp/dimensionality m))))
 
 (defn dimension-count
   "Returns the size of the specified dimension in a matrix. Will throw an error if the matrix
    does not have the specified dimension."
-  {:inline (fn ([m dim] `(mp/dimension-count ~m ~dim)))}
-  ([m dim]
-    (mp/dimension-count m dim)))
+  {:inline (fn ([m dim] `(long (mp/dimension-count ~m ~dim))))}
+  (^long [m dim]
+    (long (mp/dimension-count m dim))))
+
+(defn row-count
+  "Returns the number of rows in a matrix or vector (array must be 1D or more)"
+  {:inline (fn ([m] `(dimension-count ~m 0)))}
+  (^long [m]
+    (dimension-count m 0)))
+
+(defn column-count
+  "Returns the number of columns in a matrix (array must be 2D or more)"
+  {:inline (fn ([m] `(dimension-count ~m 1)))}
+  (^long [m]
+    (dimension-count m 1)))
 
 (defn slice-count
   "Returns the number of slices in an array (array must be 1D or more). The array is sliced
    in row-major order, i.e. this is the dimension count of the first dimension."
-  {:inline (fn ([m] `(mp/dimension-count ~m 0)))}
+  {:inline (fn ([m] `(dimension-count ~m 0)))}
+  (^long [m]
+    (dimension-count m 0)))
+
+(defn ecount
+  "Returns the total count of elements in an array.
+
+   Equal to the product of the lengths of each dimension in the array's shape.
+
+   Returns 1 for a zero-dimensional array or scalar."
   ([m]
-    (mp/dimension-count m 0)))
+    (mp/element-count m)))
 
 (defn square?
   "Returns true if matrix is square (i.e. a 2D array with same number of rows and columns)"
   ([m]
     (and
-      (== 2 (long (mp/dimensionality m)))
-      (== (mp/dimension-count m 0) (mp/dimension-count m 1)))))
+      (== 2 (dimensionality m))
+      (== (dimension-count m 0) (dimension-count m 1)))))
 
 (defn row-matrix?
   "Returns true if a matrix is a row-matrix (i.e. is 2D and has exactly one row)"
   ([m]
     (and (== (long (mp/dimensionality m)) 2)
-         (== 1 (mp/dimension-count m 0)))))
+         (== 1 (dimension-count m 0)))))
 
 (defn column-matrix?
   "Returns true if a matrix is a column-matrix (i.e. is 2D and has has exactly one column)"
   ([m]
     (and (== (long (mp/dimensionality m)) 2)
-         (== 1 (mp/dimension-count m 1)))))
+         (== 1 (dimension-count m 1)))))
 
 (defn shape
   "Returns the shape of an array, i.e. the dimension sizes for all dimensions.
@@ -601,7 +611,7 @@
 
 (defn density
   "Returns the density of the matrix, defined as the proportion of non-zero elements"
-  ([m]
+  (^double [m]
     (let [zeros (double (mp/zero-count m))
           elems (double (mp/element-count m))]
       (double (/ (- elems zeros) elems)))))
@@ -916,7 +926,7 @@
    to ensure this behaviour on mutable 1-dimensioanal arrays, it must return a sequence of 0-dimensioanal arrays."
   ([m]
     (mp/get-major-slice-view-seq m))
-  ([m dimension]
+  ([m ^long dimension]
     (if (== 0 dimension)
       (slice-views m)
       (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
@@ -954,10 +964,10 @@
   ([m k]
     (let [k (long k)]
       (cond
-        (neg? k) (mp/main-diagonal (mp/submatrix m [[(- k) (+ (mp/dimension-count m 0) k)]
-                                                    [0 (mp/dimension-count m 1)]]))
-        (pos? k) (mp/main-diagonal (mp/submatrix m [[0 (mp/dimension-count m 0)]
-                                                    [k (- (mp/dimension-count m 1) k)]]))
+        (neg? k) (mp/main-diagonal (mp/submatrix m [[(- k) (+ (dimension-count m 0) k)]
+                                                    [0 (dimension-count m 1)]]))
+        (pos? k) (mp/main-diagonal (mp/submatrix m [[0 (dimension-count m 0)]
+                                                    [k (- (dimension-count m 1) k)]]))
         :else   (mp/main-diagonal m)))))
 
 (defn join
@@ -1538,7 +1548,7 @@
    sparse matrices - sometimes as fast as O(1)"
   ([m]
     ;; TODO fast protocol implementation?
-    (- (mp/element-count m) (mp/zero-count m))))
+    (- (ecount m) (zero-count m))))
 
 (defn non-zero-indices
   "Gets the non-zero indices of an array.
@@ -1551,15 +1561,6 @@
 ;;
 ;; these work like regular clojure seq, map, reduce etc. but operate on all elements of
 ;; a matrix in row-major ordering
-
-(defn ecount
-  "Returns the total count of elements in an array.
-
-   Equal to the product of the lengths of each dimension in the array's shape.
-
-   Returns 1 for a zero-dimensional array or scalar."
-  ([m]
-    (mp/element-count m)))
 
 (defn eseq
   "Returns all elements of an array as a sequence in row-major order"
