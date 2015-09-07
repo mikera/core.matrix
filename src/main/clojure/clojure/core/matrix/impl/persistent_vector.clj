@@ -9,6 +9,7 @@
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
+;; (set! *unchecked-math* :warn-on-boxed) ;; use to check for boxing, some is unavoidable
 
 ;; =======================================================================
 ;; utility functions for manipulating persistent vector matrices
@@ -31,9 +32,11 @@
   ([v]
     (mapv persistent-vector-coerce v)))
 
-(defmacro vector-1d? [pv]
+(defmacro vector-1d? 
+  "Utility macro to determine if a persistent vector represents a 1D vector"
+  [pv]
   `(let [pv# ^IPersistentVector ~pv]
-     (or (== 0 (.length pv#)) (== 0 (mp/dimensionality (.nth pv# 0))))))
+     (or (== 0 (.length pv#)) (== 0 (long (mp/dimensionality (.nth pv# 0)))))))
 
 (defn- mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
@@ -80,7 +83,7 @@
   ([v shape]
     (and
       (instance? IPersistentVector v)
-      (== (count v) (first shape))
+      (== (count v) (long (first shape)))
       (if-let [ns (next shape)]
         (every? #(check-vector-shape % ns) v)
         (every? #(not (instance? IPersistentVector %)) v)))))
@@ -116,13 +119,13 @@
 
 (defn vector-dimensionality
   "Calculates the dimensionality (== nesting depth) of nested persistent vectors"
-  [m]
+  ^long [m]
   (cond
     (clojure.core/vector? m)
       (if (> (count m) 0)
         (+ 1 (vector-dimensionality (.nth ^IPersistentVector m 0)))
         1)
-    :else (mp/dimensionality m)))
+    :else (long (mp/dimensionality m))))
 
 ;; =======================================================================
 ;; Implementation for nested Clojure persistent vectors used as matrices
@@ -154,7 +157,7 @@
         (cond
           (> dims tdims)
             (error "Can't broadcast to a lower dimensional shape")
-          (not (every? identity (map #(== %1 %2) mshape (take-last dims target-shape))))
+          (not (every? identity (map == mshape (take-last dims target-shape))))
             (error "Incompatible shapes, cannot broadcast shape " (vec mshape) " to " (vec target-shape))
           :else
             (reduce
@@ -240,8 +243,8 @@
 (extend-protocol mp/PSliceJoin
   IPersistentVector
     (join [m a]
-      (let [dims (mp/dimensionality m)
-            adims (mp/dimensionality a)]
+      (let [dims (long (mp/dimensionality m))
+            adims (long (mp/dimensionality a))]
         (cond
           (== dims adims)
             (vec (concat (mp/get-major-slice-seq m) (mp/get-major-slice-seq a)))
@@ -253,13 +256,15 @@
 (extend-protocol mp/PRotate
   IPersistentVector
     (rotate [m dim places]
-      (if (== 0 dim)
-        (let [c (count m)
-              sh (if (> c 0) (mod places c) 0)]
-          (if (== sh 0)
-            m
-            (vec (concat (subvec m sh c) (subvec m 0 sh)))))
-        (mapv (fn [s] (mp/rotate s (dec dim) places)) m))))
+      (let [dim (long dim)
+            places (long places)]
+        (if (== 0 dim)
+         (let [c (long (count m))
+               sh (long (if (> c 0) (mod places c) 0))]
+           (if (== sh 0)
+             m
+             (vec (concat (subvec m sh c) (subvec m 0 sh)))))
+         (mapv (fn [s] (mp/rotate s (dec dim) places)) m)))))
 
 (extend-protocol mp/POrder
   IPersistentVector
@@ -267,14 +272,15 @@
     ([m indices]
       (mapv #(nth m %) (mp/element-seq indices)))
     ([m dimension indices]
-      (if (== dimension 0)
-        (mp/order m indices)
-        (mapv #(mp/order % (dec dimension) indices) m)))))
+      (let [dimension (long dimension)]
+        (if (== dimension 0)
+          (mp/order m indices)
+          (mapv #(mp/order % (dec dimension) indices) m))))))
 
 (extend-protocol mp/PSubVector
   IPersistentVector
     (subvector [m start length]
-      (subvec m start (+ start length))))
+      (subvec m start (+ (long start) (long length)))))
 
 (extend-protocol mp/PValidateShape
   IPersistentVector
@@ -299,20 +305,31 @@
             ;; b (persistent-vector-coerce b)
             ]
         (cond
-          (and (== dims 1) (instance? Indexed b) (== 1 (mp/dimensionality b)))
-            (let [ca (count a)
-                  cb (count b)]
+          (and (== dims 1) (instance? Indexed b) (== 1 (long (mp/dimensionality b))))
+            (let [ca (long (count a))
+                  cb (long (count b))
+                  b ^Indexed b]
               (when-not (== ca cb) (error "Mismatched vector sizes"))
-              (loop [i (long 0) res 0.0]
+              (loop [i 0 res 0.0]
                 (if (>= i ca)
                   res
-                  (recur (inc i) (+ res (* (nth a i) (nth b i)))))))
+                  (recur (inc i) (+ res (* (double (.nth a (int i))) (double (.nth b (int i)))))))))
           (== dims 0) (mp/scale a b)
           :else (mp/inner-product a b))))
     (length [a]
-      (Math/sqrt (double (reduce + (map #(* % %) a)))))
+      (let [n (long (count a))]
+        (loop [i 0 res 0.0]
+          (if (< i n)
+            (let [x (double (.nth a i))] 
+              (recur (inc i) (+ res (* x x))))
+            (Math/sqrt res)))))
     (length-squared [a]
-      (reduce + (map #(* % %) a)))
+      (let [n (long (count a))]
+        (loop [i 0 res 0.0]
+          (if (< i n)
+            (let [x (double (.nth a i))] 
+              (recur (inc i) (+ res (* x x))))
+            res))))
     (normalise [a]
       (mp/scale a (/ 1.0 (Math/sqrt (mp/length-squared a))))))
 
@@ -329,7 +346,7 @@
 
 (extend-protocol mp/PVectorDistance
   IPersistentVector
-    (distance [a b] (mp/length (mapv - b a))))
+    (distance [a b] (mp/length (mp/matrix-sub b a))))
 
 (extend-protocol mp/PSummable
   IPersistentVector
@@ -351,11 +368,11 @@
           (not= (count a) (mp/dimension-count b 0))
             false
           (== 1 bdims)
-            (and (== 1 (mp/dimensionality a))
+            (and (== 1 (long (mp/dimensionality a)))
                  (let [n (long (count a))]
                    (loop [i 0]
                      (if (< i n)
-                       (if (== (mp/get-1d a i) (mp/get-1d b i))
+                       (if (== (mp/get-1d a i) (mp/get-1d b i)) ;; can't avoid boxed warning, may be any sort of number
                          (recur (inc i))
                          false)
                        true))))
@@ -410,23 +427,23 @@
 (extend-protocol mp/PMatrixScaling
   IPersistentVector
     (scale [m a]
-      (let [a (mp/get-0d a)]
-        (mapmatrix #(* % a) m)))
+      (mapmatrix #(* % a) m)) ;; can't avoid boxed warning, may be any sort of number
     (pre-scale [m a]
-      (let [a (mp/get-0d a)]
-        (mapmatrix #(* a %) m))))
+      (mapmatrix #(* a %) m))) ;; can't avoid boxed warning, may be any sort of number
 
 (extend-protocol mp/PSquare
   IPersistentVector
     (square [m]
-      (mapmatrix #(* % %) m)))
+      (mapmatrix * m m)))
 
 (extend-protocol mp/PRowOperations
   IPersistentVector
     (swap-rows [m i j]
-      (if (== i j)
-        m
-        (assoc (assoc m i (m j)) j (m i))))
+      (let [i (long i)
+            j (long j)]
+        (if (== i j)
+          m
+          (assoc (assoc m i (m j)) j (m i)))))
     (multiply-row [m i factor]
       (assoc m i (mp/scale (m i) factor)))
     (add-row [m i j factor]
@@ -458,7 +475,7 @@
     (dimensionality [m]
       (if (== 0 (.length m))
         1
-        (inc (mp/dimensionality (.nth m 0)))))
+        (inc (long (mp/dimensionality (.nth m 0))))))
     (is-vector? [m]
       (vector-1d? m))
     (is-scalar? [m]
@@ -480,7 +497,7 @@
       (let [c (long (count m))]
         (if (== c 0)
           0
-          (* c (mp/element-count (m 0)))))))
+          (* c (mp/element-count (m 0))))))) ;; can't avoid boxed warning here, may be a bigint
 
 ;; we need to implement this for all persistent vectors since we need to check all nested components
 (extend-protocol mp/PConversion
@@ -548,9 +565,9 @@
   IPersistentVector
     (element-seq [m]
       (cond
-        (== 0 (count m))
+        (== 0 (long (count m)))
           '()
-        (> (mp/dimensionality (m 0)) 0)
+        (> (long (mp/dimensionality (m 0))) 0)
           (mapcat mp/element-seq m)
         :else
           (map mp/get-0d m)))
