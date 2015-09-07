@@ -4,7 +4,7 @@
             [clojure.core.matrix.utils :refer :all]))
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+(set! *unchecked-math* :warn-on-boxed)
 
 ;; clojure.core.matrix implementation for Java double arrays
 ;;
@@ -56,6 +56,18 @@
      :default
        nil)))
 
+
+(defn to-double-arrays
+  "Converts an array to nested double arrays with the same shape."
+  [m]
+  (if-let [dims (long (mp/dimensionality m))]
+    (cond 
+      (== 0 dims) (double (mp/get-0d m))
+      (== 1 dims) (mp/to-double-array m)
+      :else (let [r0 (to-double-arrays (mp/get-major-slice m 0))
+                  c (.getClass ^Object r0)]
+              (into-array c (map to-double-arrays (mp/get-major-slice-seq m)))))))
+
 (defn ^"[[D" copy-2d-double-array [^"[[D" m]
   (into-array (Class/forName "[D")
               (mapv copy-double-array ^"[[D" m)))
@@ -81,21 +93,20 @@
 (defmacro defimplementation
   "Defines a new implementaiton for a N-D java array"
   ([klass]
-   (if (instance? String klass)
-     (defimplementation (Class/forName klass))
-     `(extend-protocol mp/PImplementation
-        ~klass
-        (implementation-key [m#] :double-array)
-        (meta-info [m#]
-          {:doc "Clojure.core.matrix implementation for Java double arrays"})
-        (new-vector [m# length#] (double-array (int length#)))
-        (new-matrix [m# rows# columns#] 
-          (new-double-array [rows# columns#]))
-        (new-matrix-nd [m# shape#]
-          (new-double-array shape#))
-        (construct-matrix [m# data#]
-          (construct-double-array data#))
-        (supports-dimensionality? [m# dims#]
+   `(extend-protocol mp/PImplementation
+      ~klass
+      (implementation-key [m#] :double-array)
+      (meta-info [m#]
+        {:doc "Clojure.core.matrix implementation for Java double arrays"})
+      (new-vector [m# length#] (double-array (int length#)))
+      (new-matrix [m# rows# columns#] 
+        (new-double-array [rows# columns#]))
+      (new-matrix-nd [m# shape#]
+        (new-double-array shape#))
+      (construct-matrix [m# data#]
+        (construct-double-array data#))
+      (supports-dimensionality? [m# dims#]
+        (let [dims# (long dims#)]
           (or (== dims# 1) (== dims# 2)))))))
 
 (defimplementation (Class/forName "[D"))
@@ -207,8 +218,8 @@
         (areduce m i res-outer 0.0
           (+ res-outer
              (let [^doubles a (aget m i)]
-               (areduce a j res-inner 0.0
-                        (+ res-inner (aget a j)))))))))
+               (double (areduce a j res-inner 0.0
+                               (+ res-inner (aget a j))))))))))
 
 (extend-protocol mp/PIndexedSetting
   (Class/forName "[D")
@@ -299,22 +310,24 @@
     (scale [m a]
       (let [x (alength ^"[[D" m)
             y (alength ^doubles (aget ^"[[D" m 0))
-            ^"[[D" res (make-array Double/TYPE x y)]
+            ^"[[D" res (make-array Double/TYPE x y)
+            a (double a)]
         (dotimes [i x]
           (let [^doubles res-i (aget res i)
                 ^doubles m-i (aget ^"[[D" m i)]
             (dotimes [j y]
-              (aset-double res-i j (* a (aget m-i j))))))
+              (aset res-i j (* a (aget m-i j))))))
         res))
     (pre-scale [m a]
       (let [x (alength ^"[[D" m)
             y (alength ^doubles (aget ^"[[D" m 0))
-            ^"[[D" res (make-array Double/TYPE x y)]
+            ^"[[D" res (make-array Double/TYPE x y)
+            a (double a)]
         (dotimes [i x]
           (let [^doubles res-i (aget res i)
                 ^doubles m-i (aget ^"[[D" m i)]
             (dotimes [j y]
-              (aset-double res-i j (* a (aget m-i j))))))
+              (aset res-i j (* a (aget m-i j))))))
         res)))
 
 (extend-protocol mp/PMatrixMutableScaling
@@ -332,16 +345,18 @@
   (Class/forName "[[D")
     (scale! [m a]
       (let [x (alength ^"[[D" m)
-            y (alength ^doubles (aget ^"[[D" m 0))]
+            y (alength ^doubles (aget ^"[[D" m 0))
+            a (double a)]
         (loop-over-2d
           m i j
-          (aset-double m-i j (* a (double (aget m-i j)))))))
+          (aset m-i j (* a (double (aget m-i j)))))))
     (pre-scale! [m a]
       (let [x (alength ^"[[D" m)
-            y (alength ^doubles (aget ^"[[D" m 0))]
+            y (alength ^doubles (aget ^"[[D" m 0))
+            a (double a)]
         (loop-over-2d
           m i j
-          (aset-double m-i j (* a (double (aget m-i j))))))))
+          (aset m-i j (* a (double (aget m-i j))))))))
 
 (extend-protocol mp/PConversion
   (Class/forName "[D")
@@ -357,7 +372,7 @@
 
 (defmacro doubles-squared-sum [a]
   `(let [a# ~(vary-meta a assoc :tag 'doubles)
-         n# (alength a#)]
+         n# (long (alength a#))]
      (loop [i# 0 res# 0.0]
        (if (< i# n#)
          (recur (inc i#) (+ res# (let [v# (aget a# i#)] (* v# v#))))
@@ -370,19 +385,19 @@
         (is-double-array? b)
           (let [^doubles a a
                 ^doubles b b
-                n (alength a)]
+                n (long (alength a))]
             (when-not (== n (alength b)) (error "Incompatible double array lengths"))
             (loop [i 0 res 0.0]
               (if (< i n)
                 (recur (inc i) (+ res (* (aget a i) (aget b i))))
                 res)))
-        (== 1 (mp/dimensionality b))
+        (== 1 (long (mp/dimensionality b)))
           (let [^doubles a a
                 n (alength a)]
-            (when (not (== n (mp/dimension-count b 0))) (error "Incompatible vector lengths"))
+            (when (not (== n (long (mp/dimension-count b 0)))) (error "Incompatible vector lengths"))
             (loop [i 0 res 0.0]
               (if (< i n)
-                (recur (inc i) (+ res (* (aget a i) (mp/get-1d b i))))
+                (recur (inc i) (+ res (* (aget a i) (double (mp/get-1d b i)))))
                 res)))
         :else nil))
     (length [a] (Math/sqrt (doubles-squared-sum a)))
@@ -390,7 +405,7 @@
       (doubles-squared-sum a))
     (normalise [a]
       (let [a ^doubles a
-            len (doubles-squared-sum a)]
+            len (double (doubles-squared-sum a))]
         (cond
           (> len 0.0) (mp/scale a (/ 1.0 (Math/sqrt len)))
           :else (double-array (alength a))))))
@@ -398,35 +413,36 @@
 (extend-protocol mp/PVectorOps
   (Class/forName "[[D")
     (vector-dot [m b]
-      (cond
-        (== 1 (mp/dimensionality b))
-        (let [x (mp/dimension-count m 0)
-              ^doubles final-results (double-array x)
-              ^"[[D" m m]
-          (loop [i 0]
-            (if (< i x)
-              (do
-                (aset-double final-results i
-                             (let [^doubles a (aget m i)]
-                               (areduce a j res 0.0
-                                        (+ res (* (mp/get-1d b j) 
-                                         (aget a j))))))
-                (recur (inc i))) 
-              final-results)))
-        (== 2 (mp/dimensionality b))
-        (let [x (mp/dimension-count m 0)
-              ^doubles final-results (double-array x)]
-          (loop [i 0]
-            (if (< i x)
-              (do
-                (aset-double final-results i
-                             (let [^doubles a (aget ^"[[D" m i)]
-                               (areduce a j res 0.0
-                                        (+ res (* (mp/get-2d b i j)
-                                                  (aget a j))))))
-                (recur (inc i)))
-              final-results)))
-        :else nil)))
+      (let [bdims (long (mp/dimensionality b))
+            len (long (mp/dimension-count m 0))]
+        (cond
+         (== 1 bdims)
+           (let [^doubles final-results (double-array len)
+                 ^"[[D" m m
+                 ^doubles b (to-double-arrays b)]
+             (loop [i 0]
+               (if (< i len)
+                 (do
+                   (aset-double final-results i
+                                (let [^doubles a (aget m i)]
+                                  (areduce a j res 0.0
+                                           (+ res (* (aget b j) 
+                                            (aget a j))))))
+                   (recur (inc i))) 
+                 final-results)))
+         (== 2 bdims)
+           (let [^doubles final-results (double-array len)]
+             (loop [i 0]
+               (if (< i len)
+                 (do
+                   (aset-double final-results i
+                                (let [^doubles a (aget ^"[[D" m i)]
+                                  (areduce a j res 0.0
+                                           (+ res (* (double (mp/get-2d b i j))
+                                                     (aget a j))))))
+                   (recur (inc i)))
+                 final-results)))
+         :else nil))))
 
 (extend-protocol mp/PCoercion
   (Class/forName "[D")
@@ -658,11 +674,12 @@
                (aset m i (/ 1.0 (aget m i))))
              nil))
     ([m a] (if (number? a)
-             (let [^doubles m m]
-               (dotimes [i (alength m)]
-                 (aset m i (/ (aget m i) a))))
+             (let [a (double a)]
+               (let [^doubles m m]
+                 (dotimes [i (long (alength m))]
+                   (aset m i (/ (aget m i) a)))))
              (let [[^doubles m ^doubles a] (mp/broadcast-compatible m a)]
-               (dotimes [i (alength m)]
+               (dotimes [i (long (alength m))]
                  (aset m i (/ (aget m i) (aget a i)))))))))
 
 (extend-protocol mp/PMatrixDivideMutable
@@ -674,9 +691,10 @@
        (aset-double ^"[[D" m-i j (double (/ 1.0 ^double (aget m-i j))))))
     ([^"[[D" m a]
      (if (number? a)
-       (loop-over-2d
-         m i j
-         (aset-double ^"[[D" m-i j (double (/ ^double (aget m-i j) a))))
+       (let [a (double a)]
+         (loop-over-2d
+           m i j
+           (aset-double ^"[[D" m-i j (double (/ ^double (aget m-i j) a)))))
        (loop-over-2d
          m i j
          (aset-double ^"[[D" m-i j (double (/ ^double (aget m-i j)
@@ -687,17 +705,18 @@
   (element-divide
     ([m] (mp/element-map m #(/ %)))
     ([m a] (if (number? a)
-             (mp/element-map m #(/ % a))
+             (let [a (double a)]
+               (mp/element-map m #(/ (double %) a)))
              (let [[m a] (mp/broadcast-compatible m a)]
-               (mp/element-map m #(/ %1 %2) a))))))
+               (mp/element-map m / a))))))
 
 (extend-protocol mp/PMatrixDivide
   (Class/forName "[[D")
   (element-divide
     ([m] (mp/element-map m #(/ %)))
     ([m a] (if (number? a)
-             (mp/element-map m #(/ % a))
-             (mp/element-map m #(/ %1 %2) a)))))
+             (let [a (double a)] (mp/element-map m #(/ (double %) a)))
+             (mp/element-map m / a)))))
 
 (extend-protocol mp/PSelect
   (Class/forName "[D")
@@ -729,17 +748,6 @@
                            (aget m-i (y j)))))) 
         res)
       (error "select on 2D double array takes only 2 arguments"))))
-
-(defn to-double-arrays
-  "Converts an array to nested double arrays with the same shape."
-  [m]
-  (if-let [dims (mp/dimensionality m)]
-    (cond 
-      (== 0 dims) (double (mp/get-0d m))
-      (== 1 dims) (mp/to-double-array m)
-      :else (let [r0 (to-double-arrays (mp/get-major-slice m 0))
-                  c (.getClass ^Object r0)]
-              (into-array c (map to-double-arrays (mp/get-major-slice-seq m)))))))
 
 ;; registration
 
