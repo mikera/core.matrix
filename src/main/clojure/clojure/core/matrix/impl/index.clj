@@ -3,6 +3,9 @@
             [clojure.core.matrix.utils :refer :all])
   (:import [clojure.lang IPersistentVector]))
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* :warn-on-boxed)
+
 (extend-protocol mp/PIndexImplementation
   (Class/forName "[J")
 	  (index? [m]
@@ -49,7 +52,7 @@
       (cond
         (mp/index? a)
           (mp/persistent-vector-coerce a)
-        (== 1 (mp/dimensionality a))
+        (== 1 (long (mp/dimensionality a)))
           (vec (mp/index-to-longs a))
         :else
           (error "Can't make a 1D index from array of shape " (mp/get-shape a)))))
