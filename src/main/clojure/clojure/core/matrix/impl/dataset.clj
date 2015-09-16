@@ -9,7 +9,7 @@
            [java.util List]))
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+(set! *unchecked-math* :warn-on-boxed)
 
 ;; a column-based DataSet implementation.
 ;; columns are arbitrary core.matrix arrays, treated as vectors
@@ -20,7 +20,7 @@
 
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
-        cc (count col-names)
+        cc (long (count col-names)) 
         ^IPersistentVector cols (if (empty? cols)
                                   (into [] (repeat cc []))
                                   (into [] (mp/get-rows cols)))]
@@ -40,37 +40,39 @@
 
 (defn dataset-from-array
   ([m]
-     (when (mp/is-scalar? m)
-       (error "Don't know how to construct DataSet from type: " (class m)))
-     (when (< (mp/dimensionality m) 2)
-       (error "Can't construct dataset from array with shape: " (mp/get-shape m)))
-     (let [col-count (mp/dimension-count m 1)
-           col-indexes (range col-count)]
-       (dataset-from-columns
-         (into [] col-indexes)
-         (vec (for [i col-indexes]
-                (mp/get-slice m 1 i)))))))
+     (let [dims (long (mp/dimensionality m))]
+       (when (< dims 2)
+         (error "Can't construct dataset from array with shape: " (mp/get-shape m)))
+       (let [col-count (long (mp/dimension-count m 1))
+             col-indexes (range col-count)]
+         (dataset-from-columns
+           (into [] col-indexes)
+           (vec (for [i col-indexes]
+                  (mp/get-slice m 1 i))))))))
 
 (defn dataset-from-row-maps
   ([col-names m]
-     (let [rows (map (fn [row]
-                       (reduce
-                        (fn [acc c] (conj acc (get row c)))
-                        [] col-names)) m)]
+     (let [rows (mapv (fn [row]
+                        (reduce
+                         (fn [acc c] (conj acc (get row c)))
+                         [] col-names)) m)]
        (dataset-from-rows col-names rows))))
 
 (extend-protocol mp/PDimensionLabels
   DataSet
     (label [m dim i]
-      (cond
-        (== dim 1) (nth (:column-names m) i)
-        (<= 0 (long i) (dec (long (mp/dimension-count m dim)))) nil
-        :else (error "Dimension index out of range: " i)))
+      (let [dim (long dim)
+            i (long i)]
+        (cond
+          (== dim 1) (nth (:column-names m) i)
+          (<= 0 (long i) (dec (long (mp/dimension-count m dim)))) nil
+          :else (error "Dimension index out of range: " i))))
     (labels [m dim]
-      (cond
-        (== dim 1) (:column-names m)
-        (<= 0 (long dim) (dec (long (mp/dimensionality m)))) nil
-        :else (error "Dimension out of range: " dim))))
+      (let [dim (long dim)]
+        (cond
+          (== dim 1) (:column-names m)
+          (<= 0 (long dim) (dec (long (mp/dimensionality m)))) nil
+          :else (error "Dimension out of range: " dim)))))
 
 (extend-protocol mp/PMatrixSlices
   DataSet
@@ -109,13 +111,13 @@
     (.column-names ds))
   (select-columns [ds col-names]
     (let [^List all-col-names (mp/column-names ds)
-          indices (map #(.indexOf all-col-names %) col-names)
-          cols (map #(mp/get-column ds %) indices)]
-      (if (every? #(> % -1) indices)
+          indices (mapv #(.indexOf all-col-names %) col-names)
+          cols (mapv #(mp/get-column ds %) indices)]
+      (if (every? #(> (long %) -1) indices)
         (dataset-from-columns col-names cols)
         (error "Columns "
                (->> (zipmap indices col-names)
-                    (filter #(= (first %) -1))
+                    (filter #(== (long (first %)) -1))
                     (mapv second))
                " not found in dataset"))))
   (select-rows [ds rows]
@@ -125,9 +127,9 @@
         (->> (map #(nth row-maps %) rows)
              (dataset-from-row-maps col-names))
         (catch Exception e
-          (let [c (count (mp/get-rows ds))
-                out-of-range (filter #(>= % c) rows)]
-            (if (> (count out-of-range) 0)
+          (let [c (long (count (mp/get-rows ds)))
+                out-of-range (filter #(>= (long %) c) rows)]
+            (if (> (long (count out-of-range)) 0)
               (error "Dataset contains only " c " rows. Can't select rows with indices: "
                      (vec out-of-range))
               (throw e)))))))
@@ -201,16 +203,15 @@
        (for [i col-indexes]
          (mp/new-vector (imp/get-canonical-object) rows)))))
   (new-matrix-nd [m shape]
-    (if (== 2 (count shape))
+    (if (== 2 (long (count shape)))
       (mp/new-matrix m (first shape) (second shape))
       nil))
   (construct-matrix [m data]
-    (if (== 2 (mp/dimensionality data))
+    (if (== 2 (long (mp/dimensionality data)))
       (dataset-from-array data)
       nil))
   (supports-dimensionality? [m dims]
-    (== dims 2)))
-
+    (== (long dims) 2)))
 
 (extend-protocol mp/PDimensionInfo
   DataSet
@@ -221,14 +222,15 @@
   (is-scalar? [m] false)
   (get-shape [m]
     [(mp/dimension-count m 0) (mp/dimension-count m 1)])
-  (dimension-count [m x]
-    (cond
-     (== x 0) (let [cols (mp/get-columns m)]
-                (if-not (empty? cols)
-                  (mp/dimension-count cols 1)
-                  0))
-     (== x 1) (count (mp/column-names m))
-     :else (error "Invalid dimension: " x))))
+  (dimension-count [m dim]
+    (let [dim (long dim)]
+      (cond
+        (== dim 0) (let [cols (mp/get-columns m)]
+                   (if-not (empty? cols)
+                     (mp/dimension-count cols 1)
+                     0))
+        (== dim 1) (count (mp/column-names m))
+        :else (error "Invalid dimension: " dim)))))
 
 (extend-protocol mp/PIndexedAccess
   DataSet
@@ -239,11 +241,10 @@
     (get-nd [m indexes]
       (let [dims (long (count indexes))]
         (cond
-         (== 1 dims) (mp/get-row m (first indexes))
-         (== 2 dims) (mp/get-2d m (first indexes) (second indexes))
-         (> 2 dims) (mp/get-nd (mp/get-2d m (first indexes) (second indexes)) (nnext indexes))
-         :else
-         (error "Invalid dimensionality access with index: " (vec indexes))))))
+          (== 1 dims) (mp/get-row m (first indexes))
+          (== 2 dims) (mp/get-2d m (first indexes) (second indexes))
+          (> 2 dims) (mp/get-nd (mp/get-2d m (first indexes) (second indexes)) (nnext indexes))
+          :else (error "Invalid dimensionality access with index: " (vec indexes))))))
 
 (extend-protocol mp/PIndexedSetting
   DataSet
@@ -252,8 +253,8 @@
     (set-2d [m x y v]
       (let [col (mp/get-column m y)]
         (dataset-from-columns
-         (mp/column-names m)
-         (assoc (mp/get-columns m) y (assoc col x v)))))
+          (mp/column-names m)
+          (assoc (mp/get-columns m) y (assoc col x v)))))
     (set-nd [m indexes v]
       (let [dims (long (count indexes))]
         (cond
