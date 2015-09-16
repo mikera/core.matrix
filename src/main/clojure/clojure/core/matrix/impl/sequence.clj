@@ -73,14 +73,23 @@
 
 (extend-protocol mp/PSliceSeq
   ISeq
-    (get-major-slice-seq [m] m))
+    (get-major-slice-seq [m] (vec m)))
+
+(extend-protocol mp/PSliceSeq2
+  ISeq
+    (get-slice-seq [m dimension]
+      (let [ldimension (long dimension)]
+        (cond
+         (== ldimension 0) (mp/get-major-slice-seq m)
+         (< ldimension 0) (error "Can't get slices of a negative dimension: " dimension)
+         :else (mapv #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))))
 
 (extend-protocol mp/PConversion
   ISeq
     (convert-to-nested-vectors [m]
       (if (> (mp/dimensionality (first m)) 0)
         (mapv mp/convert-to-nested-vectors m)
-        (mapv mp/get-0d m))))
+        (vec m))))
 
 (extend-protocol mp/PDimensionInfo
   ISeq
