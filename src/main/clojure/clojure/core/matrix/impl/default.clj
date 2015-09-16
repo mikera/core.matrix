@@ -867,6 +867,13 @@
       (when-not (and (number? constant) (zero? constant)) (mp/matrix-add! m1 constant))
       m1))
 
+(extend-protocol mp/PAddInnerProductMutable
+  Object
+    (add-inner-product! [m a b]
+      (mp/matrix-add! m (mp/inner-product a b)))
+    (add-inner-product! [m a b factor]
+      (mp/add-scaled! m (mp/inner-product a b) factor)))
+
 ;; type of matrix element
 ;; the default is to assume any type is possible
 (extend-protocol mp/PTypeInfo

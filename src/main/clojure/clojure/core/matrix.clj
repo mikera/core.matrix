@@ -1289,6 +1289,17 @@
     (mp/add-scaled-product! m a b factor)
     m))
 
+(defn add-inner-product!
+  "Adds the inner product of two numerical arrays to the first array.
+   Returns the mutated array.
+   This is equivalent to (add! m (inner-product a b)) but may be optimised by the underlying implementation."
+  ([m a b]
+    (mp/add-inner-product! m a b)
+    m)
+  ([m a b factor]
+    (mp/add-inner-product! m a b factor)
+    m))
+
 (defn sub
   "Performs element-wise subtraction on one or more numerical arrays.
    Returns a new array."
