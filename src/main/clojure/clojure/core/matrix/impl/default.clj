@@ -526,6 +526,7 @@
     (trace [m] m)
   Number
     (trace [m] m)
+    (inverse [m] (/ m))
   Object
     (trace [m]
       (when-not (== 2 (long (mp/dimensionality m))) (error "Trace requires a 2D matrix"))
