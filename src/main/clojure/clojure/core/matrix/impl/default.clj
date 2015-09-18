@@ -1122,7 +1122,7 @@
 (extend-protocol mp/PFunctionalOperations
   Number
     (element-seq [m]
-      (list m))
+      (vector m))
     (element-map
       ([m f]
         (f m))
@@ -1150,11 +1150,11 @@
             dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
-            (list (mp/get-0d m))
+            (vector (mp/get-0d m))
           (and (.isArray c) (.isPrimitive (.getComponentType c)))
-            (seq m)
+            m
           (== 1 dims)
-            (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
+            (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
           (array? m)
             (mapcat mp/element-seq (mp/get-major-slice-seq m))
           :else (error "Don't know how to create element-seq from: " m))))

@@ -778,7 +778,7 @@
   ;; also the matrix type must be first for protocol dispatch, so we move it before f
   (element-seq
     [m]
-    "Must return a sequence containing all elements of the matrix, in row-major order.")
+    "Must return a seqable object containing all elements of the matrix, in row-major order.")
   (element-map
     [m f]
     [m f a]

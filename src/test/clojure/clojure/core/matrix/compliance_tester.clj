@@ -149,11 +149,11 @@
         (is (thrown? Throwable (apply mset! cm (concat ix [v2]))))))))
 
 (defn test-reshape [m]
-  (let [eq (if (numerical? m) equals =)
+  (let [eq (if (numerical? m) equals e=)
         c (ecount m)]
     (when (pos? c)
       (when (supports-dimensionality? m 1)
-        (is (eq (eseq m) (eseq (reshape m [c])))))
+        (is (eq (eseq m) (reshape m [c]))))
       (when (supports-dimensionality? m 2)
         (is (eq (eseq m) (eseq (reshape m [1 c]))))
         (is (eq (eseq m) (eseq (reshape m [c 1]))))))))
@@ -370,9 +370,9 @@
   (testing "supported matrix size tests"
     (doseq [vm (create-supported-matrices im)]
       (let [m (coerce im vm)]
-        (is (= (seq (shape m)) (seq (shape vm))))
+        (is (= (shape m) (shape vm)))
         (is (= (ecount m) (ecount vm)))
-        (is (= (eseq m) (eseq (emap identity m))))))))
+        (is (e= m (emap identity m)))))))
 
 (defn test-equality [m]
   (testing "proper work of equality check"
@@ -531,7 +531,7 @@
   (let [m (matrix im [1 2 3])]
     (is (= [3] (seq (shape m))))
     (is (equals m (matrix im (coerce [] (slices m)))))
-    (is (= (map mp/get-0d (slices m)) (eseq m)))))
+    (is (= (mapv mp/get-0d (slices m)) (vec (eseq m))))))
 
 (defn test-vector-subvector [im]
   (let [m (matrix im [1 2 3])]

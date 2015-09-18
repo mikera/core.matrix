@@ -1622,9 +1622,10 @@
 ;; a matrix in row-major ordering
 
 (defn eseq
-  "Returns all elements of an array as a seqable object in row-major order"
+  "Returns all elements of an array as a sequence object in row-major order"
   ([m]
-    (mp/element-seq m)))
+    ;; note we call seq to convert a seqable object returned by mp/element-seq into a seq
+    (seq (mp/element-seq m))))
 
 (defn ereduce
   "Element-wise reduce on all elements of an array."

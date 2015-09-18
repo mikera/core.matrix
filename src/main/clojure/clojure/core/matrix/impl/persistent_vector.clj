@@ -564,13 +564,15 @@
 (extend-protocol mp/PFunctionalOperations
   IPersistentVector
     (element-seq [m]
-      (cond
-        (== 0 (long (count m)))
-          '()
-        (> (long (mp/dimensionality (m 0))) 0)
+      (cond 
+        (== 0 (.length m))
+          nil
+        (>= (long (mp/dimensionality (.nth m 0))) 1)
+          ;; we are a 2D+ array, so be conservative and create a concatenated sequence
           (mapcat mp/element-seq m)
-        :else
-          (map mp/get-0d m)))
+        :else 
+          ;; we are a 1D vector, so already a valid seqable result for element-seq
+          m))
     (element-map
       ([m f]
         (mapmatrix f m))

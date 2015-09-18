@@ -483,7 +483,7 @@
 (extend-protocol mp/PFunctionalOperations
   (Class/forName "[D")
     (element-seq [m]
-      (seq m))
+      m)
     (element-map
       ([m f]
         (let [m ^doubles m

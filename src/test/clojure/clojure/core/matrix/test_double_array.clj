@@ -21,13 +21,13 @@
 (deftest test-create
   (testing "making a double array"
     (let [da (matrix :double-array [1 2])]
-      (is (= [1.0 2.0] (seq da)))
-      (is (= [1.0 2.0] (eseq da)))
-      (is (= (class (double-array [1])) (class da)))))
+      (is (equals [1.0 2.0] (seq da)))
+      (is (e= [1.0 2.0] (eseq da)))
+      (is (identical? (class (double-array [1])) (class da)))))
   (testing "coercion from persistent vector"
     (let [da (matrix :double-array [1 2])]
-      (is (= [2.0 4.0] (seq (coerce da [2 4]))))
-      (is (= (class da) (class (coerce da [2 4])))))))
+      (is (e= [2.0 4.0] (seq (coerce da [2 4]))))
+      (is (identical? (class da) (class (coerce da [2 4])))))))
 
 (deftest test-higher-dimensions
   (let [m [[[1 2] [3 4]]]
@@ -80,7 +80,7 @@
     (let [da (matrix :double-array [1 2])]
       (is (= [2.0 3.0] (seq (emap inc da))))
       (emap! inc da)
-      (is (= [2.0 3.0] (eseq da)))))
+      (is (= [2.0 3.0] (vec da)))))
   (testing "nested double arrays"
     (is (= [1.0 2.0 3.0 4.0] (eseq [(double-array [1 2]) (double-array [3 4])]))))
   (testing "mapping indexed"
