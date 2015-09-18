@@ -1622,7 +1622,7 @@
 ;; a matrix in row-major ordering
 
 (defn eseq
-  "Returns all elements of an array as a sequence in row-major order"
+  "Returns all elements of an array as a seqable object in row-major order"
   ([m]
     (mp/element-seq m)))
 
