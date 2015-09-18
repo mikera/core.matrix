@@ -561,7 +561,7 @@
          2 (apply mapv vector (map
                                #(mp/convert-to-nested-vectors %)
                                (mp/get-major-slice-seq m)))
-         (let [ss (map mp/transpose (mp/get-major-slice-seq m))]
+         (let [ss (mapv mp/transpose (mp/get-major-slice-seq m))]
            ;; note that function must come second for mp/element-map
            (case (count ss)
              1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
@@ -954,10 +954,12 @@
   ;; matrix add for scalars
   Number
     (matrix-add [m a]
-      (if (number? a) (+ m a)
+      (if (number? a) 
+        (+ m a)
         (mp/matrix-add a m)))
     (matrix-sub [m a]
-      (if (number? a) (- m a)
+      (if (number? a) 
+        (- m a)
         (mp/negate (mp/matrix-sub a m))))
   ;; default impelementation - assume we can use emap?
   Object
