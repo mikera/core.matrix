@@ -1,4 +1,8 @@
 (ns clojure.core.matrix.impl.double-array
+  "Implementation supporting:
+   
+   - Java double[] arrays as core.matrix 1D vectors
+   - Java double[][] arrays as core.matrix 2D matrices"
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.utils :refer :all]))

@@ -1,4 +1,7 @@
 (ns clojure.core.matrix.impl.wrappers
+  "Implementations for specialised wrapper types.
+
+   These wrapper types enable efficient of convenient implementation of various core.matrix protocols."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.utils :as u :refer [TODO error]])

@@ -4,7 +4,9 @@
    Array format is defined as:
    - Top level object is an instance of clojure.lang.IPersistentVector
    - If the array is 1-dimensional each element is a scalar 
-   - Otherwise each element is an sub-array with identical shape (1 dimensional or more)"
+   - Otherwise each element is an sub-array with identical shape (1 dimensional or more)
+
+   Note that this allows for other array implementations to be nested inside persistent vectors."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.mathsops :as mops]

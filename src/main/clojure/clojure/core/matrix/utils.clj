@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.utils
-  "Namespace for core.matrix utilities. Intended minly for library and tool writers."
+  "Namespace for core.matrix utilities. Intended mainly for library and tool writers."
   (:refer-clojure :exclude [update])
   (:require [clojure.reflect :as r])
   (:import [java.util Arrays]))

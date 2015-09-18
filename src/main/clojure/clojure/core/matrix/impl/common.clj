@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.impl.common
+  "Namespace containing common functions useful for core.matrix implementatations"
   (:require [clojure.string :as s]
             [clojure.core.matrix.utils :as u]
             [clojure.core.matrix.implementations :as mi]
