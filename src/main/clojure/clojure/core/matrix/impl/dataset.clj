@@ -265,6 +265,7 @@
           :else (error "Can't set on DataSet array with index: " (vec indexes)))))
     (is-mutable? [m] false))
 
-(def CANONICAL-OBJECT (dataset-from-columns [:0] [[1.0 2.0]]))
+;; Dataset with a two named columns and both numeric and non-numeric data
+(def CANONICAL-OBJECT (dataset-from-columns [:0 "Names"] [[1.0 2.0] ["A" "B"]]))
 
 (imp/register-implementation CANONICAL-OBJECT)

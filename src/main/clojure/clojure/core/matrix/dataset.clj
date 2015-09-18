@@ -1,5 +1,6 @@
 (ns clojure.core.matrix.dataset
-  "Namespace for the core.matrix dataset API"
+  "Namespace for the core.matrix dataset API. Datasets are similar to 2D matrices, except that they support labelled
+   columns and operations on labelled columns."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.dataset :as impl]
             [clojure.core.matrix :refer :all]
