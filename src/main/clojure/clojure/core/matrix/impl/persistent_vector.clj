@@ -1,4 +1,10 @@
 (ns clojure.core.matrix.impl.persistent-vector
+  "Namespace for core.matrix implementation using nested persistent vectors. 
+
+   Array format is defined as:
+   - Top level object is an instance of clojure.lang.IPersistentVector
+   - If the array is 1-dimensional each element is a scalar 
+   - Otherwise each element is an sub-array with identical shape (1 dimensional or more)"
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.mathsops :as mops]
