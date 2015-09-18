@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.impl.dataset
-  "Namespace for core.matrix dataset implementation. 
+  "Namespace for default core.matrix dataset implementation. 
 
    Represents a dataset as a 2D array such that:
    - Each column has an (optional) name as a label
@@ -88,39 +88,37 @@
 
 (extend-protocol mp/PMatrixColumns
   DataSet
-  (get-columns [ds]
-    (.columns ds)))
+    (get-columns [ds]
+      (.columns ds)))
 
 (extend-protocol mp/PMatrixRows
   DataSet
-  (get-rows [ds]
-    (->> (mp/get-columns ds)
-         (apply map vector))))
+    (get-rows [ds]
+      (->> (mp/get-columns ds)
+           (apply mapv vector))))
 
 (extend-protocol mp/PColumnSetting
   DataSet
-  (set-column [ds i column]
-    (let [scol (mp/get-column ds 0)
-          column (mp/broadcast-like scol column)]
-      (dataset-from-columns
-       (mp/column-names ds)
-       (assoc (mp/get-columns ds) i column)))))
+    (set-column [ds i column]
+      (let [scol (mp/get-column ds 0)
+            column (mp/broadcast-like scol column)]
+        (dataset-from-columns
+          (.column-names ds)
+          (assoc (.columns ds) i column)))))
 
 (extend-protocol mp/PDatasetImplementation
   DataSet
-  (column-names [ds]
-    (.column-names ds))
-  (select-columns [ds col-names]
-    (let [^List all-col-names (mp/column-names ds)
-          indices (mapv #(.indexOf all-col-names %) col-names)
-          cols (mapv #(mp/get-column ds %) indices)]
-      (if (every? #(> (long %) -1) indices)
-        (dataset-from-columns col-names cols)
-        (error "Columns "
-               (->> (zipmap indices col-names)
-                    (filter #(== (long (first %)) -1))
-                    (mapv second))
-               " not found in dataset"))))
+    (column-names [ds]
+      (.column-names ds))
+    (select-columns [ds col-names]
+      (let [^List all-col-names (.column-names ds)
+            indices (mapv (fn [name] 
+                            (let [ix (.indexOf all-col-names name)]
+                              (when (== -1 ix) (error "Column name " name "not found in Dataset"))
+                              ix)) 
+                          col-names)
+            cols (mapv #(.nth ^IPersistentVector (.columns ds) (long %)) indices)]
+        (dataset-from-columns col-names cols)))
   (select-rows [ds rows]
     (let [col-names (mp/column-names ds)
           row-maps (mp/row-maps ds)]
@@ -216,26 +214,26 @@
 
 (extend-protocol mp/PDimensionInfo
   DataSet
-  (dimensionality [m]
-    2)
-  (is-vector? [m]
-    false)
-  (is-scalar? [m] false)
-  (get-shape [m]
-    [(mp/dimension-count (first (.columns m)) 0) (.length ^IPersistentVector (.column-names m))])
-  (dimension-count [m dim]
-    (let [dim (long dim)]
-      (cond
-        (== dim 0) (mp/dimension-count (first (.columns m)) 0)
-        (== dim 1) (.length ^IPersistentVector (.column-names m))
-        :else (error "Invalid dimension for dataset: " dim)))))
+    (dimensionality [m]
+      2)
+    (is-vector? [m]
+      false)
+    (is-scalar? [m] false)
+    (get-shape [m]
+      [(mp/dimension-count (first (.columns m)) 0) (.length ^IPersistentVector (.column-names m))])
+    (dimension-count [m dim]
+      (let [dim (long dim)]
+        (cond
+          (== dim 0) (mp/dimension-count (first (.columns m)) 0)
+          (== dim 1) (.length ^IPersistentVector (.column-names m))
+          :else (error "Invalid dimension for dataset: " dim)))))
 
 (extend-protocol mp/PIndexedAccess
   DataSet
     (get-1d [m x]
       (mp/get-row m x))
     (get-2d [m x y]
-      (mp/get-major-slice (mp/get-column m y) x))
+      (mp/get-1d (.nth ^IPersistentVector (.columns m) (long y)) x))
     (get-nd [m indexes]
       (let [dims (long (count indexes))]
         (cond
