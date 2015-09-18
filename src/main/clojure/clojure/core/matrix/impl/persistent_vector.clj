@@ -115,7 +115,7 @@
 
       ;; it's not an array - so try alternative coercions
       (nil? x) x
-      (.isArray (class x)) (map persistent-vector-coerce (seq x))
+      (.isArray (class x)) (mapv persistent-vector-coerce (seq x))
       (instance? List x) (coerce-nested x)
       (instance? Iterable x) (coerce-nested x)
       (sequential? x) (coerce-nested x)
@@ -233,7 +233,13 @@
 (extend-protocol mp/PMatrixRows
   IPersistentVector
 	  (get-rows [m]
-      (seq m)))
+      m))
+
+(extend-protocol mp/PMatrixColumns
+  IPersistentVector
+	  (get-columns [m]
+      (vec (for [j (range (mp/dimension-count m 1))]
+             (mapv #(mp/get-1d % j) m)))))
 
 (extend-protocol mp/PSliceView
   IPersistentVector

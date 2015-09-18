@@ -79,6 +79,18 @@
   ISeq
     (get-major-slice-seq [m] (vec m)))
 
+(extend-protocol mp/PMatrixRows
+  ISeq
+    (get-rows [m] 
+      (vec m)))
+
+(extend-protocol mp/PMatrixColumns
+  ISeq
+    (get-columns [m] 
+      ;; should be OK since :sequence should never the the current implementation
+      (let [m (mp/coerce-param imp/*matrix-implementation* m)]
+        (mp/get-columns m))))
+
 (extend-protocol mp/PSliceSeq2
   ISeq
     (get-slice-seq [m dimension]

@@ -1,5 +1,10 @@
 (ns clojure.core.matrix.impl.dataset
-  "Namespace for core.matrix dataset implementation"
+  "Namespace for core.matrix dataset implementation. 
+
+   Represents a dataset as a 2D array such that:
+   - Each column has an (optional) name as a label
+   - Each column is stored as a separate array
+   - Columns may have different types"
   (:require [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.impl default persistent-vector] ;; these are needed during loading
