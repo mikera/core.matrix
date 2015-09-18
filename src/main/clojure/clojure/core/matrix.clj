@@ -1461,14 +1461,19 @@
     (mp/cross-product a b)))
 
 (defn cross!
-  "Computes the cross-product of two numerical 3D vectors, storing the result in the first vector.
+  "Computes the cross-product of two numerical 3D vectors a and b, storing the result in the first vector.
+   
    Returns the (mutated) first vector."
   ([a b]
     (mp/cross-product! a b)
-    a))
+    a)
+  ([dest a b]
+    (assign! dest a)
+    (cross! dest b)))
 
 (defn distance
   "Calculates the euclidean distance between two numerical vectors.
+
    This is equivalent to (norm 2 (sub a b)) but may be optimised by the underlying implementation."
   ([a b]
     (mp/distance a b)))
@@ -1679,8 +1684,9 @@
 
 (defn e=
   "Returns true if all array elements are equal (using the semantics of clojure.core/=).
+   
    WARNING: a java.lang.Long does not equal a java.lang.Double.
-   Use 'equals' or 'e==' instead if you want numerical equality."
+   Use 'equals' or 'e==' instead if you want to test for numerical equality."
   ([m1]
     true)
   ([m1 m2]
