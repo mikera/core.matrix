@@ -26,9 +26,7 @@
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
         cc (long (count col-names)) 
-        ^IPersistentVector cols (if (empty? cols)
-                                  (into [] (repeat cc []))
-                                  (into [] (mp/get-rows cols)))]
+        ^IPersistentVector cols (vec (mp/get-rows (vec cols)))]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
     (DataSet. col-names cols)))
@@ -224,16 +222,13 @@
     false)
   (is-scalar? [m] false)
   (get-shape [m]
-    [(mp/dimension-count m 0) (mp/dimension-count m 1)])
+    [(mp/dimension-count (first (.columns m)) 0) (.length ^IPersistentVector (.column-names m))])
   (dimension-count [m dim]
     (let [dim (long dim)]
       (cond
-        (== dim 0) (let [cols (mp/get-columns m)]
-                   (if-not (empty? cols)
-                     (mp/dimension-count cols 1)
-                     0))
-        (== dim 1) (count (mp/column-names m))
-        :else (error "Invalid dimension: " dim)))))
+        (== dim 0) (mp/dimension-count (first (.columns m)) 0)
+        (== dim 1) (.length ^IPersistentVector (.column-names m))
+        :else (error "Invalid dimension for dataset: " dim)))))
 
 (extend-protocol mp/PIndexedAccess
   DataSet
