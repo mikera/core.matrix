@@ -558,7 +558,7 @@
        (case (long (mp/dimensionality m))
          0 m
          1 m
-         2 (apply mapv vector (map
+         2 (apply mapv vector (mapv
                                #(mp/convert-to-nested-vectors %)
                                (mp/get-major-slice-seq m)))
          (let [ss (mapv mp/transpose (mp/get-major-slice-seq m))]

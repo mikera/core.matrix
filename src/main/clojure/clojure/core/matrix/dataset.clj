@@ -19,12 +19,15 @@
     `(instance? DataSet ~d)))
 
 (defn dataset
-  "Creates dataset from:
-    column names and seq of rows
-    column names and seq of row maps
-    map of columns with associated list of values.
-    matrix - its columns will be used as dataset columns and incrementing Long values starting from 0, i.e. 0, 1, 2, etc will be used as column names.
-    seq of maps"
+  "Creates dataset from on of the following:
+   1. matrix - its columns will be used as dataset columns.
+   2. seq of rows
+   3. seq of row maps (column names -> values for each row)
+   4. map of columns with associated list of values.
+   5. seq of maps
+
+   If col-names are provided they will be used, else incrementing Long values starting from 0, 
+   i.e. 0, 1, 2, etc will be used as column names"
   ([col-names data]
     (cond
       (matrix? data) (impl/dataset-from-rows col-names data)
@@ -72,7 +75,10 @@
             (impl/dataset-from-columns
               col-names
               (reduce #(conj %1 (get col-map %2)) [] col-names))
-            (error "Can't create dataset from incomplete maps"))))))
+            (error "Can't create dataset from incomplete maps")))
+        
+       :else 
+         (error "Don't know how to create dataset from data of type " (class data)))))
 
 (defn column-names
   "Returns a persistent vector containing column names in the same order as they are placed in the dataset."

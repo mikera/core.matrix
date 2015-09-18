@@ -36,6 +36,7 @@
 (defn dataset-from-rows [col-names rows]
   (let [^IPersistentVector col-names (vec col-names)
         cc (count col-names)
+        ;; _ (println (str "Building dataset from rows with " cc " columns"))
         ^IPersistentVector cols (if (empty? rows)
                                   (into [] (repeat cc []))
                                   (into [] (mp/get-columns rows)))]
@@ -44,16 +45,13 @@
     (DataSet. col-names cols)))
 
 (defn dataset-from-array
+  "Construct a dataset from an array. Uses labels from the array if available."
   ([m]
-     (let [dims (long (mp/dimensionality m))]
-       (when (< dims 2)
-         (error "Can't construct dataset from array with shape: " (mp/get-shape m)))
-       (let [col-count (long (mp/dimension-count m 1))
-             col-indexes (range col-count)]
-         (dataset-from-columns
-           (into [] col-indexes)
-           (vec (for [i col-indexes]
-                  (mp/get-slice m 1 i))))))))
+    (let [dims (long (mp/dimensionality m))]
+      (when (not= dims 2)
+        (error "Can't construct dataset from array with shape: " (mp/get-shape m)))
+      (let [col-names (or (mp/labels m 1) (vec (range (mp/dimension-count m 1))))]
+        (dataset-from-columns col-names (vec (mp/get-columns m)))))))
 
 (defn dataset-from-row-maps
   ([col-names m]
