@@ -1116,6 +1116,7 @@
 ;; ======================================
 ;; matrix comparisons
 
+;; Note on naming convention, we don't call it `equals?` because it isn't a 1-arg predicate...
 (defn equals
   "Returns true if two arrays are numerically equal.
 
@@ -1125,6 +1126,7 @@
 
    If epsilon is provided, performs an equality test
    with the given maximum tolerance (default is 0.0, i.e. exact numerical equivalence)"
+  ([a] true)
   ([a b]
     (mp/matrix-equals a b))
   ([a b epsilon]
