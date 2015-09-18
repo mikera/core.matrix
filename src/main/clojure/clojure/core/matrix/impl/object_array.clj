@@ -1,4 +1,10 @@
 (ns clojure.core.matrix.impl.object-array
+  "Namespace for core.matrix implementation using nested Java object arrays. 
+
+   Array format is defined as:
+   - Top level object is a Java Object[] array
+   - If the array is 1-dimensional each element is a scalar 
+   - Otherwise each element is an sub-array with identical shape (1 dimensional or more)"
   (:require [clojure.core.matrix.protocols :as mp]
             clojure.core.matrix.impl.persistent-vector
             [clojure.core.matrix.implementations :as imp]
@@ -25,11 +31,7 @@
   (let [dims (long (mp/dimensionality data))]
     (cond
       (== dims 1)
-        (let [n (long (mp/dimension-count data 0))
-              r (object-array n)]
-           (dotimes [i n]
-             (aset r i (mp/get-1d data i)))
-           r)
+        (object-array (mp/element-seq data))
       (== dims 0)
         (mp/get-0d data)
       :default
@@ -289,7 +291,7 @@
           (> (long (mp/dimensionality (aget m 0))) 0)
             (mapcat mp/element-seq m)
           :else
-            (map mp/get-0d m))))
+            m)))
     (element-map
       ([m f]
         (object-array (map #(mp/element-map % f) m)))
