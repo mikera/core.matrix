@@ -1015,7 +1015,7 @@
 
 (defn ensure-type
   "Checks if an array can contain a specified Java type, if so returns the orifginal array, otherwise
-   returns a copy of the array that can support the sepecified type."
+   returns a copy of the array that can support the specified type."
   [m ^Class klass]
   (if (supports-type? m klass)
     m
