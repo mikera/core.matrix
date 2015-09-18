@@ -1,5 +1,6 @@
 (ns clojure.core.matrix
-  "Main namespace for the core.matrix API"
+  "Main namespace for the core.matrix API. Functions in this API may be supported by multiple matrix implementations,
+   allowing code that uses this API to quickly switch between implementations."
   (:require [clojure.core.matrix.impl.default :as default]
             [clojure.core.matrix.impl double-array object-array persistent-vector index]
             [clojure.core.matrix.impl sequence] ;; TODO: figure out if we want this?
@@ -41,27 +42,10 @@
 (declare current-implementation-object)
 (declare to-nested-vectors)
 
-(defn matrix
-  "Constructs a new n-dimensional matrix from the given numerical data.
-
-   The data may be in one of the following forms:
-   - A valid existing numerical array
-   - Nested sequences of scalar values, e.g. Clojure vectors
-   - A sequence of slices, each of which must be valid matrix data
-
-   If implementation is not specified, uses the current matrix library as specified
-   in *matrix-implementation*"
-  ([data]
-    (or
-      (mp/construct-matrix (implementation-check) data)
-      (mp/coerce-param [] data)))
-  ([implementation data]
-    (or
-      (mp/construct-matrix (implementation-check implementation) data)
-      (mp/coerce-param [] data))))
-
 (defn array
   "Constructs a new n-dimensional array from the given data.
+
+   This function will examine the data in order to construct an array of the appropriate shape.
 
    The data may be in one of the following forms:
    - A valid existing array (which will be converted to the implementation)
@@ -72,7 +56,7 @@
    If implementation is not specified, uses the current matrix library as specified
    in *matrix-implementation*
 
-   If the implementation does not support the shape of data provided, may either
+   If the implementation does not support the shape or type of data provided, may either
    create an array using a different implementation on a best-efforts basis or
    alternatively throw an error. This behaviour is implementation-specific."
   ([data]
@@ -84,8 +68,25 @@
       (mp/construct-matrix (implementation-check implementation) data)
       (mp/coerce-param [] data))))
 
+(defn matrix
+  "Constructs a new 2-dimensional matrix from the given numerical data.
+
+   The data may be in one of the following forms:
+   - A valid existing numerical array
+   - Nested sequences of scalar values, e.g. Clojure vectors
+   - A sequence of slices, each of which must be valid matrix data
+
+   If implementation is not specified, uses the current matrix library as specified
+   in *matrix-implementation*
+
+   `matrix` works as a synonym for `array`"
+  ([data]
+    (array data))
+  ([implementation data]
+    (array implementation data)))
+
 (defn index
-  "Constructs a new index from given data.
+  "Constructs a new 1-dimensional integer index from given data.
 
    The data may be in one of the following forms:
    - A valid existing index
@@ -93,7 +94,7 @@
    - A sequence of integer values
 
    If implementation is not specified, uses the current matrix library as specified
-   in *matrix-implementation*
+   in *matrix-implementation* to produce the index object.
 
    If the implementation does not support its own native index types, will return a
    valid index from a default implementation."
@@ -292,25 +293,13 @@
     (mp/diagonal-matrix (imp/get-canonical-object implementation) diagonal-values)))
 
 (defn compute-matrix
-  "Creates a matrix with the specified shape, and each element specified by (f i j k...)
+  "Creates a array with the specified shape, and each element specified by (f i j k...)
    Where i, j, k... are the index positions of each element in the matrix"
   ([shape f]
     (compute-matrix (implementation-check) shape f))
   ([implementation shape f]
     (let [m (implementation-check implementation)]
       (mp/compute-matrix m shape f))))
-
-(defn sparse-matrix
-  "Creates a sparse matrix with the given data, using a specified implementation
-  or the current implementation if not specified. Sparse matrices are required to store
-  a M*N matrix with E non-zero elements in approx O(M+N+E) space or less.
-
-  Throws an exception if creation of a sparse matrix is not possible"
-  ([data]
-    (sparse-matrix (implementation-check) data))
-  ([implementation data]
-    (or (mp/sparse-coerce implementation data)
-        (error "Sparse implementation not available"))))
 
 (defn sparse-array
   "Creates a sparse array with the given data, using a specified implementation
@@ -322,6 +311,19 @@
   ([implementation data]
     (or (mp/sparse-coerce (implementation-check implementation) data)
         (error "Sparse implementation not available"))))
+
+(defn sparse-matrix
+  "Creates a sparse matrix with the given data, using a specified implementation
+  or the current implementation if not specified. Sparse matrices are required to store
+  a M*N matrix with E non-zero elements in approx O(M+N+E) space or less.
+
+  Throws an exception if creation of a sparse matrix is not possible.
+
+  `sparse-matrix` wqorks as a synonym for `sparse-array`."
+  ([data]
+    (sparse-array data))
+  ([implementation data]
+    (sparse-array implementation data)))
 
 (defn sparse
   "Coerces an array to a sparse format if possible. Sparse arrays are expected to
@@ -336,7 +338,8 @@
 
 (defn dense
   "Coerces an array to a dense format if possible. Dense arrays are expected to
-   allocate contiguous storage space for all elements.
+   allocate contiguous storage space for all elements. Either row-major or column-major
+   storage may be alloacted, depending on the implementation.
 
    'dense' should not be used with very large arrays, and may throw an OutOfMemoryError
     if the dense array is too large to fit in available memory.
@@ -431,7 +434,7 @@
 
 (defn to-nested-vectors
   "Converts an array to an idiomatic, immutable nested Clojure vector format. The bottom level of the
-   nested vectors will contain the element values.
+   nested vectors will contain the element values. Higher levels will all implement IPersistentVector.
 
    The depth of nesting will be equal to the dimensionality of the array."
   ([m]
@@ -448,7 +451,7 @@
 ;; Matrix predicates and querying
 
 (defn array?
-  "Returns true if the parameter is an N-dimensional array, for any N>=0"
+  "Returns true if the parameter is an N-dimensional array, for any N>=0."
   {:inline (fn [m] `(not (mp/is-scalar? ~m)))}
   ([m]
     (not (mp/is-scalar? m))))
@@ -471,42 +474,45 @@
     (mp/is-scalar? v)))
 
 (defn zero-dimensional?
-  "Returns true if the parameter has zero dimensions. i.e. it is a 0-d array or a scalar value."
+  "Returns true if the parameter has zero dimensions. i.e. it is a 0-d array or a scalar value.
+
+   Behaviour is the same as `scalar?`, except that true is returned for 0-dimensional arrays."
   [m]
   (== 0 (long (mp/dimensionality m))))
 
 (defn identity-matrix?
-  "Returns true if the parameter is an identity-matrix"
+  "Returns true if the parameter is an identity-matrix, i.e. a symmetric square matrix with element values
+   of 1 on the leading diagonal and 0 elsewhere."
   [m]
   (mp/identity-matrix? m))
 
 (defn zero-matrix?
   "Returns true if all the elements of the parameter are zero."
-  [m]
-  (mp/zero-matrix? m))
+  ([m]
+    (mp/zero-matrix? m)))
 
 (defn symmetric?
-  "Returns true if the parameter is a symmetric matrix"
-  [m]
-  (mp/symmetric? m))
+  "Returns true if the parameter is a symmetric matrix, i.e. Aij = Aji for all i,j."
+  ([m]
+    (mp/symmetric? m)))
 
 (defn diagonal?
-  "Returns true if the parameter is a diagonal matrix"
+  "Returns true if the parameter is a diagonal matrix."
   ([m]
-     (mp/diagonal? m)))
+    (mp/diagonal? m)))
 
 (defn upper-triangular?
-  "Returns true if the parameter is a upper triangular matrix"
+  "Returns true if the parameter is a upper triangular matrix."
   ([m]
-     (mp/upper-triangular? m)))
+    (mp/upper-triangular? m)))
 
 (defn lower-triangular?
-  "Returns true if the parameter is a lower triangular matrix"
+  "Returns true if the parameter is a lower triangular matrix."
   ([m]
      (mp/lower-triangular? m)))
 
 (defn orthogonal?
-  "Returns true if the parameter is an orthogonal matrix"
+  "Returns true if the parameter is an orthogonal matrix."
   ([m eps]
      (mp/orthogonal? m eps))
   ([m]
@@ -542,7 +548,7 @@
     (long (mp/dimension-count m dim))))
 
 (defn row-count
-  "Returns the number of rows in a matrix or vector (array must be 1D or more)"
+  "Returns the number of rows in a matrix or vector (array must be 1D or more)."
   {:inline (fn ([m] `(dimension-count ~m 0)))}
   (^long [m]
     (dimension-count m 0)))
@@ -561,11 +567,14 @@
     (dimension-count m 0)))
 
 (defn ecount
-  "Returns the total count of elements in an array.
+  "Returns the total count of elements in an array, as an integer value. 
 
    Equal to the product of the lengths of each dimension in the array's shape.
 
-   Returns 1 for a zero-dimensional array or scalar."
+   Result will usually be a Long, however callers should note that for very large sparse arrays 
+   the element count may be a BigInteger, i.e. equal to or larger than 2^63.
+
+   Returns 1 for a zero-dimensional array or scalar. "
   ([m]
     (mp/element-count m)))
 
@@ -605,7 +614,10 @@
       nil)))
 
 (defn zero-count
-  "Returns the number of zeros in an array."
+  "Returns the number of zeros in an array.
+
+   Result will usually be a Long, however callers should note that for very large sparse arrays 
+   the zero count may be a BigInteger, i.e. equal to or larger than 2^63."
   ([m]
     (mp/zero-count m)))
 
