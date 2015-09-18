@@ -1,4 +1,8 @@
 (ns clojure.core.matrix.impl.sequence
+  "Namepace implementing selected core.matrix protocols for clojure sequences.
+
+   WARNING: baecause they lack efficient indexed access, sequences are not efficient for many
+   array operations. In general they should be converted to other implementations before use."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.utils :refer [scalar-coerce error]])
@@ -109,7 +113,9 @@
 (extend-protocol mp/PFunctionalOperations
   ISeq
     (element-seq [m]
-      (mapcat mp/element-seq m))
+      (if (== 0 (long (mp/dimensionality (first m))))
+        m ;; handle 1D case, just return this sequence unchanged
+        (mapcat mp/element-seq m)))
     (element-map
       ([m f]
         (mapv #(mp/element-map % f) m))
