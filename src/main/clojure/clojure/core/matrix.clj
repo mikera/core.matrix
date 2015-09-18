@@ -732,8 +732,14 @@
     (mp/get-nd m (cons x (cons y more)))))
 
 (defn mset
-  "Sets a scalar value in an array at the specified position, returning a new matrix and leaving the
-   original unchanged."
+  "Sets a scalar value in an array at the specified position. Supports any number of dimensions.
+
+   returning a new matrix and leaving the
+   original unchanged. 
+
+   Warning: performance of this operation may be as high as O(N) where N is the number of elements in
+   the array. Consider using mutable arrays and `mset!` when setting large numbers of individual elements 
+   is required."
   ([m v]
     (mp/set-0d m v))
   ([m x v]
@@ -744,7 +750,7 @@
     (mp/set-nd m (cons x (cons y (cons z (butlast more)))) (last more))))
 
 (defn mset!
-  "Sets a scalar value in an array at the specified position. Supports any number of dimensions.
+  "Mutates a scalar value in an array at the specified position. Supports any number of dimensions.
 
    Will throw an exception if the matrix is not mutable at the specified position. Note that it
    is possible for some arrays to be mutable in places and immutable in others (e.g. sparse arrays)
@@ -773,13 +779,15 @@
 
 (defn get-row
   "Gets a row of a matrix, as a vector.
-   Will return a mutable view if supported by the implementation."
+   
+   May return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
 (defn get-column
   "Gets a column of a matrix, as a vector.
-   Will return a mutable view if supported by the implementation."
+   
+   May return a mutable view if supported by the implementation."
   ([m y]
      (mp/get-column m y)))
 
@@ -1094,14 +1102,14 @@
   "Fills a matrix with a single scalar value. The scalar value must be compatible with the element-type
    of the array.
 
-   Equivalent to assign!, but may be more efficient for scalar values."
+   Similar to assign!, but only supports scalar values (and may be more efficient)."
   ([m value]
     (mp/fill! m value)
     m))
 
 (defn fill
   "Fills a matrix with a single scalar value. The scalar value must be compatible with the element-type
-   of the array. Returns a new array."
+   of the array. Returns a new array. Functionally similar to `assign!` except only supports a scalar value."
   ([m value]
     (assign m value)))
 
