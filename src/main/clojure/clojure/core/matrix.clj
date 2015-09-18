@@ -1164,7 +1164,7 @@
     (reduce mul (mul a b) more)))
 
 (defn emul
-  "Performs element-wise multiplication."
+  "Performs element-wise multiplication between arrays."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -1173,7 +1173,7 @@
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
 (defn mmul
-  "Performs matrix multiplication on matrices or vectors.  Equivalent to
+  "Performs matrix multiplication on matrices or vectors. Equivalent to
   inner-product when applied to vectors.  Will treat a 1D vector roughly as a
   1xN matrix (row vector) when it's the first argument, or as an Nx1 matrix
   (column vector) when it's the second argument--except that the dimensionality
@@ -1186,7 +1186,7 @@
     (reduce mp/matrix-multiply (mp/matrix-multiply a b) more)))
 
 (defn e*
-  "An element-wise multiply operator equivalent to emul."
+  "An element-wise multiply operator equivalent to `emul`."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -1195,13 +1195,17 @@
     (reduce e* (e* a b) more)))
 
 (defn div
-  "Performs element-wise matrix division for numerical arrays."
+  "Performs element-wise matrix division for numerical arrays. 
+
+   Computes the reciprocal of each element when passed a single argument (similar to clojure.core//)."
   ([a] (mp/element-divide a))
   ([a b] (mp/element-divide a b))
   ([a b & more] (reduce mp/element-divide (mp/element-divide a b) more)))
 
 (defn div!
-  "Performs in-place element-wise matrix division for numerical arrays."
+  "Performs in-place element-wise matrix division for numerical arrays.
+
+   Computes the reciprocal of each element when passed a single argument (similar to clojure.core//)."
   ([a]
      (mp/element-divide! a)
      a)
@@ -1215,7 +1219,9 @@
      a))
 
 (defn mul!
-  "Performs in-place element-wise multiplication of numerical arrays."
+  "Performs in-place element-wise multiplication of numerical arrays. 
+
+   Returns the first argument after mutation."
   ([a] a)
   ([a b]
     (mp/element-multiply! a b)
@@ -1227,7 +1233,9 @@
     a))
 
 (defn emul!
-  "Performs in-place element-wise multiplication of numerical arrays."
+  "Performs in-place element-wise multiplication of numerical arrays.
+
+   Returns the first argument after mutation."
   ([a] a)
   ([a b]
     (mp/element-multiply! a b)
@@ -1241,13 +1249,15 @@
 (defn transform
   "Transforms a given vector with a transformation, returning a new vector.
 
-   The transformation may be a 2D matrix, but other types of transformation are also supported
-   e.g. affine transformations."
+   The transformation may be a 2D matrix, but other types of transformation may also be supported
+   e.g. affine transformations, unary operators."
   ([t v]
     (mp/vector-transform t v)))
 
 (defn transform!
-  "Transforms a given vector in place. Returns the transformed vector.
+  "Transforms a given vector in place. This is a mutable equivalent to `transform`.
+
+   Returns the transformed vector.
 
    The transformation must map an n-dimensional vector to another n-dimensional vector, i.e.
    if it is a 2D matrix then it must have shape [n x n]."
@@ -1264,9 +1274,24 @@
   ([a b & more]
     (reduce mp/matrix-add (mp/matrix-add a b) more)))
 
+
+(defn add!
+  "Performs element-wise mutable addition on one or more numerical arrays. This is the mutable 
+   equivalent of `add`.
+   
+   Returns the first array after it has been mutated."
+  ([a] a)
+  ([a b]
+    (mp/matrix-add! a b)
+    a)
+  ([a b & more]
+    (mp/matrix-add! a b)
+    (doseq [m more] (mp/matrix-add! a m))
+    a))
+
 (defn add-product
   "Adds the element-wise product of two numerical arrays to the first array.
-   Arrays must be the same shape."
+   Arrays should be the same shape."
   ([m a b]
     (mp/add-product m a b)))
 
@@ -1283,7 +1308,9 @@
 
 (defn scale-add!
   "Scales array m1 by factor a, then adds an array m2 scaled by factor b. May optionally add a constant.
-   Broadly equivalent to (add! (mul! m1 a) (mul m2 b) constant) "
+   Broadly equivalent to (add! (mul! m1 a) (mul m2 b) constant)
+
+   Returns the mutated array `m1`. The array `m2` will not be changed."
   ([m1 a m2 b] 
     (scale-add! m1 a m2 b 0.0))
   ([m1 a m2 b constant] 
@@ -1324,6 +1351,9 @@
 
 (defn sub
   "Performs element-wise subtraction on one or more numerical arrays.
+   
+   For a single argument, returns the negation.
+
    Returns a new array."
   ([a] (mp/negate a))
   ([a b]
@@ -1331,20 +1361,12 @@
   ([a b & more]
     (reduce mp/matrix-sub (mp/matrix-sub a b) more)))
 
-(defn add!
-  "Performs element-wise mutable addition on one or more numerical arrays.
-   Returns the first array after it has been mutated."
-  ([a] a)
-  ([a b]
-    (mp/matrix-add! a b)
-    a)
-  ([a b & more]
-    (mp/matrix-add! a b)
-    (doseq [m more] (mp/matrix-add! a m))
-    a))
-
 (defn sub!
   "Performs element-wise mutable subtraction on one or more numerical arrays.
+
+   For a single argument, returns the argument unchanged: use negate! instead if you wish to negate a mutable 
+   array in place.
+   
    Returns the first array, after it has been mutated."
   ([a] a)
   ([a b]
@@ -1390,6 +1412,7 @@
 
 (defn normalise!
   "Normalises a numerical vector in-place (scales to unit length).
+   
    Returns the modified vector."
   ([v]
     (mp/normalise! v)
