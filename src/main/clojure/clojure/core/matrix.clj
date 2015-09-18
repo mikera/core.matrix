@@ -1493,16 +1493,15 @@
     (mp/inverse m)))
 
 (defn negate
-  "Calculates the negation of a numerical array.
-   Generally equivalent to (scale m -1.0)"
+  "Calculates the negation of a numerical array. Generally equivalent to (scale m -1.0)"
   ([m]
     (mp/negate m)))
 
 (defn negate!
-  "Calculates the negation of a numerical array in place. Equivalent to scaling by -1.0
-   Generally equivalent to (scale! m -1.0)"
+  "Calculates the negation of a numerical array in place. Generally equivalent to (scale! m -1.0)"
   ([m]
-    (mp/scale! m -1.0)))
+    (mp/scale! m -1.0)
+    m))
 
 (defn trace
   "Calculates the trace of a 2D numerical matrix (sum of elements on main diagonal).
@@ -1565,7 +1564,7 @@
   (mp/swap-rows m i j))
 
 (defn multiply-row
-  "Multiply row i by a constant factor"
+  "Multiply row i in a matrix by a constant factor"
   [m i factor]
   (mp/multiply-row m i factor))
 
@@ -1606,9 +1605,8 @@
 (defn non-zero-count
   "Counts the number of non-zero values in a numerical array.
    May perform a full array scan, but will often be quicker for specialised
-   sparse matrices - sometimes as fast as O(1)"
+   sparse arrays - sometimes as fast as O(1)"
   ([m]
-    ;; TODO fast protocol implementation?
     (- (ecount m) (zero-count m))))
 
 (defn non-zero-indices
