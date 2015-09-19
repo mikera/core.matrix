@@ -30,12 +30,16 @@
   "Protocol for general implementation functionality. Required to support implementation metadata and
    matrix construction."
   (implementation-key [m]
-    "Returns a keyword representing this implementation.
-     Each implementation should have one unique key.")
+    "Returns a keyword representing this implementation, that can be used to request array instances or
+     look up implementation metadata etc.
+
+     Each implementation should have one unique key. Official mapping of implementation keywords is
+     maintained in the var clojure.core.matrix.implementations/KNOWN-IMPLEMENTATIONS.")
   (meta-info [m]
-    "Returns meta-information on the implementation. It is expected that
-     at least an element :doc containing a string describing an implementation
-     is provided.")
+    "Returns optional meta-information on the implementation. 
+
+     Standard keys:
+       :doc - containing a string describing an implementation")
   (construct-matrix [m data]
     "Returns a new n-dimensional array containing the given data. data should be in the form of either
      nested sequences or a valid existing array.
@@ -53,7 +57,7 @@
   (new-matrix-nd [m shape]
     "Returns a new general matrix of the given shape.
      Must return nil if the shape is not supported by the implementation.
-     Shape must be a sequence of dimension sizes.")
+     Shape can be any sequence of integer dimension sizes (including 0 dimensions).")
   (supports-dimensionality? [m dimensions]
     "Returns true if the implementation supports matrices with the given number of dimensions."))
 
@@ -61,7 +65,7 @@
   "Protocol to return standard dimension information about an array.
    dimensionality and dimension-count are mandatory for implementations"
   (dimensionality [m]
-    "Returns the number of dimensions of an array")
+    "Returns the number of dimensions of an array, as an integer (greater than or equal to zero). ")
   (get-shape [m]
     "Returns the shape of the array, typically as a Java array or sequence of dimension sizes.
      Implementations are free to choose what type is used to represent the shape, but it must
@@ -143,7 +147,8 @@
 
 (defprotocol PArrayMetrics
   "Option protocol for quick determination of array matrics"
-  (nonzero-count [m]))
+  (nonzero-count [m]
+    "Returns the number of non-zero values in a numerical array. May throw an exception if the array is not numerical."))
 
 (defprotocol PValidateShape
   "Optional protocol to validate the shape of a matrix. If the matrix has an incorrect shape, should
@@ -157,7 +162,7 @@
 
    A vector of length N should be converted to a 1xN or Nx1 matrix respectively.
 
-   Must throw an error if the data is not a 1D vector"
+   Should throw an error if the data is not a 1D vector"
   (column-matrix [m data])
   (row-matrix [m data]))
 
@@ -462,14 +467,17 @@
   "Protocol for numerical array equality operations."
   (matrix-equals 
     [a b]
-    "Return true if a equals b, i.e. if a and b are have the same shape and all elements are equal.
+    "Return true if a equals b, i.e. if a and b have the same shape and all elements are equal.
      Must use numerical value comparison on numbers (==) to account for matrices that may hold a mix of
      numercial types (e.g. java.lang.Long and java.lang.Double). Implementations that only support doubles
      should use Number.doubleValue() to get a numeric value to compare.
      May throw an exception if the matrices are non-numeric"))
 
 (defprotocol PMatrixEqualityEpsilon
-  "Protocol for numerical array equality operations with a specified tolerance."
+  "Protocol for numerical array equality operations with a specified tolerance. Arrays are defined as equal 
+   if the array shapes are the same and and for all corresponding elements ai and bi we have: |ai-bi|<=eps
+
+   Should be equivalent to PMatrixEquality when eps is zero."
   (matrix-equals-epsilon 
     [a b eps]
     "As matrix-equals, but provides a numerical tolerance for equality testing."))
