@@ -61,6 +61,12 @@
 			<version>0.8.2</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>clatrix</groupId>
+			<artifactId>clatrix</artifactId>
+			<version>0.5.0</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<licenses>
