@@ -1122,7 +1122,7 @@
 
    Functionally similar to `assign!` except only intended for use with a scalar value."
   ([m value]
-    (assign m value)))
+    (assign m (mp/get-0d value))))
 
 ;; ======================================
 ;; matrix comparisons
