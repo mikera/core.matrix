@@ -646,7 +646,17 @@
     "Transposes a mutable 2D matrix in place"))
 
 (defprotocol POrder
-  "Protocol for matrix reorder. May reorder along any dimension."
+  "Protocol for matrix reorder. 
+
+   By default, re-orders along the first (major) dimension, but may reorder along any dimension by 
+   specifiying the dimension argument.
+
+   Indicies can be any seqable object containing the indices along the specified dimension to select.
+   An index can be selected multiple times (which created repreated slices), or not at all (which excludes
+   the slice from the result).
+
+   Some implementation may implement re-ordering using lightweight or mutable views over the original array 
+   data."
   (order
     [m indices]
     [m dimension indices]))
