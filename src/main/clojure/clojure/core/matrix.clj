@@ -1025,7 +1025,11 @@
 
 (defn order
   "Reorders slices of an array along a specified dimension. Re-orders along major dimension
-   if no dimension is specified."
+   if no dimension is specified.
+
+   Indicies can be any seqable object containing the indices along the specified dimension to select.
+   An index can be selected multiple times (which created repreated slices), or not at all (which excludes
+   the slice from the result)."
   ([m indices]
     (mp/order m indices))
   ([m dimension indices]
@@ -1040,7 +1044,9 @@
     (mp/as-vector m)))
 
 (defn to-vector
-  "Creates a new array representing the elements of array m as a single flattened vector."
+  "Creates a new array representing the elements of array m as a single flattened vector.
+
+   This operation guarantees a new copy of the data."
   ([m]
     (or
       (mp/to-vector m)
@@ -1053,6 +1059,7 @@
   "Broadcasts a matrix to a specified shape. Returns a new matrix with the shape specified.
    The broadcasted matrix may be a view over the original matrix: attempting to modify the
    broadcasted matrix therefore has undefined results.
+   
    Will throw an exception if broadcast to the target shape is not possible."
   ([m shape]
     (or (mp/broadcast m shape)
@@ -1083,7 +1090,9 @@
     (TODO)))
 
 (defn transpose!
-  "Transposes a square 2D matrix in-place. Will throw an exception if not possible."
+  "Transposes a square 2D matrix in-place. 
+
+   Will throw an exception if not possible (e.g. if the matrix is not square or not mutable)."
   ([m]
     (mp/transpose! m)
     m))
@@ -1094,7 +1103,7 @@
    Preserves the row-major order of matrix elements. Truncates the sequence of elements if the shape is smaller
    than the original shape.
 
-   Pads with default values (dependent on implementation - but normally zero) if the shape is larger."
+   Pads with default values (dependent on implementation - normally zero) if the shape is larger."
   ([m shape]
     (mp/reshape m shape)))
 
@@ -1109,7 +1118,9 @@
 
 (defn fill
   "Fills a matrix with a single scalar value. The scalar value must be compatible with the element-type
-   of the array. Returns a new array. Functionally similar to `assign!` except only supports a scalar value."
+   of the array. Returns a new array. 
+
+   Functionally similar to `assign!` except only intended for use with a scalar value."
   ([m value]
     (assign m value)))
 
