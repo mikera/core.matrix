@@ -559,10 +559,10 @@
 
    Works according the the default definition of multiplication for the matrix class
    (usually numerical, i.e. equivalent to clojure.core/+)"
-  (scale [m a]
-    "Multiplies a array by the scalar value a, ")
-  (pre-scale [m a]
-    "Pre-multiplies the array with the scalar. This is the same as scale for arrays
+  (scale [m constant]
+    "Multiplies a array by the scalar constant, ")
+  (pre-scale [m constant]
+    "Pre-multiplies the array with the scalar constant. This is the same as scale for arrays
      where multiplication is commutative, but may be different for special kinds of scalars."))
 
 (defprotocol PMatrixMutableScaling
@@ -631,11 +631,14 @@
   (rotate-all [m shifts]))
 
 (defprotocol PShift
-  "Rotates an array using the specified shifts for each dimension.
+  "Rotates an array using the specified shifts for each dimension. Newly shifted in elements
+   should be filled with the default scalar value (usually zero)."
+  (shift [m dim places]
+    "Shift along a single specified dimension")
+  (shift-all [m shifts]
+    "Shift along all specified dimensions as a single operation.
 
-   shifts may be any sequence of integer shift amounts."
-  (shift [m dim places])
-  (shift-all [m shifts]))
+     `shifts` may be any sequence of integer shift amounts."))
 
 (defprotocol PTransposeInPlace
   "Protocol for mutable 2D matrix transpose in place"
