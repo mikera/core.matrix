@@ -493,40 +493,54 @@
 (defprotocol PMatrixProducts
   "Protocol for general inner and outer products of numerical arrays.
    Products should use + and * as normally defined for numerical types"
-  (inner-product [m a])
-  (outer-product [m a]))
+  (inner-product [m a] "Returns the inner product of two numerical arrays.")
+  (outer-product [m a] "Returns the outer product of two numerical arrays."))
 
 (defprotocol PAddProduct
-  "Protocol for add-product operation.
-   Intended to implement a fast version for result = m + a * b"
+  "Optional protocol for add-product operation.
+   
+   Intended to support optimised implementations for result = m + a * b"
   (add-product [m a b]))
 
 (defprotocol PAddProductMutable
-  "Protocol for mutable add-product! operation."
+  "Optional protocol for mutable add-product! operation.
+
+   Intended to support optimised implementations for m = m + a * b"
   (add-product! 
     [m a b] "Adds the elementwise product of a and b to m"))
 
 (defprotocol PAddScaledProduct
   "Protocol for add-product operation.
-   Intended to implement a fast version for result = m + a * b * factor"
+   
+   Intended to support optimised implementations for result = m + a * b * factor"
   (add-scaled-product 
     [m a b factor] "Adds the elementwise product of a, b and a scalar factor to m"))
 
 (defprotocol PAddScaledProductMutable
-  "Protocol for mutable add-product! operation."
+  "Protocol for mutable add-product! operation.
+
+   Intended to support optimised implementations for m = m + a * b * factor"
   (add-scaled-product! [m a b factor]))
 
 (defprotocol PAddScaled
-  "Protocol for add-scaled operation.
-   Intended to implement a fast version for result = m + a * factor"
+  "Protocol for add-scaled operation. 
+
+   Implementations may assume that factor is a scalar.
+ 
+   Intended to support optimised implementations for result = m + a * factor"
   (add-scaled [m a factor]))
 
 (defprotocol PAddScaledMutable
-  "Protocol for mutable add-scaled! operation."
+  "Protocol for mutable add-scaled! operation.
+
+   Implementations may assume that factor is a scalar.
+
+   Intended to support optimised implementations for m = m + a * factor"
   (add-scaled! [m a factor]))
 
 (defprotocol PMatrixDivide
   "Protocol to support element-wise division operator.
+
    One-arg version returns the reciprocal of all elements."
   (element-divide
     [m]
@@ -534,7 +548,8 @@
 
 (defprotocol PMatrixDivideMutable
   "Protocol to support mutable element-wise division operater.
-   One-arg version returns the reciprocal of all elements."
+
+   One-arg version computes the reciprocal of all elements."
   (element-divide!
     [m]
     [m a]))
@@ -545,9 +560,9 @@
   (element-multiply! [m a]))
 
 (defprotocol PVectorTransform
-  "Protocol to support transformation of a vector to another vector.
-   Is equivalent to matrix multiplication when 2D matrices are used as transformations.
-   But other transformations are possible, e.g. affine transformations.
+  "Protocol to support transformation of a vector to another vector. Is equivalent to matrix multiplication 
+   when 2D matrices are used as transformations. But other transformations are possible, e.g. non-affine 
+   transformations.
 
    A transformation need not be a core.matrix matrix: other types are permissible"
   (vector-transform [t v] "Transforms a vector")
