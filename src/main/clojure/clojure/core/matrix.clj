@@ -1285,10 +1285,12 @@
   ([a b & more]
     (reduce mp/matrix-add (mp/matrix-add a b) more)))
 
-
 (defn add!
   "Performs element-wise mutable addition on one or more numerical arrays. This is the mutable 
    equivalent of `add`.
+
+   When adding many arrays, use of `add!` with a mutable array as the first argument is
+   usually faster than repreated use of `add` because it can avoid unnecessary copying.
    
    Returns the first array after it has been mutated."
   ([a] a)
@@ -1375,8 +1377,9 @@
 (defn sub!
   "Performs element-wise mutable subtraction on one or more numerical arrays.
 
-   For a single argument, returns the argument unchanged: use negate! instead if you wish to negate a mutable 
-   array in place.
+   NOTE: For a single argument, returns the argument unchanged: use negate! instead if you wish to negate a mutable 
+   array in place. This is intentional, so that you can do (apply sub! m list-of-arrays) and get the expected 
+   result if the list of arrays is empty.
    
    Returns the first array, after it has been mutated."
   ([a] a)
@@ -1399,8 +1402,9 @@
     (mp/scale m (mp/element-multiply factor (reduce mp/element-multiply more-factors)))))
 
 (defn scale!
-  "Scales a numerical array by one or more scalar factors (in place). The default implementation supports numerical arrays and
-   numbers as scalar values, however matrix implementations may extend this to support other scalar types.
+  "Scales a numerical array by one or more scalar factors (in place). The default implementation supports 
+   numerical arrays and numbers as scalar values, however matrix implementations may extend this to 
+   support other scalar types.
 
    Returns the matrix after it has been mutated."
   ([m factor]
@@ -1430,13 +1434,18 @@
     v))
 
 (defn dot
-  "Computes the dot product (1Dx1D inner product) of two numerical vectors.
+  "Efficiently computes the scalar dot product (1Dx1D inner product) of two numerical vectors. Prefer this API 
+   function if you are performing a dot product on 1D vectors and want a scalar result.
    
-   If either argument is not a vector, should compute a higher dimensional inner product."
+   If either argument is not a vector, will compute a higher dimensional inner product."
   ([a b]
     (or
       (mp/vector-dot a b) ;; this allows a optimised implementation of 'dot' for vectors, which should be faster
-      (mp/inner-product a b))))
+      (let [v (mp/inner-product a b)]
+        (cond 
+          (number? v) v ;; fast path if v is a numerical result
+          (== 0 (long (mp/dimensionality v))) (mp/get-0d v) ;; ensure 0 dimensional results are scalar
+          :else v)))))
 
 (defn inner-product
   "Computes the inner product of numerical arrays.
