@@ -826,12 +826,30 @@
     (element-if [m a b] 
       (let [[a b] (mp/broadcast-same-shape a b)] 
         (if (> m 0) a b)))
-    (element-lt [m a] (if (< m a) 1 0))
-    (element-le [m a] (if (<= m a) 1 0))
-    (element-gt [m a] (if (> m a) 1 0))
-    (element-ge [m a] (if (>= m a) 1 0))
-    (element-ne [m a] (if (not= m a) 1 0))
-    (element-eq [m a] (if (= m a) 1 0))
+    (element-lt [m a] 
+      (if (number? a) 
+        (if (< m a) 1 0)
+        (mp/element-gt a m)))
+    (element-le [m a] 
+      (if (number? a)
+        (if (<= m a) 1 0)
+        (mp/element-ge a m)))
+    (element-gt [m a] 
+      (if (number? a) 
+        (if (> m a) 1 0)
+        (mp/element-lt a m)))
+    (element-ge [m a] 
+      (if (number? a) 
+        (if (>= m a) 1 0)
+        (mp/element-le a m)))
+    (element-ne [m a] 
+      (if (number? a) 
+        (if (not= m a) 1 0)
+        (mp/element-ne a m)))
+    (element-eq [m a] 
+      (if (number? a)
+        (if (= m a) 1 0)
+        (mp/element-eq a m)))
   Object
     (element-compare [a b] 
       (mp/element-map (mp/matrix-sub a b) #(long (mops/signum %))))
@@ -843,7 +861,7 @@
           (mp/element-map m #(if (> %1 0) a %2) b)
         (number? b)
           (mp/element-map m #(if (> %1 0) %2 b) a)
-        :else (mp/element-map m #(if (> %1 0) %2 %3) a [b])) ;; note [b] because this is a `more` argument
+        :else (mp/element-map m #(if (> %1 0) %2 %3) a [b])) ;; note we need [b] because this is a `more` argument
       )
     (element-lt [m a]
       (if (number? a)

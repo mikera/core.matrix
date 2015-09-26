@@ -58,18 +58,26 @@
 (deftest test-broadcast-comparisons
   (testing "element-wise if"
     (is (= [false false true] (eif [-1 0 1] true false))))
-  (testing "element-wise cmp"
+  (testing "vector broadcasting to matrix"
+    (is (== [[1 0] [0 0]] (lt [[1 5] [3 6]] [3 3])))
+    (is (== [[1 0] [1 0]] (le [[1 5] [3 6]] [3 3])))
+    (is (== [[0 1] [0 1]] (gt [[1 5] [3 6]] [3 3])))
+    (is (== [[0 1] [1 1]] (ge [[1 5] [3 6]] [3 3])))
+    (is (== [[1 1] [0 1]] (ne [[1 5] [3 6]] [3 3])))
+    (is (== [[0 0] [1 0]] (eq [[1 5] [3 6]] [3 3]))))
+  (testing "number as second argument"
+    (is (== [-1 0 1] (cmp [0 1 2] 1)))
+    (is (== [1 0 0] (lt [1 2 3] 2)))
+    (is (== [1 1 0] (le [1 2 3] 2)))
+    (is (== [0 0 1] (gt [1 2 3] 2)))
+    (is (== [0 1 1] (ge [1 2 3] 2)))
+    (is (== [1 0 1] (ne [1 2 3] 2)))
+    (is (== [0 1 0] (eq [1 2 3] 2))))
+  (testing "number as first argument"
     (is (== [-1 0 1] (cmp 1 [2 1 0])))
-    (is (== [-1 0 1] (cmp [0 1 2] 1))))
-  (testing "element-wise lt"
-    (is (== [[1 0] [0 0]] (lt [[1 5] [3 6]] [3 3]))))
-  (testing "element-wise le"
-    (is (== [[1 0] [1 0]] (le [[1 5] [3 6]] [3 3]))))
-  (testing "element-wise gt"
-    (is (== [[0 1] [0 1]] (gt [[1 5] [3 6]] [3 3]))))
-  (testing "element-wise ge"
-    (is (== [[0 1] [1 1]] (ge [[1 5] [3 6]] [3 3]))))
-  (testing "element-wise ne"
-    (is (== [[1 1] [0 1]] (ne [[1 5] [3 6]] [3 3]))))
-  (testing "element-wise eq"
-    (is (== [[0 0] [1 0]] (eq [[1 5] [3 6]] [3 3])))))
+    (is (== [0 0 1] (lt 2 [1 2 3])))
+    (is (== [0 1 1] (le 2 [1 2 3])))
+    (is (== [1 0 0] (gt 2 [1 2 3])))
+    (is (== [1 1 0] (ge 2 [1 2 3])))
+    (is (== [1 0 1] (ne 2 [1 2 3])))
+    (is (== [0 1 0] (eq 2 [1 2 3])))))
