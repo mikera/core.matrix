@@ -23,6 +23,7 @@
         offsets (for [i [-1 0 1] j [-1 0 1]] [i j])
         
         ;; rotate the grid using these offsets
+        ;; note that you can use `shift` instead of `rotate` if you don't want a wraparound grid
         rotated-grids (map (partial rotate grid) offsets)
         
         ;; now sum up the rotated grids
