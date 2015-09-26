@@ -58,12 +58,15 @@
   ([sa sb]
     (cond
       (identical? sa sb) true
-      (= sa sb) true
       (not= (count sa) (count sb)) false
-      (let [sa (seq sa)
-            sb (seq sb)]
-        (every? true? (map == sa sb))) true
-      :else false)))
+      :else 
+        (let [ca (count sa)]
+          (loop [i 0]
+            (if (>= i ca)
+              true
+              (if (== (nth sa i) (nth sb i))
+                (recur (inc i))
+                false)))))))
 
 (defn xor
   "Returns the logical xor of a set of values, considered as booleans"

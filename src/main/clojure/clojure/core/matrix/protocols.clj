@@ -1057,6 +1057,34 @@
       (not (is-scalar? x)) (mapv convert-to-nested-vectors (get-major-slice-seq x))
       :default (error "Can't coerce to vector: " (class x)))))
 
+(defn- calc-common-shape
+  "Returns the larger of two shapes if they are compatible, nil otherwise"
+  ([a b]
+    (let [ca (long (count a))
+          cb (long (count b))
+          diff (- ca cb)]
+      (if (< diff 0)
+        (recur b a)
+        (loop [i 0]
+          (if (< i cb) 
+            (if (== (nth a (+ diff i)) (nth b i))
+              (recur (inc i))
+              nil)
+            a))))))
+
+(defn common-shape 
+  "Returns the common shape that can be broadcast to from all the shapes specified, 
+   or nil if such a shape does not exist."
+  ([shapes]
+    (loop [result []
+           shapes (seq shapes)]
+      (if shapes
+        (let [sh (first shapes)]
+          (if-let [cs (calc-common-shape result sh)]
+            (recur cs (next shapes))
+            nil))
+        result))))
+
 (defn broadcast-compatible
   "Broadcasts two matrices into identical shapes, coercing to the type of the first matrix.
    Intended to prepare for elementwise operations.
@@ -1069,8 +1097,20 @@
         [(broadcast-like b a) (coerce-param a b)]
         [a (broadcast-coerce a b)]))))
 
+(defn broadcast-same-shape
+  "Broadcasts two matrices into identical shapes. Intended to prepare for elementwise operations.
+   Returns a vector containing the two broadcasted matrices.
+   Throws an error if not possible."
+  ([a b]
+    (if (same-shape? a b)
+      [a b]
+      (let [sh (get-shape a)]
+        (if (< (count sh) (dimensionality b))
+          [(broadcast a (get-shape b)) b]
+          [a (broadcast b sh)])))))
+
 (defn same-shapes?
-  "Returns true if a sequence of arrays all have the same shape."
+  "Returns truthy if a sequence of arrays all have the same shape."
   [arrays]
   (let [shapes (map #(or (get-shape %) []) arrays)]
     (loop [s (first shapes) ns (next shapes)]

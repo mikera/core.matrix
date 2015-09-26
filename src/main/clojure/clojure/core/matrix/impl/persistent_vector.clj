@@ -50,30 +50,43 @@
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
    Assumes correct dimensionality / shape.
 
+   First array argument must be nested persistent vectors. Others may be
+   any arrays of the same shape.
+
    Returns a nested persistent vector matrix or a scalar value."
   ([f m]
     (let [dims (long (mp/dimensionality m))]
       (cond
         (== 0 dims) (f (scalar-coerce m))
-        (== 1 dims) (mapv #(f (scalar-coerce %)) m)
+        (== 1 dims) (mapv f m)
         :else (mapv (partial mapmatrix f) m))))
   ([f m1 m2]
-    (let [dim2 (long (mp/dimensionality m2))]
-      (cond (mp/is-vector? m1)
-        (do
-          (when (> dim2 1) (error "mapping with array of higher dimensionality?"))
-          (when (and (== 1 dim2) (not= (mp/dimension-count m1 0) (mp/dimension-count m2 0))) (error "Incompatible vector sizes"))
-          (if (== 0 dim2)
-            (let [v (scalar-coerce m2)] (mapv #(f % v) m1 ))
-            (mapv f m1 (mp/element-seq m2))))
-        :else
-          (mapv (partial mapmatrix f)
-                m1
-                (mp/get-major-slice-seq m2)))))
-  ([f m1 m2 & more]
-    (if (mp/is-vector? m1)
-      (apply mapv f m1 m2 more)
-      (apply mapv (partial mapmatrix f) m1 m2 more))))
+    (let [dims (long (mp/dimensionality m1))]
+      (cond 
+        (== 0 dims) (f m1 (scalar-coerce m2))
+        (== 1 dims) (mapv f m1 (mp/element-seq m2))
+        :else (mapv (partial mapmatrix f) 
+                    m1 
+                    (mp/get-major-slice-seq m2)))))
+  ([f m1 m2 m3]
+    (let [dims (long (mp/dimensionality m1))]
+      (cond 
+        (== 0 dims) (f m1 (scalar-coerce m2) (scalar-coerce m3))
+        (== 1 dims) (mapv f m1 (mp/element-seq m2) (mp/element-seq m3))
+        :else (mapv (partial mapmatrix f) 
+                    m1 
+                    (mp/get-major-slice-seq m2) 
+                    (mp/get-major-slice-seq m3)))))
+  ([f m1 m2 m3 & more]
+    (let [dims (long (mp/dimensionality m1))]
+      (cond
+        (== 0 dims) (apply f m1 (scalar-coerce m2) (scalar-coerce m3) (map mp/get-0d more))
+        (== 1 dims) (apply mapv f m1 (mp/element-seq m2) (mp/element-seq m3) (map mp/element-seq more))
+        :else (apply mapv (partial mapmatrix f) 
+                     m1 
+                     (mp/get-major-slice-seq m2) 
+                     (mp/get-major-slice-seq m3)
+                     (map mp/get-major-slice-seq more))))))
 
 (defn- mapv-identity-check
   "Maps a function over a persistent vector, only modifying the vector if the function
@@ -591,9 +604,14 @@
       ([m f]
         (mapmatrix f m))
       ([m f a]
-        (mapmatrix f m (mp/broadcast-like m a)))
+        (let [[m a] (mp/broadcast-same-shape m a)] 
+          (mapmatrix f m a)))
       ([m f a more]
-        (apply mapmatrix f m a more)))
+        (let [arrays (cons m (cons a more))
+              shapes (map mp/get-shape arrays)
+              sh (or (mp/common-shape shapes) (error "Attempt to do element map with incompatible shapes: " (mapv mp/get-shape arrays)))
+              arrays (map #(mp/broadcast % sh) arrays)]
+          (apply mapmatrix f arrays))))
     (element-map!
       ([m f]
         (doseq [s m]

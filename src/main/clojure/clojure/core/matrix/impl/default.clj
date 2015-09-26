@@ -821,9 +821,11 @@
   Number
     (element-compare [a b] 
       (if (number? b) 
-        (int (mops/signum (- a b)))
-        (int (mops/signum (mp/matrix-sub a b)))))
-    (element-if [m a b] (if (> m 0) a b))
+        (long (mops/signum (- a b)))
+        (mp/signum (mp/matrix-sub a b))))
+    (element-if [m a b] 
+      (let [[a b] (mp/broadcast-same-shape a b)] 
+        (if (> m 0) a b)))
     (element-lt [m a] (if (< m a) 1 0))
     (element-le [m a] (if (<= m a) 1 0))
     (element-gt [m a] (if (> m a) 1 0))
@@ -832,7 +834,7 @@
     (element-eq [m a] (if (= m a) 1 0))
   Object
     (element-compare [a b] 
-      (mp/element-map (mp/matrix-sub a b) #(int (mops/signum %))))
+      (mp/element-map (mp/matrix-sub a b) #(long (mops/signum %))))
     (element-if [m a b]
       (cond 
         (and (number? a) (number? b))
@@ -841,7 +843,8 @@
           (mp/element-map m #(if (> %1 0) a %2) b)
         (number? b)
           (mp/element-map m #(if (> %1 0) %2 b) a)
-        :else (mp/element-map m #(if (> %1 0) %2 %3) a [b])))
+        :else (mp/element-map m #(if (> %1 0) %2 %3) a [b])) ;; note [b] because this is a `more` argument
+      )
     (element-lt [m a]
       (if (number? a)
         (mp/element-map m #(if (< %1 a) 1 0))
