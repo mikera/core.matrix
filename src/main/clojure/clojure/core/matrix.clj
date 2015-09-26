@@ -734,10 +734,9 @@
 (defn mset
   "Sets a scalar value in an array at the specified position. Supports any number of dimensions.
 
-   returning a new matrix and leaving the
-   original unchanged. 
+   Returns a new matrix and leaves the original unchanged. 
 
-   Warning: performance of this operation may be as high as O(N) where N is the number of elements in
+   WARNING: performance of this operation may be as high as O(N) where N is the number of elements in
    the array. Consider using mutable arrays and `mset!` when setting large numbers of individual elements 
    is required."
   ([m v]
@@ -778,14 +777,14 @@
     m))
 
 (defn get-row
-  "Gets a row of a matrix, as a vector.
+  "Gets a row of a matrix, as a 1D vector.
    
    May return a mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
 (defn get-column
-  "Gets a column of a matrix, as a vector.
+  "Gets a column of a matrix, as a 1D vector.
    
    May return a mutable view if supported by the implementation."
   ([m y]
@@ -1142,6 +1141,168 @@
     (mp/matrix-equals a b))
   ([a b epsilon]
     (mp/matrix-equals-epsilon a b epsilon)))
+
+
+(defn cmp
+  "Element-wise of comparisons of two arrays. Returns the signum of the difference 
+   between corresponding elements in two arrays.
+
+  Performs broadcasting of arguments if required to match the size of the largest array.
+  
+  Examples:
+  (cmp 1 3) ;=> -1
+  (cmp 0 0) ;=> 0
+  (cmp 1 -1) ;=> 1
+  (cmp [[1 3] [5 5]] [[3 3] [5 3]]) ;=> [[-1 0] [0 1]]
+  (cmp [[1 4][1 5][1 8]] [[1 2][1 5][2 7]]) ;=> [[0 1][0 0][-1 1]]
+  "
+  [a b]
+  (mp/element-compare a b))
+
+(defn eif
+  "Element-wise if. Tranverses each element, x, of an array, m. If x > 0,
+  returns the corresponding element from array a, while if x <= 0 returns the
+  corresponding element from array b.
+
+  Performs broadcasting of arguments if required to match the size of the largest array.
+
+  Examples:
+  (eif [[1 0][0 1] [[2 3][4 5]] [[6 7][8 9]]) ;=> [[2 7][8 5]]
+  (eif (gt [[2 6][3 5]] 4) [[0 0][0 0]] [[1 1][1 1]] ;=> [[0 1][0 1]]"
+  ([m a b]
+    (mp/element-if m a b)))
+
+(defn lt
+  "Element-wise less-than comparison operation. Returns a binary array where 
+  elements less-than the argument are represented by 1 and elements greater-
+  than or equal to the argument are 0.
+
+  Performs broadcasting of arguments if required to match the size of the largest array.
+  
+  Examples:
+  (lt 1 4) ;=> 1
+  (lt 3 3) ;=> 0
+  (lt [[1 5] [3 6]] 3) ;=> [[1 0] [0 0]]
+  (lt [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[1 0] [1 0]]"
+  ([m a]
+    (mp/element-lt m a))
+  ([m a & more]
+    (let [arrays (cons m (cons a more))]
+      ;; use multiplication to get locical "and"
+      (reduce mp/element-multiply (map (partial apply mp/element-lt) (partition 2 1 arrays))))))
+
+(defn le
+  "Element-wise less-than-or-equal-to comparison operation. Returns a binary
+  array where elements less-than or equal to the argument are represented by 1
+  and elements greater-than to the argument are 0.
+
+  Performs broadcasting of arguments if required to match the size of the largest array.
+  
+  Examples:
+  (le 3 3) ;=> 1
+  (le 4 3) ;=> 0
+  (le [[1 5] [3 6]] 3) ;=> [[1 0] [1 0]]
+  (le [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[1 0] [1 1]]"
+  ([m a]
+    (mp/element-le m a))
+  ([m a & more]
+    (let [arrays (cons m (cons a more))]
+      ;; use multiplication to get locical "and"
+      (reduce mp/element-multiply (map (partial apply mp/element-le) (partition 2 1 arrays))))))
+
+(defn gt
+  "Element-wise greater-than comparison operation. Returns a binary array where 
+  elements greater-than the argument are represented by 1 and elements less-
+  than or equal to the argument are 0.
+
+  Performs broadcasting of arguments if required to match the size of the largest array.
+  
+  Examples:
+  (gt 4 3) ;=> 1
+  (gt 3 3) ;=> 0
+  (gt [[1 5] [3 6]] 3) ;=> [[0 1] [0 1]]
+  (gt [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[0 1] [0 0]]"
+  ([m a]
+    (mp/element-gt m a))
+  ([m a & more]
+    (let [arrays (cons m (cons a more))]
+      ;; use multiplication to get locical "and"
+      (reduce mp/element-multiply (map (partial apply mp/element-gt) (partition 2 1 arrays))))))
+
+(defn ge
+  "Element-wise greater-than-or-equal-to comparison operation. Returns a binary
+  array where elements greater-than or equal to the argument are represented by 1
+  and elements less-than to the argument are 0.
+
+  Performs broadcasting of arguments if required to match the size of the largest array.
+
+  
+  Examples:
+  (ge 2 3) ;=> 0
+  (ge 3 3) ;=> 1
+  (ge [[1 5] [3 6]] 3) ;=> [[0 1] [1 1]]
+  (ge [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[0 1] [0 1]]"
+  ([m a]
+    (mp/element-ge m a))
+  ([m a & more]
+    (let [arrays (cons m (cons a more))]
+      ;; use multiplication to get locical "and"
+      (reduce mp/element-multiply (map (partial apply mp/element-ge) (partition 2 1 arrays))))))
+
+(defn ne
+  "Element-wise not-equal comparison operation. Returns a binary array where 
+  elements not-equal to the argument are represented by 1 and elements equal to 
+  the argument are 0.
+
+  Performs broadcasting of arguments if required to match the size of the largest array.
+  
+  Examples:
+  (ne 1 1) ;=> 0
+  (ne 5 1) ;=> 1
+  (ne [[1 5] [3 6]] 3) ;=> [[1 1] [0 1]]
+  (ne [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[1 1] [1 0]]"
+  ([m a]
+    (mp/element-ne m a)))
+
+(defn eq
+  "Element-wise equal comparison operation. Returns a binary array where 
+  elements equal to the argument are represented by 1 and elements not-equal to 
+  the argument are 0.
+  
+  Performs broadcasting of arguments if required to match the size of the largest array.
+
+  Examples:
+  (eq 1 1) ;=> 1
+  (eq 5 1) ;=> 0
+  (eq [[1 5] [3 6]] 3) ;=> [[0 0] [1 0]]
+  (eq [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[0 0] [0 1]]"
+  ([m a]
+    (mp/element-eq m a)))
+
+(defn e=
+  "Returns true if all corresponding array elements are equal (using the semantics of clojure.core/=).
+   
+   WARNING: a java.lang.Long does not equal a java.lang.Double.
+   Use 'equals' or 'e==' instead if you want to test for numerical equality."
+  ([m1]
+    true)
+  ([m1 m2]
+    (mp/value-equals m1 m2))
+  ([m1 m2 & more]
+    (and
+      (mp/value-equals m1 m2)
+      (apply e= m2 more))))
+
+(defn e==
+  "Returns true if all corresponding array elements are numerically equal. 
+
+   Throws an error if any elements of the arrays being compared are not numerical values."
+  ([m1]
+    true)
+  ([m1 m2]
+    (equals m1 m2))
+  ([m1 m2 & more]
+    (reduce equals (equals m1 m2) more)))
 
 ;; ======================================
 ;; Matrix labels
@@ -1710,133 +1871,6 @@
   "
   [m a b]
   (mp/element-clamp m a b))
-
-(defn cmp
-  "Element-wise of comparisons of two arrays. Returns sign of difference 
-   between two arrays.
-  
-  Examples:
-  (cmp 1 3) ;=> -1
-  (cmp 0 0) ;=> 0
-  (cmp 1 -1) ;=> 1
-  (cmp [[1 3] [5 5]] [[3 3] [5 3]]) ;=> [[-1 0] [0 1]]
-  (cmp [[1 4][1 5][1 8]] [[1 2][1 5][2 7]]) ;=> [[0 1][0 0][-1 1]]
-  "
-  [a b]
-  (mp/element-compare a b))
-
-(defn eif
-  "Element-wise if. Tranverses each element, x, of an array, m. If x > 0,
-  returns the corresponding element from array a, while if x <= 0 returns the
-  corresponding element from array b.
-  
-  Examples:
-  (eif [[1 0][0 1] [[2 3][4 5]] [[6 7][8 9]]) ;=> [[2 7][8 5]]
-  (eif (gt [[2 6][3 5]] 4) [[0 0][0 0]] [[1 1][1 1]] ;=> [[0 1][0 1]]"
-  [m a b]
-  (mp/element-if m a b))
-
-(defn lt
-  "Element-wise less-than comparison operation. Returns a binary array where 
-  elements less-than the argument are represented by 1 and elements greater-
-  than or equal to the argument are 0.
-  
-  Examples:
-  (lt 1 4) ;=> 1
-  (lt 3 3) ;=> 0
-  (lt [[1 5] [3 6]] 3) ;=> [[1 0] [0 0]]
-  (lt [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[1 0] [1 0]]"
-  [m a]
-  (mp/element-lt m a))
-
-(defn le
-  "Element-wise less-than-or-equal-to comparison operation. Returns a binary
-  array where elements less-than or equal to the argument are represented by 1
-  and elements greater-than to the argument are 0.
-  
-  Examples:
-  (le 3 3) ;=> 1
-  (le 4 3) ;=> 0
-  (le [[1 5] [3 6]] 3) ;=> [[1 0] [1 0]]
-  (le [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[1 0] [1 1]]"
-  [m a]
-  (mp/element-le m a))
-
-(defn gt
-  "Element-wise greater-than comparison operation. Returns a binary array where 
-  elements greater-than the argument are represented by 1 and elements less-
-  than or equal to the argument are 0.
-  
-  Examples:
-  (gt 4 3) ;=> 1
-  (gt 3 3) ;=> 0
-  (gt [[1 5] [3 6]] 3) ;=> [[0 1] [0 1]]
-  (gt [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[0 1] [0 0]]"
-  [m a]
-  (mp/element-gt m a))
-
-(defn ge
-  "Element-wise greater-than-or-equal-to comparison operation. Returns a binary
-  array where elements greater-than or equal to the argument are represented by 1
-  and elements less-than to the argument are 0.
-  
-  Examples:
-  (ge 2 3) ;=> 0
-  (ge 3 3) ;=> 1
-  (ge [[1 5] [3 6]] 3) ;=> [[0 1] [1 1]]
-  (ge [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[0 1] [0 1]]"
-  [m a]
-  (mp/element-ge m a))
-
-(defn ne
-  "Element-wise not-equal comparison operation. Returns a binary array where 
-  elements not-equal to the argument are represented by 1 and elements equal to 
-  the argument are 0.
-  
-  Examples:
-  (ne 1 1) ;=> 0
-  (ne 5 1) ;=> 1
-  (ne [[1 5] [3 6]] 3) ;=> [[1 1] [0 1]]
-  (ne [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[1 1] [1 0]]"
-  [m a]
-  (mp/element-ne m a))
-
-(defn eq
-  "Element-wise equal comparison operation. Returns a binary mask where 
-  elements equal to the argument are represented by 1 and elements not-equal to 
-  the argument are 0.
-  
-  Examples:
-  (eq 1 1) ;=> 1
-  (eq 5 1) ;=> 0
-  (eq [[1 5] [3 6]] 3) ;=> [[0 0] [1 0]]
-  (eq [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[0 0] [0 1]]"
-  [m a]
-  (mp/element-eq m a))
-
-(defn e=
-  "Returns true if all array elements are equal (using the semantics of clojure.core/=).
-   
-   WARNING: a java.lang.Long does not equal a java.lang.Double.
-   Use 'equals' or 'e==' instead if you want to test for numerical equality."
-  ([m1]
-    true)
-  ([m1 m2]
-    (mp/value-equals m1 m2))
-  ([m1 m2 & more]
-    (and
-      (mp/value-equals m1 m2)
-      (apply e= m2 more))))
-
-(defn e==
-  "Returns true if all array elements are numerically equal. Throws an error if any elements
-   of the arrays being compared are not numerical values."
-  ([m1]
-    true)
-  ([m1 m2]
-    (equals m1 m2))
-  ([m1 m2 & more]
-    (reduce equals (equals m1 m2) more)))
 
 (defn emap!
   "Element-wise map of a function f over all elements of one or more arrays.
