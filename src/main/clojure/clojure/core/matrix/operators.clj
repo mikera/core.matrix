@@ -1,7 +1,7 @@
 (ns clojure.core.matrix.operators
   "Namespace for core.matrix operators. These operators provide convenient notation for
    common array operations (e.g. +, *, -=) that replace equivalent functions in clojure.core"
-  (:refer-clojure :exclude [* - + / vector? ==])
+  (:refer-clojure :exclude [* - + / vector? == < <= > >= not= =])
   (:require [clojure.core.matrix :as m]
             [clojure.core.matrix.utils :refer [error]]))
 
@@ -95,3 +95,29 @@
   "Inplace matrix division operator"
   ([a] a)
   ([a b] (m/div! a b)))
+
+;; =====================================================================
+;; Comparison operators
+(defn <
+  "Element-wise less-than operator."
+  ([m a] (m/lt m a)))
+
+(defn <=
+  "Element-wise less-than-or-equal-to operator."
+  ([m a] (m/le m a)))
+
+(defn >
+  "Element-wise greater-than operator."
+  ([m a] (m/gt m a)))
+
+(defn >=
+  "Element-wise less-than-or-equal-to operator."
+  ([m a] (m/ge m a)))
+
+(defn not=
+  "Element-wise not-equal to operator."
+  ([m a] (m/ne m a)))
+
+(defn =
+  "Element-wise equal to operator."
+  ([m a] (m/eq m a)))

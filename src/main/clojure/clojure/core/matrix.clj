@@ -1701,6 +1701,119 @@
   ([m]
     (mp/element-max m)))
 
+(defn clamp
+  "Clamps each element in a numerical array between an upper and lower bound.
+  Returns an error if the lower bound is greater that the upper bound.
+  
+  Examples:
+  (clamp [[1 5 1] [4 10 2] [5 6 3]] 2 8) ;=> [[2 5 2] [4 8 2] [5 6 3]]
+  "
+  [m a b]
+  (mp/element-clamp m a b))
+
+(defn cmp
+  "Element-wise of comparisons of two arrays. Returns sign of difference 
+   between two arrays.
+  
+  Examples:
+  (cmp 1 3) ;=> -1
+  (cmp 0 0) ;=> 0
+  (cmp 1 -1) ;=> 1
+  (cmp [[1 3] [5 5]] [[3 3] [5 3]]) ;=> [[-1 0] [0 1]]
+  (cmp [[1 4][1 5][1 8]] [[1 2][1 5][2 7]]) ;=> [[0 1][0 0][-1 1]]
+  "
+  [a b]
+  (mp/element-compare a b))
+
+(defn eif
+  "Element-wise if. Tranverses each element, x, of an array, m. If x > 0,
+  returns the corresponding element from array a, while if x <= 0 returns the
+  corresponding element from array b.
+  
+  Examples:
+  (eif [[1 0][0 1] [[2 3][4 5]] [[6 7][8 9]]) ;=> [[2 7][8 5]]
+  (eif (gt [[2 6][3 5]] 4) [[0 0][0 0]] [[1 1][1 1]] ;=> [[0 1][0 1]]"
+  [m a b]
+  (mp/element-if m a b))
+
+(defn lt
+  "Element-wise less-than comparison operation. Returns a binary array where 
+  elements less-than the argument are represented by 1 and elements greater-
+  than or equal to the argument are 0.
+  
+  Examples:
+  (lt 1 4) ;=> 1
+  (lt 3 3) ;=> 0
+  (lt [[1 5] [3 6]] 3) ;=> [[1 0] [0 0]]
+  (lt [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[1 0] [1 0]]"
+  [m a]
+  (mp/element-lt m a))
+
+(defn le
+  "Element-wise less-than-or-equal-to comparison operation. Returns a binary
+  array where elements less-than or equal to the argument are represented by 1
+  and elements greater-than to the argument are 0.
+  
+  Examples:
+  (le 3 3) ;=> 1
+  (le 4 3) ;=> 0
+  (le [[1 5] [3 6]] 3) ;=> [[1 0] [1 0]]
+  (le [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[1 0] [1 1]]"
+  [m a]
+  (mp/element-le m a))
+
+(defn gt
+  "Element-wise greater-than comparison operation. Returns a binary array where 
+  elements greater-than the argument are represented by 1 and elements less-
+  than or equal to the argument are 0.
+  
+  Examples:
+  (gt 4 3) ;=> 1
+  (gt 3 3) ;=> 0
+  (gt [[1 5] [3 6]] 3) ;=> [[0 1] [0 1]]
+  (gt [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[0 1] [0 0]]"
+  [m a]
+  (mp/element-gt m a))
+
+(defn ge
+  "Element-wise greater-than-or-equal-to comparison operation. Returns a binary
+  array where elements greater-than or equal to the argument are represented by 1
+  and elements less-than to the argument are 0.
+  
+  Examples:
+  (ge 2 3) ;=> 0
+  (ge 3 3) ;=> 1
+  (ge [[1 5] [3 6]] 3) ;=> [[0 1] [1 1]]
+  (ge [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[0 1] [0 1]]"
+  [m a]
+  (mp/element-ge m a))
+
+(defn ne
+  "Element-wise not-equal comparison operation. Returns a binary array where 
+  elements not-equal to the argument are represented by 1 and elements equal to 
+  the argument are 0.
+  
+  Examples:
+  (ne 1 1) ;=> 0
+  (ne 5 1) ;=> 1
+  (ne [[1 5] [3 6]] 3) ;=> [[1 1] [0 1]]
+  (ne [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[1 1] [1 0]]"
+  [m a]
+  (mp/element-ne m a))
+
+(defn eq
+  "Element-wise equal comparison operation. Returns a binary mask where 
+  elements equal to the argument are represented by 1 and elements not-equal to 
+  the argument are 0.
+  
+  Examples:
+  (eq 1 1) ;=> 1
+  (eq 5 1) ;=> 0
+  (eq [[1 5] [3 6]] 3) ;=> [[0 0] [1 0]]
+  (eq [[1 5] [4 6]] [[2 3] [5 6]]) ;=> [[0 0] [0 1]]"
+  [m a]
+  (mp/element-eq m a))
+
 (defn e=
   "Returns true if all array elements are equal (using the semantics of clojure.core/=).
    

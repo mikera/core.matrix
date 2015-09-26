@@ -800,6 +800,8 @@
   Number
     (element-min [m] m)
     (element-max [m] m)
+    (element-clamp [m a b]
+      (if (< m a) a (if (> m b) b m)))
   Object
     (element-min [m]
       (mp/element-reduce m
@@ -808,7 +810,62 @@
     (element-max [m]
       (mp/element-reduce m
                        (fn [best v] (if (or (not best) (> v best)) v best))
-                       nil)))
+                       nil))
+    (element-clamp [m a b]
+      (mp/element-map m 
+        (if (> a b)
+          (error "min argument: " a " must be less than max argument: " b)
+          (fn [e] (if (< e a) a (if (> e b) b e)))))))
+
+(extend-protocol mp/PCompare
+  Number
+    (element-compare [a b] 
+      (if (number? b) 
+        (int (mops/signum (- a b)))
+        (int (mops/signum (mp/matrix-sub a b)))))
+    (element-if [m a b] (if (> m 0) a b))
+    (element-lt [m a] (if (< m a) 1 0))
+    (element-le [m a] (if (<= m a) 1 0))
+    (element-gt [m a] (if (> m a) 1 0))
+    (element-ge [m a] (if (>= m a) 1 0))
+    (element-ne [m a] (if (not= m a) 1 0))
+    (element-eq [m a] (if (= m a) 1 0))
+  Object
+    (element-compare [a b] 
+      (mp/element-map (mp/matrix-sub a b) #(int (mops/signum %))))
+    (element-if [m a b]
+      (cond 
+        (and (number? a) (number? b))
+          (mp/element-map m #(if (> %1 0) a b))
+        (number? a)
+          (mp/element-map m #(if (> %1 0) a %2) b)
+        (number? b)
+          (mp/element-map m #(if (> %1 0) %2 b) a)
+        :else (mp/element-map m #(if (> %1 0) %2 %3) a [b])))
+    (element-lt [m a]
+      (if (number? a)
+        (mp/element-map m #(if (< %1 a) 1 0))
+        (mp/element-map m #(if (< %1 %2) 1 0) a)))
+    (element-le [m a]
+      (if (number? a)
+        (mp/element-map m #(if (<= %1 a) 1 0))
+        (mp/element-map m #(if (<= %1 %2) 1 0) a)))
+    (element-gt [m a]
+      (if (number? a)
+        (mp/element-map m #(if (> %1 a) 1 0))
+        (mp/element-map m #(if (> %1 %2) 1 0) a)))
+    (element-ge [m a]
+      (if (number? a)
+        (mp/element-map m #(if (>= %1 a) 1 0))
+        (mp/element-map m #(if (>= %1 %2) 1 0) a)))
+    (element-ne [m a]
+      (if (number? a)
+        (mp/element-map m #(if (not= %1 a) 1 0))
+        (mp/element-map m #(if (not= %1 %2) 1 0) a)))
+    (element-eq [m a]
+      (if (number? a)
+        (mp/element-map m #(if (= %1 a) 1 0))
+        (mp/element-map m #(if (= %1 %2) 1 0) a))))
 
 ;; add-product operations
 (extend-protocol mp/PAddProduct
