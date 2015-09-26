@@ -881,12 +881,12 @@
         (mp/element-map m #(if (>= %1 %2) 1 0) a)))
     (element-ne [m a]
       (if (number? a)
-        (mp/element-map m #(if (not= %1 a) 1 0))
-        (mp/element-map m #(if (not= %1 %2) 1 0) a)))
+        (mp/element-map m #(if-not (== %1 a) 1 0))
+        (mp/element-map m #(if-not (== %1 %2) 1 0) a)))
     (element-eq [m a]
       (if (number? a)
-        (mp/element-map m #(if (= %1 a) 1 0))
-        (mp/element-map m #(if (= %1 %2) 1 0) a))))
+        (mp/element-map m #(if (== %1 a) 1 0))
+        (mp/element-map m #(if (== %1 %2) 1 0) a))))
 
 ;; add-product operations
 (extend-protocol mp/PAddProduct
