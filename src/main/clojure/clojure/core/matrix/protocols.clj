@@ -806,7 +806,44 @@
   "Protocol to return the minimum and maximum elements in a numerical array. Must throw an exception
    if the array is not numerical."
   (element-min [m])
-  (element-max [m]))
+  (element-max [m])
+  (element-clamp [m a b] 
+    "Returns a matrix where the elements are clamped to be within upper and 
+    lower bounds specified by a and b. Must throw an exception if a > b."))
+
+(defprotocol PCompare
+  "Protocol to allow element-wise comparison of elements in an array or matrix."
+  (element-compare [a b]
+    "Return the sign (signum) of the element-wise substraction of two scalars,
+    arrays or matrices i.e., must satisfy (signum (sub A B).")
+  (element-if [m a b] 
+    "Element-wise if statement.
+    
+    Traverse each element, x, of a array or matrix, m. If:
+      - x > 0, return a (if scalar) or corresponding element of a (if a is an 
+        array or matrix with same shape shape as m).
+      - x <= 0, return b (if scalar) or corresponding element in b (if b is an
+        array or matrix with same shape shape as m).
+    
+    Return an array or matrix with the same shape as m.")
+  (element-lt [m a]
+    "Return a binary array or matrix where elements of m less-than a are 
+    represented by 1 and elements greater-than a are represented as 0.")
+  (element-le [m a]
+    "Return a binary array or matrix where elements of m less-than-or-equal 
+    to a are  represented by 1 and elements greater-than a are represented as 0.")
+  (element-gt [m a]
+    "Return a binary array or matrix where elements of m greater-than a are 
+    represented by 1 and elements less-than a are represented as 0.")
+  (element-ge [m a]
+    "Return a binary array or matrix where elements of m greater-than-or-equal 
+    to a are  represented by 1 and elements less than a are represented as 0.")
+  (element-ne [m a]
+    "Return a binary array or matrix where elements of m not-equal to a are 
+    represented by 1 and elements equal to a are represented as 0.")
+  (element-eq [m a]
+    "Return a binary array or matrix where elements of m equal to a are 
+    represented by 1 and elements not-equal to a are represented as 0."))
 
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."
