@@ -1142,7 +1142,6 @@
   ([a b epsilon]
     (mp/matrix-equals-epsilon a b epsilon)))
 
-
 (defn cmp
   "Element-wise of comparisons of two arrays. Returns the signum of the difference 
    between corresponding elements in two arrays.
@@ -1161,12 +1160,18 @@
 
 (defn eif
   "Element-wise if. Tranverses each element, x, of an array, m. If x > 0,
-  returns the corresponding element from array a, while if x <= 0 returns the
-  corresponding element from array b.
-
+  returns a (if a is a scalar) or the corresponding element from a (if a is an
+  array or matrix). If x <= 0, returns b (if b is a scalar) or the corresponding
+  element from array b (if b is an array or matrix).
+  
   Performs broadcasting of arguments if required to match the size of the largest array.
-
+  
   Examples:
+  (eif (lt 1 3) 3 6) ;=> 3
+  (eif (lt 5 3) 3 6) ;=> 6
+  (eif (eq A B) 1 2) ;=> [[1 2] [2 1]]
+  (eif (eq A B) 1 D) ;=> [[1 1] [9 1]]
+  (eif (eq A B) C 2) ;=> [[2 2] [2 2]]
   (eif [[1 0][0 1] [[2 3][4 5]] [[6 7][8 9]]) ;=> [[2 7][8 5]]
   (eif (gt [[2 6][3 5]] 4) [[0 0][0 0]] [[1 1][1 1]] ;=> [[0 1][0 1]]"
   ([m a b]
@@ -1863,8 +1868,8 @@
     (mp/element-max m)))
 
 (defn clamp
-  "Clamps each element in a numerical array between an upper and lower bound.
-  Returns an error if the lower bound is greater that the upper bound.
+  "Clamps each element in a numerical array between lower and upper bounds
+  specified by a and b, respectively.
   
   Examples:
   (clamp [[1 5 1] [4 10 2] [5 6 3]] 2 8) ;=> [[2 5 2] [4 8 2] [5 6 3]]

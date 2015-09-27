@@ -808,8 +808,8 @@
   (element-min [m])
   (element-max [m])
   (element-clamp [m a b] 
-    "Returns a matrix where the elements are clamped to be within upper and 
-    lower bounds specified by a and b. Must throw an exception if a > b."))
+    "Returns a matrix where the elements are clamped to be within lower and 
+    upper bounds specified by a and b, respectively."))
 
 (defprotocol PCompare
   "Protocol to allow element-wise comparison of elements in an array or matrix."
