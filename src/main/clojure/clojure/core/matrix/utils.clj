@@ -205,6 +205,11 @@
           r (broadcast-shape* a b)]
       (if r (reverse r) nil))))
 
+(defn can-broadcast
+  "Returns truthy if the first shape a can be broadcast to the shape b"
+  ([from-shape to-shape]
+    (TODO)))
+
 (defmacro c-for
   "C-like loop with nested loops support"
   [loops & body]
