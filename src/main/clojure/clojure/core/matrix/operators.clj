@@ -100,27 +100,27 @@
 ;; Comparison operators
 (defn <
   "Element-wise less-than operator."
-  ([m a] (m/lt m a)))
+  ([a b] (m/lt a b)))
 
 (defn <=
   "Element-wise less-than-or-equal-to operator."
-  ([m a] (m/le m a)))
+  ([a b] (m/le a b)))
 
 (defn >
   "Element-wise greater-than operator."
-  ([m a] (m/gt m a)))
+  ([a b] (m/gt a b)))
 
 (defn >=
   "Element-wise less-than-or-equal-to operator."
-  ([m a] (m/ge m a)))
+  ([a b] (m/ge a b)))
 
 (defn not=
   "Element-wise not-equal to operator."
-  ([m a] (m/ne m a)))
+  ([a b] (m/ne a b)))
 
 (defn =
   "Element-wise equal to operator."
-  ([m a] (m/eq m a)))
+  ([a b] (m/eq a b)))
 
 (defn min
   "Computes the element-wise min of arrays"
