@@ -1,7 +1,7 @@
 (ns clojure.core.matrix.operators
   "Namespace for core.matrix operators. These operators provide convenient notation for
    common array operations (e.g. +, *, -=) that replace equivalent functions in clojure.core"
-  (:refer-clojure :exclude [* - + / vector? == < <= > >= not= =])
+  (:refer-clojure :exclude [* - + / vector? == < <= > >= not= = min max])
   (:require [clojure.core.matrix :as m]
             [clojure.core.matrix.utils :refer [error]]))
 
@@ -121,3 +121,21 @@
 (defn =
   "Element-wise equal to operator."
   ([m a] (m/eq m a)))
+
+(defn min
+  "Computes the element-wise min of arrays"
+  ([a]
+    a)
+  ([a b]
+    (m/eif (m/sub a b) b a))
+  ([a b & more]
+    (reduce min (min a b) more)))
+
+(defn max 
+  "Computes the element-wise max of arrays"
+  ([a]
+    a)
+  ([a b]
+    (m/eif (m/sub a b) a b))
+  ([a b & more]
+    (reduce min (min a b) more)))
