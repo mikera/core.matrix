@@ -1,6 +1,6 @@
-(ns clojure.core.matrix.examples
+(ns clojure.core.matrix.demo.examples
   "Namespace providing some basic core.matrix examples."
-  (:refer-clojure :exclude [* - + == / < <= > >= not= =])
+  (:refer-clojure :exclude [* - + == / < <= > >= not= = min max])
   (:require [clojure.core.matrix :refer :all]
             [clojure.core.matrix.operators :refer :all]))
 

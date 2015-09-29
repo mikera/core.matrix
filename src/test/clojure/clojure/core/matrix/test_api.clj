@@ -4,7 +4,7 @@
             [clojure.core.matrix.linear :as li]
             [clojure.core.matrix.operators :as op]
             [clojure.core.matrix.implementations :as imp]
-            clojure.core.matrix.examples
+            clojure.core.matrix.demo.examples
             clojure.core.matrix.impl.persistent-vector
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [error? broadcast-shape]]
@@ -531,7 +531,7 @@
 (deftest check-examples
   (binding [*out* (StringWriter.)]
     (testing "example code"
-      (clojure.core.matrix.examples/all-examples))))
+      (clojure.core.matrix.demo.examples/all-examples))))
 
 (deftest test-zeros
   (is (zero-matrix? (zero-matrix 3 3)))

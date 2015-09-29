@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.demo.pagerank
-  (:refer-clojure :exclude [* - + / == < <= > >= not= =])
+  (:refer-clojure :exclude [* - + / == < <= > >= not= = min max])
   (:require clojure.core.matrix.impl.ndarray
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.operators :refer :all]))
