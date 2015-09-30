@@ -78,23 +78,42 @@
 (defn +=
   "Inplace matrix addition operator"
   ([a] a)
-  ([a b] (m/add! a b)))
+  ([a b] 
+    (m/add! a b))
+  ([a b & more] 
+    (m/add! a b)
+    (doseq [m more]
+      (m/add! a m))))
 
 (defn -=
   "Inplace matrix subtraction operator"
   ([a] a)
-  ([a b] (m/sub! a b)))
+  ([a b] 
+    (m/sub! a b))
+  ([a b & more] 
+    (m/sub! a b)
+    (doseq [m more]
+      (m/sub! a m))))
 
 (defn *=
   "Inplace matrix multiplication operator"
   ([a] a)
-  ([a b] (m/mul! a b)))
+  ([a b] 
+    (m/mul! a b))
+  ([a b & more] 
+    (m/mul! a b)
+    (doseq [m more]
+      (m/mul! a m))))
 
 ;; TODO can't use /= due to clojure namespace issues
 (defn div=
   "Inplace matrix division operator"
   ([a] a)
-  ([a b] (m/div! a b)))
+  ([a b] (m/div! a b))
+  ([a b & more] 
+    (m/div! a b)
+    (doseq [m more]
+      (m/div! a m))))
 
 ;; =====================================================================
 ;; Comparison operators
