@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.test-operators
-  (:refer-clojure :exclude [* - + / == < <= > >= not= = min max])
+  (:refer-clojure :exclude [* - + / == min max])
   (:require clojure.core.matrix.impl.persistent-vector
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.operators :refer :all]
@@ -48,11 +48,3 @@
     (is (= [3.0] (+ [1.0] [2.0])))
     (is (= [[8.0]] (+ [[3.0]] [[5.0]])))
     (is (= [[[8]]] (+ [[[2]]] [[[6]]])))))
-
-(deftest test-comparison-operators
-  (is (= 1 (< 1 2)))
-  (is (= 0 (<= 5 2)))
-  (is (= 1 (> 4 3)))
-  (is (= 0 (>= 2 5)))
-  (is (= 1 (not= 1 5)))
-  (is (= 1 (= 3 3))))
