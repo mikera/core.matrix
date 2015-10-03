@@ -2,6 +2,9 @@
   "Demonstration of geometric functionality using core.matrix"
   (:require [clojure.core.matrix :refer :all]))
 
+;; =========================================================================
+;; Vector rotation example
+
 ;; The Pi constant.
 (def π 3.141592653589793)
 
@@ -18,5 +21,6 @@
 
 ;; Rotate a vector by a 1/8 turn
 (mmul (rot 1/8) [3 4])
+;; [4.949747468305833 0.7071067811865479]
 
 

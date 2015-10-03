@@ -344,6 +344,15 @@
    The default implementation creates a wrapper view."
   (get-major-slice-view [m i] "Gets a view of a major array slice"))
 
+(defprotocol PSliceView2
+  "Protocol for quick view access into a slices of an array. If implemented, must return
+   either a view or an immutable sub-matrix: it must *not* return copied data.
+
+   If the matrix is mutable, it must return a mutable view.
+
+   The default implementation creates a wrapper view."
+  (get-slice-view [m dim i] "Gets a view of an array slice along the specified dimension."))
+
 (defprotocol PSliceSeq
   "Returns the row-major slices of the array as a sequence.
 
@@ -941,6 +950,13 @@
   "Protocol for the sel function. See the docstring for clojure.core.matrix/select for
    more information on possible argument values."
   (select [a args] "selects all elements at indices which are in the cartesian product of args"))
+
+(defprotocol PSelectView
+  "Protocol for the sel function. Like PSelect, but guarantees an mutable view. 
+
+   If not supported by the implementation, may return nil to indicate that a default mutable view
+   should be created."
+  (select-view [a args] "selects all elements at indices which are in the cartesian product of args"))
 
 (defprotocol PSetSelection
   "Protocol for setting the elements of an array returned by (select a args) to values.

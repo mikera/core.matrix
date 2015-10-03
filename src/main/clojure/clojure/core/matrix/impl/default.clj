@@ -1387,8 +1387,8 @@
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
       (cond
-       (java-array? m) (nth m i)
-       (== 1 (long (mp/dimensionality m))) (mp/get-1d m i)
+        (java-array? m) (nth m i)
+        (== 1 (long (mp/dimensionality m))) (mp/get-1d m i)
         :else (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
     (get-slice [m dimension i]
       (let [ldimension (long dimension)]
@@ -1426,6 +1426,13 @@
               ss
               (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
         :else (clojure.core.matrix.impl.wrappers/wrap-slice m i))))
+
+(extend-protocol mp/PSliceView2
+  Object
+    (get-slice-view [m dim i]
+      (if (zero? dim)
+        (mp/get-major-slice-view m i)
+        (mp/get-slice-view (clojure.core.matrix.impl.wrappers/wrap-nd m) dim i))))
 
 (extend-protocol mp/PSliceSeq
   Object
@@ -1912,9 +1919,32 @@
            eps))))
 
 (extend-protocol mp/PSelect
+  nil
+    (select [a area]
+      (when (seq area) (error "Trying to select on nil with selection: " area))
+      nil)
+  Number
+    (select [a area]
+      (when (seq area) (error "Trying to select on numerical scalar with selection: " area))
+      a)
   Object
-  (select [a area]
-    (wrap/wrap-selection a area)))
+    (select [a area]
+      (or 
+        (mp/select-view a area) ;; use a view if supported by the implementation
+        (wrap/wrap-selection a area))))
+
+(extend-protocol mp/PSelectView
+  nil
+    (select-view [a area]
+      (when (seq area) (error "Trying to select on nil with selection: " area))
+      nil)  Object
+  Number
+    (select-view [a area]
+      (when (seq area) (error "Trying to select on numerical scalar with selection: " area))
+      a)
+  Object  
+    (select-view [a area]
+      (wrap/wrap-selection a area)))
 
 (extend-protocol mp/PSelect
   Number
@@ -1926,31 +1956,21 @@
 (defn- area-indices [area]
   (reduce (fn [io in]
             (for [a in b io]
-              (cons a b))) (map vector (last area)) (rest (reverse area))))
+              (cons a b))) (mapv vector (last area)) (rest (reverse area))))
 
 (defn- indices [vals]
-  (area-indices (map range (mp/get-shape vals))))
+  (area-indices (mapv range (mp/get-shape vals))))
 
 
 (extend-protocol mp/PSetSelection
   Object
-  (set-selection [a area vals]
-    (let [shape (map count area)
-        vals (mp/broadcast vals shape)]
-    (cond
-     (and (= (count shape) 2)
-          (= (first shape) (mp/dimension-count a 0)))
-     (loop [a a [i & is] (second area) [j & js] (range (second shape))]
-       (if i (recur (mp/set-column a i (mp/get-column vals j)) is js) a))
-     (and (= (count shape) 2)
-          (= (second shape) (mp/dimension-count a 1)))
-     (loop [a a [i & is] (first area) [j & js] (range (first shape))]
-       (if i (recur (mp/set-row a i (mp/get-row vals j)) is js) a))
-     :else
-     (loop [a a [idl & idxl] (area-indices area) [idr & idxr] (indices vals)]
-       (if idl
-         (recur (mp/set-nd a idl (mp/get-nd vals idr)) idxl idxr)
-         a))))))
+  (set-selection [m area vals]
+    (let [;; create a mutable clone
+          mm (or (mp/mutable-matrix m)
+                (construct-mutable-matrix m))
+          v (mp/select-view m area)]
+      (mp/assign! v vals)
+      mm)))
 
 (extend-protocol mp/PIndexImplementation
   Object

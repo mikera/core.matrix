@@ -290,6 +290,19 @@
     (testing "object array should equal element sequence"
       (is (= (seq (eseq m)) (seq arr))))))
 
+(defn test-mutable-select-view [m]
+  (let [dims (dimensionality m)]
+    (testing "select should match select-view"
+      (when (> (ecount m) 0)
+        (let [area (repeat dims 0)]
+         (is (e= (apply select m area) (apply select-view m area))))))
+    (when (== 2 dims)
+      (testing "select-view on a matrix should return a mutable column"
+        (let [m (mutable m)
+              sm (select-view m :all 0)]
+          (assign! sm 7)
+          (is (equals sm (get-column m 0))))))))
+
 (defn test-array-assumptions [m]
   ;; note: these must work on *any* array, i.e. no pre-assumptions on element type etc.
   (test-as-vector m)
@@ -303,6 +316,7 @@
   (test-slice-returns-scalar-on-1d m)
   (test-submatrix-assumptions m)
   (test-mutable-assumptions m)
+  (test-mutable-select-view m)
   (test-immutable-assumptions m)
   (test-vector-round-trip m)
   (test-ndarray-round-trip m)
@@ -681,7 +695,7 @@
   (let [m (matrix im [[1 2] [3 4]])
         mutable-m (ensure-mutable m)]
     (is (equals [[1 1] [1 1]] (set-selection m :all :all 1)))
-    (is (equals [[5 2] [6 4]] (set-selection m :all 0 [[5] [6]])))))
+    (is (equals [[5 2] [6 4]] (set-selection m :all 0 [5 6])))))
 
 (defn test-2d-instances [im]
   (test-numeric-instance (matrix im [[1 2] [3 4]]))
@@ -728,9 +742,12 @@
 ;;
 ;; All matrix implementations must pass this test for any valid matrix
 (defn instance-test [m]
-  (when (numerical? m)
-    (test-numeric-instance m))
-  (test-array-assumptions m))
+  (try 
+    (when (numerical? m)
+      (test-numeric-instance m))
+    (test-array-assumptions m)
+    (catch Throwable t
+      (throw (RuntimeException. (str "Error testing instance: " m) t)))))
 
 ;; ==============================================
 ;; General NDArray test

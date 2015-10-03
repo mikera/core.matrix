@@ -14,9 +14,6 @@
   (is (= [2] (shape '(1 2))))
   (is (= [2 2] (shape '((1 2) (3 4))))))
 
-(deftest compliance-test
-  (compliance/compliance-test '(1)))
-
 (deftest sequence-ops
   (is (equals (emul (range 10) (range 10)) '(0 1 4 9 16 25 36 49 64 81))))
 
@@ -42,3 +39,9 @@
     (is (numerical? v))
     (is (== 1 (dimensionality v)))
     (is (== 0 (dimension-count v 0)))))
+
+
+(deftest compliance-test
+  (compliance/compliance-test '(1))
+  (compliance/instance-test '())
+  (compliance/instance-test '((1 2) (3 4))))

@@ -268,7 +268,7 @@
           (u/long-array-of length)
           dim-map
           (u/object-array-of new-index-map)
-          source-position)))
+          (u/copy-long-array source-position))))
 
   mp/PDimensionInfo
     (dimensionality [m]
@@ -286,7 +286,7 @@
     (get-0d [m]
       (mp/get-nd array source-position))
     (set-0d! [m value]
-      (mp/set-nd array source-position value))
+      (mp/set-nd! array source-position value))
 
   mp/PIndexedAccess
     (get-1d [m row]
@@ -304,6 +304,7 @@
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
         (mp/get-nd array ix)))
+    
     mp/PIndexedSettingMutable
     (set-1d! [m row v]
       (let [ix (u/copy-long-array source-position)
@@ -316,10 +317,26 @@
         (set-source-index ix 1 column)
         (mp/set-nd! array ix v)))
     (set-nd! [m indexes v]
-      (let [^longs ix (u/copy-long-array source-position)]
+      (let [^longs ix (u/copy-long-array source-position)
+            n (alength shape)]
+        (when (not= n (count indexes))
+          (error "set-nd! called with index " (vec indexes) " indexes on wrapped array of shape " shape))
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
         (mp/set-nd! array ix v)))
+    
+    mp/PSliceView2
+      (get-slice-view [m dim i]
+        (let [i (long i)
+              dim (long dim)
+              nsp (u/copy-long-array source-position)
+              sdim (long (aget dim-map dim))]
+          (aset nsp sdim i)
+          (NDWrapper. array 
+                      (u/abutnth dim shape) 
+                      (u/abutnth dim dim-map)
+                      (u/abutnth dim index-maps)
+                      nsp))) 
 
   Object
     (toString [m]
@@ -341,20 +358,22 @@
                   shp
                   (u/long-range dims)
                   (object-array (map #(u/long-range (mp/dimension-count m %)) (range dims)))
-                  (long-array (repeat dims 0))))))
+                  (long-array dims)))))
+
 (defn wrap-selection
+  "Wraps an array using a selection of indexes for each dimension."
   [m indices]
   (let [shp (long-array (map count indices))
         dims (count shp)]
     (NDWrapper.
-     m
-     shp
-     (long-array (range dims))
-     (object-array (map long-array indices))
-     (long-array (repeat dims 0))
-     )))
+      m
+      shp
+      (long-array (range dims))
+      (object-array (map long-array indices))
+      (long-array (repeat dims 0)))))
 
 (defn wrap-submatrix
+  "Wraps an array using a selection of [start length] ranges for each dimension."
   [m dim-ranges]
   (let [shp (mp/get-shape m)
         dims (count shp)

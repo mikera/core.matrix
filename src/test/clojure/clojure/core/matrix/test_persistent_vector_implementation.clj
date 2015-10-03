@@ -149,12 +149,6 @@
     (is (= [1 2] (eseq [[1] [2]])))
     (is (= [1.0 2.0] (eseq [(double-array [1 2])])))))
 
-(deftest test-contained-scalar-array
-  (let [a [(scalar-array 1) 2]]
-    (is (== 1 (dimensionality a)))
-    (is (vec? a))
-    (is (= [1 2] (slices a)))))
-
 (deftest test-trace
   (is (equals 6 (trace [[1 2 3] [4 5 6]]))))
 

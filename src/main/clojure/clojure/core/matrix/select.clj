@@ -1,7 +1,10 @@
 (ns clojure.core.matrix.select
-  "Namespace for advanced core.matrix select API"
+  "Namespace for more fully fealtured core.matrix select API.
+
+   Supports selection functions, which are defined as a (fn [array dim] ...) => set of indices for dimension "
   (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix :refer :all]))
+            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.utils :as u :refer [TODO error]]))
 
 ;; high-level array indexing
 ;; Provides a matlab-like dsl for matrix indexing.
@@ -9,59 +12,18 @@
 ;; adds support for linear-indexing, logical-indexing and use of selector
 ;; functions to build up selections.
 
-(defn- eval-arg
-  "desugars the selector"
-  [a d arg]
-  (cond
-   (sequential? arg) (mp/element-seq arg)
-   (number? arg) [arg]
-   (= :all arg) (range (dimension-count a d))
-   :else (eval-arg a d (arg a d))))
-
-(defn- eval-args
-  "evaluates the arguments - calls the selector functions"
+(defn- eval-args 
+  "Runs through a set of args and evaluates them against the array and current dimension if it is a function."
   [a args]
-  (map #(eval-arg a %1 %2) (range) args))
-
-(defn- eval-arg-with-slicing
-  "desugars the selector - also checks whether the current dimension has to
-   be sliced"
-  [a d arg]
-  (cond
-   (sequential? arg) [(mp/element-seq arg) false]
-   (number? arg) [[arg] true]
-   (= :all arg) [(range (dimension-count a d)) false]
-   :else (eval-arg-with-slicing a d (arg a d))))
-
-(defn- eval-args-with-slicing
-  "evalutes the arguments and checks which dimensions have to be sliced"
-  [a args]
-  (map #(eval-arg-with-slicing a %1 %2) (range) args))
-
-(defn- slice-dims
-  "Strips all leading dimensions whole count is 1"
-  [erg dims-to-slice]
-  (let [shape (mp/get-shape erg)]
-    (loop [erg erg ds dims-to-slice acc (long 0)]
-      (if (seq ds)
-        (if (first ds) ;;slice current dimension
-          (recur (slice erg acc 0) (rest ds) acc)
-          (recur erg (rest ds) (inc acc)))
-        erg))))
-
-(defn- int-to-index
-  "gets the index in an array of shape from the position in the element-seq"
-  [shape int]
-  (let [weights (map #(reduce * %) (take-while seq (iterate rest (rest shape))))]
-    (loop [ind [] r int [w & ws] weights]
-      (if w
-        (recur (conj ind (quot r w)) (rem r w) ws)
-        (conj ind r)))))
-
-(defn- get-linear-indices
-  "returns the corresponding indices for arg"
-  [a arg]
-  (map #(int-to-index (mp/get-shape a) %) arg))
+  (when (not= (count args) (dimensionality a))
+    (error "Atempting to select with wrong number of dimensions with args: " args))
+  (vec (map-indexed 
+         (fn [i arg] 
+           (cond 
+             (vector? arg) arg
+             (fn? arg) (arg a i) 
+             :else arg))
+         args)))
 
 (defn sel
   "matlab-like array indexing.
@@ -75,13 +37,8 @@
     sel supports logical indexing:
     (sel [[-1 0][1 2]] (where pos?)) ;=> [1 2]"
   [a & args]
-  (if (and (= 1 (count args)) (< 1 (dimensionality a)))
-    (mp/get-indices a (get-linear-indices
-                       a (eval-arg (mp/as-vector a) 0 (first args))))
-    (let [res (eval-args-with-slicing a args)
-          evaled-args (map first res)
-          dims-to-slice (map second res)]
-      (slice-dims (mp/select a (eval-args a args)) dims-to-slice))))
+  (let [sel-args (eval-args a args)]
+    (apply select a sel-args)))
 
 (defn set-sel
   "like sel but sets the values of a at the selected indices to the supplied
@@ -91,20 +48,16 @@
    (sel-set [[1 2][3 4]] (irange) (irange) 1) ;=> [[1 1][1 1]]
    (sel-set [[-2 -1][0 1]] (where neg?) 0) ;=> [[0 0][0 1]]"
   [a & args]
-  (let [vals (last args) sel-args (butlast args)]
-    (if (and (= 1 (count sel-args)) (< 1 (dimensionality a)))
-      (mp/set-indices a (get-linear-indices
-                         a (eval-arg (mp/as-vector a) 0 (first sel-args))) vals)
-      (mp/set-selection a (eval-args a sel-args) vals))))
+  (let [val (last args) 
+        sel-args (eval-args a (butlast args))]
+    (apply set-selection a (concat sel-args  (list val)))))
 
 (defn set-sel!
   "like set-sel but destructively modifies a in place"
   [a & args]
-  (let [vals (last args) sel-args (butlast args)]
-    (if (and (= 1 (count sel-args)) (< 1 (dimensionality a)))
-      (mp/set-indices! a (get-linear-indices
-                          a (eval-arg (mp/as-vector a) 0 (first sel-args))) vals)
-      (mp/assign! (mp/select a (eval-args a sel-args)) vals))))
+  (let [val (last args) 
+        sel-args (eval-args a (butlast args))]
+    (apply set-selection! a (concat sel-args  (list val)))))
 
 ;;Selector functions
 
@@ -134,12 +87,13 @@
 
 (defn exclude
   "selector function for sel.
-   selects all valid indizes except the ones specified in idx. idx can be a
-   number or a sequential"
+   selects all valid indices except the ones specified in idx. idx can be a
+   number, a set or a sequence of indices"
   [idx]
   (fn [a dim]
-    (let [count (dimension-count a dim)
-          excl (remove (set (eval-arg a dim idx)) (range count))]
+    (let [idx (if (number? idx) #{idx} (set idx))
+          count (dimension-count a dim)
+          excl (remove idx (range count))]
       (if (second excl) excl (first excl)))))
 
 (defn where
@@ -149,9 +103,18 @@
    (sel (range 10) (where (partial > 5))) ;=> [0 1 2 3 4]"
   [pred?]
   (fn [a dim]
-    (remove nil? (map (fn [elem idx]
-                        (when (pred? elem) idx))
-                      (mp/element-seq a) (range)))))
+    (let [n (dimension-count a dim)]
+      (filterv pred? (range n)))))
+
+(defn where-slice
+  "selector function for sel.
+   Selects all indices where pred? returns true when called against the respecitive slice on the given dimension
+   Can only be used as second argument to sel. example:
+   (sel [1 2 3 -1 -1 4 5 6] (where-slice pos?)) ;=> [1 2 3 4 5 6]"
+  [pred?]
+  (fn [a dim]
+    (let [n (dimension-count a dim)]
+      (filterv (fn [i] (pred? (slice a dim i))) (range n)))))
 
 (defn even
   "selector function for sel.

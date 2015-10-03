@@ -8,6 +8,7 @@
             [clojure.core.matrix.impl.pprint :as pprint]
             [clojure.core.matrix.implementations :as imp :refer [*matrix-implementation*]]
             [clojure.core.matrix.impl.mathsops :as mops]
+            [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.utils :as u :refer [TODO error]]))
 
 ;; ==================================================================================
@@ -41,6 +42,7 @@
 (declare implementation-check)
 (declare current-implementation-object)
 (declare to-nested-vectors)
+(declare slice slice-view)
 
 (defn array
   "Constructs a new n-dimensional array from the given data.
@@ -712,6 +714,24 @@
   ([a]
     (mp/pack a)))
 
+(defn coerce
+  "Coerces param (which may be any array) into a format preferred by a specific matrix implementation.
+   If the matrix implementation is not specified, uses the current matrix implementation.
+   If param is already in a format deemed usable by the implementation, may return it unchanged.
+
+   coerce should never alter the shape of the array, but may convert element types where necessary
+   (e.g. turning real values into complex values when converting to a complex array type)."
+  ([param]
+    (let [m (imp/get-canonical-object)]
+      (or
+       (mp/coerce-param m param)
+       (mp/coerce-param m (mp/convert-to-nested-vectors param)))))
+  ([matrix-or-implementation param]
+    (let [m (if (keyword? matrix-or-implementation) (imp/get-canonical-object matrix-or-implementation) matrix-or-implementation)]
+      (or
+        (mp/coerce-param m param)
+        (mp/coerce-param m (mp/convert-to-nested-vectors param))))))
+
 ;; =======================================
 ;; matrix access
 
@@ -791,41 +811,46 @@
      (mp/get-column m y)))
 
 (defn- slice-dims
-  "Strips all leading dimensions whose count is 1"
-  [erg dims-to-slice]
-  (let [shape (mp/get-shape erg)]
-    (loop [erg erg ds dims-to-slice acc (long 0)]
-      (if (seq ds)
-        (if (first ds) ;;slice current dimension
-          (recur (mp/get-slice erg acc 0) (rest ds) acc)
-          (recur erg (rest ds) (inc acc)))
-        erg))))
-
-(defn- normalise-arg-with-slicing
-  "maps number to [number] and :all to (range s) where s is the shape entry for
-   the current dimension also returns if the current dimension has to be
-   sliced after selecting"
-  [arg s]
-  (cond
-   (= :all arg) [(range s) false]
-   (number? arg) [[arg] true]
-   :else [(mp/element-seq arg) false]))
+  "Slices along all dimensions where there is a numerical argument"
+  [m args slice-func]
+  (let [shape (mp/get-shape m)
+        args (vec args)
+        N (count args)]
+    (when (not= N (dimensionality m))
+      (error "Inconsistent count of selection arguments " args " for shape " shape))
+    (loop [m m 
+           i (dec N)]
+      (if (>= i 0)
+        (let [ix (nth args i)]
+          (if (number? ix) ;;slice current dimension?
+            (recur (slice-func m i ix) (dec i))
+            (recur m (dec i))))
+        m))))
 
 (defn- normalise-arg
-  "maps number to [number] and :all to (range s) where s is the shape entry for
-   the current dimension"
-  [arg s]
+  "Normalises arg to either a number of a sequable list of indexes"
+  [arg dim-count]
   (cond
-   (= :all arg) (range s)
-   (number? arg) [arg]
-   :else (mp/element-seq arg)))
+    (number? arg) arg
+    (= :all arg) (vec (range dim-count))
+    (= :last arg) (dec dim-count)
+    (= :butlast arg) (vec (range (dec dim-count)))
+    (= :first arg) 0
+    (= :rest arg) (vec (range 1 dim-count))
+    :else arg))
+
+(defn- normalise-args
+  "Normalises arguments by mapping :all to the complete range"
+  [args m]
+  (mapv normalise-arg args (mp/get-shape m)))
 
 (defn select
-  "Returns a view containing all elements in a which are at the positions
+  "Returns an array containing all elements in a which are at the positions
    of the Cartesian product of args. An argument can be:
-    - a number - selects like [number] but drops the current dimension,
+    - a number - slices at this dimension (eliminates the dimension),
     - a 1-dimensional array of numbers
     - the keyword :all which is the same as the range of all valid indices.
+   
    The number of args must match the dimensionality of a.
 
    Examples:
@@ -834,10 +859,20 @@
    (select [[1 2][3 4]] [0 1] [0]) ;=> [[1] [3]]
    (select [[1 2][3 4]] :all 0) ;=> [1 3]"
   [a & args]
-  (let [res (map normalise-arg-with-slicing args (mp/get-shape a))
-        normalized-args (map first res)
-        dims-to-slice (map second res)]
-    (slice-dims (mp/select a normalized-args) dims-to-slice)))
+  (let [args (normalise-args args a)
+        a (slice-dims a args slice)
+        selecting-args (filterv (complement number?) args)]
+    (mp/select a selecting-args)))
+
+(defn select-view
+  "Like `select`, but guarantees a view over the original data."
+  [a & args]
+  (let [args (normalise-args args a)
+        a (slice-dims a args slice-view)
+        selecting-args (filterv (complement number?) args)]
+    (or 
+      (mp/select-view a selecting-args)
+      (wrap/wrap-selection a selecting-args))))
 
 (defn select-indices
   "Returns a one-dimensional array of the elements which are at the specified
@@ -847,20 +882,21 @@
   [a indices]
   (mp/get-indices a indices))
 
+(defn set-selection!
+  "Like set-selection but destructively modifies the array a in place"
+  [a & args]
+  (let [value (last args)
+        args (butlast args)]
+    (assign! (apply select-view a args) value)
+    a))
+
 (defn set-selection
   "Like select but sets the elements in the selection to the value of the final argument. 
    Leaves a unchanged and returns the modified array"
   [a & args]
-  (let [sel-args (butlast args) 
-        value (last args)]
-    (mp/set-selection a (map normalise-arg sel-args (mp/get-shape a)) value)))
-
-(defn set-selection!
-  "Like set-selection but destructively modifies the array a in place"
-  [a & args]
-  (let [sel-args (butlast args) values (last args)]
-    (assign! (mp/select a (map normalise-arg sel-args (mp/get-shape a))) values)
-    a))
+  (let [a (mutable a)
+        r (apply set-selection! a args)]
+    (coerce a r)))
 
 (defn set-indices
   "like select-indices but sets the elements at the specified indices to values.
@@ -873,24 +909,6 @@
   [a indices values]
   (mp/set-indices! a indices values)
   a)
-
-(defn coerce
-  "Coerces param (which may be any array) into a format preferred by a specific matrix implementation.
-   If the matrix implementation is not specified, uses the current matrix implementation.
-   If param is already in a format deemed usable by the implementation, may return it unchanged.
-
-   coerce should never alter the shape of the array, but may convert element types where necessary
-   (e.g. turning real values into complex values when converting to a complex array type)."
-  ([param]
-    (let [m (imp/get-canonical-object)]
-      (or
-       (mp/coerce-param m param)
-       (mp/coerce-param m (mp/convert-to-nested-vectors param)))))
-  ([matrix-or-implementation param]
-    (let [m (if (keyword? matrix-or-implementation) (imp/get-canonical-object matrix-or-implementation) matrix-or-implementation)]
-      (or
-        (mp/coerce-param m param)
-        (mp/coerce-param m (mp/convert-to-nested-vectors param))))))
 
 ;; =====================================
 ;; matrix slicing and views
@@ -945,10 +963,19 @@
    to ensure this behaviour on mutable 1-dimensioanal arrays, it must return a sequence of 0-dimensioanal arrays."
   ([m]
     (mp/get-major-slice-view-seq m))
-  ([m ^long dimension]
-    (if (== 0 dimension)
+  ([m dimension]
+    (if (== 0 (long dimension))
       (slice-views m)
-      (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension))))))
+      (map #(mp/get-slice-view m dimension %) (range (mp/dimension-count m dimension))))))
+
+(defn slice-view
+  "Gets a view of an array slice. Guaranteed to return a mutable view if the array is mutable."
+  ([m i]
+    (mp/get-major-slice-view m i))
+  ([m dimension i]
+    (if (== 0 (long dimension)) 
+      (mp/get-major-slice-view m i)
+      (mp/get-slice-view m dimension i))))
 
 (defn rows
   "Gets the rows of a matrix, as a sequence of 1D vectors.

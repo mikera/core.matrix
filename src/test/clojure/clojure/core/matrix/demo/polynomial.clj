@@ -3,6 +3,7 @@
 
 ;; our task is to find a polynomial that fits a set of points
 
+;; a sey of [x y points]
 (def points [[0 1] [ 1 4] [2 10] [3 19] [4 31] [5 46]])
 
 (def n (count points))

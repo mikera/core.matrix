@@ -202,6 +202,14 @@
   (is (e== (array :ndarray [[1 0 0] [0 0 2] ]) (array :ndarray [[1 0 0] [0 0 2]])))
   (is (not (e== (array :ndarray [[1 0 0] [0 0 0] ]) (array :ndarray [[1 0 0] [0 9 0]])))))
 
+(deftest test-slicing-views
+  (let [a (array :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
+     (is (equals [2 6 10] (clojure.core.matrix/slice-view a 1 1)))))
+
+(deftest test-select-views
+  (let [a (array :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
+     (is (equals [2 6 10] (select-view a :all 1)))))
+
 (deftest test-inverse
   (is (e== (invert-double (ndarray-double [[0 1 0] [1 1 0] [1 -1 -1]])) 
            (ndarray-double [[-1.0,1.0,0.0],[1.0,-0.0,0.0],[-2.0,1.0,-1.0]]))))

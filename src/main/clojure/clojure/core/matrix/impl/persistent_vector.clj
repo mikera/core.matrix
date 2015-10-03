@@ -227,6 +227,7 @@
               (assoc m fi (mp/set-nd (m fi) (next indexes) v))))
         (error "Trying to set on a persistent vector with insufficient indexes?")))
     (is-mutable? [m]
+      ;; assume persistent vectors are immutable, even if they may have mutable components
       false))
 
 (extend-protocol mp/PMatrixSlices
@@ -260,12 +261,17 @@
   IPersistentVector
     (get-major-slice-view [m i] (.nth m i)))
 
+(extend-protocol mp/PSliceView2
+  IPersistentVector
+    (get-slice-view [m dimension i] 
+      ;; delegate to get-slice
+      (mp/get-slice m dimension i)))
+
+
 (extend-protocol mp/PSliceSeq
   IPersistentVector
     (get-major-slice-seq [m]
-      (if (vector-1d? m)
-        (seq (map mp/get-0d m))
-        (seq m))))
+      m))
 
 (extend-protocol mp/PSliceJoin
   IPersistentVector
