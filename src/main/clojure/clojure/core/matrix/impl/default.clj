@@ -1448,9 +1448,9 @@
     (get-slice-seq [m dimension]
       (let [ldimension (long dimension)]
         (cond
-         (== ldimension 0) (mp/get-major-slice-seq m)
-         (< ldimension 0) (error "Can't get slices of a negative dimension: " dimension)
-         :else (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))))
+          (== ldimension 0) (mp/get-major-slice-seq m)
+          (< ldimension 0) (error "Can't get slices of a negative dimension: " dimension)
+          :else (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))))
 
 (extend-protocol mp/PSliceViewSeq
   Object
@@ -1819,11 +1819,11 @@
             (if (loop [j (long 0)]
                   (if (< j cc)
                     (let [elem (mp/get-2d m i j)]
-                      (if (nil? elem)
-                        false
+                      (if (number? elem)
                         (if (== i j)
                           (if (== (double elem) 1.0) (recur (inc j)) false)
-                          (if (zero? elem) (recur (inc j)) false))))
+                          (if (zero? elem) (recur (inc j)) false))
+                        false))
                     true))
               (recur (inc i))
               false)
@@ -1871,7 +1871,7 @@
     [m]
     (if (mp/is-vector? m)
       (vec (for [i (range (mp/dimension-count m 0))
-                    :when (not (== 0 (mp/get-1d m i)))]
+                    :when (not (zero? (mp/get-1d m i)))]
               i))
       (vec (for [i (range (mp/dimension-count m 0))]
               (mp/non-zero-indices (mp/get-major-slice m i)))))))

@@ -814,17 +814,17 @@
   "Slices along all dimensions where there is a numerical argument"
   [m args slice-func]
   (let [shape (mp/get-shape m)
-        args (vec args)
         N (count args)]
     (when (not= N (dimensionality m))
       (error "Inconsistent count of selection arguments " args " for shape " shape))
     (loop [m m 
-           i (dec N)]
-      (if (>= i 0)
-        (let [ix (nth args i)]
+           i 0
+           args (seq args)]
+      (if args
+        (let [ix (first args)]
           (if (number? ix) ;;slice current dimension?
-            (recur (slice-func m i ix) (dec i))
-            (recur m (dec i))))
+            (recur (slice-func m i ix) i (next args))
+            (recur m (inc i) (next args))))
         m))))
 
 (defn- normalise-arg
@@ -849,7 +849,8 @@
    of the Cartesian product of args. An argument can be:
     - a number - slices at this dimension (eliminates the dimension),
     - a 1-dimensional array of numbers
-    - the keyword :all which is the same as the range of all valid indices.
+    - a keyword which selects specific slices (:first :last)
+    - a keyword which selects a range slices (:all :bustlast :rest)
    
    The number of args must match the dimensionality of a.
 
@@ -1268,7 +1269,6 @@
 
   Performs broadcasting of arguments if required to match the size of the largest array.
 
-  
   Examples:
   (ge 2 3) ;=> 0
   (ge 3 3) ;=> 1
