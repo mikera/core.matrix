@@ -7,7 +7,6 @@
             clojure.core.matrix.demo.examples
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [error? broadcast-shape]]
-            [clojure.core.matrix.select :refer :all]
             [clojure.test :refer :all])
   (:import [java.io StringWriter]))
 
@@ -49,19 +48,6 @@
         (set-indices! ma [[0 0] [1 1]] [5 6])
         (is (equals ma [[5 2] [3 6]]))
         (is (equals (transpose ma) [[5 3] [2 6]]))))))
-
-
-(deftest test-sel
-  (let [a [[1 2] [3 4]]]
-    (testing "higher level indexing"
-      (is (equals 1 (sel a 0 0)))
-      (is (equals [[1] [3]] (sel a [0 1] [0])))
-      (is (equals [1 3] (sel a [0 1] 0)))
-      (is (equals a (sel a :all :all)))
-      (is (equals 4 (sel a end end)))
-      (is (equals 2 (sel a (exclude 1) (exclude 0))))
-      (is (equals [[1 2]] (sel [[-1 0] [1 2]] (where pos?) :all)))
-      (is (equals [0 1 2 3 4] (sel (range 10) (where (partial > 5))))))))
 
 (deftest test-set-selection
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
