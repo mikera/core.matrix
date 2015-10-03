@@ -492,7 +492,7 @@
         :else false))
     (is-scalar? [m]
       (cond
-        (.isArray (.getClass m)) false
+        (.isArray (.getClass m)) false ;; Java arrays are core.matrix arrays
         :else true)) ;; assume objects are scalars unless told otherwise
     (get-shape [m]
       (cond
@@ -1232,7 +1232,7 @@
           (and (.isArray c) (.isPrimitive (.getComponentType c)))
             m
           (== 1 dims)
-            (mapv #(mp/get-1d m %) (range (mp/dimension-count m 0)))
+            (mp/convert-to-nested-vectors m)
           (array? m)
             (mapcat mp/element-seq (mp/get-major-slice-seq m))
           :else (error "Don't know how to create element-seq from: " m))))
@@ -1393,7 +1393,6 @@
     (get-slice [m dimension i]
       (let [ldimension (long dimension)]
         (cond
-          (neg? ldimension) (error "Can't take slice on negative dimension: " dimension)
           (== 0 ldimension) (mp/get-major-slice m i)
           :else (mp/get-slice (mp/convert-to-nested-vectors m) dimension i)))))
 
@@ -1441,7 +1440,7 @@
         (cond
           (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object")
           (.isArray (.getClass m)) (seq m)
-          (== dims 1) (map #(mp/get-1d m %) (range (mp/dimension-count m 0)))
+          (== dims 1) (for [i (range (mp/dimension-count m 0))] (mp/get-1d m i))
           :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
 
 (extend-protocol mp/PSliceSeq2
