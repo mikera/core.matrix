@@ -348,6 +348,7 @@
           (== 0 dims) (mp/set-0d! m (mp/get-0d x))
           (== 1 dims)
             (if (instance? ISeq x)
+              ;; specialised handling for sequence (since indexed access would be O(n^2))
               (let [x (seq x)
                     msize (long (mp/dimension-count m 0))]
                 (loop [i 0 s (seq x)]
@@ -356,22 +357,27 @@
                     (do
                       (mp/set-1d! m i (first s))
                       (recur (inc i) (next s))))))
-             (let [xdims (long (mp/dimensionality x))
+              ;; otherwise use indexed access
+              (let [xdims (long (mp/dimensionality x))
                     msize (long (mp/dimension-count m 0))]
-                (if (== 0 xdims)
-                  (let [value (mp/get-0d x)]
-                    (dotimes [i msize] (mp/set-1d! m i value)))
-                  (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i))))))
-
+                (cond 
+                  (== 0 xdims)
+                    (let [value (mp/get-0d x)]
+                      (dotimes [i msize] (mp/set-1d! m i value)))
+                  (== 1 xdims)
+                    (do 
+                      (when (not= msize (long (mp/dimension-count x 0))) (error "Mismatched shapes in assign!"))
+                      (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i))))
+                  :else
+                    (error "Can't assign! withan argument of higher dimensionality"))))
 
           (array? m)
             (let [xdims (long (mp/dimensionality x))]
-              (if (pos? xdims)
+              (if (== dims xdims)
                 (let [xss (mp/get-major-slice-seq x)
                       _ (or (mp/same-shapes? xss) (error "Inconsistent slice shapes for assign!"))]
-                  (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-seq m) xss)))
-                (let [value (mp/get-0d x)]
-                  (doseq [ms (mp/get-major-slice-seq m)] (mp/assign! ms value)))))
+                  (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-view-seq m) xss)))
+                (doseq [ms (mp/get-major-slice-view-seq m)] (mp/assign! ms x))))
            :else
               (error "Can't assign to a non-array object: " (class m)))))
     (assign-array!
