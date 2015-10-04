@@ -42,5 +42,22 @@
     (is (equals [[1 3] [9 11]] (sel a even even)))
     (is (equals [[6 8] [14 16]] (sel a odd odd)))))
 
+(deftest test-vector-selects
+  (let [a [1 2 3 4 5]]
+    (is (= a (sel a :all)))
+    (is (= [1 2 3 4] (sel a :butlast)))
+    (is (= [2 3 4 5] (sel a :rest)))    
+    (is (error? (sel a -1)))
+    (is (= 1 (sel a 0)))
+    (is (= 5 (sel a 4)))
+    (is (error? (sel a 5))))
+  (let [a [1]]
+    (is (= a (sel a :all)))
+    (is (= [] (sel a :butlast)))
+    (is (= [] (sel a :rest)))
+    (is (error? (sel a -1)))
+    (is (= 1 (sel a 0)))
+    (is (error? (sel a 1)))))
+
 
 

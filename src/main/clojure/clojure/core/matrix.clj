@@ -848,9 +848,9 @@
   "Returns an array containing all elements in a which are at the positions
    of the Cartesian product of args. An argument can be:
     - a number - slices at this dimension (eliminates the dimension),
-    - a 1-dimensional array of numbers
     - a keyword which selects specific slices (:first :last)
-    - a keyword which selects a range slices (:all :bustlast :rest)
+    - a 1-dimensional array of numbers which selects the slices at these indices
+    - a keyword which selects a range of slices (:all :butlast :rest)
    
    The number of args must match the dimensionality of a.
 
@@ -884,7 +884,7 @@
   (mp/get-indices a indices))
 
 (defn set-selection!
-  "Like set-selection but destructively modifies the array a in place"
+  "Like set-selection but mutates the array in place. Will throw an error if array is immutable."
   [a & args]
   (let [value (last args)
         args (butlast args)]
