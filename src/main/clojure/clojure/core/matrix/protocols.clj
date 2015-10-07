@@ -740,11 +740,13 @@
   "Protocol to support common 2D numerical matrix operations"
   (trace [m]
     "Returns the trace of a matrix (sum of elements on main diagonal.
-     Must throw an error if the matrix is not square (i.e. all dimensions sizes are equal)")
+     Must throw an error if the matrix is not square (i.e. different number of rows and columns)")
   (determinant [m]
-    "Returns the determinant of a matrix.")
+    "Returns the determinant of a matrix. May return nil if the implementation is unable
+     to compute determinants.
+     Must throw an error if the matrix is not square (i.e. different number of rows and columns)")
   (inverse [m]
-    "Returns the invese of a matrix. Should throw an exception if m is not invertible."))
+    "Returns the invese of a matrix. Should return nil if m is not invertible."))
 
 (defprotocol PNegation
   (negate [m]

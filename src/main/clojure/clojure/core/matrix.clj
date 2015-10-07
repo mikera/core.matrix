@@ -1608,7 +1608,7 @@
     m))
 
 (defn square
-  "Squares every element of a numerical array."
+  "Squares every element of a numerical array. Returns a new array."
   ([m]
     (mp/square m)))
 
@@ -1696,7 +1696,9 @@
 
    May throw an exception if the implementation does not support computation of determinants."
   ([a]
-    (mp/determinant a)))
+    (or
+      (mp/determinant a)
+      (TODO "Determinant not supported for array of type: " (class a)))))
 
 (defn inverse
   "Calculates the inverse of a 2D numerical matrix. 
