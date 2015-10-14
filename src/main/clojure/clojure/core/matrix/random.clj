@@ -9,36 +9,32 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
 
-(defn to-random 
+(defn- to-random 
   "Returns a java.util.Random instance. May be used as seed for random 
    sampling functions. 
 
-   An option seed may be provided to ensure a repeatable random sequence"
+   An optional seed value may be provided to ensure a repeatable random sequence.
+   The seed may be anything (number, string arbitrary object etc.): its hashcode
+   may be used to generate a long seed."
   (^Random []
     (java.util.Random.))
   (^Random [seed]
     (cond 
       (instance? Random seed) seed
       (number? seed) (java.util.Random. (long seed))
-      :else (error "Can't convert to Random instance: " seed))))
+      :else (java.util.Random. (long (.hashCode ^Object seed))))))
 
-(defn random-seq
-  "Returns a seq of random double values uniformaly distributed in the range [0,1)"
+(defn randoms
+  "Returns a lazy sequence of random samples from a uniform distribution on [0,1). 
+
+   May be given a optional seed that is either an integer value or a java.util.Random instance"
   ([]
     (RandomSeq. (java.util.Random.)))
   ([seed]
     (RandomSeq. (to-random seed))))
 
-(defn randoms 
-  "Returns a lazy sequence of random numbers, given a seed that is either an integer value or a java.util.Random instance"
-  ([]
-    (randoms (System/currentTimeMillis)))
-  ([seed]
-    (let [^Random rnd (to-random seed)]
-      (RandomSeq. rnd))))
-
 (defn sample-uniform 
-  "Returns an array of random samples from a uniform distribution on [0,1)
+  "Returns an array of random samples from a uniform distribution on [0,1).
 
    Size may be either a number of samples or a shape vector."
   ([size]
