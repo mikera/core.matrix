@@ -23,6 +23,11 @@
   (let [a (object-array [1 2 3])]
     (is (array? (first (slice-views a))))))
 
+(deftest zero-dimension-access
+  (testing "Arrays are assumed to be scalars if accessed with zero dimensions"
+    (is (equals [1] (mget (byte-array [1]))))
+    (is (equals [1] (mget (double-array [1]))))))
+
 (deftest compliance-tests
   (compliance/instance-test (int-array [1 2 3]))
   (compliance/instance-test (float-array [1 2 3]))

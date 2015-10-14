@@ -223,7 +223,8 @@
       (error "Can't set a scalar number!"))
   Object
     (get-0d [m]
-      (if (mp/is-scalar? m) m (mp/get-nd m [])))
+      ;; assume this is a scalar value
+      m)
     (set-0d! [m value]
       (mp/set-nd! m [] value)))
 
