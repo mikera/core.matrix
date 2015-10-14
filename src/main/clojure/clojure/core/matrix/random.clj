@@ -4,6 +4,9 @@
   (:import [java.util Random])
   (:import [clojure.core.matrix.random RandomSeq]))
 
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* :warn-on-boxed)
+
 (defn to-random ^Random [seed]
   (cond 
     (instance? Random seed) seed
