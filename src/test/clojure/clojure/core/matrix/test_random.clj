@@ -16,6 +16,15 @@
     (is (= (take 1000 rs) (take 1000 rs)))
     (is (<= 0 (reduce + (take 1000 rs)) 1000)))) 
 
+(deftest test-sample-rand-int
+  (testing "Integer results"
+    (is (every? integer? (eseq (sample-rand-int [5 5] 10)))))
+  (testing "Edge cases"
+    (is (zero-matrix? (sample-rand-int [5 5] 0)))
+    (is (zero-matrix? (sample-rand-int [5 5] 0.5)))
+    (is (zero-matrix? (sample-rand-int [5 5] 1)))
+    (is (not (zero-matrix? (sample-rand-int [5 5] 1.5 567))))))
+
 (deftest test-random-sequence-seeds
   (is (= (take 1000 (randoms 1337)) (take 1000 (randoms 1337))))) 
 
