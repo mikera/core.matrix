@@ -23,12 +23,16 @@
   (testing "Same seed should produce same result"
     (is (equals (sample-uniform 10 890) (sample-uniform 10 890)))
     (is (equals (sample-rand-int 10 100 890) (sample-rand-int 10 100 890)))
-    (is (equals (sample-normal 10 123) (sample-normal 10 123))))
+    (is (equals (sample-normal 10 123) (sample-normal 10 123)))
+    (is (equals (sample-binomial 10 0.5 10 123) (sample-binomial 10 0.5 10 123))))
   (testing "Different seed should produce different result"
     (is (not (equals (sample-uniform 10 890) (sample-uniform 10 4353))))
     (is (not (equals (sample-rand-int 10 100 890) (sample-rand-int 10 100 3453))))
-    (is (not (equals (sample-normal 10 123) (sample-normal 10 12)))))
+    (is (not (equals (sample-normal 10 123) (sample-normal 10 12))))
+    (is (not (equals (sample-binomial 10 0.5 10 123) (sample-binomial 10 0.5 10 1234)))))
   (testing "No seed should produce different result"
     (is (not (equals (sample-uniform 10) (sample-uniform 10))))
     (is (not (equals (sample-rand-int 10 100) (sample-rand-int 10 100))))
-    (is (not (equals (sample-normal 10) (sample-normal 10))))))
+    (is (not (equals (sample-normal 10) (sample-normal 10))))
+    (is (not (equals (sample-binomial 10 0.5 10) (sample-binomial 10 0.5 10))))
+    (is (not (equals (sample-binomial 100 0.5) (sample-binomial 100 0.5))))))

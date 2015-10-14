@@ -1,4 +1,6 @@
 (ns clojure.core.matrix.random
+  "Namespace for random number generation functions working with core.matrix
+   arrays. Intended for use in rnadom sampling, simulation etc."
   (:use clojure.core.matrix)
   (:use [mikera.cljutils error])
   (:import [java.util Random])
@@ -88,8 +90,10 @@
   ([size p]
     (sample-binomial size p 1))
   ([size p n]
+    (sample-binomial size p n (to-random)))
+  ([size p n seed]
     (let [size (if (number? size) [size] size)
-          r (java.util.Random.)
+          r (to-random seed)
           n (long n)
           p (double p)]
       (compute-matrix 
@@ -97,5 +101,5 @@
         (fn [& ixs]
           (loop [i 0 , res 0]
             (if (< i n)
-              (recur (inc i) (if (<= (Math/random) p) (inc res) res))
+              (recur (inc i) (if (< (.nextDouble r) p) (inc res) res))
               res)))))))
