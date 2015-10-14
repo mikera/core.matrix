@@ -18,3 +18,17 @@
 
 (deftest test-random-sequence-seeds
   (is (= (take 1000 (randoms 1337)) (take 1000 (randoms 1337))))) 
+
+(deftest test-sample-seed
+  (testing "Same seed should produce same result"
+    (is (equals (sample-uniform 10 890) (sample-uniform 10 890)))
+    (is (equals (sample-rand-int 10 100 890) (sample-rand-int 10 100 890)))
+    (is (equals (sample-normal 10 123) (sample-normal 10 123))))
+  (testing "Different seed should produce different result"
+    (is (not (equals (sample-uniform 10 890) (sample-uniform 10 4353))))
+    (is (not (equals (sample-rand-int 10 100 890) (sample-rand-int 10 100 3453))))
+    (is (not (equals (sample-normal 10 123) (sample-normal 10 12)))))
+  (testing "No seed should produce different result"
+    (is (not (equals (sample-uniform 10) (sample-uniform 10))))
+    (is (not (equals (sample-rand-int 10 100) (sample-rand-int 10 100))))
+    (is (not (equals (sample-normal 10) (sample-normal 10))))))
