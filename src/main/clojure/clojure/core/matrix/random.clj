@@ -9,13 +9,15 @@
 
 (defn to-random 
   "Returns a java.util.Random instance. May be used as seed for random 
-   sampling functions"
+   sampling functions. 
+
+   An option seed may be provided to ensure a repeatable random sequence"
   (^Random []
     (java.util.Random.))
   (^Random [seed]
     (cond 
       (instance? Random seed) seed
-      (number? seed) (java.util.Random. seed)
+      (number? seed) (java.util.Random. (long seed))
       :else (error "Can't convert to Random instance: " seed))))
 
 (defn random-seq
@@ -38,19 +40,24 @@
 
    Size may be either a number of samples or a shape vector."
   ([size]
-    (let [size (if (number? size) [size] size)]
+    (sample-uniform size (to-random)))
+  ([size seed]
+    (let [rnd (to-random seed)
+          size (if (number? size) [size] size)]
       (compute-matrix 
         size
         (fn [& ixs]
-          (Math/random))))))
+          (.nextDouble rnd))))))
 
 (defn sample-normal 
   "Returns an array of random samples from a standard normal distribution.
 
    Size may be either a number of samples or a shape vector."
   ([size]
+    (sample-normal size (to-random)))
+  ([size seed]
     (let [size (if (number? size) [size] size)
-          r (java.util.Random.)]
+          r (to-random seed)]
       (compute-matrix 
         size
         (fn [& ixs]
@@ -62,12 +69,15 @@
 
    Size may be either a number of samples or a shape vector."
   ([size n]
+    (sample-rand-int size n (to-random)))
+  ([size n seed]
     (let [size (if (number? size) [size] size)
-          r (java.util.Random.)]
+          n (double n)
+          r (to-random seed)]
       (compute-matrix 
         size
         (fn [& ixs]
-          (rand-int n))))))
+          (long (* n (.nextDouble r))))))))
 
 ;; TODO: should use normal approximation to binomial for large n
 (defn sample-binomial 
