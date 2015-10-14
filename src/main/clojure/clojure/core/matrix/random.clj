@@ -7,11 +7,23 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
 
-(defn to-random ^Random [seed]
-  (cond 
-    (instance? Random seed) seed
-    (number? seed) (java.util.Random. seed)
-    :else (error "Can't convert to Random instance: " seed)))
+(defn to-random 
+  "Returns a java.util.Random instance. May be used as seed for random 
+   sampling functions"
+  (^Random []
+    (java.util.Random.))
+  (^Random [seed]
+    (cond 
+      (instance? Random seed) seed
+      (number? seed) (java.util.Random. seed)
+      :else (error "Can't convert to Random instance: " seed))))
+
+(defn random-seq
+  "Returns a seq of random double values uniformaly distributed in the range [0,1)"
+  ([]
+    (RandomSeq. (java.util.Random.)))
+  ([seed]
+    (RandomSeq. (to-random seed))))
 
 (defn randoms 
   "Returns a lazy sequence of random numbers, given a seed that is either an integer value or a java.util.Random instance"
