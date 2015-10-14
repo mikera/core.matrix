@@ -477,6 +477,18 @@
     (is-vector? [m] false)
     (get-shape [m] nil)
     (dimension-count [m i] (error "nil has zero dimensionality, cannot get count for dimension: " i))
+  clojure.lang.Keyword
+    (dimensionality [m] 0)
+    (is-scalar? [m] true)
+    (is-vector? [m] false)
+    (get-shape [m] nil)
+    (dimension-count [m i] (error "Keyword has zero dimensionality, cannot get count for dimension: " i))
+  String
+    (dimensionality [m] 0)
+    (is-scalar? [m] true)
+    (is-vector? [m] false)
+    (get-shape [m] nil)
+    (dimension-count [m i] (error "String has zero dimensionality, cannot get count for dimension: " i))
   Number
     (dimensionality [m] 0)
     (is-scalar? [m] true)
