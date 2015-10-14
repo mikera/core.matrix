@@ -206,6 +206,16 @@
       nil)
     (set-0d! [m value]
       (error "Can't set the value of nil!"))
+  String
+    (get-0d [m]
+      m)
+    (set-0d! [m value]
+      (error "Can't set a string value!"))
+  clojure.lang.Keyword
+    (get-0d [m]
+      m)
+    (set-0d! [m value]
+      (error "Can't set a keyword!"))
   Number
     (get-0d [m]
       m)
