@@ -519,8 +519,7 @@
   (is (== 1 (emin [2 1 7])))
   (is (== 7 (emax [2 1 7])))
   (is (== 7 (emax [[4 3 2] [2 1 7] [-1 5 -20]])))
-  (is (equals [[2 5 2] [4 8 2] [5 6 3]] (clamp [[1 5 1] [4 10 2] [5 6 3]] 2 8)))
-  (is (error? (clamp [[1 2] [3 4]] 6 1))))
+  (is (equals [[2 5 2] [4 8 2] [5 6 3]] (clamp [[1 5 1] [4 10 2] [5 6 3]] 2 8))))
 
 (deftest test-predicates
   (testing "scalar predicates"

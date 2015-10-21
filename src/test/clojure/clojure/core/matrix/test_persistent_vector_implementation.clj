@@ -214,6 +214,9 @@
     (testing "invlaid argument to select"
       (is (thrown? RuntimeException (select m nil))))))
 
+(deftest test-clamp
+  (is (error? (clamp [[1 2] [3 4]] 6 1))))
+
 ;; run complicance tests
 
 (deftest instance-tests
