@@ -45,7 +45,10 @@
 
 (deftest test-min-max
   (is (== 3 (emin 3)))
-  (is (== 2 (emax 2))))
+  (is (== 2 (emax 2)))
+  (is (== 2 (clamp 1 2 5)))
+  (is (== 5 (clamp 8 2 5)))
+  (is (error? (clamp 3 6 1))))
 
 (deftest test-compute-matrix
   (is (equals 3 (compute-matrix [] (fn [] 3)))))

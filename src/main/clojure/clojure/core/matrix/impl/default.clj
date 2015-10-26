@@ -830,7 +830,9 @@
     (element-min [m] m)
     (element-max [m] m)
     (element-clamp [m a b]
-      (if (< m a) a (if (> m b) b m)))
+      (if-not (<= a b)
+        (error "min argument: " a " should be <= max argument: " b)
+        (if (< m a) a (if (> m b) b m))))
   Object
     (element-min [m]
       (mp/element-reduce m
@@ -841,10 +843,9 @@
                        (fn [best v] (if (or (not best) (> v best)) v best))
                        nil))
     (element-clamp [m a b]
-      (mp/element-map m 
-        (if (> a b)
-          (error "min argument: " a " must be less than max argument: " b)
-          (fn [e] (if (< e a) a (if (> e b) b e)))))))
+      (if-not (<= a b)
+        (error "min argument: " a " should be <= max argument: " b)
+        (mp/element-map m #(if (< %1 a) a (if (> %1 b) b %1))))))
 
 (extend-protocol mp/PCompare
   Number
