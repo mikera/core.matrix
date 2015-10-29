@@ -691,7 +691,7 @@
       ([m dim indices]
         (mp/order (mp/convert-to-nested-vectors m) dim indices))))
 
-;; not pussible to remove boxing warning, may be any numeric type
+;; not possible to remove boxing warning, may be any numeric type
 (extend-protocol mp/PMatrixProducts
   Number
     (inner-product [m a]
