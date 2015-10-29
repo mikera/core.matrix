@@ -10,7 +10,7 @@
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.mathsops :as mops]
-            [clojure.core.matrix.utils :refer [scalar-coerce error doseq-indexed]])
+            [clojure.core.matrix.utils :refer [scalar-coerce error doseq-indexed java-array?]])
   (:import [clojure.lang IPersistentVector Indexed]
            [java.util List]))
 
@@ -333,20 +333,28 @@
 (extend-protocol mp/PVectorOps
   IPersistentVector
     (vector-dot [a b]
-      (let [dims (long (mp/dimensionality b))
-            ;; b (persistent-vector-coerce b)
-            ]
+      ;; optimised vector-dot for persistent vectors, handling 1D case
+      (let [dims (long (mp/dimensionality b))]
         (cond
-          (and (== dims 1) (instance? Indexed b) (== 1 (long (mp/dimensionality b))))
-            (let [ca (long (count a))
-                  cb (long (count b))
-                  b ^Indexed b]
-              (when-not (== ca cb) (error "Mismatched vector sizes"))
-              (loop [i 0 res 0.0]
-                (if (>= i ca)
-                  res
-                  (recur (inc i) (+ res (* (double (.nth a (int i))) (double (.nth b (int i)))))))))
-          (== dims 0) (mp/scale a b)
+          (and (== dims 1) (== 1 (long (mp/dimensionality b))))
+            (let [n (long (count a))
+                  nb (long (long (mp/dimension-count b 0)))]
+              (cond 
+                (not= n nb) (error "Mismatched vector sizes")
+                (instance? List b)
+                  (let [b ^List b]
+                    (loop [i 0 res 0.0]
+                      (if (>= i n)
+                        res
+                        (recur (inc i) (+ res (* (double (.nth a (int i))) (double (.get b (int i)))))))))
+                (java-array? ^Object b)
+                  (loop [i 0 res 0.0]
+                    (if (>= i n)
+                      res
+                      (recur (inc i) (+ res (* (double (.nth a (int i))) (double (nth b i)))))))
+                :else 
+                  (reduce + (map * a (mp/element-seq b)))))
+          
           :else (mp/inner-product a b))))
     (length [a]
       (let [n (long (count a))]
@@ -465,7 +473,7 @@
               (reduce mp/matrix-add (map (fn [sl x] (mp/scale sl x))
                                        (mp/get-major-slice-seq a)
                                        (mp/get-major-slice-seq m)))) ;; TODO: implement with mutable accumulation
-           :else
+          :else
            (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m)))))
     (outer-product [m a]
       (mp/element-map m (fn [v] (mp/pre-scale a v)))))
