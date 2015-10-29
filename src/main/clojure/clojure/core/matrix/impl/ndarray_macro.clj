@@ -5,7 +5,6 @@
             [clojure.core.matrix.impl.ndarray-magic :as magic]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.multimethods :as mm]
             [clojure.core.matrix.utils :refer :all]))
 
 (set! *warn-on-reflection* true)

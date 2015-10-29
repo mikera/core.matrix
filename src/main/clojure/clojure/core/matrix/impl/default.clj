@@ -2,7 +2,6 @@
   (:require [clojure.core.matrix.impl.double-array :as da]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.wrappers :as wrap]
-            [clojure.core.matrix.multimethods :as mm]
             [clojure.core.matrix.impl.mathsops :as mops]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.utils :refer :all])
@@ -2279,9 +2278,3 @@
   Object
   (least-squares [a b]
     (try-current-implementation a (mp/least-squares a b))))
-
-;; =======================================================
-;; default multimethod implementations
-
-(defmethod mm/mul :default [x y]
-  (mp/inner-product x y))

@@ -10,7 +10,6 @@
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.mathsops :as mops]
-            [clojure.core.matrix.multimethods :as mm]
             [clojure.core.matrix.utils :refer [scalar-coerce error doseq-indexed]])
   (:import [clojure.lang IPersistentVector Indexed]
            [java.util List]))
@@ -441,6 +440,8 @@
             (vec (for [i (range (mp/dimension-count a 1))]
                      (let [r (mp/get-column a i)]
                        (mp/vector-dot m r))))
+          (and (== mdims 1) (== adims 1))
+            (mp/vector-dot m a)
           (and (== mdims 2) (== adims 1))
             (mapv #(mp/vector-dot % a) m)
           (and (== mdims 2) (== adims 2))
@@ -448,7 +449,7 @@
                      (vec (for [j (range (mp/dimension-count a 1))]
                             (mp/vector-dot r (mp/get-column a j))))) m)
           :else
-            (mm/mul m a)))))
+            (mp/inner-product m a)))))
 
 (extend-protocol mp/PVectorTransform
   IPersistentVector

@@ -9,7 +9,6 @@
             clojure.core.matrix.impl.persistent-vector
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.mathsops :as mops]
-            [clojure.core.matrix.multimethods :as mm]
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.utils :refer :all])
   (:import [java.util Arrays]))

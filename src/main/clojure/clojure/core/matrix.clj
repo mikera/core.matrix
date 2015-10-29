@@ -25,9 +25,8 @@
 ;; 3. The underlying matrix implementation implements the protocol to handle the API
 ;;    function call.
 ;; 4. The implementation decides what to do for the concrete operation.
-;; 5. If the implementation does not understand one or more parameters, then it is
-;;    expected to call the multimethod version in clojure.core.matrix.multimethods as this
-;;    will allow an alternative implementation to be found via multiple dispatch.
+;; 5. If the implementation does not understand one or more parameters, it may either throw an
+;;    exception or (in some cases) return nil to delegate to a fallback implementation
 ;;
 ;; ==================================================================================
 
