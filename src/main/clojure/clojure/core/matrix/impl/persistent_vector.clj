@@ -337,10 +337,9 @@
       (let [dims (long (mp/dimensionality b))]
         (cond
           (and (== dims 1) (== 1 (long (mp/dimensionality b))))
-            (let [n (long (count a))
-                  nb (long (long (mp/dimension-count b 0)))]
+            (let [n (long (count a))]
               (cond 
-                (not= n nb) (error "Mismatched vector sizes")
+                (not= n (long (long (mp/dimension-count b 0)))) (error "Mismatched vector sizes")
                 (instance? List b)
                   (let [b ^List b]
                     (loop [i 0 res 0.0]
