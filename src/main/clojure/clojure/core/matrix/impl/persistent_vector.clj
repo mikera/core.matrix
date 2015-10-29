@@ -454,17 +454,19 @@
 (extend-protocol mp/PMatrixProducts
   IPersistentVector
     (inner-product [m a]
-      (cond
-        (mp/is-scalar? a)
-          (mp/scale m a)
-        (== 1 (long (mp/dimensionality m)))
-          (if (== 1 (long (mp/dimensionality a)))
-            (mp/element-sum (mp/element-multiply m a))
-            (reduce mp/matrix-add (map (fn [sl x] (mp/scale sl x))
+      (let [adims (long (mp/dimensionality a))
+            mdims (long (mp/dimensionality m))]
+        (cond
+          (== 0 adims)
+            (mp/scale m (mp/get-0d a))
+          (== 1 mdims)
+            (if (== 1 adims)
+              (mp/element-sum (mp/element-multiply m a))
+              (reduce mp/matrix-add (map (fn [sl x] (mp/scale sl x))
                                        (mp/get-major-slice-seq a)
                                        (mp/get-major-slice-seq m)))) ;; TODO: implement with mutable accumulation
-        :else
-          (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m))))
+           :else
+           (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m)))))
     (outer-product [m a]
       (mp/element-map m (fn [v] (mp/pre-scale a v)))))
 
