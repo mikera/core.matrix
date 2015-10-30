@@ -173,6 +173,15 @@
    The default implementation will attempt to choose a suitable mutable matrix implementation."
   (mutable-matrix [m]))
 
+(defprotocol PMutableCoercion
+  "Protocol for coercing to a mutable format. May return the original array, if it is already fully mutable, 
+   otherwise should return a fully mutable copy of the array.
+
+   May return nil to indicate that a default implementation should be used.
+
+   The default implementation will attempt to choose a suitable mutable matrix implementation."
+  (ensure-mutable [m]))
+
 (defprotocol PSparse
   "Protocol for constructing a sparse array from the given data. Implementations should
    consider the possibility that data may be a large lazy sequence, possibly larger than memory, so should ideally

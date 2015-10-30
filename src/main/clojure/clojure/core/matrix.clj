@@ -277,9 +277,7 @@
   "Checks if an array is mutable, and if not converts to a new mutable array. Guarantees
    that the result will be mutable, but may not be the same type as the original array."
   ([m]
-    (if (mp/is-mutable? m)
-      m
-      (mutable m))))
+    (mp/ensure-mutable m)))
 
 (defn diagonal-matrix
   "Constructs a 2D diagonal matrix with the given numerical values on the main diagonal.

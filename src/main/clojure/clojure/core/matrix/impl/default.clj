@@ -474,6 +474,19 @@
     (mutable-matrix [m]
       (construct-mutable-matrix m)))
 
+(extend-protocol mp/PMutableCoercion
+  nil
+    (ensure-mutable [m]
+      (wrap/wrap-scalar m))
+  Number
+    (ensure-mutable [m]
+      (wrap/wrap-scalar m))
+  Object
+    (ensure-mutable [m]
+      (if (mp/is-mutable? m)
+        m
+        (construct-mutable-matrix m))))
+
 (extend-protocol mp/PComputeMatrix
   Object
     (compute-matrix [m shape f]
