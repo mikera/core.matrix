@@ -1,7 +1,8 @@
 (ns clojure.core.matrix.select
-  "Namespace for more fully fealtured core.matrix select API.
+  "Namespace for more fully featured core.matrix select API.
 
-   Supports selection functions, which are defined as a (fn [array dim] ...) => set of indices for dimension "
+   Supports selection functions, which are defined as:
+      (fn [array dim] ...) => set of indices for dimension "
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :as u :refer [TODO error]]))
