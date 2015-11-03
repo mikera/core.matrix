@@ -4,23 +4,23 @@
   (:require [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [error]]))
 
-;; OPTIONAL: choose an implementation
+;; OPTIONAL: choose a core.matrix implementation
 ;; (set-current-implementation :vectorz)
-;
-;; first we construct a map that defines our initial neural network state
+
+;; First we construct a map that defines our initial neural network state
 ;; we populate this with random gaussian values
 (def INITIAL-NETWORK
   (let [r (java.util.Random.)
         
-        ;; the structure, defined as the number of nodes in each layer (input, hidden, output)
+        ;; The structure, defined as the number of nodes in each layer (input, hidden, output)
         structure [4 5 1]
         
-        ;; weight matrixes between each later
+        ;; Create weight matrixes between each layer
         weights (mapv (fn [n m] (array (reshape (repeatedly #(.nextGaussian r)) [n m]))) 
                       (next structure) 
                       (butlast structure))
         
-        ;; bias weights for each output
+        ;; Bias weights for each non-input layer
         biases (mapv (fn [n] (array (reshape (repeatedly #(.nextGaussian r)) [n]))) 
                      (next structure))]
   {:structure structure
@@ -30,22 +30,24 @@
 ;; the `think` function computes activations for each layer, starting with the input
 ;; we use `reductions` as a handy way to do this
 (defn think 
-  "Makes the neural network think with a given input vector, creating activations at each layer" 
+  "Makes the neural network 'think' with a given input vector, computing activations at each layer.
+   Activations are assoc'd into the neural network." 
   [net input]
   (assoc net :activations
          (vec (reductions
                 (fn [x [weight bias]]
-                  (logistic (add (mmul weight x) bias))) ;; the actual calculation is this line
+                  (logistic (add (mmul weight x) bias))) ;; Layer output Y = logistic(W.X + B)
                 (array input)
                 (map vector (:weights net) (:biases net))))))
 
 (defn compute-error
-  "Computes error gradient for weights and biases, given a target vector"
+  "Computes error gradient for weights and biases, given a target vector.
+   Error gradients are assoc'd into the neural network."
   ([net target]
     (when-not (:activations net) (error "Must call think on net first to create activations"))
     (let [output (last (:activations net))
           N (count (:structure net))
-          g (mul (sub (array target) output) 2)
+          g (mul (sub (array target) output) 2) ;; Error on output layer G = 2 * (T - Y)
           
           ;; initialise vectors to store the gradients
           net (let [empty-vec (vec (repeat (dec N) nil))]
@@ -71,7 +73,8 @@
                      (assoc-in [:gradient i] (mmul (transpose weight) gderiv))))))))))
 
 (defn param-update
-  "Updates the neural network parameters by gradient descent, scaling the updates by a given factor."
+  "Updates the neural network parameters by gradient descent, scaling the updates by a given factor.
+   Weights and biases in all layers are updated in the resulting network."
   [net factor]
   (reduce 
     (fn [net i]
