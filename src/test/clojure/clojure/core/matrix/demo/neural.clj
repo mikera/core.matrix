@@ -1,5 +1,6 @@
 (ns clojure.core.matrix.demo.neural
-  "Demonstration of a simple N-layer neural network with logistic activation functions using core.matrix"
+  "Demonstration of a simple N-layer neural network with logistic activation functions using core.matrix
+   We use an immutable neural network structure to demonstate idiomatic Clojure style"
   (:require [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [error]]))
 
