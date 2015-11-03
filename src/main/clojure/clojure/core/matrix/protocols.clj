@@ -1,6 +1,8 @@
 (ns clojure.core.matrix.protocols
   "Namespace for core.matrix protocols. These protocols are intended to be implemented by 
-   core.matrix array implemntations. End sers should avoid using this namespace directly
+   core.matrix array implemntations. 
+
+   End users should normally avoid using this namespace directly
    and instead use the functions in the main clojure.core.matrix API"
   (:import [java.util List]
            [clojure.lang Seqable])
@@ -817,12 +819,12 @@
 ;; also generate in-place versions e.g. signum!
 (eval
   `(defprotocol PMathsFunctions
-  "Protocol to support mathematic functions applied element-wise to a numerical array"
+  "Protocol to support mathematical functions applied element-wise to a numerical array."
   ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)))
 
 (eval
   `(defprotocol PMathsFunctionsMutable
-  "Protocol to support mutable mathematic functions applied element-wise to a numerical array"
+  "Protocol to support mutable mathematical functions applied element-wise to a numerical array."
   ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
 
 (defprotocol PElementCount

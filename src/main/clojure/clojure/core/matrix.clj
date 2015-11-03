@@ -1,6 +1,8 @@
 (ns clojure.core.matrix
-  "Main namespace for the core.matrix API. Functions in this API may be supported by multiple matrix implementations,
-   allowing code that uses this API to quickly switch between implementations."
+  "Main namespace for the core.matrix API. 
+
+   Functions in this API may be supported by multiple matrix implementations, allowing code that uses 
+   this API to quickly switch between implementations without significant changes (if any)."
   (:require [clojure.core.matrix.impl.default :as default]
             [clojure.core.matrix.impl double-array object-array persistent-vector index]
             [clojure.core.matrix.impl sequence] ;; TODO: figure out if we want this?

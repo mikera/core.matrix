@@ -1,6 +1,8 @@
 (ns clojure.core.matrix.random
   "Namespace for random number generation functions working with core.matrix
-   arrays. Intended for use in rnadom sampling, simulation etc."
+   arrays. 
+
+   Intended for use in random sampling, simulation etc."
   (:use clojure.core.matrix)
   (:use [mikera.cljutils error])
   (:import [java.util Random])
