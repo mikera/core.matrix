@@ -3,6 +3,9 @@
   (:require [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [error]]))
 
+;; OPTIONAL: choose an implementation
+;; (set-current-implementation :vectorz)
+;
 ;; first we construct a map that defines our initial neural network state
 ;; we populate this with random gaussian values
 (def INITIAL-NETWORK
@@ -12,10 +15,13 @@
         structure [4 5 1]
         
         ;; weight matrixes between each later
-        weights (mapv (fn [n m] (reshape (repeatedly #(.nextGaussian r)) [n m])) (next structure) (butlast structure))
+        weights (mapv (fn [n m] (array (reshape (repeatedly #(.nextGaussian r)) [n m]))) 
+                      (next structure) 
+                      (butlast structure))
         
         ;; bias weights for each output
-        biases (mapv (fn [n] (reshape (repeatedly #(.nextGaussian r)) [n])) (next structure))]
+        biases (mapv (fn [n] (array (reshape (repeatedly #(.nextGaussian r)) [n]))) 
+                     (next structure))]
   {:structure structure
    :weights weights
    :biases biases}))
