@@ -2,34 +2,36 @@
   "Demonstration of a simple N-layer neural network with logistic activation functions using core.matrix
    We use an immutable neural network structure to demonstate idiomatic Clojure style"
   (:require [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.random :refer [sample-normal]]
             [clojure.core.matrix.utils :refer [error]]))
 
 ;; OPTIONAL: choose a core.matrix implementation (for better performance)
 ;; (set-current-implementation :vectorz)
 
+;; =================================================================================================
 ;; First we construct our initial neural network state
-;; we populate this with random gaussian values
+;; we populate this with random gaussian values using clojure.core.matrix.random
 ;;
 ;; We make sure of Clojure' persistent maps to store our 
 ;; neural netowrk as a single, immutable data structure
 (def INITIAL-NETWORK
-  (let [r (java.util.Random.)
-        
-        ;; The structure, defined as the number of nodes in each layer (input, hidden, output)
+  (let [;; The structure, defined as the number of nodes in each layer (input, hidden, output)
         structure [4 5 1]
         
         ;; Create weight matrixes between each layer
-        weights (mapv (fn [n m] (array (reshape (repeatedly #(.nextGaussian r)) [n m]))) 
+        weights (mapv (fn [n m] (sample-normal [n m])) 
                       (next structure) 
                       (butlast structure))
         
         ;; Bias weights for each non-input layer
-        biases (mapv (fn [n] (array (reshape (repeatedly #(.nextGaussian r)) [n]))) 
+        biases (mapv (fn [n] (sample-normal [n])) 
                      (next structure))]
   {:structure structure
    :weights weights
    :biases biases}))
 
+;; =================================================================================================
+;; Nueual network computation and training functions
 
 ;; the `think` function computes activations for each layer, starting with the input
 ;; we use `reductions` as a handy way to do this
@@ -138,7 +140,7 @@
   (fn [x]
     (last (:activations (think net x)))))
 
-;; =====================================================================================
+;; =================================================================================================
 ;; Code to run at REPL
 (comment 
   
