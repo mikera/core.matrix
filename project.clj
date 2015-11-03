@@ -38,6 +38,7 @@
                        clojure.core.matrix.operators
                        clojure.core.matrix.protocols
                        clojure.core.matrix.random
+                       clojure.core.matrix.implementations
                        clojure.core.matrix.select
                        clojure.core.matrix.stats]
           :src-dir-uri "https://github.com/mikera/core.matrix/blob/master/"
