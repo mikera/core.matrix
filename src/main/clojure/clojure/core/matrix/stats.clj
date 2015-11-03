@@ -1,4 +1,8 @@
 (ns clojure.core.matrix.stats
+  "Namespace for statistical functions operating on core.matrix arrays.
+
+   Previously some of these functions were available in a separate `core.matrix.stats` library,
+   they have now been fully integrated into core.matrix."
   (:use clojure.core.matrix))
 
 (defn sum 
@@ -63,11 +67,12 @@
 
 (defn normalise-probabilities
   "Normalises a numerical probability vector, i.e. to a vector where all elements sum to 1.0.
+   
    A zero vector will be set set to [1/n .... 1/n]."
   ([v]
     (let [len (double (sum v))]
       (cond
         (== len 1.0) v
-        (== len 0.0) (coerce v (let [n (dimension-count v 0)] (repeat n (/ 1.0 n))))
+        (== len 0.0) (assign v (/ 1.0 (dimension-count v 0)))
         :else (scale v (/ 1.0 len))))))
 
