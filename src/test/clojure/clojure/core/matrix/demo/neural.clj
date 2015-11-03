@@ -35,7 +35,7 @@
          (vec (reductions
                 (fn [x [weight bias]]
                   (logistic (add (mmul weight x) bias))) ;; the actual calculation is this line
-                input
+                (array input)
                 (map vector (:weights net) (:biases net))))))
 
 (defn compute-error
@@ -44,7 +44,7 @@
     (when-not (:activations net) (error "Must call think on net first to create activations"))
     (let [output (last (:activations net))
           N (count (:structure net))
-          g (mul (sub target output) 2)
+          g (mul (sub (array target) output) 2)
           
           ;; initialise vectors to store the gradients
           net (let [empty-vec (vec (repeat (dec N) nil))]
