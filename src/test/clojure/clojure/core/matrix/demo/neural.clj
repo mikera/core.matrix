@@ -4,11 +4,14 @@
   (:require [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [error]]))
 
-;; OPTIONAL: choose a core.matrix implementation
+;; OPTIONAL: choose a core.matrix implementation (for better performance)
 ;; (set-current-implementation :vectorz)
 
-;; First we construct a map that defines our initial neural network state
+;; First we construct our initial neural network state
 ;; we populate this with random gaussian values
+;;
+;; We make sure of Clojure' persistent maps to store our 
+;; neural netowrk as a single, immutable data structure
 (def INITIAL-NETWORK
   (let [r (java.util.Random.)
         
@@ -27,6 +30,7 @@
    :weights weights
    :biases biases}))
 
+
 ;; the `think` function computes activations for each layer, starting with the input
 ;; we use `reductions` as a handy way to do this
 (defn think 
@@ -39,6 +43,7 @@
                   (logistic (add (mmul weight x) bias))) ;; Layer output Y = logistic(W.X + B)
                 (array input)
                 (map vector (:weights net) (:biases net))))))
+
 
 (defn compute-error
   "Computes error gradient for weights and biases, given a target vector.
@@ -68,10 +73,14 @@
                 gderiv (mul gradient deriv)]
             (recur (dec i)
                    (-> net 
-                     (assoc-in [:gradient-biases i] gderiv)
-                     (assoc-in [:gradient-weights i] (outer-product gderiv input))
+                     (assoc-in [:gradient-biases  i] gderiv)                      
+                     (assoc-in [:gradient-weights i] (outer-product gderiv input)) 
                      (assoc-in [:gradient i] (mmul (transpose weight) gderiv))))))))))
 
+
+;; parameter update simply adds a multiple of the error gradient to every parameter in the network
+;; (both weight matrices and bias vectors for each layer). Note that the core.matrix code for weights
+;; and biases is the same because differences in diemnsionality are handled automatically.
 (defn param-update
   "Updates the neural network parameters by gradient descent, scaling the updates by a given factor.
    Weights and biases in all layers are updated in the resulting network."
@@ -80,9 +89,10 @@
     (fn [net i]
       (-> net
         (update-in [:weights i] (fn [wt] (add wt (mul factor (get-in net [:gradient-weights i])))))
-        (update-in [:biases i] (fn [bs] (add bs (mul factor (get-in net [:gradient-biases i])))))))
+        (update-in [:biases i]  (fn [bs] (add bs (mul factor (get-in net [:gradient-biases  i])))))))
     net
     (range (dec (count (:structure net))))))
+
 
 ;; Training function repeatedly runs the network against randomly chosen examples and updates parameters
 ;; according to the gradient. Note that this is a fairly naive approach, a better approach would:
@@ -108,6 +118,7 @@
             (inc i) 
             (update-in net [:train-count] (fnil inc 0))))))))
 
+;; Example training data, as a collection of input -> target pairs
 (def EXAMPLES 
   [[[1 0 0 0] [1]]
    [[0 1 0 0] [0]]
@@ -116,13 +127,20 @@
    [[0 1 1 1] [1]]
    [[1 0 0 1] [0]]])
 
+
+;; Higher order function to create a classifier function from a neural network. This 
+;; effectively does the following:
+;;  - run `think` on the neural network with the given input
+;;  - extract the activations that represent the top-level neural network output
 (defn classifier 
   "Creates a classifier function from a trained neural network" 
   [net]
   (fn [x]
     (last (:activations (think net x)))))
 
-(comment ;; code to run at REPL
+;; =====================================================================================
+;; Code to run at REPL
+(comment 
   
   ;; train the network with randomly drawn examples
   (def NET (train INITIAL-NETWORK EXAMPLES 10000))
