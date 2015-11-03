@@ -1,13 +1,10 @@
 (ns clojure.core.matrix.demo.neural
   "Demonstration of a simple neural network with logistic activation functions using core.matrix"
-  (:require [clojure.core.matrix :refer :all]))
+  (:require [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.utils :referr [error]]))
 
-(defmacro error
-  "Handy error function"
-  [& msgs]
-  `(throw (Error. (str ~@msgs))))
-
-;; first we construct a map that defines out initial neural network
+;; first we construct a map that defines our initial neural network state
+;; we populate this with random gaussian values
 (def INITIAL-NETWORK
   (let [r (java.util.Random.)
         
