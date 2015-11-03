@@ -1766,6 +1766,11 @@
                 ~'m))) mops/maths-ops))
        )
 
+(defn logistic
+  "Computes the sigmoid (logistic) function for every element of an array."
+  [a]
+  (mp/logistic a))
+
 ;; ==================================
 ;; Elementary row operations
 ;;

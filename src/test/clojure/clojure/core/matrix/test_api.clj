@@ -313,6 +313,12 @@
   (is (== 8 (pow 2 3)))
   (is (equals [0.5 2] (pow [2 0.5] -1))))
 
+(deftest test-logistic
+  (is (== 0.0 (logistic -10000)))
+  (is (== 0.5 (logistic 0)))
+  (is (== 1.0 (logistic 10000)))
+  (is (equals [0 0.5 1] (logistic [-10000 0 10000]))))
+
 (deftest test-addition
   (testing "matrix addition"
     (is (= [5.0] (add [3.0] [2.0])))

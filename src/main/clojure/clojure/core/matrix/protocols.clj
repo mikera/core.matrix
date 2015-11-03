@@ -782,6 +782,10 @@
   "Protocol to support element-wise squaring of a numerical array."
   (square [m]))
 
+(defprotocol PLogistic
+  "Protocol to support element-wise logistic function on a numerical array."
+  (logistic [m]))
+
 ;; ==================================
 ;; Elementary Row Operation Protocols
 ;;

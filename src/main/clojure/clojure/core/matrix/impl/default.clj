@@ -1759,6 +1759,21 @@
   Object
    (square [m] (mp/element-multiply m m)))
 
+(defn- logistic-fn
+  "Logistic function, with primitive type hints"
+  (^double [^double t]
+    (let [e-t (Math/exp (- t))]
+      (/ 1.0 (+ 1.0 e-t)))))
+
+(extend-protocol mp/PLogistic
+  Number
+    (logistic [m]
+      (let [e-t (Math/exp (- (double m)))]
+        (/ 1.0 (+ 1.0 e-t))))
+  Object
+    (logistic [m]
+      (mp/element-map m logistic-fn)))
+
 ;; define standard Java maths functions for numbers
 (eval
   `(extend-protocol mp/PMathsFunctions
