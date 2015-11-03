@@ -1,0 +1,6 @@
+/target/
+/.settings/
+/.project
+/.nrepl-port
+/.lein-failures
+/.classpath
