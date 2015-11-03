@@ -32,7 +32,11 @@ Key goals of *core.matrix*:
 
 ### Documentation
 
-For `core.matrix` documentation and examples see the Wiki:
+API documentation is available here
+
+ - https://mikera.github.io/core.matrix/doc/index.html
+
+For general `core.matrix` documentation and examples see the Wiki:
 
  - https://github.com/mikera/core.matrix/wiki
 
