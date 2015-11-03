@@ -49,7 +49,12 @@
    May be re-bound to temporarily use a different core.matrix implementation." 
   DEFAULT-IMPLEMENTATION)
 
-(def ^:dynamic *debug-options* {:print-registrations false})
+(def ^:dynamic *debug-options* 
+  "A dynamic var supporting debugging option for core.matrix implementers.
+
+   Currently supported values:
+     :print-registrations  - print when core.matrix implementations are registered" 
+  {:print-registrations false})
 
 (defonce 
   ^{:doc "An atom holding a map of canonical objects for each loaded core.matrix implementation.
@@ -137,6 +142,7 @@
 
    Parameter may be 
     - A known keyword for the implementation e.g. :vectorz
+    - An existing instance from the implementation
 
    This is used primarily for functions that construct new matrices, i.e. it determines the
    implementation used for expressions like: (matrix [[1 2] [3 4]])"

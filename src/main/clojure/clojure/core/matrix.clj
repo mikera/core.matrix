@@ -1998,8 +1998,11 @@
   ([] (imp/get-canonical-object (current-implementation))))
 
 (defn set-current-implementation
-  "Sets the currently active core.matrix implementation. Parameter may be either a keyword identifying the 
-   implementation, or an array instance from the implementation.
+  "Sets the currently active core.matrix implementation. 
+
+   Parameter may be 
+    - A known keyword for the implementation e.g. :vectorz
+    - An existing instance from the implementation
 
    This is used primarily for functions that construct new matrices, i.e. it determines the
    implementation used for expressions like: (matrix [[1 2] [3 4]])"
