@@ -1,7 +1,7 @@
 (ns clojure.core.matrix.demo.neural
   "Demonstration of a simple neural network with logistic activation functions using core.matrix"
   (:require [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.utils :referr [error]]))
+            [clojure.core.matrix.utils :refer [error]]))
 
 ;; first we construct a map that defines our initial neural network state
 ;; we populate this with random gaussian values
@@ -60,7 +60,7 @@
                      (assoc-in [:gradient i] (mmul (transpose weight) gderiv))))))))))
 
 (defn param-update
-  "Updates the neural network parameters by gradient descent"
+  "Updates the neural network parameters by gradient descent, scaling the updates by a given factor."
   [net factor]
   (reduce 
     (fn [net i]
@@ -83,11 +83,12 @@
               target (second example)
               net (think net input)
               net (compute-error net target)
-              net (param-update net (/ 1.0 (+ 1.0 (* 0.1 (/ i n))))) ;; decreasing learning rate
+              learn-rate (/ 1.0 (+ 1.0 (* 0.1 (/ i n)))) ;; decreasing learning rate
+              net (param-update net learn-rate) 
               ]
           (recur 
             (inc i) 
-            (assoc net :train-count (+ 1 (or (:train-count net) 0)))))))))
+            (update-in net [:train-count] (fnil inc 0))))))))
 
 (def EXAMPLES 
   [[[1 0 0 0] [1]]
