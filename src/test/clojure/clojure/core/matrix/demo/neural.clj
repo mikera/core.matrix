@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.demo.neural
-  "Demonstration of a simple neural network with logistic activation functions using core.matrix"
+  "Demonstration of a simple N-layer neural network with logistic activation functions using core.matrix"
   (:require [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [error]]))
 
@@ -20,13 +20,15 @@
    :weights weights
    :biases biases}))
 
+;; the `think` function computes activations for each layer, starting with the input
+;; we use `reductions` as a handy way to do this
 (defn think 
   "Makes the neural network think with a given input vector, creating activations at each layer" 
   [net input]
   (assoc net :activations
          (vec (reductions
                 (fn [x [weight bias]]
-                  (logistic (add (mmul weight x) bias)))
+                  (logistic (add (mmul weight x) bias))) ;; the actual calculation is this line
                 input
                 (map vector (:weights net) (:biases net))))))
 
@@ -37,6 +39,8 @@
     (let [output (last (:activations net))
           N (count (:structure net))
           g (mul (sub target output) 2)
+          
+          ;; initialise vectors to store the gradients
           net (let [empty-vec (vec (repeat (dec N) nil))]
                 (assoc net 
                        :gradient-weights empty-vec
@@ -70,6 +74,10 @@
     net
     (range (dec (count (:structure net))))))
 
+;; Training function repeatedly runs the network against randomly chosen examples and updates parameters
+;; according to the gradient. Note that this is a fairly naive approach, a better approach would:
+;; - iterate over entire example set or mini-batches to compute each parameter update
+;; - use momentum or some accelerated method of gradient descent (ADAGRAD etc.)
 (defn train
   "Trains a network for n iterations, with a collection of input -> target pairs"
   [net examples n]
@@ -78,9 +86,9 @@
            net net]
       (if (>= i n)
         net
-        (let [example (rand-nth examples)
-              input (first example)
-              target (second example)
+        (let [example (rand-nth examples) ;; choose a random example
+              input (first example)       ;; get the example input
+              target (second example)     ;; get the example (target) output)
               net (think net input)
               net (compute-error net target)
               learn-rate (/ 1.0 (+ 1.0 (* 0.1 (/ i n)))) ;; decreasing learning rate
