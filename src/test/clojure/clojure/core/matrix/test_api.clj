@@ -317,7 +317,11 @@
   (is (== 0.0 (logistic -10000)))
   (is (== 0.5 (logistic 0)))
   (is (== 1.0 (logistic 10000)))
-  (is (equals [0 0.5 1] (logistic [-10000 0 10000]))))
+  (is (equals [0 0.5 1] (logistic [-10000 0 10000])))
+  (let [da (double-array [-10000 0 10000])]
+    (logistic! da)
+    (is (equals [0 0.5 1] da)))
+  (is (error? (logistic! 0.7))))
 
 (deftest test-addition
   (testing "matrix addition"

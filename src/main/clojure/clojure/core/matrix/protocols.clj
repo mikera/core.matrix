@@ -786,6 +786,10 @@
   "Protocol to support element-wise logistic function on a numerical array."
   (logistic [m]))
 
+(defprotocol PLogisticMutable
+  "Protocol to support mutable element-wise logistic function on a numerical array."
+  (logistic! [m]))
+
 ;; ==================================
 ;; Elementary Row Operation Protocols
 ;;

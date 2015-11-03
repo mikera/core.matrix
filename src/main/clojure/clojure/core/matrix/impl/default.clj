@@ -1774,6 +1774,11 @@
     (logistic [m]
       (mp/element-map m logistic-fn)))
 
+(extend-protocol mp/PLogisticMutable
+  Object
+    (logistic! [m]
+      (mp/element-map! m logistic-fn)))
+
 ;; define standard Java maths functions for numbers
 (eval
   `(extend-protocol mp/PMathsFunctions
