@@ -16,7 +16,17 @@
   	core.matrix provides a full range of array programming functionality using N-dimensional arrays. This includes matrix computation, vector maths, higher dimensional tensors, statistical functions and more.
   	</p>
   	<p>
-  	Rather than forcing you to use a specific matrix library, core.matrix works by providing a flexible API that supports multiple back-end implementations that can be freely switched based on performance and other requirements.
+  	Rather than forcing you to use a specific matrix library, core.matrix works by providing a flexible API that supports multiple back-end implementations that can be freely switched based on performance and other requirements. Currently available implementations include:
+  	</p>
+  	<ul>
+  		<li>Clojure persistent vectors (default immutable implementation)</li>
+  		<li>General purpose NDArray (default mutable implementation)</li>
+  		<li>Java arrays and lists</li>
+  		<li><a href="https://github.com/tel/clatrix">Clatrix</a> (matrix computation using native BLAS)</li>
+  		<li><a href="https://github.com/mikera/vectorz-clj">vectorz-clj</a> (fast pure-JVM nuerical computing)</li>
+  	</ul>
+  	<p>
+  	Other implementations in the works include ClojureScript support, ND4J interop, GPU computing. 
   	</p>
   	
   	<h2>Documentation</h2>
