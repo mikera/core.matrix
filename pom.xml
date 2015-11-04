@@ -33,6 +33,12 @@
 			<version>1.8.0-beta2</version>
 		</dependency>
 		<dependency>
+ 		 	<groupId>org.clojure</groupId>
+			<artifactId>clojurescript</artifactId>
+			<version>1.7.145</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>tools.macro</artifactId>
 			<version>0.1.5</version>
@@ -94,6 +100,7 @@
 					</sourceDirectories>
 					<testSourceDirectories>
 						<testSourceDirectory>src/test/clojure</testSourceDirectory>
+						<testSourceDirectory>src/test/cljs</testSourceDirectory>
 						<testSourceDirectory>src/dev/clojure</testSourceDirectory>
 					</testSourceDirectories>
 				</configuration>
