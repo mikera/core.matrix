@@ -26,11 +26,12 @@
    	(to-degrees Math/toDegrees)
 	  (to-radians Math/toRadians)])
 
-;; define double versions of maths-ops
-(doseq [[sym op] maths-ops]
-  (let []
-    (eval `(defn ~sym 
-            ~(vary-meta
-               `([~(vary-meta 'x assoc :tag 'double)]
-                  (~op ~'x))
-               assoc :tag double)))))
+#?(:clj
+     ;; define double versions of maths-ops
+     (doseq [[sym op] maths-ops]
+       (let []
+         (eval `(defn ~sym
+                  ~(vary-meta
+                     `([~(vary-meta 'x assoc :tag 'double)]
+                       (~op ~'x))
+                     assoc :tag double))))))

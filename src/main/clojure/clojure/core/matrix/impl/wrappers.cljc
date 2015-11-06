@@ -3,9 +3,11 @@
 
    These wrapper types enable efficient of convenient implementation of various core.matrix protocols."
   (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.utils :as u :refer [TODO error]])
-  (:import [clojure.lang Seqable Indexed]))
+            [clojure.core.matrix.implementations :as imp])
+  #?(:clj (:require [clojure.core.matrix.utils :as u :refer [TODO error]])
+     :cljs (:require-macros [clojure.core.matrix.utils :as u :refer [TODO error]]))
+  #?(:clj
+      (:import [clojure.lang Seqable Indexed])))
 
 ;; =============================================
 ;; WRAPPER IMPLEMENTATIONS
@@ -304,7 +306,7 @@
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
         (mp/get-nd array ix)))
-    
+
     mp/PIndexedSettingMutable
     (set-1d! [m row v]
       (let [ix (u/copy-long-array source-position)
@@ -324,7 +326,7 @@
         (dotimes [i (alength shape)]
           (set-source-index ix i (nth indexes i)))
         (mp/set-nd! array ix v)))
-    
+
     mp/PSliceView2
       (get-slice-view [m dim i]
         (let [i (long i)
@@ -332,11 +334,11 @@
               nsp (u/copy-long-array source-position)
               sdim (long (aget dim-map dim))]
           (aset nsp sdim i)
-          (NDWrapper. array 
-                      (u/abutnth dim shape) 
+          (NDWrapper. array
+                      (u/abutnth dim shape)
                       (u/abutnth dim dim-map)
                       (u/abutnth dim index-maps)
-                      nsp))) 
+                      nsp)))
 
   Object
     (toString [m]

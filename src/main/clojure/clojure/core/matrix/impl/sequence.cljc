@@ -5,8 +5,9 @@
    array operations. In general they should be converted to other implementations before use."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.utils :refer [scalar-coerce error]])
-  (:import [clojure.lang ISeq]))
+    #?(:clj [clojure.core.matrix.utils :refer [scalar-coerce error]]))
+  #?(:clj (:import [clojure.lang ISeq])
+     :cljs (:require-macros [clojure.core.matrix.utils :refer [scalar-coerce error]])))
 
 ;; core.matrix implementation for Clojure ISeq objects
 ;;
@@ -14,8 +15,10 @@
 ;; 1. Intended mainly for accessing data. Not recommended for computations...
 ;; 2. generally returns a persistent vector where possible
 
-(set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+#?(:clj (do
+  (set! *warn-on-reflection* true)
+  (set! *unchecked-math* true)
+))
 
 (extend-protocol mp/PImplementation
   ISeq
@@ -81,12 +84,12 @@
 
 (extend-protocol mp/PMatrixRows
   ISeq
-    (get-rows [m] 
+    (get-rows [m]
       (vec m)))
 
 (extend-protocol mp/PMatrixColumns
   ISeq
-    (get-columns [m] 
+    (get-columns [m]
       ;; should be OK since :sequence should never the the current implementation
       (let [m (mp/coerce-param imp/*matrix-implementation* m)]
         (mp/get-columns m))))

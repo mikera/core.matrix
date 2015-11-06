@@ -3,7 +3,7 @@
   (:require [clojure.string :as s]
             [clojure.core.matrix.utils :as u]
             [clojure.core.matrix.implementations :as mi]
-            [clojure.java.shell :refer [sh]]))
+    #?(:clj [clojure.java.shell :refer [sh]])))
 
 (defn get-impl-objs
   "Returns a list of available implementations' objects"
@@ -31,9 +31,11 @@
   (for [proto protocols]
     (assoc proto :implemented-by (find-implementers proto impl-objs))))
 
+#?(:clj
 (defn get-git-hash
   "Returns current revision's git hash"
   []
   (-> (sh "git" "log" "--pretty=format:'%H'" "-n 1")
       :out
       (s/replace #"'" "")))
+)

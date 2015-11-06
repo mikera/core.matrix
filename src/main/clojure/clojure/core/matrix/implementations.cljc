@@ -1,8 +1,9 @@
 (ns clojure.core.matrix.implementations
   "Namespace for management of core.matrix implementations. Users should avoid using these
    functions directly as they are intended for library and tool writers."
-  (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.utils :refer [error]]))
+  (:require [clojure.core.matrix.protocols :as mp])
+  #?(:clj (:require [clojure.core.matrix.utils :refer [error]])
+     :cljs (:require-macros [clojure.core.matrix.utils :refer [error]])))
 
 ;; =====================================================
 ;; Implementation utilities
@@ -10,9 +11,9 @@
 ;; Tools to support the registration / manangement of clojure.core.matrix implementations
 
 (def KNOWN-IMPLEMENTATIONS
-  "A map of known core.matrix implementation namespaces. 
+  "A map of known core.matrix implementation namespaces.
 
-   core.matrix will attempt to load these namespaces when an array of the specified 
+   core.matrix will attempt to load these namespaces when an array of the specified
    keyword type is requested."
   (array-map
    :vectorz 'mikera.vectorz.matrix-api
@@ -37,32 +38,32 @@
    :commons-math 'apache-commons-matrix.core
    :mtj 'cav.mtj.core.matrix))
 
-(def DEFAULT-IMPLEMENTATION 
-  "The default implementation used in core.matrix. Currently set to `:persistent-vector` for maximum 
+(def DEFAULT-IMPLEMENTATION
+  "The default implementation used in core.matrix. Currently set to `:persistent-vector` for maximum
    compatibility with regular Clojure code."
   :persistent-vector)
 
 
-(def ^:dynamic *matrix-implementation* 
-  "A dynamic var specifying the current core.matrix implementation in use. 
+(def ^:dynamic *matrix-implementation*
+  "A dynamic var specifying the current core.matrix implementation in use.
 
-   May be re-bound to temporarily use a different core.matrix implementation." 
+   May be re-bound to temporarily use a different core.matrix implementation."
   DEFAULT-IMPLEMENTATION)
 
-(def ^:dynamic *debug-options* 
+(def ^:dynamic *debug-options*
   "A dynamic var supporting debugging option for core.matrix implementers.
 
    Currently supported values:
-     :print-registrations  - print when core.matrix implementations are registered" 
+     :print-registrations  - print when core.matrix implementations are registered"
   {:print-registrations false})
 
-(defonce 
+(defonce
   ^{:doc "An atom holding a map of canonical objects for each loaded core.matrix implementation.
 
    Canonical objects may be used to invoke protocol methods on an instance of the correct
    type to get implementation-specific behaviour. Canonical objects are required to support
    all mandatory core.matrix protocols."}
-  canonical-objects 
+  canonical-objects
    (atom {}))
 
 (defn get-implementation-key
@@ -79,7 +80,7 @@
   ([canonical-object]
     (register-implementation (mp/implementation-key canonical-object) canonical-object))
   ([key canonical-object]
-    (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: " (class key))) 
+    (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: " (class key)))
     (when (:print-registrations *debug-options*)
       (println (str "Registering core.matrix implementation [" key "] with canonical object [" (class canonical-object) "]")))
     (swap! canonical-objects assoc key canonical-object)))
@@ -97,10 +98,10 @@
            (@canonical-objects k))
          (catch Throwable t nil))))))
 
-(defn load-implementation 
+(defn load-implementation
   "Attempts to load the implementation for a given keyword or matrix object.
    Returns nil if not possible, a non-nil matrix value of the correct implementation otherwise."
-  ([korm] 
+  ([korm]
     (if (keyword? korm)
       (try-load-implementation korm)
       (try-load-implementation (mp/implementation-key korm)))))
@@ -138,9 +139,9 @@
         (mp/coerce-param [] data))))
 
 (defn set-current-implementation
-  "Sets the currently active core.matrix implementation. 
+  "Sets the currently active core.matrix implementation.
 
-   Parameter may be 
+   Parameter may be
     - A known keyword for the implementation e.g. :vectorz
     - An existing instance from the implementation
 

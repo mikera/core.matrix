@@ -1,13 +1,18 @@
 (ns clojure.core.matrix.utils
   "Namespace for core.matrix utilities. Intended mainly for library and tool writers."
   (:refer-clojure :exclude [update])
-  (:require [clojure.reflect :as r])
-  (:import [java.util Arrays]))
+  #?(:clj (:require [clojure.reflect :as r]))
+  #?(:clj
+      (:import [java.util Arrays])
+     :cljs
+      (:require-macros [clojure.core.matrix.utils :refer [error error? TODO]])))
 
 ;; Some of these are copies of methods from the library
 ;;   https://github.com/mikera/clojure-utils
 ;;
 ;; duplicated here to avoid an extra dependency
+
+#?(:clj (do
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
@@ -15,7 +20,9 @@
 (defmacro error
   "Throws an error with the provided message(s)"
   ([& vals]
-    `(throw (RuntimeException. (str ~@vals)))))
+    `(throw (#?(:clj RuntimeException.
+                :cljs js/Error.)
+                     (str ~@vals)))))
 
 (defmacro error?
   "Returns true if executing body throws an error, false otherwise."
@@ -23,7 +30,7 @@
     `(try
        ~@body
        false
-       (catch Throwable t#
+       (catch #?(:clj Throwable :cljs js/Error) t#
          true))))
 
 ;; useful TODO macro: facilitates searching for TODO while throwing an error at runtime :-)
@@ -45,13 +52,15 @@
 (defmacro java-array? [m]
   `(.isArray (.getClass ~m)))
 
+))
+
 (defn valid-shape?
   "returns true if the given object is a valid core.matrix array shape."
   ([shape]
     (try
       (and (>= (count shape) 0)
            (every? integer? shape))
-      (catch Throwable t false))))
+      (catch #?(:clj Throwable :cljs js/Error) t false))))
 
 (defn same-shape-object?
   "Returns true if two shapes are the same."
@@ -59,7 +68,7 @@
     (cond
       (identical? sa sb) true
       (not= (count sa) (count sb)) false
-      :else 
+      :else
         (let [ca (count sa)]
           (loop [i 0]
             (if (>= i ca)
@@ -78,6 +87,8 @@
       (if ss
         (recur (if (first ss) (not p) p) (next ss))
         p))))
+
+#?(:clj (do
 
 (defmacro doseq-indexed
   "loops over a set of values, binding index-sym to the 0-based index of each value"
@@ -167,6 +178,8 @@
       (doseq-indexed [x more i] (aset arr (+ 2 i) x))
       arr)))
 
+))
+
 (defn base-index-seq-for-shape
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"
   [sh]
@@ -210,6 +223,8 @@
   ([from-shape to-shape]
     (TODO)))
 
+#? (:clj (do
+
 (defmacro c-for
   "C-like loop with nested loops support"
   [loops & body]
@@ -247,9 +262,11 @@
      (cond
        (number? x#) x#
        :else (clojure.core.matrix.protocols/get-0d x#)))))
+))
 
 ;; utilities for protocol introspection
 
+#?(:clj
 (defn extends-deep?
   "This functions differs from ordinary `extends?` by using `extends?`
    on all ancestors of given type instead of just type itself. It also
@@ -267,6 +284,7 @@
            (cons cls)
            (map (partial extends? proto))
            (some true?)))))
+)
 
 (defn protocol?
   "Returns true if an argument is a protocol'"
@@ -280,6 +298,8 @@
   [[name p]]
   (let [m (->> @p :var meta)]
     (assoc @p :line (:line m) :file (:file m) :name name)))
+
+#?(:clj (do
 
 (defn extract-protocols
   "Extracts protocol info from clojure.core.matrix.protocols"
@@ -299,7 +319,8 @@
   [m]
   (let [protocols (extract-protocols)
         m (if (class? m) m (class m))]
-    (map :name (filter #(not (extends-deep? % m)) protocols))))
+    (map :name (filter #(not (#?(:clj extends-deep? :cljs satisfies?) % m)) protocols))))
+))
 
 (defn update-indexed [xs idxs f]
   (reduce #(assoc %1 %2 (f %2 (get %1 %2))) xs idxs))
