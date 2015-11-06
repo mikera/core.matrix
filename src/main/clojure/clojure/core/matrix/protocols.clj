@@ -757,7 +757,7 @@
      to compute determinants.
      Must throw an error if the matrix is not square (i.e. different number of rows and columns)")
   (inverse [m]
-    "Returns the invese of a matrix. Should return nil if m is not invertible."))
+    "Returns the inverse of a matrix. Should return nil if m is not invertible."))
 
 (defprotocol PNegation
   (negate [m]
