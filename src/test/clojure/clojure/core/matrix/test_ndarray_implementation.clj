@@ -212,7 +212,11 @@
 
 (deftest test-inverse
   (is (e== (invert-double (ndarray-double [[0 1 0] [1 1 0] [1 -1 -1]])) 
-           (ndarray-double [[-1.0,1.0,0.0],[1.0,-0.0,0.0],[-2.0,1.0,-1.0]]))))
+           (ndarray-double [[-1.0,1.0,0.0],[1.0,-0.0,0.0],[-2.0,1.0,-1.0]])))
+  (is (nil? (inverse (matrix :ndarray-double [[0 0 1] [1 1 0] [1 1 1]])))))
+
+(deftest test-determinant
+  (is (== 0.0 (det (matrix :ndarray-double [[0 0 1] [1 1 0] [1 1 1]])))))
 
 (deftest ndarray-test
   (ct/test-ndarray-implementation (empty-ndarray [3 3])))
