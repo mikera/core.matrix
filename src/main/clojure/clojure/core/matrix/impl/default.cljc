@@ -6,7 +6,13 @@
             [clojure.core.matrix.utils :as u]
     #?(:clj [clojure.core.matrix.impl.double-array :as da]))
   #?(:clj (:import [clojure.lang ISeq])
-     :cljs (:require-macros [clojure.core.matrix.utils :refer [scalar-coerce]])))
+     :cljs (:require-macros [clojure.core.matrix.utils :refer [error scalar-coerce c-for doseq-indexed java-array?]])))
+
+#?(:cljs (do
+(def Object js/Object)
+(def Number js/Number)
+(def class type)
+))
 
 ;; =========================================================================
 ;; This namespace contains default implementations for core.matrix protocols
@@ -19,8 +25,10 @@
 ;; - java.lang.Object : any unrecognised object, will be treated as an array
 ;;
 
+#? (:clj (do
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
+
 ;; (set! *unchecked-math* :warn-on-boxed) ;; use to check for boxing
 
 ;; ============================================================
@@ -30,6 +38,8 @@
   "Returns true if the parameter is an N-dimensional array of any type"
   ([m]
     `(not (mp/is-scalar? ~m))))
+
+))
 
 (defn- square?
   "Returns true if matrix is square (2D with same number of rows and columns)"
@@ -51,12 +61,13 @@
   ([m]
     (let [dims (long (mp/dimensionality m))
           type (mp/element-type m)
-          double? (or (= Double/TYPE type))]
+          double? (or #?(:clj  (= Double/TYPE type) :cljs true))]
       (cond
         (== dims 0)
           (wrap/wrap-scalar (mp/get-0d m))
-        (and (== dims 1) double?)
-          (da/construct-double-array m)
+
+#?@(:clj [(and (== dims 1) double?) (da/construct-double-array m)])
+
         double?
           (mp/coerce-param (imp/get-canonical-object :ndarray-double) m)
         :else
