@@ -8,6 +8,7 @@
             [clojure.walk :as w]
             [clojure.core.matrix.impl.ndarray :refer :all]
             [clojure.core.matrix.utils :refer :all]
-            [clojure.core.matrix.impl.ndarray-macro :refer :all]))
+            [clojure.core.matrix.impl.ndarray-macro :refer :all])
+  (:import [clojure.lang ExceptionInfo]))
 
 (magic/spit-code :double)

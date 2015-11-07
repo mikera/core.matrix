@@ -315,17 +315,7 @@
 
 (magic/with-magic
   [:double]
-  (defn lu-decompose!
-    "LU-decomposition of a matrix into P A = L U. Saves L and U into
-     the input matrix as follows: L is a lower triangular part of it,
-     with diagonal omitted (they are all equal to 1); U is an upper
-     triangular part. P returned as a primitive int permutation array.
-     Returns a vector of two values: first is integer (-1)^n, where n is
-     a number of permutations, and second is a primitive int permutations
-     array.
-     This function is translated from GNU linear algebra library, namely
-     `gsl_linalg_LU_decomp` (see [[lu]] for example). Python translation that
-     was used to implement this can be found at [[lupy]]."
+  (defn _lu-decompose!
     [^typename# m]
     (expose-ndarrays [m]
       (iae-when-not (== m-ndims 2)
@@ -348,8 +338,9 @@
                       (if (< max current)
                         (recur (inc i) i current)
                         (recur (inc i) max-i max)))
-                    (do (iae-when-not (not (== max 0))
-                          "lu-decompose can't decompose singular matrix")
+                    (do (when (== max 0)
+                          (throw (ex-info "lu-decompose can't decompose singular matrix"
+                                          {:cause ::singular})))
                         max-i)))
                 pivot (aget-2d* m i-pivot j)]
             ;; when maximum element is not on diagonal, swap rows, update
@@ -371,6 +362,28 @@
                                      (* (aget-2d* m j k)
                                         scaled))))))))
         [(aget sign 0) permutations]))))
+
+(magic/with-magic
+  [:double]
+  (defn lu-decompose!
+    "LU-decomposition of a matrix into P A = L U. Saves L and U into
+     the input matrix as follows: L is a lower triangular part of it,
+     with diagonal omitted (they are all equal to 1); U is an upper
+     triangular part. P returned as a primitive int permutation array.
+     Returns a vector of two values: first is integer (-1)^n, where n is
+     a number of permutations, and second is a primitive int permutations
+     array.
+     This function is translated from GNU linear algebra library, namely
+     `gsl_linalg_LU_decomp` (see [[lu]] for example). Python translation that
+     was used to implement this can be found at [[lupy]]."
+    [m]
+    (expose-ndarrays [m]
+      (try
+        (_lu-decompose!#t m)
+        (catch ExceptionInfo ex
+          (case (:cause (ex-data ex))
+            ::singular nil
+            (iae (.getMessage ex))))))))
 
 (magic/with-magic
   [:double]
@@ -421,7 +434,7 @@
             ^array-tag# x (array-cast# n)
             ^typename# lu (mp/clone m)
             ^typename# m-inverted (empty-ndarray#t [n n])
-            lu-output (lu-decompose!#t lu) ; lu-decompose! mutates lu
+            lu-output (_lu-decompose!#t lu) ; lu-decompose! mutates lu
             ^ints permutations (second lu-output)]
         (expose-ndarrays [m-inverted]
           (c-for [i (int 0) (< i n) (inc i)]
@@ -446,7 +459,7 @@
         "invert can operate only on square matrices")
       (let [n (aget m-shape 0)
             ^typename# lu (mp/clone m)
-            lu-output (lu-decompose!#t lu) ; lu-decompose! mutates lu
+            lu-output (_lu-decompose!#t lu) ; lu-decompose! mutates lu
             sign (first lu-output)]
         (expose-ndarrays [lu]
           (loop [i (int 0)
@@ -1167,10 +1180,20 @@
         "determinant operates only on matrices")
       (iae-when-not (== (aget shape 0) (aget shape 1))
         "determinant operates only on square matrices")
-      (determinant#t m))
+      (try
+        (determinant#t m)
+        (catch ExceptionInfo ex
+          (case (:cause (ex-data ex))
+            ::singular (type-cast# 0)
+            (iae (.getMessage ex))))))
     (inverse [m]
       (iae-when-not (== ndims 2)
         "inverse operates only on matrices")
       (iae-when-not (== (aget shape 0) (aget shape 1))
         "inverse operates only on square matrices")
-      (invert#t m)))
+      (try
+        (invert#t m)
+        (catch ExceptionInfo ex
+          (case (:cause (ex-data ex))
+            ::singular nil
+            (iae (.getMessage ex)))))))
