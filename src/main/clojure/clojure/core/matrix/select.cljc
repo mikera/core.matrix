@@ -4,9 +4,9 @@
    Supports selection functions, which are defined as:
       (fn [array dim] ...) => set of indices for dimension "
   (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix :refer [dimensionality dimension-count]])
-  #?(:clj (:require [clojure.core.matrix.utils :as u :refer [TODO error]])
-     :cljs (:require-macros [clojure.core.matrix.utils :as u :refer [TODO error]])))
+            [clojure.core.matrix :refer [select set-selection set-selection! slice dimensionality dimension-count]])
+  (#?(:clj :require :cljs :require-macros)
+           [clojure.core.matrix.macros :refer [TODO error]]))
 
 ;; high-level array indexing
 ;; Provides a matlab-like dsl for matrix indexing.

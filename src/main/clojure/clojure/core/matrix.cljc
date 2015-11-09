@@ -10,7 +10,8 @@
             [clojure.core.matrix.implementations :as imp :refer [*matrix-implementation*]]
             [clojure.core.matrix.impl.mathsops :as mops]
             [clojure.core.matrix.impl.wrappers :as wrap])
-  #?(:clj (:require [clojure.core.matrix.utils :as u :refer [TODO error]]
+  #?(:clj (:require [clojure.core.matrix.utils :as u]
+                    [clojure.core.matrix.macros :refer [TODO error]]
                     [clojure.core.matrix.impl.index]
                     [clojure.core.matrix.impl.pprint :as pprint]
                     [clojure.core.matrix.impl.double-array]
@@ -1038,7 +1039,7 @@
   ([dimension & arrays]
     (or
       (reduce #(mp/join-along %1 %2 dimension) arrays)
-      (u/error "Failure to joins arrays"))))
+      (error "Failure to joins arrays"))))
 
 (defn rotate
   "Rotates an array along specified dimensions.
@@ -1097,7 +1098,7 @@
    Will throw an exception if broadcast to the target shape is not possible."
   ([m shape]
     (or (mp/broadcast m shape)
-        (u/error "Broadcast to target shape: " (vec shape) " not possible."))))
+        (error "Broadcast to target shape: " (vec shape) " not possible."))))
 
 (defn broadcast-like
   "Broadcasts the second matrix to the shape of the first. See 'broadcast'."
@@ -1991,7 +1992,7 @@
   ([]
     (or
       (imp/get-canonical-object imp/*matrix-implementation*)
-      (u/error "No current clojure.core.matrix implementation available")))
+      (error "No current clojure.core.matrix implementation available")))
   ([impl]
     (if-let [im (imp/get-canonical-object impl)]
       im
@@ -2000,7 +2001,7 @@
         (scalar? impl) (imp/get-canonical-object imp/*matrix-implementation*)
         :else (or
                 (imp/load-implementation impl)
-                (u/error "No clojure.core.matrix implementation available - " (str impl)))))))
+                (error "No clojure.core.matrix implementation available - " (str impl)))))))
 
 (defn current-implementation-object
   "Gets a canonical object for the currently active matrix implementation. This object

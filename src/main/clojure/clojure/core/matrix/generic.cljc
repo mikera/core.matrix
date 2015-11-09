@@ -2,8 +2,8 @@
   "EXPERIMENTAL: namespace for core.matrix generic array operations"
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp])
-  #?(:clj (:require [clojure.core.matrix.utils :as u :refer [TODO error]])
-     :cljs (:require-macros [clojure.core.matrix.utils :as u :refer [TODO error]])))
+  (#?(:clj :require :cljs :require-macros)
+           [clojure.core.matrix.macros :as u :refer [TODO error]]))
 
 ;; Placeholder namespace for generic versions of core.matrix algorithms
 

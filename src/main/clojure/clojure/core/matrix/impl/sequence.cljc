@@ -5,9 +5,9 @@
    array operations. In general they should be converted to other implementations before use."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
-    #?(:clj [clojure.core.matrix.utils :refer [scalar-coerce error]]))
+    #?(:clj [clojure.core.matrix.macros :refer [scalar-coerce error]]))
   #?(:clj (:import [clojure.lang ISeq])
-     :cljs (:require-macros [clojure.core.matrix.utils :refer [scalar-coerce error]])))
+     :cljs (:require-macros [clojure.core.matrix.macros :refer [scalar-coerce error]])))
 
 ;; core.matrix implementation for Clojure ISeq objects
 ;;

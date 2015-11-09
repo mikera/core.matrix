@@ -10,18 +10,14 @@
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.mathsops :as mops])
-  #?(:clj
-      (do
-        (:require
-          [clojure.core.matrix.utils :refer [scalar-coerce error doseq-indexed java-array?]])
-        (:import [clojure.lang IPersistentVector Indexed]
-                 [java.util List]))
-     :cljs
-      (:require-macros
-        [clojure.core.matrix.impl.persistent-vector :refer [vector-1d?]]
-        [clojure.core.matrix.utils :refer [scalar-coerce error doseq-indexed java-array?]])))
+#?@(:clj [(:require [clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed java-array?]])
+      (:import [clojure.lang IPersistentVector Indexed]
+               [java.util List])]
+     :cljs (:require-macros
+             [clojure.core.matrix.impl.persistent-vector :refer [vector-1d?]]
+             [clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed java-array?]])))
 
-#? (:clj (do
+#?(:clj (do
   (set! *warn-on-reflection* true)
   (set! *unchecked-math* true)
 ))

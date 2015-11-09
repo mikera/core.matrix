@@ -13,7 +13,7 @@
                 :when (not (#{:TODO :persistent-vector} ns))]
             (try
               {:name name, :obj (mi/get-canonical-object name)}
-              (catch Throwable t nil)))))
+              (catch #?(:clj Throwable :cljs js/Error) t nil)))))
 
 (defn find-implementers
   "Returns a set of implementation names of implementations that

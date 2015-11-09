@@ -4,15 +4,17 @@
 
    End users should normally avoid using this namespace directly
    and instead use the functions in the main clojure.core.matrix API"
-  #?(:clj (:import [java.util List]
-                   [clojure.lang Seqable]))
   (:require [clojure.core.matrix.utils :refer [same-shape-object? broadcast-shape]]
             [clojure.core.matrix.impl.mathsops :as mops])
-  #?(:clj (:require [clojure.core.matrix.utils :refer [error]])
-     :cljs (:require-macros [clojure.core.matrix.utils :refer [error]])))
+  (#?(:clj :require :cljs :require-macros)
+           [clojure.core.matrix.macros :refer [error]])
+  #?(:clj (:import [java.util List]
+                   [clojure.lang Seqable])))
 
+#?(:clj (do
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
+))
 
 ;; ================================================================
 ;; clojure.core.matrix API protocols
@@ -819,6 +821,7 @@
 
 ;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
 ;; also generate in-place versions e.g. signum!
+#? (:clj (do
 (eval
   `(defprotocol PMathsFunctions
   "Protocol to support mathematical functions applied element-wise to a numerical array."
@@ -828,6 +831,7 @@
   `(defprotocol PMathsFunctionsMutable
   "Protocol to support mutable mathematical functions applied element-wise to a numerical array."
   ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
+))
 
 (defprotocol PElementCount
   "Protocol to return the total count of elements in matrix. Result may be any integer type,
@@ -1094,7 +1098,8 @@
       (instance? #?(:clj Seqable :cljs ISeqable) x) (mapv convert-to-nested-vectors x)
       #?@(:clj [(.isArray (class x)) (mapv convert-to-nested-vectors (seq x))])
       (not (is-scalar? x)) (mapv convert-to-nested-vectors (get-major-slice-seq x))
-      :default (error "Can't coerce to vector: " (class x)))))
+      :default (error "Can't coerce to vector: " #?(:clj (class x)
+                                                    :cljs (type x))))))
 
 (defn- calc-common-shape
   "Returns the larger of two shapes if they are compatible, nil otherwise"

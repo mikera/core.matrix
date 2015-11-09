@@ -4,7 +4,7 @@
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.dataset :as impl]
             [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.utils :refer [error]])
+            [clojure.core.matrix.macros :refer [error]])
   (:import [clojure.core.matrix.impl.dataset DataSet]
            [java.util List]))
 
@@ -27,7 +27,7 @@
    4. map of columns with associated list of values.
    5. seq of maps
 
-   If col-names are provided they will be used, else incrementing Long values starting from 0, 
+   If col-names are provided they will be used, else incrementing Long values starting from 0,
    i.e. 0, 1, 2, etc will be used as column names"
   ([col-names data]
     (cond
@@ -43,7 +43,7 @@
     (cond
       (dataset? data) data
       (matrix? data) (impl/dataset-from-array data)
-      
+
       ;; map of names -> columns of elements
       (map? data)
         (let [col-names (keys data)
@@ -77,8 +77,8 @@
               col-names
               (reduce #(conj %1 (get col-map %2)) [] col-names))
             (error "Can't create dataset from incomplete maps")))
-        
-       :else 
+
+       :else
          (error "Don't know how to create dataset from data of type " (class data)))))
 
 (defn column-names
@@ -131,7 +131,7 @@
 
 (defn merge-datasets
   "Returns a dataset created by combining columns of the given datasets. In case of columns with duplicate names, last-one-wins strategy is applied."
-  ([ds1 ds2] 
+  ([ds1 ds2]
     (mp/merge-datasets ds1 ds2))
   ([ds1 ds2 & args]
     (apply merge-datasets (merge-datasets ds1 ds2) args)))

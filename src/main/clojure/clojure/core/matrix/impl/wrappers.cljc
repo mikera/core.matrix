@@ -3,9 +3,13 @@
 
    These wrapper types enable efficient of convenient implementation of various core.matrix protocols."
   (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.implementations :as imp])
-  #?(:clj (:require [clojure.core.matrix.utils :as u :refer [TODO error]])
-     :cljs (:require-macros [clojure.core.matrix.utils :as u :refer [TODO error]]))
+            [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.utils :as u])
+  #?(:clj (:require
+            [clojure.core.matrix.macros :refer [TODO error abutnth]])
+     :cljs (:require-macros
+             [clojure.core.matrix.macros :refer [TODO error abutnth]]
+             [clojure.core.matrix.impl.wrappers :refer [set-source-index]]))
   #?(:clj
       (:import [clojure.lang Seqable Indexed])))
 
@@ -15,8 +19,10 @@
 ;; wrappers are used to implement specific shapes / types of arrays
 ;; that are useful to implement certain array operations (typically as return values)
 
+#?(:clj (do
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
+))
 
 (declare wrap-slice wrap-nd wrap-scalar)
 
@@ -103,8 +109,8 @@
 ;; wraps a row-major slice of an array
 
 (deftype SliceWrapper [array ^long slice]
-  Seqable
-    (seq [m]
+  #?(:clj Seqable :cljs ISeqable)
+    (#?(:clj seq :cljs -seq) [m]
       (mp/get-major-slice-seq m))
 
   mp/PImplementation
@@ -195,7 +201,7 @@
 ;;
 ;; wraps an N-dimensional subset or broadcast of an array
 ;; supports aritrary permutations of dimensions and indexes
-
+#?(:clj
 (defmacro set-source-index
   "Sets up an index into the source vector for dimension i at position val"
   [ix i val]
@@ -204,6 +210,7 @@
            tdim# (aget ~'dim-map ~isym)]
        (when (>= tdim# 0)
          (aset ~ix tdim# (aget ~(vary-meta `(aget ~'index-maps ~isym) assoc :tag 'longs) ~val))))))
+)
 
 (deftype NDWrapper
   [array ;; source array (any valid core.matrix matrix)
@@ -212,19 +219,22 @@
    ^objects index-maps ;; maps of each NDWrapper dimension's indexes to source dimension indexes
    ^longs source-position ;; position in source array for non-specified dimensions
    ]
-  Seqable
-    (seq [m]
+  #?(:clj Seqable :cljs ISeqable)
+    (#?(:clj seq :cljs -seq) [m]
       (mp/get-major-slice-seq m))
 
-  Indexed
-    (count [m]
-      (aget shape 0))
-    (nth [m i]
+  #?(:clj Indexed :cljs IIndexed)
+    (#?(:clj nth :cljs -nth) [m i]
       (mp/get-major-slice m i))
-    (nth [m i not-found]
+
+    (#?(:clj nth :cljs -nth) [m i not-found]
       (if (and (integer? i) (<= 0 i) (< i (aget shape 0)))
         (mp/get-major-slice m i)
         not-found))
+
+    #?(:cljs ICounted)
+    (#?(:clj count :cljs -count) [m]
+      (aget shape 0))
 
   mp/PImplementation
     (implementation-key [m]
@@ -307,6 +317,7 @@
           (set-source-index ix i (nth indexes i)))
         (mp/get-nd array ix)))
 
+
     mp/PIndexedSettingMutable
     (set-1d! [m row v]
       (let [ix (u/copy-long-array source-position)
@@ -335,9 +346,9 @@
               sdim (long (aget dim-map dim))]
           (aset nsp sdim i)
           (NDWrapper. array
-                      (u/abutnth dim shape)
-                      (u/abutnth dim dim-map)
-                      (u/abutnth dim index-maps)
+                      (abutnth dim shape)
+                      (abutnth dim dim-map)
+                      (abutnth dim index-maps)
                       nsp)))
 
   Object
@@ -348,7 +359,8 @@
   "Creates a view of a major slice of an array."
   ([m slice]
     (let [slice (long slice)]
-      (when (>= slice (long (mp/dimension-count m 0))) (error "Slice " slice " does not exist on " (class m)))
+      (when (>= slice (long (mp/dimension-count m 0)))
+        (error "Slice " slice " does not exist on " (#?(:clj class :cljs type) m)))
       (SliceWrapper. m slice))))
 
 (defn wrap-nd

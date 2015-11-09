@@ -4,7 +4,7 @@
    - long arrays
    - Clojure vectors"
   (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.utils :refer [error] :as u])
+            [clojure.core.matrix.macros :refer [error]])
   (:import [clojure.lang IPersistentVector]))
 
 (set! *warn-on-reflection* true)

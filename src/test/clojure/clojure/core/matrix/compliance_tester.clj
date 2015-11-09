@@ -4,7 +4,8 @@
             [clojure.core.matrix.generic :as generic]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.persistent-vector :as pvector]
-            [clojure.core.matrix.utils :as u :refer [error error?]]
+            [clojure.core.matrix.utils :as u]
+            [clojure.core.matrix.macros :refer [error error?]]
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.linear :refer :all]
             [clojure.test :refer :all]))
@@ -742,7 +743,7 @@
 ;;
 ;; All matrix implementations must pass this test for any valid matrix
 (defn instance-test [m]
-  (try 
+  (try
     (when (numerical? m)
       (test-numeric-instance m))
     (test-array-assumptions m)

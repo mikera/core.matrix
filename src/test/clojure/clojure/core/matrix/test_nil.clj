@@ -2,7 +2,7 @@
   (:refer-clojure :exclude [vector?])
   (:require [clojure.core.matrix.compliance-tester :as compliance]
             [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.utils :refer [error?]]
+            [clojure.core.matrix.macros :refer [error?]]
             [clojure.test :refer :all]))
 
 ;; Tests for the specific behaviour of core.matrix functions on the nil value (a scalar)

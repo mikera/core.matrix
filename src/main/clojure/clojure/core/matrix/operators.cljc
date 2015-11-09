@@ -6,8 +6,8 @@
    for numerical scalar values remians the same as clojure.core"
   (:refer-clojure :exclude [* - + / vector? == < <= > >= not= = min max])
   (:require [clojure.core.matrix :as m])
-  #?(:clj (:require [clojure.core.matrix.utils :refer [error]])
-     :cljs (:require-macros [clojure.core.matrix.utils :refer [error]])))
+  (#?(:clj :require :cljs :require-macros)
+           [clojure.core.matrix.macros :refer [error]]))
 
 #?(:clj (do
 (set! *warn-on-reflection* true)

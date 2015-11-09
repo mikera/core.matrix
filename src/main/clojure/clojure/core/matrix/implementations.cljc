@@ -2,8 +2,8 @@
   "Namespace for management of core.matrix implementations. Users should avoid using these
    functions directly as they are intended for library and tool writers."
   (:require [clojure.core.matrix.protocols :as mp])
-  #?(:clj (:require [clojure.core.matrix.utils :refer [error]])
-     :cljs (:require-macros [clojure.core.matrix.utils :refer [error]])))
+  (#?(:clj :require :cljs :require-macros)
+           [clojure.core.matrix.macros :refer [TODO error]]))
 
 ;; =====================================================
 ;; Implementation utilities
@@ -80,9 +80,13 @@
   ([canonical-object]
     (register-implementation (mp/implementation-key canonical-object) canonical-object))
   ([key canonical-object]
-    (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: " (class key)))
+    (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: "
+                                    #?(:clj (class key)
+                                       :cljs (type key))))
     (when (:print-registrations *debug-options*)
-      (println (str "Registering core.matrix implementation [" key "] with canonical object [" (class canonical-object) "]")))
+      (println (str "Registering core.matrix implementation [" key "] with canonical object ["
+                    #?(:clj (class canonical-object)
+                       :cljs (type canonical-object)) "]")))
     (swap! canonical-objects assoc key canonical-object)))
 
 (defn- try-load-implementation
@@ -91,12 +95,13 @@
   ([k]
     (or
       (@canonical-objects k)
-      (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
-       (try
-         (do
-           (require ns-sym)
-           (@canonical-objects k))
-         (catch Throwable t nil))))))
+      #?(:clj
+          (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
+            (try
+              (do
+                (require ns-sym)
+                (@canonical-objects k))
+              (catch Throwable t nil)))))))
 
 (defn load-implementation
   "Attempts to load the implementation for a given keyword or matrix object.
@@ -138,6 +143,7 @@
         (mp/coerce-param m data)
         (mp/coerce-param [] data))))
 
+
 (defn set-current-implementation
   "Sets the currently active core.matrix implementation.
 
@@ -149,7 +155,10 @@
    implementation used for expressions like: (matrix [[1 2] [3 4]])"
   ([m]
     (when (keyword? m) (try-load-implementation m))
-    (alter-var-root (var *matrix-implementation*)
-                    (fn [_] (get-implementation-key m)))))
+    #?(:clj (alter-var-root (var *matrix-implementation*)
+                    (fn [_] (get-implementation-key m)))
+       :cljs (def *matrix-implementation* (get-implementation-key m)))))
+
+
 
 

@@ -5,8 +5,11 @@
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.utils :as u]
     #?(:clj [clojure.core.matrix.impl.double-array :as da]))
-  #?(:clj (:import [clojure.lang ISeq])
-     :cljs (:require-macros [clojure.core.matrix.utils :refer [error scalar-coerce c-for doseq-indexed java-array?]])))
+  #?@(:clj [(:require [clojure.core.matrix.macros :refer
+                       [TODO error scalar-coerce c-for doseq-indexed java-array?]])
+        (:import [clojure.lang ISeq])]
+      :cljs (:require-macros [clojure.core.matrix.macros
+                              :refer [TODO error scalar-coerce c-for doseq-indexed java-array?]])))
 
 #?(:cljs (do
 (def Object js/Object)
@@ -61,7 +64,7 @@
   ([m]
     (let [dims (long (mp/dimensionality m))
           type (mp/element-type m)
-          double? (or #?(:clj  (= Double/TYPE type) :cljs true))]
+          double? (or #?(:clj (= Double/TYPE type) :cljs true))]
       (cond
         (== dims 0)
           (wrap/wrap-scalar (mp/get-0d m))
@@ -217,7 +220,7 @@
       nil)
     (set-0d! [m value]
       (error "Can't set the value of nil!"))
-  String
+  #?(:clj String :cljs js/String)
     (get-0d [m]
       m)
     (set-0d! [m value]
@@ -227,12 +230,12 @@
       m)
     (set-0d! [m value]
       (error "Can't set a keyword!"))
-  Number
+  #?(:clj Number :cljs js/Number)
     (get-0d [m]
       m)
     (set-0d! [m value]
       (error "Can't set a scalar number!"))
-  Object
+  #?(:clj Object :cljs js/Object)
     (get-0d [m]
       ;; assume this is a scalar value
       m)
@@ -503,7 +506,7 @@
   Object
     (compute-matrix [m shape f]
       (let [m (mp/new-matrix-nd m shape)]
-        (reduce (fn [m ix] (mp/set-nd m ix (apply f ix))) m (base-index-seq-for-shape shape)))))
+        (reduce (fn [m ix] (mp/set-nd m ix (apply f ix))) m (u/base-index-seq-for-shape shape)))))
 
 (extend-protocol mp/PDimensionInfo
   nil
@@ -518,19 +521,19 @@
     (is-vector? [m] false)
     (get-shape [m] nil)
     (dimension-count [m i] (error "Keyword has zero dimensionality, cannot get count for dimension: " i))
-  String
+  #?(:clj String :cljs js/String)
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
     (get-shape [m] nil)
     (dimension-count [m i] (error "String has zero dimensionality, cannot get count for dimension: " i))
-  Number
+  #?(:clj Number :cljs js/Number)
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
     (get-shape [m] nil)
     (dimension-count [m i] (error "Number has zero dimensionality, cannot get count for dimension: " i))
-  Object
+  #?(:clj Object :cljs js/Object)
     (dimensionality [m]
       (cond
         (.isArray (.getClass m))
@@ -571,7 +574,7 @@
       (== 0 (long (mp/dimensionality b))))
   Object
     (same-shape? [a b]
-      (same-shape-object? (mp/get-shape a) (mp/get-shape b))))
+      (u/same-shape-object? (mp/get-shape a) (mp/get-shape b))))
 
 ;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps
@@ -1597,7 +1600,7 @@
             mdims (count mshape)
             ndims (count nshape)]
         (cond
-          (and (== mdims ndims) (same-shape-object? nshape mshape)) m
+          (and (== mdims ndims) (u/same-shape-object? nshape mshape)) m
           ;(and (> ndims mdims) (== mshape (drop (- ndims mdims) nshape)))
           ;  (let [rep (nth nshape (- ndims mdims 1))]
           ;    (mp/broadcast (vec (repeat rep m)) new-shape))
@@ -1610,7 +1613,7 @@
   Object
     (broadcast-like [m a]
       (let [sm (mp/get-shape m) sa (mp/get-shape a)]
-        (if (same-shape-object? sm sa)
+        (if (u/same-shape-object? sm sa)
           a
           (mp/broadcast a sm)))))
 
@@ -1791,28 +1794,30 @@
     (logistic! [m]
       (mp/element-map! m logistic-fn)))
 
-;; define standard Java maths functions for numbers
-(eval
-  `(extend-protocol mp/PMathsFunctions
-     Number
-       ~@(map (fn [[name func]]
-                `(~name [~'m] (double (~func (double ~'m)))))
-              mops/maths-ops)
-     Object
-       ~@(map (fn [[name func]]
-                `(~name [~'m] (mp/element-map ~'m #(double (~func (double %))))))
-              mops/maths-ops)))
-
-(eval
-  `(extend-protocol mp/PMathsFunctionsMutable
-     Number
-       ~@(map (fn [[name func]]
-                `(~(symbol (str name "!")) [~'m] (error "Number is not mutable!")))
-              mops/maths-ops)
-     Object
-       ~@(map (fn [[name func]]
-                `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(double (~func (double %))))))
-              mops/maths-ops)))
+;#?(:clj
+;;; define standard Java maths functions for numbers
+;(eval
+;  `(extend-protocol mp/PMathsFunctions
+;     Number
+;       ~@(map (fn [[name func]]
+;                `(~name [~'m] (double (~func (double ~'m)))))
+;              mops/maths-ops)
+;     Object
+;       ~@(map (fn [[name func]]
+;                `(~name [~'m] (mp/element-map ~'m #(double (~func (double %))))))
+;              mops/maths-ops)))
+;
+;(eval
+;  `(extend-protocol mp/PMathsFunctionsMutable
+;     Number
+;       ~@(map (fn [[name func]]
+;                `(~(symbol (str name "!")) [~'m] (error "Number is not mutable!")))
+;              mops/maths-ops)
+;     Object
+;       ~@(map (fn [[name func]]
+;                `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(double (~func (double %))))))
+;              mops/maths-ops)))
+;)
 
 (extend-protocol mp/PMatrixSubComponents
   Object
@@ -2095,7 +2100,7 @@
   Object
   (norm [m p]
     (cond
-      (= p Double/POSITIVE_INFINITY) (mp/element-max m)
+      (= p #?(:clj Double/POSITIVE_INFINITY :cljs js/Number.POSITIVE_INFINITY)) (mp/element-max m)
       (number? p) (mp/element-sum (mp/element-pow (mp/element-map m mops/abs) p))
       :else (error "p must be a number"))))
 
