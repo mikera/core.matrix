@@ -262,7 +262,7 @@
     (extends? proto cls)
     (let [bases (-> cls (r/type-reflect :ancestors true) :ancestors)]
       (->> bases
-           (filter (complement #{'Object}))
+           (filter (complement #{'Object 'java.lang.Object}))
            (map resolve)
            (cons cls)
            (map (partial extends? proto))
