@@ -1776,7 +1776,8 @@
 (defn logistic!
   "Computes the sigmoid (logistic) function for every element of an array. Mutates the array."
   [a]
-  (mp/logistic! a))
+  (mp/logistic! a)
+  a)
 
 ;; ==================================
 ;; Elementary row operations
