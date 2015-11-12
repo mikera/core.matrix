@@ -1779,6 +1779,28 @@
   (mp/logistic! a)
   a)
 
+(defn softplus
+  "Computes the softplus function for every element of an array."
+  [a]
+  (mp/softplus a))
+
+(defn softplus!
+  "Computes the softplus function for every element of an array. Mutates the array."
+  [a]
+  (mp/softplus! a)
+  a)
+
+(defn relu
+  "Computes the ReLU (rectified linear) function for every element of an array."
+  [a]
+  (mp/relu a))
+
+(defn relu!
+  "Computes the ReLU (rectified linear) function for every element of an array. Mutates the array."
+  [a]
+  (mp/relu! a)
+  a)
+
 ;; ==================================
 ;; Elementary row operations
 ;;

@@ -1779,6 +1779,45 @@
     (logistic! [m]
       (mp/element-map! m logistic-fn)))
 
+(defn- softplus-fn
+  "Softplus function, with primitive type hints"
+  (^double [^double t]
+    (let [e-t (Math/exp (- t))]
+      (Math/log (+ 1.0 e-t)))))
+
+(extend-protocol mp/PSoftplus
+  Number
+    (softplus [m]
+      (let [e-t (Math/exp (- (double m)))]
+        (Math/log (+ 1.0 e-t))))
+  Object
+    (softplus [m]
+      (mp/element-map m softplus-fn)))
+
+(extend-protocol mp/PSoftplusMutable
+  Object
+    (softplus! [m]
+      (mp/element-map! m softplus-fn)))
+
+(defn- relu-fn
+  "ReLU function, with primitive type hints"
+  (^double [^double t]
+    (Math/max 0.0 t)))
+
+(extend-protocol mp/PReLU
+  Number
+    (relu [m]
+      (Math/max 0.0 (double m)))
+  Object
+    (relu [m]
+      (mp/element-map m relu-fn)))
+
+(extend-protocol mp/PReLUMutable
+  Object
+    (relu! [m]
+      (mp/element-map! m relu-fn)))
+
+
 ;; define standard Java maths functions for numbers
 (eval
   `(extend-protocol mp/PMathsFunctions

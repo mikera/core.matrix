@@ -792,6 +792,22 @@
   "Protocol to support mutable element-wise logistic function on a numerical array."
   (logistic! [m]))
 
+(defprotocol PSoftplus
+  "Protocol to support element-wise softplus function on a numerical array."
+  (softplus [m]))
+
+(defprotocol PSoftplusMutable
+  "Protocol to support mutable element-wise softplus function on a numerical array."
+  (softplus! [m]))
+
+(defprotocol PReLU
+  "Protocol to support element-wise relu function on a numerical array."
+  (relu [m]))
+
+(defprotocol PReLUMutable
+  "Protocol to support mutable element-wise relu function on a numerical array."
+  (relu! [m]))
+
 ;; ==================================
 ;; Elementary Row Operation Protocols
 ;;
