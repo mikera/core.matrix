@@ -4,12 +4,11 @@
             [clojure.core.matrix.impl.mathsops :as mops]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.utils :as u]
-    #?(:clj [clojure.core.matrix.impl.double-array :as da]))
-  #?@(:clj [(:require [clojure.core.matrix.macros :refer
-                       [TODO error scalar-coerce c-for doseq-indexed java-array?]])
-        (:import [clojure.lang ISeq])]
-      :cljs (:require-macros [clojure.core.matrix.macros
-                              :refer [TODO error scalar-coerce c-for doseq-indexed java-array?]])))
+  #?@(:clj [[clojure.core.matrix.impl.double-array :as da]
+            [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed java-array?]]]))
+  #?(:clj (:import [clojure.lang ISeq])
+     :cljs (:require-macros 
+             [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed java-array?]])))
 
 #?(:cljs (do
 (def Object js/Object)
@@ -2290,14 +2289,15 @@
 ;; temp var to prevent recursive coercion if implementation does not support liear algebra operation
 (def ^:dynamic *trying-current-implementation* nil)
 
-(defmacro try-current-implementation
-  [sym form]
-  `(if *trying-current-implementation*
-     (TODO (str "Not yet implemented: " ~(str form) " for " (class ~sym)))
-     (binding [*trying-current-implementation* true]
-       (let [imp# (imp/get-canonical-object)
-             ~sym (mp/coerce-param imp# ~sym)]
-         ~form))))
+#?(:clj
+     (defmacro try-current-implementation
+       [sym form]
+       `(if *trying-current-implementation*
+          (TODO (str "Not yet implemented: " ~(str form) " for " (class ~sym)))
+          (binding [*trying-current-implementation* true]
+            (let [imp# (imp/get-canonical-object)
+                  ~sym (mp/coerce-param imp# ~sym)]
+              ~form)))))
 
 (extend-protocol mp/PCholeskyDecomposition
   Object

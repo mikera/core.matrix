@@ -9,14 +9,16 @@
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp :refer [*matrix-implementation*]]
             [clojure.core.matrix.impl.mathsops :as mops]
-            [clojure.core.matrix.impl.wrappers :as wrap])
-  #?(:clj (:require [clojure.core.matrix.utils :as u]
-                    [clojure.core.matrix.macros :refer [TODO error]]
-                    [clojure.core.matrix.impl.index]
-                    [clojure.core.matrix.impl.pprint :as pprint]
-                    [clojure.core.matrix.impl.double-array]
-                    [clojure.core.matrix.impl.object-array])
-     :cljs (:require-macros [clojure.core.matrix.utils :as u :refer [TODO error]])) )
+            [clojure.core.matrix.impl.wrappers :as wrap]
+            [clojure.core.matrix.utils :as u])
+  #?(:clj (:require 
+            [clojure.core.matrix.macros :refer [TODO error]]
+            [clojure.core.matrix.impl.index]
+            [clojure.core.matrix.impl.pprint :as pprint]
+            [clojure.core.matrix.impl.double-array]
+            [clojure.core.matrix.impl.object-array])
+     :cljs (:require-macros 
+             [clojure.core.matrix.macros :refer [TODO error]])))
 
 ;; ==================================================================================
 ;; clojure.core.matrix API namespace

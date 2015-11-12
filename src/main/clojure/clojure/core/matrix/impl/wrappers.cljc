@@ -317,7 +317,6 @@
           (set-source-index ix i (nth indexes i)))
         (mp/get-nd array ix)))
 
-
     mp/PIndexedSettingMutable
     (set-1d! [m row v]
       (let [ix (u/copy-long-array source-position)
