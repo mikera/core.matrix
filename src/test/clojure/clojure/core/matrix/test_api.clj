@@ -399,6 +399,13 @@
     (relu! da)
     (is (equals [0.0 0.0 1000.0] da))))
 
+(deftest test-softmax
+  (is (equals [0.5 0.5] (softmax [10 10])))
+  (is (equals [0.0 1.0] (softmax [-100 100]) 0.000001))
+  (let [da (double-array [-10 -10])]
+    (softmax! da)
+    (is (equals [0.5 0.5] da))))
+
 (deftest test-normalise
   (testing "vector normalise"
     (is (e== [1.0] (normalise (array [1.0]))))

@@ -1805,8 +1805,8 @@
 (extend-protocol mp/PSoftmaxMutable
   Object
     (softmax! [m]
-      (exp! m)
-      (div! m (mp/element-sum m))
+      (mp/exp! m)
+      (mp/element-divide! m (mp/element-sum m))
       m))
 
 (extend-protocol mp/PSoftplusMutable
