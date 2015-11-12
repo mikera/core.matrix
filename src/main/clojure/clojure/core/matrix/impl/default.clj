@@ -1782,14 +1782,16 @@
 (defn- softplus-fn
   "Softplus function, with primitive type hints"
   (^double [^double t]
-    (let [e-t (Math/exp (- t))]
-      (Math/log (+ 1.0 e-t)))))
+    (if (> t 100.0) ;; catch the case of overflow to infinity for large inputs
+      t
+      (let [et (Math/exp t)]
+        (Math/log (+ 1.0 et))))))
 
 (extend-protocol mp/PSoftplus
   Number
     (softplus [m]
-      (let [e-t (Math/exp (- (double m)))]
-        (Math/log (+ 1.0 e-t))))
+      (let [et (Math/exp (double m))]
+        (Math/log (+ 1.0 et))))
   Object
     (softplus [m]
       (mp/element-map m softplus-fn)))

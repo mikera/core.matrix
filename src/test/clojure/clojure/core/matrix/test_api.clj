@@ -387,6 +387,18 @@
   (is (= [3 6] (diagonal [[1 2] [3 4] [5 6]] -1)))
   (is (= [5]   (diagonal [[1 2] [3 4] [5 6]] -2))))
 
+(deftest test-softplus
+  (is (equals [0.0 (log 2) 1000.0] (softplus [-1000.0 0.0 1000.0])))
+  (let [da (double-array [-1000 0 1000])]
+    (softplus! da)
+    (is (equals [0.0 (log 2) 1000.0] da))))
+
+(deftest test-relu
+  (is (equals [0.0 0.0 0.5 1000.0] (relu [-1000.0 0.0 0.5 1000.0])))
+  (let [da (double-array [-1000 0 1000])]
+    (relu! da)
+    (is (equals [0.0 0.0 1000.0] da))))
+
 (deftest test-normalise
   (testing "vector normalise"
     (is (e== [1.0] (normalise (array [1.0]))))
