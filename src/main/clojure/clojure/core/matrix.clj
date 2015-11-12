@@ -1801,6 +1801,17 @@
   (mp/relu! a)
   a)
 
+(defn softmax
+  "Computes the softmax function for a numerical vector."
+  [a]
+  (mp/softmax a))
+
+(defn softmax!
+  "Computes the softmax function for every element of a numerical vector. Mutates the vector."
+  [a]
+  (mp/softmax! a)
+  a)
+
 ;; ==================================
 ;; Elementary row operations
 ;;

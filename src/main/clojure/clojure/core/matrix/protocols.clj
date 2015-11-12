@@ -808,6 +808,14 @@
   "Protocol to support mutable element-wise relu function on a numerical array."
   (relu! [m]))
 
+(defprotocol PSoftmax
+  "Protocol to support element-wise softmax function on a numerical vector."
+  (softmax [m]))
+
+(defprotocol PSoftmaxMutable
+  "Protocol to support mutable element-wise softmax function on a numerical vector."
+  (softmax! [m]))
+
 ;; ==================================
 ;; Elementary Row Operation Protocols
 ;;

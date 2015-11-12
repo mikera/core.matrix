@@ -1796,6 +1796,19 @@
     (softplus [m]
       (mp/element-map m softplus-fn)))
 
+(extend-protocol mp/PSoftmax
+  Object
+    (softmax [m]
+      (let [em (mp/exp m)]
+        (mp/element-divide em (mp/element-sum em)))))
+
+(extend-protocol mp/PSoftmaxMutable
+  Object
+    (softmax! [m]
+      (exp! m)
+      (div! m (mp/element-sum m))
+      m))
+
 (extend-protocol mp/PSoftplusMutable
   Object
     (softplus! [m]
