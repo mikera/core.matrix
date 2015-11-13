@@ -182,4 +182,4 @@
 ;; =====================================
 ;; Register implementation
 
-(imp/register-implementation '(1 2 3))
+;(imp/register-implementation '(1 2 3))

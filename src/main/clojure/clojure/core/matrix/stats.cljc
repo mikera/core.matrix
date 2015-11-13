@@ -25,9 +25,9 @@
       (m/inner-product values values)
       (let [values (m/slices values)
             fv (first values)
-            result (m/mutable (mul fv fv))]
+            result (m/mutable (m/mul fv fv))]
         (doseq [v (next values)]
-          (add! result (m/mul v v))
+          (m/add! result (m/mul v v))
           ;; (add-product! result v v)
         ) ;; TODO: convert to add-product! when fixed in core.matrix NDArray
         result))))
@@ -38,7 +38,7 @@
   ([values]
     (let [values (m/slices values)
           n (m/dimension-count values 0)
-          s (m/sum values)]
+          s (m/esum values)]
       (if (number? s)
         (/ s n)
         (m/scale! s (/ 1.0 n)) ;; abuse the fact that s must be a new mutable matrix....
@@ -51,7 +51,7 @@
      (let [n (m/dimension-count values 0)
            u (mean values)
            ss (m/sum-of-squares values)
-           nuu (m/mul n (emul u u))]
+           nuu (m/mul n (m/emul u u))]
        (if (number? ss)
          (* (- ss nuu) (/ 1.0 (dec n)))
          (do ;; must be a new mutable matrix, so we abuse this fact to use it as an accumulator...
@@ -63,14 +63,14 @@
   "Calculates the sample standard deviation of a set of values.
    Values may be scalars, vectors or higher-dimensional matrices."
   ([values]
-    (sqrt (variance values))))
+    (Math/sqrt (variance values))))
 
 (defn normalise-probabilities
   "Normalises a numerical probability vector, i.e. to a vector where all elements sum to 1.0.
 
    A zero vector will be set set to [1/n .... 1/n]."
   ([v]
-    (let [len (double (m/sum v))]
+    (let [len (double (m/esum v))]
       (cond
         (== len 1.0) v
         (== len 0.0) (m/assign v (/ 1.0 (m/dimension-count v 0)))

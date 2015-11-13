@@ -11,6 +11,7 @@
             [clojure.core.matrix.impl.mathsops :as mops]
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.utils :as u])
+  (:refer-clojure :exclude [array clone array?])
   #?(:clj (:require 
             [clojure.core.matrix.macros :refer [TODO error]]
             [clojure.core.matrix.impl.index]
@@ -41,8 +42,9 @@
 
 #? (:clj (do
   (set! *warn-on-reflection* true)
-  (set! *unchecked-math* true)
-))
+  (set! *unchecked-math* true))
+:cljs (def class type))
+
 ;; (set! *unchecked-math* :warn-on-boxed) ;; use to check for boxing if needed
 
 ;; =============================================================
@@ -619,6 +621,7 @@
                      (vec ~'sh)
                      nil)))}
   ([m]
+   #?(:cljs (js/console.log (str "getting the shape..." (type m))))
     (if-let [sh (mp/get-shape m)]
       (vec sh)
       nil)))
@@ -1968,6 +1971,7 @@
 ;; =========================================================
 ;; Print Matrix
 
+#?(:clj
 (defn pm
   "Pretty-prints a matrix.
 
@@ -1978,6 +1982,7 @@
     (println (pprint/pm m)))
   ([m opts]
     (println (pprint/pm m opts))))
+)
 
 ;; =========================================================
 ;; Implementation management functions

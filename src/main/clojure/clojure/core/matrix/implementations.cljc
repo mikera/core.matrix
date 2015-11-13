@@ -160,5 +160,3 @@
        :cljs (def *matrix-implementation* (get-implementation-key m)))))
 
 
-
-

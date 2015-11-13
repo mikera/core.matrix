@@ -6,9 +6,11 @@
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.utils :as u])
   #?(:clj (:require
-            [clojure.core.matrix.macros :refer [TODO error abutnth]])
+            [clojure.core.matrix.macros :refer [TODO error]]
+            [clojure.core.matrix.macros-clj :refer [abutnth areverse]])
      :cljs (:require-macros
-             [clojure.core.matrix.macros :refer [TODO error abutnth]]
+             [clojure.core.matrix.macros :refer [TODO error]]
+             [clojure.core.matrix.macros-cljs :refer [abutnth areverse]]
              [clojure.core.matrix.impl.wrappers :refer [set-source-index]]))
   #?(:clj
       (:import [clojure.lang Seqable Indexed])))

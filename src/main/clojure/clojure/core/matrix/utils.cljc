@@ -80,11 +80,13 @@
         (aset arr i (long i)))
       arr)))
 
+#?(:clj
 (defn to-long-array
   ([data]
     (if (is-long-array? data)
       data
       (long-array data))))
+)
 
 (defn long-array-of
   "Creates a long array with the specified values."

@@ -15,6 +15,8 @@
               {:name name, :obj (mi/get-canonical-object name)}
               (catch #?(:clj Throwable :cljs js/Error) t nil)))))
 
+#?(:clj (do
+
 (defn find-implementers
   "Returns a set of implementation names of implementations that
    support provided protocol"
@@ -31,11 +33,11 @@
   (for [proto protocols]
     (assoc proto :implemented-by (find-implementers proto impl-objs))))
 
-#?(:clj
 (defn get-git-hash
   "Returns current revision's git hash"
   []
   (-> (sh "git" "log" "--pretty=format:'%H'" "-n 1")
       :out
       (s/replace #"'" "")))
-)
+
+))

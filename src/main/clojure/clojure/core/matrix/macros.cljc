@@ -1,7 +1,6 @@
 (ns clojure.core.matrix.macros
   "Namespace for core.matrix macros. Keeping them separate allows us to do conditional
-  macros that can handle the differences between Clojure and Clojurescript."
-  #?(:clj (:import [java.util Arrays])))
+  macros that can handle the differences between Clojure and Clojurescript.")
 
 (defmacro error
   "Throws an error with the provided message(s)"
@@ -74,26 +73,6 @@
               body-stmts))]
     `(do ~@(c-for-rec loops body) nil)))
 
-(defmacro abutnth [i xs]
-  `(let [n# (alength ~xs)
-         length# (int (dec n#))
-         new-xs# #?(:clj (Arrays/copyOf ~xs length#)
-                    :cljs (.slice ~xs 0 length#))]
-     (c-for [j# (int ~i) (< j# (dec n#)) (inc j#)]
-       (aset new-xs# (int j#) (aget ~xs (int (inc j#)))))
-     new-xs#))
-
-(defmacro areverse [xs]
-  `(let [n# (alength ~xs)
-         new-xs# #?(:clj (Arrays/copyOf ~xs (int n#))
-                    :cljs (.slice ~xs 0 n#))]
-     (c-for [i# (int 0) (< i# (quot n# 2)) (inc i#)]
-       (let [j# (- (- n# 1) i#)
-             t# (aget new-xs# j#)]
-         (aset new-xs# j# (aget new-xs# i#))
-         (aset new-xs# i# t#)))
-     new-xs#))
-
 (defmacro scalar-coerce
   "Macro to coerce to scalar value with an efficient dispatch sequence"
   ([x]
@@ -102,4 +81,8 @@
        (number? x#) x#
        :else (clojure.core.matrix.protocols/get-0d x#)))))
 
+(defmacro array?
+  "Returns true if the parameter is an N-dimensional array of any type"
+  ([m]
+    `(not (mp/is-scalar? ~m))))
 

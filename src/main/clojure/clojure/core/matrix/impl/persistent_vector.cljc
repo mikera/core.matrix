@@ -9,13 +9,14 @@
    Note that this allows for other array implementations to be nested inside persistent vectors."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.impl.mathsops :as mops])
-#?@(:clj [(:require [clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed java-array?]])
+            [clojure.core.matrix.impl.mathsops :as mops]
+    #?(:clj [clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed java-array?]]))
+  #?(:clj
       (:import [clojure.lang IPersistentVector Indexed]
-               [java.util List])]
-     :cljs (:require-macros
-             [clojure.core.matrix.impl.persistent-vector :refer [vector-1d?]]
-             [clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed java-array?]])))
+               [java.util List])
+      :cljs (:require-macros
+              [clojure.core.matrix.impl.persistent-vector :refer [vector-1d?]]
+              [clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed java-array?]])))
 
 #?(:clj (do
   (set! *warn-on-reflection* true)
@@ -98,7 +99,7 @@
 (defn- mapv-identity-check
   "Maps a function over a persistent vector, only modifying the vector if the function
    returns a different value"
-  ([f ^#?(:clj IPersistentVector :cljs IVector) v]
+  ([f ^#?(:clj IPersistentVector :cljs PersistentVector) v]
     (let [n (.count v)]
       (loop [i 0 v v]
         (if (< i n)
@@ -110,11 +111,11 @@
 (defn- check-vector-shape
   ([v shape]
     (and
-      (instance? #?(:clj IPersistentVector :cljs IVector) v)
+      (instance? #?(:clj IPersistentVector :cljs PersistentVector) v)
       (== (count v) (long (first shape)))
       (if-let [ns (next shape)]
         (every? #(check-vector-shape % ns) v)
-        (every? #(not (instance? #?(:clj IPersistentVector :cljs IVector) %)) v)))))
+        (every? #(not (instance? #?(:clj IPersistentVector :cljs PersistentVector) %)) v)))))
 
 (defn is-nested-persistent-vectors?
   "Test if array is already in nested persistent vector array format."
@@ -122,7 +123,7 @@
     (cond
       (number? x) true
       (mp/is-scalar? x) true
-      (not (instance? #?(:clj IPersistentVector :cljs IVector) x)) false
+      (not (instance? #?(:clj IPersistentVector :cljs PersistentVector) x)) false
       :else (and
               (every? is-nested-persistent-vectors? x)
               (check-vector-shape x (mp/get-shape x))))))
@@ -151,7 +152,7 @@
   (cond
     (clojure.core/vector? m)
       (if (> (count m) 0)
-        (+ 1 (vector-dimensionality (.nth ^#?(:clj IPersistentVector :cljs IVector) m 0)))
+        (+ 1 (vector-dimensionality (.nth ^#?(:clj IPersistentVector :cljs PersistentVector) m 0)))
         1)
     :else (long (mp/dimensionality m))))
 
@@ -160,7 +161,7 @@
 
 
 (extend-protocol mp/PImplementation
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (implementation-key [m] :persistent-vector)
     (meta-info [m]
       {:doc "Implementation for nested Clojure persistent vectors
@@ -177,7 +178,7 @@
       true))
 
 (extend-protocol mp/PBroadcast
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (broadcast [m target-shape]
       (let [mshape (mp/get-shape m)
             dims (long (count mshape))
@@ -194,17 +195,17 @@
               (reverse (drop-last dims target-shape)))))))
 
 (extend-protocol mp/PBroadcastLike
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (broadcast-like [m a]
       (mp/broadcast a (mp/get-shape m))))
 
 (extend-protocol mp/PBroadcastCoerce
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (broadcast-coerce [m a]
       (mp/broadcast (persistent-vector-coerce a) (mp/get-shape m))))
 
 (extend-protocol mp/PIndexedAccess
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (get-1d [m x]
       (let [r (.nth m (int x))]
         (scalar-coerce r)))
@@ -221,7 +222,7 @@
 
 ;; we extend this so that nested mutable implementions are possible
 (extend-protocol mp/PIndexedSetting
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (set-1d [m row v]
       (assoc m row v))
     (set-2d [m row column v]
@@ -238,7 +239,7 @@
       false))
 
 (extend-protocol mp/PMatrixSlices
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (get-row [m i]
       (.nth m (long i)))
     (get-column [m i]
@@ -254,34 +255,34 @@
             (mapv #(mp/get-slice % sd i) m))))))
 
 (extend-protocol mp/PMatrixRows
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
 	  (get-rows [m]
       m))
 
 (extend-protocol mp/PMatrixColumns
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
 	  (get-columns [m]
       (vec (for [j (range (mp/dimension-count m 1))]
              (mapv #(mp/get-1d % j) m)))))
 
 (extend-protocol mp/PSliceView
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (get-major-slice-view [m i] (.nth m i)))
 
 (extend-protocol mp/PSliceView2
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (get-slice-view [m dimension i]
       ;; delegate to get-slice
       (mp/get-slice m dimension i)))
 
 
 (extend-protocol mp/PSliceSeq
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (get-major-slice-seq [m]
       m))
 
 (extend-protocol mp/PSliceJoin
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (join [m a]
       (let [dims (long (mp/dimensionality m))
             adims (long (mp/dimensionality a))]
@@ -294,7 +295,7 @@
             (error "Joining with array of incompatible size")))))
 
 (extend-protocol mp/PRotate
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (rotate [m dim places]
       (let [dim (long dim)
             places (long places)]
@@ -307,7 +308,7 @@
          (mapv (fn [s] (mp/rotate s (dec dim) places)) m)))))
 
 (extend-protocol mp/POrder
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
   (order
     ([m indices]
       (mapv #(nth m %) (mp/element-seq indices)))
@@ -318,19 +319,19 @@
           (mapv #(mp/order % (dec dimension) indices) m))))))
 
 (extend-protocol mp/PSubVector
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (subvector [m start length]
       (subvec m start (+ (long start) (long length)))))
 
 (extend-protocol mp/PValidateShape
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (validate-shape [m]
       (if (mp/same-shapes? m)
         (mp/get-shape m)
         (error "Inconsistent shape for persistent vector array."))))
 
 (extend-protocol mp/PMatrixAdd
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (matrix-add [m a]
       (let [[m a] (mp/broadcast-compatible m a)]
         (mapmatrix + m (persistent-vector-coerce a))))
@@ -339,7 +340,7 @@
         (mapmatrix - m (persistent-vector-coerce a)))))
 
 (extend-protocol mp/PVectorOps
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (vector-dot [a b]
       ;; optimised vector-dot for persistent vectors, handling 1D case
       (let [dims (long (mp/dimensionality b))]
@@ -381,32 +382,32 @@
       (mp/scale a (/ 1.0 (Math/sqrt (mp/length-squared a))))))
 
 (extend-protocol mp/PMutableMatrixConstruction
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (mutable-matrix [m]
       nil ;; fall-though: should get an ndarray result
       ))
 
 (extend-protocol mp/PImmutableMatrixConstruction
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
   (immutable-matrix [m]
     m))
 
 (extend-protocol mp/PVectorDistance
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (distance [a b] (mp/length (mp/matrix-sub b a))))
 
 (extend-protocol mp/PSummable
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (element-sum [a]
       (mp/element-reduce a +)))
 
 (extend-protocol mp/PCoercion
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (coerce-param [m param]
       (persistent-vector-coerce param)))
 
 (extend-protocol mp/PMatrixEquality
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (matrix-equals [a b]
       (let [bdims (long (mp/dimensionality b))]
         (cond
@@ -440,7 +441,7 @@
                 true))))))
 
 (extend-protocol mp/PMatrixMultiply
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (element-multiply [m a]
       (if (number? a)
         (mp/scale m a)
@@ -467,7 +468,7 @@
             (mp/inner-product m a)))))
 
 (extend-protocol mp/PMatrixProducts
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (inner-product [m a]
       (let [adims (long (mp/dimensionality a))
             mdims (long (mp/dimensionality m))]
@@ -486,26 +487,26 @@
       (mp/element-map m (fn [v] (mp/pre-scale a v)))))
 
 (extend-protocol mp/PVectorTransform
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (vector-transform [m a]
       (mp/matrix-multiply m a))
     (vector-transform! [m a]
       (mp/assign! a (mp/matrix-multiply m a))))
 
 (extend-protocol mp/PMatrixScaling
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (scale [m a]
       (mapmatrix #(* % a) m)) ;; can't avoid boxed warning, may be any sort of number
     (pre-scale [m a]
       (mapmatrix #(* a %) m))) ;; can't avoid boxed warning, may be any sort of number
 
 (extend-protocol mp/PSquare
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (square [m]
       (mapmatrix * m m)))
 
 (extend-protocol mp/PRowOperations
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (swap-rows [m i j]
       (let [i (long i)
             j (long j)]
@@ -528,7 +529,7 @@
 #?(:clj
 (eval
   `(extend-protocol mp/PMathsFunctions
-     #?(:clj IPersistentVector :cljs IVector)
+     #?(:clj IPersistentVector :cljs PersistentVector)
        ~@(map build-maths-function mops/maths-ops)
        ~@(map (fn [[name func]]
                 (let [name (str name "!")
@@ -541,7 +542,7 @@
 )
 
 (extend-protocol mp/PDimensionInfo
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (dimensionality [m]
       (if (== 0 (.length m))
         1
@@ -551,18 +552,18 @@
     (is-scalar? [m]
       false)
     (get-shape [m]
-      (let [c (.length m)]
+      (let [c #?(:clj (.length m) :cljs (count m))]
         (cons c (if (> c 0)
                   (mp/get-shape (m 0))
                   nil))))
     (dimension-count [m x]
       (let [x (long x)]
         (if (== x 0)
-          (.length m)
+          #?(:clj (.length m) :cljs (count m))
           (mp/dimension-count (m 0) (dec x))))))
 
 (extend-protocol mp/PElementCount
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (element-count [m]
       (let [c (long (count m))]
         (if (== c 0)
@@ -571,7 +572,7 @@
 
 ;; we need to implement this for all persistent vectors since we need to check all nested components
 (extend-protocol mp/PConversion
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (convert-to-nested-vectors [m]
       (if (is-nested-persistent-vectors? m)
         m
@@ -589,7 +590,7 @@
           (aset arr (+ off i) (double v)))
       (and (== size ct) (not (vector? (nth m 0 nil))))
         (dotimes [i size]
-          (aset arr (+ off i) (double (.nth ^#?(:clj IPersistentVector :cljs IVector) m i))))
+          (aset arr (+ off i) (double (.nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i))))
       :else
         (let [skip (quot size ct)]
           (dotimes [i ct]
@@ -597,7 +598,7 @@
     arr))
 
 (extend-protocol mp/PDoubleArrayOutput
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (to-double-array [m]
       (let [size (long (mp/element-count m))
             arr (double-array size)
@@ -614,7 +615,7 @@
           (aset arr (+ off i) v))
       (and (== size ct) (not (vector? (nth m 0 nil))))
         (dotimes [i size]
-          (aset arr (+ off i) (.nth ^#?(:clj IPersistentVector :cljs IVector) m i)))
+          (aset arr (+ off i) (.nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i)))
       :else
         (let [skip (quot size ct)]
           (dotimes [i ct]
@@ -622,7 +623,7 @@
     arr))
 
 (extend-protocol mp/PObjectArrayOutput
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (to-object-array [m]
       (let [size (long (mp/element-count m))
             arr (object-array size)
@@ -632,7 +633,7 @@
     (as-object-array [m] nil))
 
 (extend-protocol mp/PFunctionalOperations
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (element-seq [m]
       (cond
         (== 0 (.length m))
@@ -675,7 +676,7 @@
         (reduce f init (mp/element-seq m)))))
 
 (extend-protocol mp/PMapIndexed
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (element-map-indexed
       ([ms f]
        (let [dims (long (mp/dimensionality ms))]
@@ -725,7 +726,7 @@
   )
 
 (extend-protocol mp/PSelect
-  #?(:clj IPersistentVector :cljs IVector)
+  #?(:clj IPersistentVector :cljs PersistentVector)
     (select
       ([a args]
        (if (= 1 (count args))
