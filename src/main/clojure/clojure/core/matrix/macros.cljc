@@ -34,9 +34,6 @@
   `(when-not ~pred?
      (iae ~exception-str)))
 
-(defmacro java-array? [m]
-  `(.isArray (.getClass ~m)))
-
 (defmacro doseq-indexed
   "loops over a set of values, binding index-sym to the 0-based index of each value"
   ([[val-sym values index-sym] & code]

@@ -21,17 +21,18 @@
          (aset new-xs# i# t#)))
      new-xs#))
 
-(def ^:dynamic *trying-current-implementation* nil)
-
 (defmacro try-current-implementation
   [sym form]
-  `(if *trying-current-implementation*
+  `(if clojure.core.matrix.impl.defaults/*trying-current-implementation*
      (TODO (str "Not yet implemented: " ~(str form) " for " (type ~sym)))
-     (binding [*trying-current-implementation* true]
+     (binding [clojure.core.matrix.impl.defaults/*trying-current-implementation* true]
        (let [imp# (imp/get-canonical-object)
              ~sym (mp/coerce-param imp# ~sym)]
          ~form))))
 
 (defmacro eps== [a b eps]
   `(<= (js/Math.abs (- (double ~a) (double ~b))) (double ~eps) ))
+
+(defmacro native-array? [m]
+  `(identical? js/Array (.-constructor ~m)))
 
