@@ -820,19 +820,53 @@
   (set-column [m i column])
   (set-column! [m i column]))
 
-;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
-;; also generate in-place versions e.g. signum!
-#? (:clj (do
-(eval
-  `(defprotocol PMathsFunctions
+(defprotocol PMathsFunctions
   "Protocol to support mathematical functions applied element-wise to a numerical array."
-  ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)))
+  (abs [m]) 
+  (acos [m])
+  (asin [m])
+  (atan [m])
+  (cbrt [m])
+  (ceil [m])
+  (cos [m])
+  (cosh [m])
+  (exp [m])
+  (floor [m])
+  (log [m])
+  (log10 [m])
+  (round [m])
+  (signum [m])
+  (sin [m])
+  (sinh [m])
+  (sqrt [m])
+  (tan [m])
+  (tanh [m])
+  (to-degrees [m])
+  (to-radians [m]))
 
-(eval
-  `(defprotocol PMathsFunctionsMutable
+(defprotocol PMathsFunctionsMutable
   "Protocol to support mutable mathematical functions applied element-wise to a numerical array."
-  ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
-))
+  (abs! [m]) 
+  (acos! [m])
+  (asin! [m])
+  (atan! [m])
+  (cbrt! [m])
+  (ceil! [m])
+  (cos! [m])
+  (cosh! [m])
+  (exp! [m])
+  (floor! [m])
+  (log! [m])
+  (log10! [m])
+  (round! [m])
+  (signum! [m])
+  (sin! [m])
+  (sinh! [m])
+  (sqrt! [m])
+  (tan! [m])
+  (tanh! [m])
+  (to-degrees! [m])
+  (to-radians! [m]))
 
 (defprotocol PElementCount
   "Protocol to return the total count of elements in matrix. Result may be any integer type,
