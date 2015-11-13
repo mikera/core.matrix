@@ -1,4 +1,4 @@
-(ns clojure.core.matrix.select
+(ns clojure.core.matrix.selection
   "Namespace for fully featured core.matrix select API.
 
    Supports selection functions, which are defined as:
