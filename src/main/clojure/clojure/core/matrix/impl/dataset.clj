@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.impl.dataset
-  "Namespace for default core.matrix dataset implementation. 
+  "Namespace for default core.matrix dataset implementation.
 
    Represents a dataset as a 2D array such that:
    - Each column has an (optional) name as a label
@@ -7,7 +7,7 @@
    - Columns may have different types"
   (:require [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.wrappers :as wrap]
-            [clojure.core.matrix.impl default persistent-vector] ;; these are needed during loading
+            [clojure.core.matrix.impl defaults persistent-vector] ;; these are needed during loading
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.utils :refer :all])
   (:import [clojure.lang IPersistentVector]
@@ -25,7 +25,7 @@
 
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
-        cc (long (count col-names)) 
+        cc (long (count col-names))
         ^IPersistentVector cols (vec (mp/get-rows (vec cols)))]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
@@ -112,10 +112,10 @@
       (.column-names ds))
     (select-columns [ds col-names]
       (let [^List all-col-names (.column-names ds)
-            indices (mapv (fn [name] 
+            indices (mapv (fn [name]
                             (let [ix (.indexOf all-col-names name)]
                               (when (== -1 ix) (error "Column name " name "not found in Dataset"))
-                              ix)) 
+                              ix))
                           col-names)
             cols (mapv #(.nth ^IPersistentVector (.columns ds) (long %)) indices)]
         (dataset-from-columns col-names cols)))

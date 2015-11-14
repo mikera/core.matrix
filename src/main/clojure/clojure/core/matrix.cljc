@@ -3,7 +3,7 @@
 
    Functions in this API may be supported by multiple matrix implementations, allowing code that uses
    this API to quickly switch between implementations without significant changes (if any)."
-  (:require [clojure.core.matrix.impl.default :as default]
+  (:require [clojure.core.matrix.impl.defaults :as default]
             [clojure.core.matrix.impl.persistent-vector]
             [clojure.core.matrix.impl.sequence] ;; TODO: figure out if we want this?
             [clojure.core.matrix.protocols :as mp]
@@ -621,7 +621,6 @@
                      (vec ~'sh)
                      nil)))}
   ([m]
-   #?(:cljs (js/console.log (str "getting the shape..." (type m))))
     (if-let [sh (mp/get-shape m)]
       (vec sh)
       nil)))

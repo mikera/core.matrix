@@ -3,15 +3,14 @@
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.impl.mathsops :as mops]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.utils :as u]
-  #?@(:clj [[clojure.core.matrix.impl.double-array :as da]
-            [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
-            [clojure.core.matrix.macros-clj :refer [try-current-implementation eps== native-array?]]]))
-  #?(:clj (:import [clojure.lang ISeq])
-     :cljs (:require-macros 
-             [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
-             [clojure.core.matrix.macros-cljs :refer [try-current-implementation eps== native-array?]]
-             )))
+            [clojure.core.matrix.utils :as u])
+  #?@(:clj [(:require [clojure.core.matrix.impl.double-array :as da]
+                      [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
+                      [clojure.core.matrix.macros-clj :refer [try-current-implementation eps== native-array?]])
+            (:import [clojure.lang ISeq])]
+      :cljs [(:require-macros 
+               [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
+               [clojure.core.matrix.macros-cljs :refer [try-current-implementation eps== native-array?]])]))
 
 (def ^:dynamic *trying-current-implementation* nil)
 
@@ -506,12 +505,12 @@
         (reduce (fn [m ix] (mp/set-nd m ix (apply f ix))) m (u/base-index-seq-for-shape shape)))))
 
 (extend-protocol mp/PDimensionInfo
-  nil
-    (dimensionality [m] 0)
-    (is-scalar? [m] true)
-    (is-vector? [m] false)
-    (get-shape [m] nil)
-    (dimension-count [m i] (error "nil has zero dimensionality, cannot get count for dimension: " i))
+  ;nil
+  ;  (dimensionality [m] 0)
+  ;  (is-scalar? [m] true)
+  ;  (is-vector? [m] false)
+  ;  (get-shape [m] #?(:cljs (js/console.log (str "nil shape of seq: " m))) nil)
+  ;  (dimension-count [m i] (error "nil has zero dimensionality, cannot get count for dimension: " i))
   #?(:clj clojure.lang.Keyword
      :cljs cljs.core.Keyword)
     (dimensionality [m] 0)
@@ -549,6 +548,7 @@
         #?(:clj (.isArray (.getClass m)) :cljs (= js/Array (type m))) false ;; Java arrays are core.matrix arrays
         :else true)) ;; assume objects are scalars unless told otherwise
     (get-shape [m]
+      #?(:cljs (js/console.log (str "object shape of seq: " m)))
       (cond
         #?(:clj (.isArray (.getClass m)) :cljs (= js/Array (type m)))
           (let [n (count m)]
@@ -561,7 +561,18 @@
             (if (== i 0) (count m) (mp/dimension-count (nth m 0) (dec i)))
           (== 0 i)
             (count m)
-          :else (error "Can't determine count of dimension " i " on Object: " (class m))))))
+          :else (error "Can't determine count of dimension " i " on Object: " (class m)))))
+    
+#?@(:cljs 
+     [cljs.core/LazySeq
+      (dimensionality [m] (inc (mp/dimensionality (first m))))
+      (is-vector? [m] (== 0 (mp/dimensionality (first m))))
+      (is-scalar? [m] false)
+      (get-shape [m] (cons (count m) (mp/get-shape (first m))))
+      (dimension-count [m x] 
+                       (if (== x 0) 
+                         (count m) 
+                         (mp/dimension-count (first m) (dec x))))]))
 
 (extend-protocol mp/PSameShape
   nil
@@ -1279,13 +1290,13 @@
         (f init m)))
   #?(:clj Object :cljs object)
     (element-seq [m]
-      (let [c (.getClass m)
+      (let [c (class m)
             dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
             (vector (mp/get-0d m))
-          (and (.isArray c) (.isPrimitive (.getComponentType c)))
-            m
+ #?@(:clj [(and (.isArray c) (.isPrimitive (.getComponentType c))) m]
+    :cljs [(= js/Array c) m])
           (== 1 dims)
             (mp/convert-to-nested-vectors m)
           (array? m)
@@ -2205,7 +2216,7 @@
            :error false})))))
 
 (defn update-qr [^doubles qr-data idx mcols mrows ^doubles vs
-                 ^doubles us ^Double gamma ^Double tau]
+                 ^doubles us gamma tau]
   (let [idx (long idx)
         mrows (long mrows)
         mcols (long mcols)

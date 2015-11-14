@@ -10,13 +10,15 @@
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.mathsops :as mops]
-    #?(:clj [clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed java-array?]]))
+  #?@(:clj [[clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed]]
+            [clojure.core.matrix.macros-clj :refer [native-array?]]]))
   #?(:clj
       (:import [clojure.lang IPersistentVector Indexed]
                [java.util List])
       :cljs (:require-macros
               [clojure.core.matrix.impl.persistent-vector :refer [vector-1d?]]
-              [clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed java-array?]])))
+              [clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed]]
+              [clojure.core.matrix.macros-cljs :refer [native-array?]])))
 
 #?(:clj (do
   (set! *warn-on-reflection* true)
@@ -51,7 +53,7 @@
   "Utility macro to determine if a persistent vector represents a 1D vector"
   [pv]
   `(let [pv# ^IPersistentVector ~pv]
-     (or (== 0 (.length pv#)) (== 0 (long (mp/dimensionality (.nth pv# 0)))))))
+     (or (== 0 (count pv#)) (== 0 (long (mp/dimensionality (nth pv# 0)))))))
 )
 
 (defn- mapmatrix
@@ -103,7 +105,7 @@
     (let [n (.count v)]
       (loop [i 0 v v]
         (if (< i n)
-          (let [x (.nth v i)
+          (let [x (nth v i)
                 y (f x)]
             (recur (inc i) (if (identical? x y) v (assoc v i y))))
           v)))))
@@ -152,7 +154,7 @@
   (cond
     (clojure.core/vector? m)
       (if (> (count m) 0)
-        (+ 1 (vector-dimensionality (.nth ^#?(:clj IPersistentVector :cljs PersistentVector) m 0)))
+        (+ 1 (vector-dimensionality (nth ^#?(:clj IPersistentVector :cljs PersistentVector) m 0)))
         1)
     :else (long (mp/dimensionality m))))
 
@@ -207,17 +209,17 @@
 (extend-protocol mp/PIndexedAccess
   #?(:clj IPersistentVector :cljs PersistentVector)
     (get-1d [m x]
-      (let [r (.nth m (int x))]
+      (let [r (nth m (int x))]
         (scalar-coerce r)))
     (get-2d [m x y]
-      (let [row (.nth m (int x))]
+      (let [row (nth m (int x))]
         (mp/get-1d row y)))
     (get-nd [m indexes]
       (if-let [indexes (seq indexes)]
         (if-let [next-indexes (next indexes)]
-          (let [m (.nth m (int (first indexes)))]
+          (let [m (nth m (int (first indexes)))]
             (mp/get-nd m next-indexes))
-          (.nth m (int (first indexes))))
+          (nth m (int (first indexes))))
         m)))
 
 ;; we extend this so that nested mutable implementions are possible
@@ -241,11 +243,11 @@
 (extend-protocol mp/PMatrixSlices
   #?(:clj IPersistentVector :cljs PersistentVector)
     (get-row [m i]
-      (.nth m (long i)))
+      (nth m (long i)))
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
-      (let [sl (.nth m (long i))]
+      (let [sl (nth m (long i))]
         sl))
     (get-slice [m dimension i]
       (let [dimension (long dimension)]
@@ -267,7 +269,7 @@
 
 (extend-protocol mp/PSliceView
   #?(:clj IPersistentVector :cljs PersistentVector)
-    (get-major-slice-view [m i] (.nth m i)))
+    (get-major-slice-view [m i] (nth m i)))
 
 (extend-protocol mp/PSliceView2
   #?(:clj IPersistentVector :cljs PersistentVector)
@@ -354,12 +356,12 @@
                     (loop [i 0 res 0.0]
                       (if (>= i n)
                         res
-                        (recur (inc i) (+ res (* (double (.nth a (int i))) (double (.get b (int i)))))))))
-                (java-array? ^Object b)
+                        (recur (inc i) (+ res (* (double (nth a (int i))) (double (.get b (int i)))))))))
+                (native-array? ^Object b)
                   (loop [i 0 res 0.0]
                     (if (>= i n)
                       res
-                      (recur (inc i) (+ res (* (double (.nth a (int i))) (double (nth b i)))))))
+                      (recur (inc i) (+ res (* (double (nth a (int i))) (double (nth b i)))))))
                 :else
                   (reduce + (map * a (mp/element-seq b)))))
 
@@ -368,14 +370,14 @@
       (let [n (long (count a))]
         (loop [i 0 res 0.0]
           (if (< i n)
-            (let [x (double (.nth a i))]
+            (let [x (double (nth a i))]
               (recur (inc i) (+ res (* x x))))
             (Math/sqrt res)))))
     (length-squared [a]
       (let [n (long (count a))]
         (loop [i 0 res 0.0]
           (if (< i n)
-            (let [x (double (.nth a i))]
+            (let [x (double (nth a i))]
               (recur (inc i) (+ res (* x x))))
             res))))
     (normalise [a]
@@ -544,22 +546,22 @@
 (extend-protocol mp/PDimensionInfo
   #?(:clj IPersistentVector :cljs PersistentVector)
     (dimensionality [m]
-      (if (== 0 (.length m))
+      (if (== 0 (count m))
         1
-        (inc (long (mp/dimensionality (.nth m 0))))))
+        (inc (long (mp/dimensionality (nth m 0))))))
     (is-vector? [m]
       (vector-1d? m))
     (is-scalar? [m]
       false)
     (get-shape [m]
-      (let [c #?(:clj (.length m) :cljs (count m))]
+      (let [c (count m)]
         (cons c (if (> c 0)
                   (mp/get-shape (m 0))
                   nil))))
     (dimension-count [m x]
       (let [x (long x)]
         (if (== x 0)
-          #?(:clj (.length m) :cljs (count m))
+          (count m)
           (mp/dimension-count (m 0) (dec x))))))
 
 (extend-protocol mp/PElementCount
@@ -590,7 +592,7 @@
           (aset arr (+ off i) (double v)))
       (and (== size ct) (not (vector? (nth m 0 nil))))
         (dotimes [i size]
-          (aset arr (+ off i) (double (.nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i))))
+          (aset arr (+ off i) (double (nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i))))
       :else
         (let [skip (quot size ct)]
           (dotimes [i ct]
@@ -615,7 +617,7 @@
           (aset arr (+ off i) v))
       (and (== size ct) (not (vector? (nth m 0 nil))))
         (dotimes [i size]
-          (aset arr (+ off i) (.nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i)))
+          (aset arr (+ off i) (nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i)))
       :else
         (let [skip (quot size ct)]
           (dotimes [i ct]
@@ -636,9 +638,9 @@
   #?(:clj IPersistentVector :cljs PersistentVector)
     (element-seq [m]
       (cond
-        (== 0 (.length m))
+        (== 0 (count m))
           nil
-        (>= (long (mp/dimensionality (.nth m 0))) 1)
+        (>= (long (mp/dimensionality (nth m 0))) 1)
           ;; we are a 2D+ array, so be conservative and create a concatenated sequence
           (mapcat mp/element-seq m)
         :else

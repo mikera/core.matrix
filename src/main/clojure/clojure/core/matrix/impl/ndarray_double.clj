@@ -1,6 +1,6 @@
 (ns clojure.core.matrix.impl.ndarray-double
   (:refer-clojure :exclude [vector?])
-  (:require [clojure.core.matrix.impl.default]
+  (:require [clojure.core.matrix.impl.defaults]
             [clojure.core.matrix.impl.ndarray-magic :as magic]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]

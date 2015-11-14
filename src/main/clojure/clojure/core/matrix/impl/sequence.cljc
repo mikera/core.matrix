@@ -119,6 +119,7 @@
     (is-scalar? [m]
       false)
     (get-shape [m]
+      #?(:cljs (js/console.log (str "shape of seq: " m)))
       (cons (count m) (mp/get-shape (first m))))
     (dimension-count [m x]
       (if (== x 0)
