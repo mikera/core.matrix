@@ -802,6 +802,7 @@
   ([m x]
     (mp/get-row m x)))
 
+;; TODO: consider if should support labelled columns?
 (defn get-column
   "Gets a column of a matrix, as a 1D vector.
    
