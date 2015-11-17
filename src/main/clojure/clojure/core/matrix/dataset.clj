@@ -96,6 +96,15 @@
   ([ds dim idx]
     (mp/dimension-name ds dim idx)))
 
+(defn get-named-column
+  "Gets a named column from the dataset. Throws an error if the column does not exist."
+  ([ds col-name]
+    (let [cnames (mp/column-names ds)
+          ix (reduce (fn [i n] (if (= n col-name) (reduced i) (inc i))) 
+                     0 cnames)]
+      (when (>= ix (count cnames)) (error "Column name not found: " col-name))
+      (slice ds 1 ix))))
+
 (defn add-column
   "Adds column to the dataset."
   ([ds col-name col]
