@@ -97,7 +97,9 @@
     (mp/dimension-name ds dim idx)))
 
 (defn get-named-column
-  "Gets a named column from the dataset. Throws an error if the column does not exist."
+  "TODO: name may change
+
+   Gets a named column from the dataset. Throws an error if the column does not exist."
   ([ds col-name]
     (let [cnames (mp/column-names ds)
           ix (reduce (fn [i n] (if (= n col-name) (reduced i) (inc i))) 
