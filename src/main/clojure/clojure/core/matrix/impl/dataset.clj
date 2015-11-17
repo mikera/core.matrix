@@ -23,6 +23,18 @@
   [^IPersistentVector column-names
    ^IPersistentVector columns])
 
+(defrecord DataSetRow
+  [^IPersistentVector column-names
+   ^IPersistentVector columns
+   ^long index])
+
+(defn- wrap-row [dataset index]
+  (let [index (long index)
+        cols (mp/get-columns dataset)]
+    (when-not (< -1 index (long (mp/dimension-count (first cols) 0)))
+      (error "Row index does not exist: " index))
+    (DataSetRow. (mp/column-names dataset) cols index)))
+
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
         cc (long (count col-names)) 
