@@ -90,8 +90,10 @@
     (is (= (row-maps ds) [{:a 1 :b 4} {:a 2 :b 5} {:a 3 :b 6}]))))
 
 (deftest instance-tests
-  (compliance/instance-test
-   (ds/dataset-from-columns [:bar] [["Foo"]])))
+  (let [dset (ds/dataset-from-columns [:bar :baz] [["Foo" "Bar"] [1 2]])]
+    
+    (compliance/instance-test dset)
+    (compliance/instance-test (slice dset 0 1))))
 
 (deftest compliance-test
   (compliance/compliance-test ds/CANONICAL-OBJECT))

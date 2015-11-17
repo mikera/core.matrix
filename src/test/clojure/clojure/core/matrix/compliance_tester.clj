@@ -364,8 +364,9 @@
 (defn test-coerce-via-vectors [m]
   (testing "Vector coercion"
     (when (supports-dimensionality? m 1)
-      (testing "coerce works"
-        (is (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [1])))))
+      ; Probably can't assume this? may coerce to a different implementation
+      ; (testing "coerce works"
+      ;   (is (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [1])))))
       (let [v (matrix [1])]
         (is (equals [1] (to-nested-vectors v))))))
   (testing "Matrix coercion"

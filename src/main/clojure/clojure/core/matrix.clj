@@ -151,20 +151,23 @@
 (defn zero-array
   "Creates a new zero-filled numerical array with the given shape."
   ([shape]
-    (mp/new-matrix-nd (implementation-check) shape))
+    (or (mp/new-matrix-nd (implementation-check) shape)
+        (mp/new-matrix-nd [] shape)))
   ([implementation shape]
-    (mp/new-matrix-nd (implementation-check implementation) shape)))
+    (or (mp/new-matrix-nd (implementation-check implementation) shape)
+        (mp/new-matrix-nd [] shape))))
 
 (defn new-array
   "Creates a new array with the given shape.
    New array will contain default values as defined by the implementation (usually null or zero).
    If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([shape]
-    (mp/new-matrix-nd (implementation-check) shape))
+    (or (mp/new-matrix-nd (implementation-check) shape)
+        (mp/new-matrix-nd [] shape)))
   ([implementation shape]
     (or (mp/new-matrix-nd (implementation-check implementation) shape)
         (mp/new-matrix-nd (implementation-check) shape)
-        (mp/new-matrix-nd :persistent-vector shape)))) ;; todo: what is the right default?
+        (mp/new-matrix-nd [] shape)))) ;; todo: what is the right default?
 
 (defn new-sparse-array
   "Creates a new sparse array with the given shape.

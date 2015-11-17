@@ -19,14 +19,31 @@
 ;; a column-based DataSet implementation.
 ;; columns are arbitrary core.matrix arrays, treated as vectors
 
-(defrecord DataSet
-  [^IPersistentVector column-names
-   ^IPersistentVector columns])
-
-(defrecord DataSetRow
+(deftype DataSetRow
   [^IPersistentVector column-names
    ^IPersistentVector columns
-   ^long index])
+   ^long index]
+  clojure.lang.Indexed
+    (count [m] (count column-names))
+    (nth [m i] 
+      (mp/get-1d (nth columns i) index))
+    (nth [m i not-found] 
+      (when (< -1 i (long (mp/dimension-count (first columns) 0)))
+        (mp/get-1d (nth columns i) index)))
+  clojure.lang.Seqable
+    (seq [m] 
+      (seq (mp/convert-to-nested-vectors m)))
+  clojure.lang.IPersistentCollection
+    (cons [m v]
+      (conj (mp/convert-to-nested-vectors m) v))
+    (empty [m]
+      [])
+    (equiv [m a]
+      (= (mp/convert-to-nested-vectors m) a))
+  clojure.lang.IPersistentVector
+    (length [m] (count column-names))
+    (assocN [m i v]
+      (assoc (mp/convert-to-nested-vectors m) i v)))
 
 (defn- wrap-row [dataset index]
   (let [index (long index)
@@ -34,6 +51,10 @@
     (when-not (< -1 index (long (mp/dimension-count (first cols) 0)))
       (error "Row index does not exist: " index))
     (DataSetRow. (mp/column-names dataset) cols index)))
+
+(defrecord DataSet
+  [^IPersistentVector column-names
+   ^IPersistentVector columns])
 
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
@@ -87,12 +108,17 @@
           (<= 0 (long dim) (dec (long (mp/dimensionality m)))) nil
           :else (error "Dimension out of range: " dim)))))
 
+(extend-protocol mp/PConversion
+  DataSetRow
+    (convert-to-nested-vectors [m]
+      (mapv #(nth m %) (range (count m)))))
+
 (extend-protocol mp/PMatrixSlices
   DataSet
   (get-column [ds i]
     (nth (mp/get-columns ds) i))
   (get-row [ds i]
-    (wrap/wrap-slice ds i))
+    (wrap-row ds i))
   (get-major-slice [ds i]
     (mp/get-major-slice (mp/get-rows ds) i))
   (get-slice [ds dimension i]
@@ -202,27 +228,46 @@
 
 (extend-protocol mp/PImplementation
   DataSet
-  (implementation-key [m] :dataset)
-  (meta-info [m]
-    {:doc "clojure.core.matrix implementation for datasets"})
-  (new-vector [m length]
-    (mp/new-vector [] length))
-  (new-matrix [m rows columns]
-    (let [col-indexes (range columns)]
-      (dataset-from-columns
-       col-indexes
-       (for [i col-indexes]
-         (mp/new-vector (imp/get-canonical-object) rows)))))
-  (new-matrix-nd [m shape]
-    (if (== 2 (long (count shape)))
-      (mp/new-matrix m (first shape) (second shape))
-      nil))
-  (construct-matrix [m data]
-    (if (== 2 (long (mp/dimensionality data)))
-      (dataset-from-array data)
-      nil))
-  (supports-dimensionality? [m dims]
-    (== (long dims) 2)))
+    (implementation-key [m] :dataset)
+	  (meta-info [m]
+	    {:doc "clojure.core.matrix implementation for datasets"})
+	  (new-vector [m length]
+	    (mp/new-vector [] length))
+	  (new-matrix [m rows columns]
+	    (let [col-indexes (range columns)]
+	      (dataset-from-columns
+	       col-indexes
+	       (for [i col-indexes]
+	         (mp/new-vector (imp/get-canonical-object) rows)))))
+	  (new-matrix-nd [m shape]
+	    (mp/new-matrix-nd [] shape))
+	  (construct-matrix [m data]
+	    (if (== 2 (long (mp/dimensionality data)))
+	      (dataset-from-array data)
+	      nil))
+	  (supports-dimensionality? [m dims]
+	    (<= 1 (long dims) 2))
+   
+   DataSetRow
+    (implementation-key [m] :dataset)
+	  (meta-info [m]
+	    {:doc "clojure.core.matrix implementation for datasets"})
+	  (new-vector [m length]
+	    (mp/new-vector [] length))
+	  (new-matrix [m rows columns]
+	    (let [col-indexes (range columns)]
+	      (dataset-from-columns
+	       col-indexes
+	       (for [i col-indexes]
+	         (mp/new-vector (imp/get-canonical-object) rows)))))
+	  (new-matrix-nd [m shape]
+	    (mp/new-matrix-nd [] shape))
+	  (construct-matrix [m data]
+	    (if (== 2 (long (mp/dimensionality data)))
+	      (dataset-from-array data)
+	      nil))
+	  (supports-dimensionality? [m dims]
+	    (<= 1 (long dims) 2)))
 
 (extend-protocol mp/PDimensionInfo
   DataSet
@@ -238,7 +283,21 @@
         (cond
           (== dim 0) (mp/dimension-count (first (.columns m)) 0)
           (== dim 1) (.length ^IPersistentVector (.column-names m))
-          :else (error "Invalid dimension for dataset: " dim)))))
+          :else (error "Invalid dimension for dataset: " dim))))
+    
+  DataSetRow
+    (dimensionality [m]
+      1)
+    (is-vector? [m]
+      true)
+    (is-scalar? [m] false)
+    (get-shape [m]
+      [(.length ^IPersistentVector (.column-names m))])
+    (dimension-count [m dim]
+      (let [dim (long dim)]
+        (cond
+          (== dim 0) (.length ^IPersistentVector (.column-names m))
+          :else (error "Invalid dimension for dataset row: " dim)))))
 
 (extend-protocol mp/PIndexedAccess
   DataSet
@@ -252,7 +311,18 @@
           (== 1 dims) (mp/get-row m (first indexes))
           (== 2 dims) (mp/get-2d m (first indexes) (second indexes))
           (> 2 dims) (mp/get-nd (mp/get-2d m (first indexes) (second indexes)) (nnext indexes))
-          :else (error "Invalid dimensionality access with index: " (vec indexes))))))
+          :else (error "Invalid dimensionality access with index: " (vec indexes)))))
+    
+  DataSetRow
+    (get-1d [m x]
+      (mp/get-1d (.nth ^IPersistentVector (.columns m) (long x)) (.index m)))
+    (get-2d [m x y]
+      (error "Invalid 2D access on DataSetRow"))
+    (get-nd [m indexes]
+      (let [dims (long (count indexes))]
+        (cond
+          (== 1 dims) (mp/get-1d (.nth ^IPersistentVector (.columns m) (long (first indexes))) (.index m))
+          :else (error "Invalid ND access on DataSetRow")))))
 
 (extend-protocol mp/PIndexedSetting
   DataSet

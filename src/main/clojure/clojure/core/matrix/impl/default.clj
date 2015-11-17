@@ -1724,7 +1724,9 @@
         (if-let [shape (seq shape)]
           (let [fs (long (first shape))
                 parts (partition-shape es shape)]
-            (mp/construct-matrix m (take fs parts)))
+            (or 
+              (mp/construct-matrix m (take fs parts))
+              (mp/construct-matrix [] (take fs parts))))
           (first es)))))
 
 (extend-protocol mp/PCoercion
@@ -1964,8 +1966,10 @@
 (extend-protocol mp/PIndicesAccess
   Object
   (get-indices [a indices]
-    (mp/construct-matrix (if (array? a) a [])
-                         (map #(mp/get-nd a %1) (map mp/element-seq indices)))))
+    (let [vals (map #(mp/get-nd a %1) (map mp/element-seq indices))] ;; TODO: use index coerce?
+      (or 
+        (when (array? a) (mp/construct-matrix a vals))
+        (mp/construct-matrix [] vals)))))
 
 (extend-protocol mp/PIndicesSetting
   Object
