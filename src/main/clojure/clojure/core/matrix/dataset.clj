@@ -25,7 +25,7 @@
    2. seq of rows
    3. seq of row maps (column names -> values for each row)
    4. map of columns with associated list of values.
-   5. seq of maps
+   5. existing dataset
 
    If col-names are provided they will be used, else incrementing Long values starting from 0, 
    i.e. 0, 1, 2, etc will be used as column names"
