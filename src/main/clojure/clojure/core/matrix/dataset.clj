@@ -87,14 +87,16 @@
     (mp/column-names ds)))
 
 (defn column-name
-  "Returns column name at given index. Returns nil if index is not found."
-  ([ds idx]
-    (mp/column-name ds idx)))
+  "Returns column name at given index. 
+
+   Returns nil if column name does not exist. Throws an exception if the index is out of bounds."
+  ([ds column-index]
+    (mp/column-name ds column-index)))
 
 (defn dimension-name
   "Returns the name for a given index along the specified dimension."
-  ([ds dim idx]
-    (mp/label ds dim idx)))
+  ([ds dim column-index]
+    (mp/label ds dim column-index)))
 
 (defn column
   "TODO: name may change
