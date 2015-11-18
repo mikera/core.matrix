@@ -2117,7 +2117,7 @@
     (row-name [ds idx]
       idx)
     (column-name [ds idx]
-      (nth (mp/column-names ds) idx)))
+      idx))
 
 ;; =======================================================
 ;; default label implementation

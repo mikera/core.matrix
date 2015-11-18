@@ -84,12 +84,12 @@
 (defn column-names
   "Returns a persistent vector containing column names in the same order as they are placed in the dataset."
   ([ds]
-    (mp/column-names ds)))
+    (mp/labels ds 1)))
 
 (defn column-name
   "Returns column name at given index. Returns nil if index is not found."
   ([ds idx]
-    (nth (mp/column-names ds) idx)))
+    (nth (mp/labels ds 1) idx)))
 
 (defn dimension-name
   "Returns the name for a given index along the specified dimension."
@@ -103,7 +103,7 @@
   ([ds col-name]
     (if (number? col-name)
       (get-column ds col-name)
-      (let [cnames (mp/column-names ds)
+      (let [cnames (mp/labels ds 1)
            ix (reduce (fn [i n] (if (= n col-name) (reduced i) (inc i))) 
                       0 cnames)]
          (when (>= ix (count cnames)) (error "Column name not found: " col-name))
@@ -162,7 +162,7 @@
 (defn update-column
   "Applies function f to column in a dataset"
   ([ds col-name f & args]
-     (let [^List col-names (mp/column-names ds)
+     (let [^List col-names (mp/labels ds 1)
            col (mp/get-column ds (.indexOf col-names col-name))]
        (mp/replace-column
          ds col-name

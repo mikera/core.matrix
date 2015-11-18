@@ -50,7 +50,7 @@
         cols (mp/get-columns dataset)]
     (when-not (< -1 index (long (mp/dimension-count (first cols) 0)))
       (error "Row index does not exist: " index))
-    (DataSetRow. (mp/column-names dataset) cols index)))
+    (DataSetRow. (mp/labels dataset 1) cols index)))
 
 (defrecord DataSet
   [^IPersistentVector column-names
@@ -146,8 +146,6 @@
 
 (extend-protocol mp/PDatasetImplementation
   DataSet
-    (column-names [ds]
-      (.column-names ds))
     (select-columns [ds col-names]
       (let [^List all-col-names (.column-names ds)
             indices (mapv (fn [name] 
@@ -158,7 +156,7 @@
             cols (mapv #(.nth ^IPersistentVector (.columns ds) (long %)) indices)]
         (dataset-from-columns col-names cols)))
   (select-rows [ds rows]
-    (let [col-names (mp/column-names ds)
+    (let [col-names (mp/labels ds 1)
           row-maps (mp/row-maps ds)]
       (try
         (->> (map #(nth row-maps %) rows)
@@ -171,20 +169,20 @@
                      (vec out-of-range))
               (throw e)))))))
   (add-column [ds col-name col]
-    (dataset-from-columns (conj (mp/column-names ds) col-name)
+    (dataset-from-columns (conj (mp/labels ds 1) col-name)
                           (conj (mp/get-columns ds) col)))
   (row-maps [ds]
-    (let [col-names (mp/column-names ds)]
+    (let [col-names (mp/labels ds 1)]
       (map #(zipmap col-names %)
            (mp/get-rows ds))))
   (to-map [ds]
     (into {} (map (fn [k v] [k v])
-                  (mp/column-names ds)
+                  (mp/labels ds 1)
                   (mp/get-columns ds))))
   (merge-datasets [ds1 ds2]
     (reduce
      (fn [acc [k v]]
-       (let [^List colnames (mp/column-names acc)
+       (let [^List colnames (mp/labels acc 1)
              cols (mp/get-columns acc)
              idx (.indexOf colnames k)]
          (if (> idx -1)
@@ -194,7 +192,7 @@
   (rename-columns [ds col-map]
     (reduce
      (fn [acc [k v]]
-       (let [^List colnames (mp/column-names acc)
+       (let [^List colnames (mp/labels acc 1)
              idx (.indexOf colnames k)]
          (if (> idx -1)
            (dataset-from-columns (assoc colnames idx v) (mp/get-columns acc))
@@ -207,8 +205,8 @@
         (mp/set-column ds idx vs)
         (error "Column " col-name " is not found in the dataset"))))
   (join-rows [ds1 ds2]
-    (let [col-names-1 (mp/column-names ds1)
-          col-names-2 (mp/column-names ds2)]
+    (let [col-names-1 (mp/labels ds1 1)
+          col-names-2 (mp/labels ds2 1)]
       (if (= (into #{} col-names-1)
              (into #{} col-names-2))
         (->> (mp/select-columns ds2 col-names-1)
@@ -217,14 +215,40 @@
              (dataset-from-rows col-names-1))
         (error "Can't join rows of datasets with different columns"))))
   (join-columns [ds1 ds2]
-    (let [col-set-1 (into #{} (mp/column-names ds1))
-          col-set-2 (into #{} (mp/column-names ds2))
+    (let [col-set-1 (into #{} (mp/labels ds1 1))
+          col-set-2 (into #{} (mp/labels ds2 1))
           intersection (clojure.set/intersection col-set-1 col-set-2)]
       (if (zero? (count intersection))
         (dataset-from-columns
-         (concat (mp/column-names ds1) (mp/column-names ds2))
+         (concat (mp/labels ds1 1) (mp/labels ds2 1))
          (concat (mp/get-columns ds1) (mp/get-columns ds2)))
         (error "Duplicate column names: " intersection)))))
+
+(extend-protocol mp/PDimensionLabels
+  DataSet
+    (label [m dim i]
+      (let [dim (long dim)]
+        (cond 
+          (== 1 dim) (nth (.column-names m) i)
+          :else nil)))
+    (labels [m dim]
+      (let [dim (long dim)]
+        (cond 
+          (== 1 dim) (.column-names m)
+          :else nil)))
+    
+  DataSetRow
+    (label [m dim i]
+      (let [dim (long dim)]
+        (cond 
+          (== 0 dim) (nth (.column-names m) i)
+          :else nil)))
+    (labels [m dim]
+      (let [dim (long dim)]
+        (cond 
+          (== 0 dim) (.column-names m)
+          (== 1 dim) (.column-names m) ;; TODO: revisit, this is a hack to make column-names work on DataSetRow
+          :else nil)))) 
 
 (extend-protocol mp/PImplementation
   DataSet
@@ -331,7 +355,7 @@
     (set-2d [m x y v]
       (let [col (mp/get-column m y)]
         (dataset-from-columns
-          (mp/column-names m)
+          (mp/labels m 1)
           (assoc (mp/get-columns m) y (assoc col x v)))))
     (set-nd [m indexes v]
       (let [dims (long (count indexes))]

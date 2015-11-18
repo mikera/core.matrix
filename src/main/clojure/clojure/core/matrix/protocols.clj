@@ -1081,7 +1081,6 @@
 ;; TODO: break up and use generic labelling functionality?
 (defprotocol PDatasetImplementation
   "Protocol for general dataset functionality"
-  (column-names [ds] "Returns a persistent vector containing column names in the same order as they are placed in the dataset")
   (columns [ds] "Returns a persistent vector containing columns in the same order they are placed in the dataset")
   (select-columns [ds cols] "Produces a new dataset with the columns in the specified order")
   (select-rows [ds rows] "Produces a new dataset with specified rows")
