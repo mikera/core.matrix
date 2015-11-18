@@ -84,17 +84,17 @@
 (defn column-names
   "Returns a persistent vector containing column names in the same order as they are placed in the dataset."
   ([ds]
-    (mp/labels ds 1)))
+    (mp/column-names ds)))
 
 (defn column-name
   "Returns column name at given index. Returns nil if index is not found."
   ([ds idx]
-    (nth (mp/labels ds 1) idx)))
+    (mp/column-name ds idx)))
 
 (defn dimension-name
   "Returns the name for a given index along the specified dimension."
   ([ds dim idx]
-    (mp/dimension-name ds dim idx)))
+    (mp/label ds dim idx)))
 
 (defn column
   "TODO: name may change
@@ -162,7 +162,7 @@
 (defn update-column
   "Applies function f to column in a dataset"
   ([ds col-name f & args]
-     (let [^List col-names (mp/labels ds 1)
+     (let [^List col-names (mp/column-names ds)
            col (mp/get-column ds (.indexOf col-names col-name))]
        (mp/replace-column
          ds col-name

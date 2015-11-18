@@ -2106,19 +2106,6 @@
 	  (index-coerce [m a]
       (mp/index-to-longs m)))
 
-(extend-protocol mp/PDimensionImplementation
-  Object
-    (dimension-name [ds idx dim]
-      (let [dim (long dim)]
-        (cond
-          (== dim 0) (mp/row-name ds idx)
-          (== dim 1) (mp/column-name ds idx)
-          :else idx)))
-    (row-name [ds idx]
-      idx)
-    (column-name [ds idx]
-      idx))
-
 ;; =======================================================
 ;; default label implementation
 
@@ -2132,6 +2119,15 @@
       (if (<= 0 (long dim) (dec (long (mp/dimensionality m)))) 
         nil
         (error "Dimension out of range: " dim)))) 
+
+(extend-protocol mp/PColumnNames
+  Object
+    (column-name [m i]
+      (let [dim (dec (long (mp/dimensionality m)))] 
+        (mp/label m dim i)))
+    (column-names [m]
+      (let [dim (dec (long (mp/dimensionality m)))] 
+        (mp/labels m dim)))) 
 
 
 ;; =======================================================
