@@ -93,11 +93,6 @@
   ([ds column-index]
     (mp/column-name ds column-index)))
 
-(defn dimension-name
-  "Returns the name for a given index along the specified dimension."
-  ([ds dim column-index]
-    (mp/label ds dim column-index)))
-
 (defn column
   "TODO: name may change
 
