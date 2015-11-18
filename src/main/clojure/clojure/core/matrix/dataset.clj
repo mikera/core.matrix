@@ -138,7 +138,7 @@
     (mp/row-maps ds)))
 
 (defn to-map
-  "Returns map of columns with associated list of values."
+  "Returns map of column name -> columns (i.e. vectors of values in each column)."
   ([ds]
     (mp/to-map ds)))
 
@@ -159,14 +159,16 @@
   ([ds col-name vs]
      (mp/replace-column ds col-name vs)))
 
-(defn update-column
-  "Applies function f to column in a dataset"
+(defn emap-column
+  "Applies function f to every element in a column in a dataset.
+
+   Extra args to the function may be supplied."
   ([ds col-name f & args]
      (let [^List col-names (mp/column-names ds)
            col (mp/get-column ds (.indexOf col-names col-name))]
        (mp/replace-column
          ds col-name
-         (matrix col (map #(apply f % args) col))))))
+         (apply emap f col args)))))
 
 (defn join-rows
   "Returns a dataset created by combining the rows of the given datasets"

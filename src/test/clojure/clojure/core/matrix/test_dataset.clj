@@ -71,7 +71,7 @@
   (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]
     (is (= (replace-column ds :a [9 9 9])
            (dataset [:a :b] (matrix [[9 4] [9 5] [9 6]]))))
-    (is (= (update-column ds :b * 3)
+    (is (= (emap-column ds :b * 3)
            (dataset [:a :b] (matrix [[1 12] [2 15] [3 18]]))))))
 
 (deftest test-join-rows
