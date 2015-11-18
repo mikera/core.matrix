@@ -14,7 +14,7 @@
 ;; ===============================================================
 ;; Specialised functions for dataset handling
 
-(defmacro dataset?
+(defmacro ^{:private true} dataset?
   "Returns true if argument is a dataset."
   ([d]
     `(instance? DataSet ~d)))
