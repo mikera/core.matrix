@@ -99,6 +99,15 @@
     (is (equals [[111 112] [113 114]] (emap + ds 10 100)))
     (is (equals [[102 112] [104 114]] (emap + ds 100 [1 10])))))
 
+(defn- round-trip [x]
+  (read-string (pr-str x)))
+
+(deftest test-round-trip 
+  (let [ds (dataset [:a :b] [[1 2] ["Bob" "Mike"]])]
+    (is (= ds (round-trip ds)))
+    (let [dr (second (rows ds))]
+      (is (= dr (round-trip dr))))))
+
 (deftest instance-tests
   (let [dset (ds/dataset-from-columns [:bar :baz] [["Foo" "Bar"] [1 2]])]
     
