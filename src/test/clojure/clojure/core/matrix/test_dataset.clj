@@ -92,6 +92,13 @@
   (let [ds (dataset [:a :b] [[1 4] [2 5] [3 6]])]
     (is (= (row-maps ds) [{:a 1 :b 4} {:a 2 :b 5} {:a 3 :b 6}]))))
 
+(deftest test-emap
+  (let [ds (dataset [:a :b] [[1 2] [3 4]])]
+    (is (equals [[2 3] [4 5]] (emap inc ds)))
+    (is (equals [[2 12] [4 14]] (emap + ds [1 10])))
+    (is (equals [[111 112] [113 114]] (emap + ds 10 100)))
+    (is (equals [[102 112] [104 114]] (emap + ds 100 [1 10])))))
+
 (deftest instance-tests
   (let [dset (ds/dataset-from-columns [:bar :baz] [["Foo" "Bar"] [1 2]])]
     

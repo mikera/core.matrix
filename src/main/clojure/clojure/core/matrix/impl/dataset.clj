@@ -366,7 +366,7 @@
   "Broadcasts a value to a vector of column values, in the shape specified"
   ^IPersistentVector [a [rows cols]]
   (case (long (mp/dimensionality a))
-    0 (vec (repeat a cols))
+    0 (vec (repeat cols a))
     1 (mp/convert-to-nested-vectors a)
     2 (vec (mp/get-columns a))
     (error "Can't broadcast argument of shape " (mp/get-shape a))))
@@ -397,7 +397,7 @@
             (fn [m i]
               (update-in m [:columns i] mp/element-map f (nth as i) (nth mores i)))
             m
-            (range (mp/dimension-count m 1))))))
+            (range (second shape))))))
     (element-map!
       ([m f]
         (mp/assign! m (mp/element-map m f)))
