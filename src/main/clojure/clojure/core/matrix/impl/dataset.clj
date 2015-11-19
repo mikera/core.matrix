@@ -437,10 +437,12 @@
   (.write writer (str "#dataset/dataset " (into {} x))))
 
 (defmethod print-dup DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer] 
-  (.write writer (str "#dataset/row " (zipmap (.column-names x) x))))
+  (.write writer (str "#dataset/row " {:column-names (.column-names x)
+                                       :values (into [] x)})))
 
 (defmethod print-method DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer] 
-  (.write writer (str "#dataset/row " (zipmap (.column-names x) x))))
+  (.write writer (str "#dataset/row " {:column-names (.column-names x)
+                                       :values (into [] x)})))
 
 ;; Dataset with a two named columns and both numeric and non-numeric data
 (def CANONICAL-OBJECT (dataset-from-columns [:0 "Names"] [[1.0 2.0] ["A" "B"]]))
