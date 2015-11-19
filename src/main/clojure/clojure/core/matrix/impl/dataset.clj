@@ -10,6 +10,7 @@
             [clojure.core.matrix.impl default persistent-vector] ;; these are needed during loading
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.utils :refer :all])
+  (:import [java.io Writer])
   (:import [clojure.lang IPersistentVector]
            [java.util List]))
 
@@ -426,6 +427,20 @@
           (== 2 dims) (mp/set-2d m (first indexes) (second indexes) v)
           :else (error "Can't set on DataSet array with index: " (vec indexes)))))
     (is-mutable? [m] false))
+
+;; Printing methods for Datasets
+
+(defmethod print-dup DataSet [^clojure.core.matrix.impl.dataset.DataSet x ^Writer writer] 
+  (.write writer (str "#dataset/dataset " (into {} x))))
+
+(defmethod print-method DataSet [^clojure.core.matrix.impl.dataset.DataSet x ^Writer writer] 
+  (.write writer (str "#dataset/dataset " (into {} x))))
+
+(defmethod print-dup DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer] 
+  (.write writer (str "#dataset/row " (zipmap (.column-names x) x))))
+
+(defmethod print-method DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer] 
+  (.write writer (str "#dataset/row " (zipmap (.column-names x) x))))
 
 ;; Dataset with a two named columns and both numeric and non-numeric data
 (def CANONICAL-OBJECT (dataset-from-columns [:0 "Names"] [[1.0 2.0] ["A" "B"]]))
