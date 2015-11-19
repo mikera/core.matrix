@@ -362,6 +362,55 @@
           (== 1 dims) (mp/get-1d (.nth ^IPersistentVector (.columns m) (long (first indexes))) (.index m))
           :else (error "Invalid ND access on DataSetRow")))))
 
+(defn- broadcast-cols
+  "Broadcasts a value to a vector of column values, in the shape specified"
+  ^IPersistentVector [a [rows cols]]
+  (case (long (mp/dimensionality a))
+    0 (vec (repeat a cols))
+    1 (mp/convert-to-nested-vectors a)
+    2 (vec (mp/get-columns a))
+    (error "Can't broadcast argument of shape " (mp/get-shape a))))
+
+(extend-protocol mp/PFunctionalOperations
+  DataSet
+    (element-seq [m]
+      (apply concat (mp/get-rows m)))
+    (element-map
+      ([m f]
+        (reduce 
+          (fn [m i]
+            (update-in m [:columns i] mp/element-map f))
+          m
+          (range (mp/dimension-count m 1))))
+      ([m f a]
+        (let [as (broadcast-cols a (mp/get-shape m))]
+          (reduce 
+            (fn [m i]
+              (update-in m [:columns i] mp/element-map f (nth as i)))
+            m
+            (range (mp/dimension-count m 1)))))
+      ([m f a more]
+        (let [shape (mp/get-shape m)
+              as (broadcast-cols a shape)
+              mores (apply mapv vector (map #(broadcast-cols % shape) more))]
+          (reduce 
+            (fn [m i]
+              (update-in m [:columns i] mp/element-map f (nth as i) (nth mores i)))
+            m
+            (range (mp/dimension-count m 1))))))
+    (element-map!
+      ([m f]
+        (mp/assign! m (mp/element-map m f)))
+      ([m f a]
+        (mp/assign! m (mp/element-map m f a)))
+      ([m f a more]
+        (mp/assign! m (mp/element-map m f a more))))
+    (element-reduce
+      ([m f]
+        (reduce f (mp/element-seq m)))
+      ([m f init]
+        (reduce f init (mp/element-seq m)))))
+
 (extend-protocol mp/PIndexedSetting
   DataSet
     (set-1d [m x v]
