@@ -574,6 +574,7 @@
 (defn- copy-to-double-array [m ^doubles arr ^long off ^long size]
   (let [ct (count m)]
     (cond
+      ;; we need this to handle the case of non-vectors nested in vectors
       (not (vector? m))
         (doseq-indexed [v (mp/element-seq m) i]
           (aset arr (+ off i) (double v)))
@@ -600,9 +601,11 @@
 (defn- copy-to-object-array [m ^objects arr ^long off ^long size]
   (let [ct (count m)]
     (cond
+      ;; we need this to handle the case of non-vectors nested in vectors
       (not (vector? m))
         (doseq-indexed [v (mp/element-seq m) i]
           (aset arr (+ off i) v))
+      ;; m must be a vector from now on
       (and (== size ct) (not (vector? (.nth ^IPersistentVector m 0 nil))))
         (dotimes [i size]
           (aset arr (+ off i) (.nth ^IPersistentVector m i)))
