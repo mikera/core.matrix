@@ -132,8 +132,10 @@
 (extend-protocol mp/PMatrixRows
   DataSet
     (get-rows [ds]
-      (->> (mp/get-columns ds)
-           (apply mapv vector))))
+      (let [row-count (mp/dimension-count ds 0)]
+        (mapv
+          (fn [i] (wrap-row ds i))
+          (range row-count)))))
 
 (extend-protocol mp/PColumnSetting
   DataSet

@@ -543,13 +543,13 @@
     (get-shape [m]
       (let [c (.length m)]
         (cons c (if (> c 0)
-                  (mp/get-shape (m 0))
+                  (mp/get-shape (.nth m 0))
                   nil))))
     (dimension-count [m x]
       (let [x (long x)]
         (if (== x 0)
           (.length m)
-          (mp/dimension-count (m 0) (dec x))))))
+          (mp/dimension-count (.nth m 0) (dec x))))))
 
 (extend-protocol mp/PElementCount
   IPersistentVector
@@ -557,7 +557,7 @@
       (let [c (long (count m))]
         (if (== c 0)
           0
-          (* c (mp/element-count (m 0))))))) ;; can't avoid boxed warning here, may be a bigint
+          (* c (mp/element-count (.nth m 0))))))) ;; can't avoid boxed warning here, may be a bigint
 
 ;; we need to implement this for all persistent vectors since we need to check all nested components
 (extend-protocol mp/PConversion
@@ -577,13 +577,14 @@
       (not (vector? m))
         (doseq-indexed [v (mp/element-seq m) i]
           (aset arr (+ off i) (double v)))
-      (and (== size ct) (not (vector? (nth m 0 nil))))
+      ;; m must be a vector from now on
+      (and (== size ct) (not (vector? (.nth ^IPersistentVector m 0 nil))))
         (dotimes [i size]
           (aset arr (+ off i) (double (.nth ^IPersistentVector m i))))
       :else
         (let [skip (quot size ct)]
           (dotimes [i ct]
-            (copy-to-double-array (nth m i) arr (+ off (* i skip)) skip))))
+            (copy-to-double-array (.nth ^IPersistentVector m i) arr (+ off (* i skip)) skip))))
     arr))
 
 (extend-protocol mp/PDoubleArrayOutput
@@ -602,13 +603,13 @@
       (not (vector? m))
         (doseq-indexed [v (mp/element-seq m) i]
           (aset arr (+ off i) v))
-      (and (== size ct) (not (vector? (nth m 0 nil))))
+      (and (== size ct) (not (vector? (.nth ^IPersistentVector m 0 nil))))
         (dotimes [i size]
           (aset arr (+ off i) (.nth ^IPersistentVector m i)))
       :else
         (let [skip (quot size ct)]
           (dotimes [i ct]
-            (copy-to-object-array (nth m i) arr (+ off (* i skip)) skip))))
+            (copy-to-object-array (.nth ^IPersistentVector m i) arr (+ off (* i skip)) skip))))
     arr))
 
 (extend-protocol mp/PObjectArrayOutput
