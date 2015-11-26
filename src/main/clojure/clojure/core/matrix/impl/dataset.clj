@@ -444,6 +444,23 @@
   (.write writer (str "#dataset/row " {:column-names (.column-names x)
                                        :values (into [] x)})))
 
+;; reader methods for datasets
+
+(defn read-dataset
+  "Reader function for a core.matrix DataSet"
+  ([a]
+    (dataset-from-columns 
+      (:column-names a) 
+      (:columns a))))
+
+(defn read-dataset-row
+  "Reader function for a core.matrix DataSetRow. Creates a single row backed with persistent vectors"
+  ([a]
+    (DataSetRow. 
+      (vec (:column-names a)) 
+      (mapv vector (:values a)) 
+      0)))
+
 ;; Dataset with a two named columns and both numeric and non-numeric data
 (def CANONICAL-OBJECT (dataset-from-columns [:0 "Names"] [[1.0 2.0] ["A" "B"]]))
 
