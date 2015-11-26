@@ -1,6 +1,5 @@
 (ns clojure.core.matrix.readers
-  (:require [clojure.core.matrix :as m]
-            [clojure.core.matrix.dataset :as ds] 
+  (:require [clojure.core.matrix.dataset :as ds] 
             [clojure.core.matrix.impl.dataset :as dimpl]))
 
 (defn dataset
