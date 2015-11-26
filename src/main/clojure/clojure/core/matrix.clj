@@ -1036,6 +1036,39 @@
       (reduce #(mp/join-along %1 %2 dimension) arrays)
       (u/error "Failure to joins arrays"))))
 
+(defn conjoin 
+  "Adds a new value [b] as a new slice to an array [a], returning the extended array. 
+   Broadcasts the new value to the correct shape of a slice of a if necessary.
+
+   This can be considered as the array equivalent of clojure.core/conj"
+  ;; TODO: implement using a protocol
+  ([a b]
+    (let [ss (assoc (vec (mp/get-shape a)) 0 1)] 
+      (join a (mp/broadcast b ss))))
+  ([a b & more]
+    (let [ss (vec (next (mp/get-shape a)))
+          slcs (mapv #(mp/broadcast % ss) (cons b more))] 
+      (join a slcs))))
+
+(defn conjoin-along 
+  "Adds a new value [b] as a new slice to an array [a] along the given dimension, 
+   returning the extended array. 
+   Broadcasts the new value to the correct shape of a slice of a if necessary.
+
+   This can be considered as the array equivalent of clojure.core/conj using
+   a specified dimension"
+  ;; TODO: implement using a protocol
+  ([dim a b]
+    (if (== (long dim) 0)
+      (conjoin a b)
+      (let [ss (mp/get-shape (mp/get-slice a dim 0))] 
+        (join-along dim a (mp/broadcast b ss)))))
+  ([dim a b & more]
+    (reduce 
+      (fn [a b] (conjoin-along dim a b)) 
+      (conjoin-along dim a b) 
+      more)))
+
 (defn rotate
   "Rotates an array along specified dimensions. 
 

@@ -360,15 +360,27 @@
     (is (== -1 (det [[0 1] [1 0]])))))
 
 (deftest test-join
-  (is (= [1 2 3] (join [1 2] 3)))
-  (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]]))))
+  (is (equals [1 2 3] (join [1 2] 3)))
+  (is (equals [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]]))))
 
 (deftest test-join-along
-  (is (= [1 2 3] (join-along 0 [1 2] [3])))
-  (is (= [3 1 2] (join-along 0 [3] [1 2])))
-  (is (= [[3 2 1 2] [1 2 3 4]] (join-along 1 [[3 2] [1 2]] [[1] [3]] [[2] [4]])))
-  (is (= [[1 3 2 2] [3 1 2 4]] (join-along 1 [[1] [3]] [[3 2] [1 2]] [[2] [4]])))
-  (is (= [[[1 2]]] (join-along 2 [[[1]]] [[[2]]]))))
+  (is (equals [1 2 3] (join-along 0 [1 2] [3])))
+  (is (equals [3 1 2] (join-along 0 [3] [1 2])))
+  (is (equals [[3 2 1 2] [1 2 3 4]] (join-along 1 [[3 2] [1 2]] [[1] [3]] [[2] [4]])))
+  (is (equals [[1 3 2 2] [3 1 2 4]] (join-along 1 [[1] [3]] [[3 2] [1 2]] [[2] [4]])))
+  (is (equals [[[1 2]]] (join-along 2 [[[1]]] [[[2]]]))))
+
+(deftest test-conjoin
+  (is (equals [1 2 3] (conjoin [1 2] 3)))
+  (is (equals [[1 1] [2 2] [3 3]] (conjoin [[1 1] [2 2]] [3 3])))
+  (is (equals [[1 1] [2 2] [3 3]] (conjoin [[1 1] [2 2]] 3)))
+  (is (error? (conjoin [[1 1] [2 2]] [3 3 3]))))
+
+(deftest test-conjoin-along
+  (is (equals [1 2 3] (conjoin-along 0 [1 2] 3)))
+  (is (equals [3 1 2] (conjoin-along 0 [3] [1] 2)))
+  (is (equals [[1 2] [3 4] [5 6]] (conjoin-along 0 [[1 2] [3 4]] [5 6])))
+  (is (equals [[1 2 5] [3 4 6]] (conjoin-along 1 [[1 2] [3 4]] [5 6]))))
 
 (deftest test-main-diagonal
   (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]])))
