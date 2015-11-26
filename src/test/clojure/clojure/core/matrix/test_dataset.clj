@@ -36,7 +36,10 @@
     (is (= (column-name ds 1) (label ds 1 1)))
     (is (= (column-names ds) (labels ds 1)))
     (is (= (column-names ds) (column-names (get-row ds 1))))
-    (is (error? (column-name ds 2)))))
+    (is (error? (column-name ds 2)))
+    (is (= 0 (column-index ds :a)))
+    (is (= 1 (column-index ds :b)))
+    (is (nil? (column-index ds :c)))))
 
 (deftest test-select-columns
   (let [ds1 (dataset [:a :b :c] (matrix [[1 4 9] [2 5 9] [3 6 9] [4 7 9]]))

@@ -6,6 +6,7 @@
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [error]])
   (:import [clojure.core.matrix.impl.dataset DataSet]
+           [clojure.lang IPersistentVector]
            [java.util List]))
 
 (set! *warn-on-reflection* true)
@@ -89,9 +90,23 @@
 (defn column-name
   "Returns column name at given index. 
 
-   Returns nil if column name does not exist. Throws an exception if the index is out of bounds."
+   Throws an exception if the index is out of bounds."
   ([ds column-index]
     (mp/column-name ds column-index)))
+
+(defn column-index
+  "Returns column index for a given column name. 
+
+   Returns nil if column name does not exist."
+  ([ds column-name]
+    (when-let [cnames (mp/column-names ds)]
+      (let [cnames ^IPersistentVector (vec cnames)
+            n (.count cnames)]
+        (loop [i 0]
+          (when (< i n)
+            (if (= column-name (.nth cnames i))
+              i
+              (recur (inc i)))))))))
 
 (defn column
   "TODO: name may change
