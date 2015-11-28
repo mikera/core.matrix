@@ -4,7 +4,7 @@
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.dataset :as impl]
             [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.utils :refer [error]])
+            [clojure.core.matrix.utils :as utils :refer [error]])
   (:import [clojure.core.matrix.impl.dataset DataSet]
            [clojure.lang IPersistentVector]
            [java.util List]))
@@ -100,13 +100,8 @@
    Returns nil if column name does not exist."
   ([ds column-name]
     (when-let [cnames (mp/column-names ds)]
-      (let [cnames ^IPersistentVector (vec cnames)
-            n (.count cnames)]
-        (loop [i 0]
-          (when (< i n)
-            (if (= column-name (.nth cnames i))
-              i
-              (recur (inc i)))))))))
+      (let [cnames ^IPersistentVector (vec cnames)]
+        (utils/find-index cnames column-name)))))
 
 (defn column
   "TODO: name may change

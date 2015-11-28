@@ -2,7 +2,8 @@
   "Namespace for core.matrix utilities. Intended mainly for library and tool writers."
   (:refer-clojure :exclude [update])
   (:require [clojure.reflect :as r])
-  (:import [java.util Arrays]))
+  (:import [java.util Arrays]
+           [clojure.lang IPersistentVector]))
 
 ;; Some of these are copies of methods from the library
 ;;   https://github.com/mikera/clojure-utils
@@ -166,6 +167,16 @@
       (aset arr 1 b)
       (doseq-indexed [x more i] (aset arr (+ 2 i) x))
       arr)))
+
+(defn find-index
+  "Returns the index of a value in a vector, or nil if not present" 
+  ([^IPersistentVector v value]
+    (let [n (.count v)]
+      (loop [i 0]
+        (when (< i n)
+          (if (= value (.nth v i))
+            i
+            (recur (inc i))))))))
 
 (defn base-index-seq-for-shape
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"

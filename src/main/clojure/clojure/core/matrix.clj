@@ -1386,6 +1386,13 @@
   ([m dim]
     (mp/labels m dim))) 
 
+(defn label-index
+  "Return the index of a label along a given dimension. Returns nil if the label does not exist."
+  ([m dim label]
+    (let [ls (mp/labels m dim)]
+      (u/find-index ls label)))) 
+
+
 ;; ======================================
 ;; matrix maths / operations
 
