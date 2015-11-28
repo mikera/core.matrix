@@ -101,7 +101,7 @@
   ([ds column-name]
     (when-let [cnames (mp/column-names ds)]
       (let [cnames ^IPersistentVector (vec cnames)]
-        (utils/find-index cnames column-name)))))
+        (and cnames (utils/find-index cnames column-name))))))
 
 (defn column
   "TODO: name may change

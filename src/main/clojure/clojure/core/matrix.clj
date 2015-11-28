@@ -1390,7 +1390,7 @@
   "Return the index of a label along a given dimension. Returns nil if the label does not exist."
   ([m dim label]
     (let [ls (mp/labels m dim)]
-      (u/find-index ls label)))) 
+      (and ls (u/find-index ls label))))) 
 
 
 ;; ======================================
