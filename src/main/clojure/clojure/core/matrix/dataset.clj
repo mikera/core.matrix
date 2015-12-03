@@ -28,7 +28,7 @@
    4. map of columns with associated list of values.
    5. existing dataset
 
-   If col-names are provided they will be used, else incrementing Long values starting from 0, 
+   If column names are provided then they will be used, else incrementing Long values starting from 0, 
    i.e. 0, 1, 2, etc will be used as column names"
   ([col-names data]
     (cond
@@ -135,7 +135,7 @@
     (mp/select-rows ds rows)))
 
 (defn except-columns
-  "Returns new dataset with all columns except specified."
+  "Returns new dataset with all columns except those specified."
   ([ds col-names]
     (let [col-names (clojure.set/difference
                       (into #{} (column-names ds))
