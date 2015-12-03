@@ -42,7 +42,10 @@
       :else (error "Don't know how to create dataset from shape"  (shape data))))
   ([data]
     (cond
-      (instance? DataSet data) data
+      ;; already a dataset, just return as-is
+      (dataset? data) data
+      
+      ;; construct a dataset using 2D matrix data
       (matrix? data) (impl/dataset-from-array data)
       
       ;; map of names -> columns of elements
