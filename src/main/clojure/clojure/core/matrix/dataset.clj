@@ -134,13 +134,12 @@
   ([ds rows]
     (mp/select-rows ds rows)))
 
-(defn except-columns
-  "Returns new dataset with all columns except those specified."
+(defn remove-columns
+  "Returns new dataset with the specified columns removed"
   ([ds col-names]
-    (let [col-names (clojure.set/difference
-                      (into #{} (column-names ds))
-                      (into #{} col-names))]
-      (mp/select-columns ds col-names))))
+    (let [col-names (into #{} col-names)
+          selected (filterv (complement col-names) (column-names ds))]
+      (mp/select-columns ds selected))))
 
 (defn row-maps
   "Returns vector of maps with row values."

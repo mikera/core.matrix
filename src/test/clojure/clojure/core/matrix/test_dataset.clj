@@ -49,7 +49,7 @@
     (is (= (select-columns ds1 [:a :b])
            (dataset [:a :b] (matrix [[1 4] [2 5] [3 6] [4 7]]))))
     (is (= (select-columns ds2 [:a :b]) (dataset [:a :b] [])))
-    (is (= (except-columns ds1 [:a :b])
+    (is (= (remove-columns ds1 [:a :b])
            (dataset [:c] (matrix [[9] [9] [9] [9]]))))))
 
 (deftest test-select-rows
