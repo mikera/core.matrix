@@ -55,26 +55,29 @@
 
 (defrecord DataSet
   [^IPersistentVector column-names
-   ^IPersistentVector columns])
+   ^IPersistentVector columns
+   ^IPersistentVector shape])
 
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
         cc (long (count col-names)) 
-        ^IPersistentVector cols (vec (mp/get-rows (vec cols)))]
+        ^IPersistentVector cols (vec (mp/get-rows (vec cols)))
+        rc (long (mp/dimension-count (first cols) 0))]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
-    (DataSet. col-names cols)))
+    (DataSet. col-names cols [rc cc])))
 
 (defn dataset-from-rows [col-names rows]
   (let [^IPersistentVector col-names (vec col-names)
         cc (count col-names)
+        rc (long (mp/dimension-count rows 0))
         ;; _ (println (str "Building dataset from rows with " cc " columns"))
         ^IPersistentVector cols (if (empty? rows)
                                   (into [] (repeat cc []))
                                   (into [] (mp/get-columns rows)))]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
-    (DataSet. col-names cols)))
+    (DataSet. col-names cols [rc cc])))
 
 (defn dataset-from-array
   "Construct a dataset from an array. Uses labels from the array if available."
@@ -316,13 +319,9 @@
       false)
     (is-scalar? [m] false)
     (get-shape [m]
-      [(mp/dimension-count (first (.columns m)) 0) (.length ^IPersistentVector (.column-names m))])
+      (.shape m))
     (dimension-count [m dim]
-      (let [dim (long dim)]
-        (cond
-          (== dim 0) (mp/dimension-count (first (.columns m)) 0)
-          (== dim 1) (.length ^IPersistentVector (.column-names m))
-          :else (error "Invalid dimension for dataset: " dim))))
+      (.nth ^IPersistentVector (.shape m) (long dim)))
     
   DataSetRow
     (dimensionality [m]
@@ -382,7 +381,7 @@
           (fn [m i]
             (update-in m [:columns i] mp/element-map f))
           m
-          (range (mp/dimension-count m 1))))
+          (range (.nth ^IPersistentVector (.shape m) 1))))
       ([m f a]
         (let [as (broadcast-cols a (mp/get-shape m))]
           (reduce 
@@ -391,7 +390,7 @@
             m
             (range (mp/dimension-count m 1)))))
       ([m f a more]
-        (let [shape (mp/get-shape m)
+        (let [shape (.shape m)
               as (broadcast-cols a shape)
               mores (apply mapv vector (map #(broadcast-cols % shape) more))]
           (reduce 
