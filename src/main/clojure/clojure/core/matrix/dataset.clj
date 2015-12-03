@@ -15,10 +15,10 @@
 ;; ===============================================================
 ;; Specialised functions for dataset handling
 
-(defmacro ^{:private true} dataset?
-  "Returns true if argument is a dataset."
-  ([d]
-    `(instance? DataSet ~d)))
+(defn dataset?
+  "Returns true if argument is a dataset, defined as a 2D array with column names"
+  (^Boolean [d]
+    (boolean (and (== 2 (mp/dimensionality d)) (mp/column-names d)))))
 
 (defn dataset
   "Creates dataset from on of the following:
@@ -42,7 +42,7 @@
       :else (error "Don't know how to create dataset from shape"  (shape data))))
   ([data]
     (cond
-      (dataset? data) data
+      (instance? DataSet data) data
       (matrix? data) (impl/dataset-from-array data)
       
       ;; map of names -> columns of elements
