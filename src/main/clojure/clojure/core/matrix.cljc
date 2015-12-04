@@ -12,13 +12,13 @@
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.utils :as u])
   (:refer-clojure :exclude [array clone array?])
-  #?(:clj (:require 
+  #?(:clj (:require
             [clojure.core.matrix.macros :refer [TODO error]]
             [clojure.core.matrix.impl.index]
             [clojure.core.matrix.impl.pprint :as pprint]
             [clojure.core.matrix.impl.double-array]
             [clojure.core.matrix.impl.object-array])
-     :cljs (:require-macros 
+     :cljs (:require-macros
              [clojure.core.matrix.macros :refer [TODO error]])))
 
 ;; ==================================================================================

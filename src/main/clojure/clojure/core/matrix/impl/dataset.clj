@@ -9,6 +9,7 @@
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.impl defaults persistent-vector] ;; these are needed during loading
             [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.macros :refer [error]]
             [clojure.core.matrix.utils :refer :all])
   (:import [clojure.lang IPersistentVector]
            [java.util List]))

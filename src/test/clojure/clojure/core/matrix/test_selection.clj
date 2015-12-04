@@ -1,4 +1,4 @@
-(ns clojure.core.matrix.test-select
+(ns clojure.core.matrix.test-selection
   "Namespace for testing the clojure.core.matrix.select API"
   (:refer-clojure :exclude [vector?])
   (:require [clojure.core.matrix.protocols :as mp]
@@ -6,7 +6,7 @@
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer [broadcast-shape]]
             [clojure.core.matrix.macros :refer [error?]]
-            [clojure.core.matrix.select :refer :all]
+            [clojure.core.matrix.selection :refer :all]
             [clojure.test :refer :all]))
 
 (deftest test-sel

@@ -8,7 +8,7 @@
                       [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
                       [clojure.core.matrix.macros-clj :refer [try-current-implementation eps== native-array?]])
             (:import [clojure.lang ISeq])]
-      :cljs [(:require-macros 
+      :cljs [(:require-macros
                [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
                [clojure.core.matrix.macros-cljs :refer [try-current-implementation eps== native-array?]])]))
 
@@ -505,12 +505,12 @@
         (reduce (fn [m ix] (mp/set-nd m ix (apply f ix))) m (u/base-index-seq-for-shape shape)))))
 
 (extend-protocol mp/PDimensionInfo
-  ;nil
-  ;  (dimensionality [m] 0)
-  ;  (is-scalar? [m] true)
-  ;  (is-vector? [m] false)
-  ;  (get-shape [m] #?(:cljs (js/console.log (str "nil shape of seq: " m))) nil)
-  ;  (dimension-count [m i] (error "nil has zero dimensionality, cannot get count for dimension: " i))
+  nil
+    (dimensionality [m] 0)
+    (is-scalar? [m] true)
+    (is-vector? [m] false)
+    (get-shape [m] #?(:cljs (js/console.log (str "nil shape of seq: " m))) nil)
+    (dimension-count [m i] (error "nil has zero dimensionality, cannot get count for dimension: " i))
   #?(:clj clojure.lang.Keyword
      :cljs cljs.core.Keyword)
     (dimensionality [m] 0)
@@ -562,16 +562,16 @@
           (== 0 i)
             (count m)
           :else (error "Can't determine count of dimension " i " on Object: " (class m)))))
-    
-#?@(:cljs 
+
+#?@(:cljs
      [cljs.core/LazySeq
       (dimensionality [m] (inc (mp/dimensionality (first m))))
       (is-vector? [m] (== 0 (mp/dimensionality (first m))))
       (is-scalar? [m] false)
       (get-shape [m] (cons (count m) (mp/get-shape (first m))))
-      (dimension-count [m x] 
-                       (if (== x 0) 
-                         (count m) 
+      (dimension-count [m x]
+                       (if (== x 0)
+                         (count m)
                          (mp/dimension-count (first m) (dec x))))]))
 
 (extend-protocol mp/PSameShape
@@ -1014,10 +1014,10 @@
 
 (extend-protocol mp/PAddInnerProductMutable
   #?(:clj Object :cljs object)
-    (add-inner-product! 
-      ([m a b] 
-       (mp/matrix-add! m (mp/inner-product a b))) 
-      ([m a b factor] 
+    (add-inner-product!
+      ([m a b]
+       (mp/matrix-add! m (mp/inner-product a b)))
+      ([m a b factor]
        (mp/add-scaled! m (mp/inner-product a b) factor))))
 
 ;; type of matrix element
@@ -1803,30 +1803,31 @@
     (logistic! [m]
       (mp/element-map! m logistic-fn)))
 
-;#?(:clj
-;;; define standard Java maths functions for numbers
-;(eval
-;  `(extend-protocol mp/PMathsFunctions
-;     #?(:clj Number :cljs number)
-;       ~@(map (fn [[name func]]
-;                `(~name [~'m] (double (~func (double ~'m)))))
-;              mops/maths-ops)
-;     #?(:clj Object :cljs object)
-;       ~@(map (fn [[name func]]
-;                `(~name [~'m] (mp/element-map ~'m #(double (~func (double %))))))
-;              mops/maths-ops)))
-;
-;(eval
-;  `(extend-protocol mp/PMathsFunctionsMutable
-;     #?(:clj Number :cljs number)
-;       ~@(map (fn [[name func]]
-;                `(~(symbol (str name "!")) [~'m] (error "Number is not mutable!")))
-;              mops/maths-ops)
-;     #?(:clj Object :cljs object)
-;       ~@(map (fn [[name func]]
-;                `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(double (~func (double %))))))
-;              mops/maths-ops)))
-;)
+#?(:clj (do
+
+;; define standard Java maths functions for numbers
+(eval
+  `(extend-protocol mp/PMathsFunctions
+     #?(:clj Number :cljs number)
+       ~@(map (fn [[name func]]
+                `(~name [~'m] (double (~func (double ~'m)))))
+              mops/maths-ops)
+     #?(:clj Object :cljs object)
+       ~@(map (fn [[name func]]
+                `(~name [~'m] (mp/element-map ~'m #(double (~func (double %))))))
+              mops/maths-ops)))
+
+(eval
+  `(extend-protocol mp/PMathsFunctionsMutable
+     #?(:clj Number :cljs number)
+       ~@(map (fn [[name func]]
+                `(~(symbol (str name "!")) [~'m] (error "Number is not mutable!")))
+              mops/maths-ops)
+     #?(:clj Object :cljs object)
+       ~@(map (fn [[name func]]
+                `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(double (~func (double %))))))
+              mops/maths-ops)))
+))
 
 (extend-protocol mp/PMatrixSubComponents
   #?(:clj Object :cljs object)

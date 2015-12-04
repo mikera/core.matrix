@@ -8,6 +8,8 @@
             [clojure.walk :as w]
             [clojure.core.matrix.impl.ndarray :refer :all]
             [clojure.core.matrix.utils :refer :all]
+            [clojure.core.matrix.macros :refer :all]
+            [clojure.core.matrix.macros-clj :refer :all]
             [clojure.core.matrix.impl.ndarray-macro :refer :all]))
 
 (magic/spit-code :double)
