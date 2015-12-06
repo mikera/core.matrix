@@ -48,3 +48,11 @@
     (is (= [3.0] (+ [1.0] [2.0])))
     (is (= [[8.0]] (+ [[3.0]] [[5.0]])))
     (is (= [[[8]]] (+ [[[2]]] [[[6]]])))))
+
+(deftest test-min
+  (testing "minimum item in array"
+    (is (= (min 1 2 3) 1))))
+
+(deftest test-max
+  (testing "maximum item in array"
+    (is (= (max 1 2 3) 3))))

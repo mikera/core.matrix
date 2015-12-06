@@ -137,4 +137,4 @@
   ([a b]
     (m/eif (m/sub a b) a b))
   ([a b & more]
-    (reduce min (min a b) more)))
+    (reduce max (max a b) more)))
