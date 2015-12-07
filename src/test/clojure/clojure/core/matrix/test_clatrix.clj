@@ -5,10 +5,7 @@
             [clojure.core.matrix :refer :all]
             [clojure.test :refer :all]))
 
-;; Tests for the Vectorz implementation, an important high speed JVM array library
-;;
-;; Not intended to be exhasustive (since vectorz-clj has its own tests) however
-;; this is useful to detect breaking changes early.
+;; Tests for the Clatrix implementation
 
 (deftest compliance-tests-1D
   (compliance/instance-test (array :clatrix [1 2 3])))

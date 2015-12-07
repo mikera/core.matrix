@@ -11,6 +11,10 @@
 (deftest regressions
   (is (= [2] (seq (emap inc (object-array [1]))))))
 
+;; seems to be problem with CLJ-1790 ?
+;(deftest test-mget
+;  (is (= [2] (mget (object-array [1 2 3]) 1))))
+
 (deftest test-functional-ops
   (testing "map"
     (let [oa  (object-array [1 2])

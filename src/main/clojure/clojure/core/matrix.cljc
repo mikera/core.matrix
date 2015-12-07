@@ -162,20 +162,23 @@
 (defn zero-array
   "Creates a new zero-filled numerical array with the given shape."
   ([shape]
-    (mp/new-matrix-nd (implementation-check) shape))
+    (or (mp/new-matrix-nd (implementation-check) shape)
+        (mp/new-matrix-nd [] shape)))
   ([implementation shape]
-    (mp/new-matrix-nd (implementation-check implementation) shape)))
+    (or (mp/new-matrix-nd (implementation-check implementation) shape)
+        (mp/new-matrix-nd [] shape))))
 
 (defn new-array
   "Creates a new array with the given shape.
    New array will contain default values as defined by the implementation (usually null or zero).
    If the implementation supports mutable matrices, then the new matrix will be fully mutable."
   ([shape]
-    (mp/new-matrix-nd (implementation-check) shape))
+    (or (mp/new-matrix-nd (implementation-check) shape)
+        (mp/new-matrix-nd [] shape)))
   ([implementation shape]
     (or (mp/new-matrix-nd (implementation-check implementation) shape)
         (mp/new-matrix-nd (implementation-check) shape)
-        (mp/new-matrix-nd :persistent-vector shape)))) ;; todo: what is the right default?
+        (mp/new-matrix-nd [] shape)))) ;; todo: what is the right default?
 
 (defn new-sparse-array
   "Creates a new sparse array with the given shape.
@@ -815,6 +818,7 @@
   ([m x]
     (mp/get-row m x)))
 
+;; TODO: consider if should support labelled columns?
 (defn get-column
   "Gets a column of a matrix, as a 1D vector.
 
@@ -1044,6 +1048,39 @@
     (or
       (reduce #(mp/join-along %1 %2 dimension) arrays)
       (error "Failure to joins arrays"))))
+
+(defn conjoin 
+  "Adds a new value [b] as a new slice to an array [a], returning the extended array. 
+   Broadcasts the new value to the correct shape of a slice of a if necessary.
+
+   This can be considered as the array equivalent of clojure.core/conj"
+  ;; TODO: implement using a protocol
+  ([a b]
+    (let [ss (assoc (vec (mp/get-shape a)) 0 1)] 
+      (join a (mp/broadcast b ss))))
+  ([a b & more]
+    (let [ss (vec (next (mp/get-shape a)))
+          slcs (mapv #(mp/broadcast % ss) (cons b more))] 
+      (join a slcs))))
+
+(defn conjoin-along 
+  "Adds a new value [b] as a new slice to an array [a] along the given dimension, 
+   returning the extended array. 
+   Broadcasts the new value to the correct shape of a slice of a if necessary.
+
+   This can be considered as the array equivalent of clojure.core/conj using
+   a specified dimension"
+  ;; TODO: implement using a protocol
+  ([dim a b]
+    (if (== (long dim) 0)
+      (conjoin a b)
+      (let [ss (mp/get-shape (mp/get-slice a dim 0))] 
+        (join-along dim a (mp/broadcast b ss)))))
+  ([dim a b & more]
+    (reduce 
+      (fn [a b] (conjoin-along dim a b)) 
+      (conjoin-along dim a b) 
+      more)))
 
 (defn rotate
   "Rotates an array along specified dimensions.
@@ -1361,6 +1398,13 @@
   "Return a vector of labels for a given array dimension. Return nil if the dimension is unlabelled."
   ([m dim]
     (mp/labels m dim)))
+
+(defn label-index
+  "Return the index of a label along a given dimension. Returns nil if the label does not exist."
+  ([m dim label]
+    (let [ls (mp/labels m dim)]
+      (and ls (u/find-index ls label))))) 
+
 
 ;; ======================================
 ;; matrix maths / operations
@@ -1791,7 +1835,41 @@
 (defn logistic!
   "Computes the sigmoid (logistic) function for every element of an array. Mutates the array."
   [a]
-  (mp/logistic! a))
+  (mp/logistic! a)
+  a)
+
+(defn softplus
+  "Computes the softplus function for every element of an array."
+  [a]
+  (mp/softplus a))
+
+(defn softplus!
+  "Computes the softplus function for every element of an array. Mutates the array."
+  [a]
+  (mp/softplus! a)
+  a)
+
+(defn relu
+  "Computes the ReLU (rectified linear) function for every element of an array."
+  [a]
+  (mp/relu a))
+
+(defn relu!
+  "Computes the ReLU (rectified linear) function for every element of an array. Mutates the array."
+  [a]
+  (mp/relu! a)
+  a)
+
+(defn softmax
+  "Computes the softmax function for a numerical vector."
+  [a]
+  (mp/softmax a))
+
+(defn softmax!
+  "Computes the softmax function for every element of a numerical vector. Mutates the vector."
+  [a]
+  (mp/softmax! a)
+  a)
 
 ;; ==================================
 ;; Elementary row operations

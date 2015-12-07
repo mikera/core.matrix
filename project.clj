@@ -24,11 +24,31 @@
                                   [hiccup "1.0.5"]
                                   [clatrix "0.5.0"]
                                   [net.mikera/vectorz-clj "0.37.0-SNAPSHOT"]
-                                  [org.clojure/test.check "0.8.2"]]
+                                  [org.clojure/test.check "0.8.2"]
+
+                                  [org.clojure/clojurescript "1.7.170"]
+                                  [thi.ng/ndarray "0.3.1-SNAPSHOT"]]
 
                    :source-paths ["src/dev/clojure"]
                    :jvm-opts ^:replace []
-                   :plugins [[lein-codox "0.9.0"]]}}
+                   :plugins [[lein-codox "0.9.0"]
+                             [lein-cljsbuild "1.1.1"]]}}
+
+  :cljsbuild
+  {:test-commands {"unit" ["phantomjs" "resources/js/unit-test.js"]}
+
+   :builds
+   [{:id :dev
+     :source-paths ["src/main/clojure"]
+     :compiler {:output-to "resources/js/main.js"
+                :optimizations :whitespace
+                :pretty-print true}}
+
+    {:id :test
+     :source-paths ["src/main/clojure" "src/test/cljs"]
+     :compiler {:output-to "resources/js/unit-test.js"
+                :optimizations :whitespace
+                :pretty-print true}}]}
 
   :codox {:namespaces [clojure.core.matrix
                        clojure.core.matrix.dataset
@@ -43,3 +63,4 @@
                        clojure.core.matrix.stats]
           :src-dir-uri "https://github.com/mikera/core.matrix/blob/master/"
           :src-linenum-anchor-prefix "L"})
+

@@ -1748,7 +1748,9 @@
         (if-let [shape (seq shape)]
           (let [fs (long (first shape))
                 parts (partition-shape es shape)]
-            (mp/construct-matrix m (take fs parts)))
+            (or
+              (mp/construct-matrix m (take fs parts))
+              (mp/construct-matrix [] (take fs parts))))
           (first es)))))
 
 (extend-protocol mp/PCoercion
@@ -1803,7 +1805,61 @@
     (logistic! [m]
       (mp/element-map! m logistic-fn)))
 
-#?(:clj (do
+
+(defn- softplus-fn
+  "Softplus function, with primitive type hints"
+  (^double [^double t]
+    (if (> t 100.0) ;; catch the case of overflow to infinity for large inputs
+      t
+      (let [et (Math/exp t)]
+        (Math/log (+ 1.0 et))))))
+
+(extend-protocol mp/PSoftplus
+  #?(:clj Number :cljs number)
+    (softplus [m]
+      (let [et (Math/exp (double m))]
+        (Math/log (+ 1.0 et))))
+  #?(:clj Object :cljs object)
+    (softplus [m]
+      (mp/element-map m softplus-fn)))
+
+(extend-protocol mp/PSoftmax
+  #?(:clj Object :cljs object)
+    (softmax [m]
+      (let [em (mp/exp m)]
+        (mp/element-divide em (mp/element-sum em)))))
+
+(extend-protocol mp/PSoftmaxMutable
+  #?(:clj Object :cljs object)
+    (softmax! [m]
+      (mp/exp! m)
+      (mp/element-divide! m (mp/element-sum m))
+      m))
+
+(extend-protocol mp/PSoftplusMutable
+  #?(:clj Object :cljs object)
+    (softplus! [m]
+      (mp/element-map! m softplus-fn)))
+
+(defn- relu-fn
+  "ReLU function, with primitive type hints"
+  (^double [^double t]
+    (Math/max 0.0 t)))
+
+(extend-protocol mp/PReLU
+  #?(:clj Number :cljs number)
+    (relu [m]
+      (Math/max 0.0 (double m)))
+  #?(:clj Object :cljs object)
+    (relu [m]
+      (mp/element-map m relu-fn)))
+
+(extend-protocol mp/PReLUMutable
+  #?(:clj Object :cljs object)
+    (relu! [m]
+      (mp/element-map! m relu-fn)))
+
+#?(:clj  (do
 
 ;; define standard Java maths functions for numbers
 (eval
@@ -1937,8 +1993,10 @@
 (extend-protocol mp/PIndicesAccess
   #?(:clj Object :cljs object)
   (get-indices [a indices]
-    (mp/construct-matrix (if (array? a) a [])
-                         (map #(mp/get-nd a %1) (map mp/element-seq indices)))))
+    (let [vals (map #(mp/get-nd a %1) (map mp/element-seq indices))] ;; TODO: use index coerce?
+      (or
+        (when (array? a) (mp/construct-matrix a vals))
+        (mp/construct-matrix [] vals)))))
 
 (extend-protocol mp/PIndicesSetting
   #?(:clj Object :cljs object)
@@ -2075,19 +2133,6 @@
 	  (index-coerce [m a]
       (mp/index-to-longs m)))
 
-(extend-protocol mp/PDimensionImplementation
-  #?(:clj Object :cljs object)
-    (dimension-name [ds idx dim]
-      (let [dim (long dim)]
-        (cond
-          (== dim 0) (mp/row-name ds idx)
-          (== dim 1) (mp/column-name ds idx)
-          :else idx)))
-    (row-name [ds idx]
-      idx)
-    (column-name [ds idx]
-      (nth (mp/column-names ds) idx)))
-
 ;; =======================================================
 ;; default label implementation
 
@@ -2101,6 +2146,15 @@
       (if (<= 0 (long dim) (dec (long (mp/dimensionality m))))
         nil
         (error "Dimension out of range: " dim))))
+
+(extend-protocol mp/PColumnNames
+  #?(:clj Object :cljs object)
+    (column-name [m i]
+      (let [dim (dec (long (mp/dimensionality m)))]
+        (mp/label m dim i)))
+    (column-names [m]
+      (let [dim (dec (long (mp/dimensionality m)))]
+        (mp/labels m dim))))
 
 
 ;; =======================================================

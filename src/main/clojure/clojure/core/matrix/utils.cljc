@@ -2,7 +2,8 @@
   "Namespace for core.matrix utilities. Intended mainly for library and tool writers."
   (:refer-clojure :exclude [update])
   #?@(:clj [(:require [clojure.reflect :as r])
-            (:import [java.util Arrays])])
+            (:import [java.util Arrays]
+                     [clojure.lang IPersistentVector])])
   (#?(:clj :require :cljs :require-macros)
            [clojure.core.matrix.macros :refer [TODO doseq-indexed is-long-array?]]))
 
@@ -126,6 +127,16 @@
       (doseq-indexed [x more i] (aset arr (+ 2 i) x))
       arr)))
 
+(defn find-index
+  "Returns the index of a value in a vector, or nil if not present" 
+  ([^IPersistentVector v value]
+    (let [n (.count v)]
+      (loop [i 0]
+        (when (< i n)
+          (if (= value (.nth v i))
+            i
+            (recur (inc i))))))))
+
 (defn base-index-seq-for-shape
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"
   [sh]
@@ -184,7 +195,7 @@
     (extends? proto cls)
     (let [bases (-> cls (r/type-reflect :ancestors true) :ancestors)]
       (->> bases
-           (filter (complement #{'Object}))
+           (filter (complement #{'Object 'java.lang.Object}))
            (map resolve)
            (cons cls)
            (map (partial extends? proto))

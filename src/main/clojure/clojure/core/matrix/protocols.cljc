@@ -797,6 +797,30 @@
   "Protocol to support mutable element-wise logistic function on a numerical array."
   (logistic! [m]))
 
+(defprotocol PSoftplus
+  "Protocol to support element-wise softplus function on a numerical array."
+  (softplus [m]))
+
+(defprotocol PSoftplusMutable
+  "Protocol to support mutable element-wise softplus function on a numerical array."
+  (softplus! [m]))
+
+(defprotocol PReLU
+  "Protocol to support element-wise relu function on a numerical array."
+  (relu [m]))
+
+(defprotocol PReLUMutable
+  "Protocol to support mutable element-wise relu function on a numerical array."
+  (relu! [m]))
+
+(defprotocol PSoftmax
+  "Protocol to support element-wise softmax function on a numerical vector."
+  (softmax [m]))
+
+(defprotocol PSoftmaxMutable
+  "Protocol to support mutable element-wise softmax function on a numerical vector."
+  (softmax! [m]))
+
 ;; ==================================
 ;; Elementary Row Operation Protocols
 ;;
@@ -1057,6 +1081,13 @@
   (label [m dim i] "Returns the label at a specific index along the given dimension")
   (labels [m dim] "Returns all labels along a given dimension, as a vector"))
 
+(defprotocol PColumnNames
+  "Protocol for arrays supporting labelled columns. This is a specialisation of label functionality
+   intended for use by datasets, the key difference is that column-names should alwys select the 
+   last dimension."
+  (column-name [m column] "Returns the label at a specific column")
+  (column-names [m] "Returns all labels along the columns on an array")) 
+
 ;; ==========================================================
 ;; LINEAR ALGEBRA PROTOCOLS
 
@@ -1098,7 +1129,6 @@
 ;; TODO: break up and use generic labelling functionality?
 (defprotocol PDatasetImplementation
   "Protocol for general dataset functionality"
-  (column-names [ds] "Returns a persistent vector containing column names in the same order as they are placed in the dataset")
   (columns [ds] "Returns a persistent vector containing columns in the same order they are placed in the dataset")
   (select-columns [ds cols] "Produces a new dataset with the columns in the specified order")
   (select-rows [ds rows] "Produces a new dataset with specified rows")
@@ -1110,12 +1140,6 @@
   (replace-column [ds col-name vs] "Replaces column in a dataset with new values")
   (join-rows [ds1 ds2] "Returns a dataset created by combining the rows of the given datasets")
   (join-columns [ds1 ds2] "Returns a dataset created by combining the columns of the given datasets"))
-
-(defprotocol PDimensionImplementation
-  "EXPERIMENTAL: Protocol for querying multi-dimensioned datasets"
-  (dimension-name [ds idx dim] "Returns the name of the specified index along a given numbered dimension")
-  (row-name [ds idx] "Returns the name of the row (dimension 0) at a specified index")
-  (column-name [ds idx] "returns the name of the column (dimension 1) at a specified column index"))
 
 ;; ============================================================
 ;; Utility functions

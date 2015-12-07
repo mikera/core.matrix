@@ -361,15 +361,27 @@
     (is (== -1 (det [[0 1] [1 0]])))))
 
 (deftest test-join
-  (is (= [1 2 3] (join [1 2] 3)))
-  (is (= [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]]))))
+  (is (equals [1 2 3] (join [1 2] 3)))
+  (is (equals [[1 1] [2 2] [3 3]] (join [[1 1]] [[2 2] [3 3]]))))
 
 (deftest test-join-along
-  (is (= [1 2 3] (join-along 0 [1 2] [3])))
-  (is (= [3 1 2] (join-along 0 [3] [1 2])))
-  (is (= [[3 2 1 2] [1 2 3 4]] (join-along 1 [[3 2] [1 2]] [[1] [3]] [[2] [4]])))
-  (is (= [[1 3 2 2] [3 1 2 4]] (join-along 1 [[1] [3]] [[3 2] [1 2]] [[2] [4]])))
-  (is (= [[[1 2]]] (join-along 2 [[[1]]] [[[2]]]))))
+  (is (equals [1 2 3] (join-along 0 [1 2] [3])))
+  (is (equals [3 1 2] (join-along 0 [3] [1 2])))
+  (is (equals [[3 2 1 2] [1 2 3 4]] (join-along 1 [[3 2] [1 2]] [[1] [3]] [[2] [4]])))
+  (is (equals [[1 3 2 2] [3 1 2 4]] (join-along 1 [[1] [3]] [[3 2] [1 2]] [[2] [4]])))
+  (is (equals [[[1 2]]] (join-along 2 [[[1]]] [[[2]]]))))
+
+(deftest test-conjoin
+  (is (equals [1 2 3] (conjoin [1 2] 3)))
+  (is (equals [[1 1] [2 2] [3 3]] (conjoin [[1 1] [2 2]] [3 3])))
+  (is (equals [[1 1] [2 2] [3 3]] (conjoin [[1 1] [2 2]] 3)))
+  (is (error? (conjoin [[1 1] [2 2]] [3 3 3]))))
+
+(deftest test-conjoin-along
+  (is (equals [1 2 3] (conjoin-along 0 [1 2] 3)))
+  (is (equals [3 1 2] (conjoin-along 0 [3] [1] 2)))
+  (is (equals [[1 2] [3 4] [5 6]] (conjoin-along 0 [[1 2] [3 4]] [5 6])))
+  (is (equals [[1 2 5] [3 4 6]] (conjoin-along 1 [[1 2] [3 4]] [5 6]))))
 
 (deftest test-main-diagonal
   (is (e== [1 2] (main-diagonal [[1 0] [4 2] [5 7]])))
@@ -387,6 +399,25 @@
   (is (= [2]   (diagonal [[1 2] [3 4] [5 6]]  1)))
   (is (= [3 6] (diagonal [[1 2] [3 4] [5 6]] -1)))
   (is (= [5]   (diagonal [[1 2] [3 4] [5 6]] -2))))
+
+(deftest test-softplus
+  (is (equals [0.0 (log 2) 1000.0] (softplus [-1000.0 0.0 1000.0])))
+  (let [da (double-array [-1000 0 1000])]
+    (softplus! da)
+    (is (equals [0.0 (log 2) 1000.0] da))))
+
+(deftest test-relu
+  (is (equals [0.0 0.0 0.5 1000.0] (relu [-1000.0 0.0 0.5 1000.0])))
+  (let [da (double-array [-1000 0 1000])]
+    (relu! da)
+    (is (equals [0.0 0.0 1000.0] da))))
+
+(deftest test-softmax
+  (is (equals [0.5 0.5] (softmax [10 10])))
+  (is (equals [0.0 1.0] (softmax [-100 100]) 0.000001))
+  (let [da (double-array [-10 -10])]
+    (softmax! da)
+    (is (equals [0.5 0.5] da))))
 
 (deftest test-normalise
   (testing "vector normalise"
