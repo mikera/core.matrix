@@ -4,7 +4,8 @@
 
    Intended for use in random sampling, simulation etc."
   (:use clojure.core.matrix)
-  (:import [java.util Random RandomSeq]))
+  (:import [java.util Random]
+           [clojure.core.matrix.random RandomSeq]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)

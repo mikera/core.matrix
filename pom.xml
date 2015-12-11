@@ -100,7 +100,7 @@
 					</sourceDirectories>
 					<testSourceDirectories>
 						<testSourceDirectory>src/test/clojure</testSourceDirectory>
-						<testSourceDirectory>src/test/cljs</testSourceDirectory>
+            <!-- <testSourceDirectory>src/test/cljs</testSourceDirectory> -->
 						<testSourceDirectory>src/dev/clojure</testSourceDirectory>
 					</testSourceDirectories>
 				</configuration>
