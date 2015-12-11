@@ -129,6 +129,7 @@
            nil)
         nil))))
 
+
 (defn get-canonical-object-or-throw
   "Like get-canonical-object, except it throws an exception if the implementation cannot be found"
   ([mk]

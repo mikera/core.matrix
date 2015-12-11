@@ -32,23 +32,31 @@
                    :source-paths ["src/dev/clojure"]
                    :jvm-opts ^:replace []
                    :plugins [[lein-codox "0.9.0"]
+                             [lein-figwheel "0.5.0-2"]
                              [lein-cljsbuild "1.1.1"]]}}
 
   :cljsbuild
-  {:test-commands {"unit" ["phantomjs" "resources/js/unit-test.js"]}
+  {:test-commands {"unit" ["phantomjs" "resources/public/js/unit-test.js"]}
 
    :builds
    [{:id :dev
-     :source-paths ["src/main/clojure"]
-     :compiler {:output-to "resources/js/main.js"
-                :optimizations :whitespace
+     :figwheel true
+     :source-paths ["src/main/clojure" "src/test/cljs"]
+     :compiler {:output-to "resources/public/js/main.js"
+                :output-dir "resources/public/js/out"
+                :asset-path   "js/out"
+                :main clojure.core.matrix.test-basics
+                :optimizations :none
                 :pretty-print true}}
 
     {:id :test
      :source-paths ["src/main/clojure" "src/test/cljs"]
-     :compiler {:output-to "resources/js/unit-test.js"
+     :compiler {:output-to "resources/public/js/unit-test.js"
                 :optimizations :whitespace
                 :pretty-print true}}]}
+
+  :figwheel {:load-warninged-code true
+             :css-dirs ["resources/public/css"]}
 
   :codox {:namespaces [clojure.core.matrix
                        clojure.core.matrix.dataset

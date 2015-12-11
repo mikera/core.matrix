@@ -59,7 +59,7 @@
   ([m]
     (let [dims (long (mp/dimensionality m))
           type (mp/element-type m)
-          double? (or #?(:clj (= Double/TYPE type) :cljs (= js/Number type)))]
+          double? (or #?(:clj (= Double/TYPE type) :cljs (= number type)))]
       (cond
         (== dims 0)
           (wrap/wrap-scalar (mp/get-0d m))
@@ -1602,6 +1602,10 @@
 ;      (if (seq new-shape)
 ;        (mp/broadcast ())
 ;        m))
+  #?(:cljs number)
+  #?(:cljs (broadcast [m new-shape]
+                      (wrap/wrap-broadcast m new-shape)))
+
   #?(:clj Object :cljs object)
     (broadcast [m new-shape]
       (let [nshape new-shape

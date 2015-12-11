@@ -12,9 +12,9 @@
             [clojure.core.matrix.impl.mathsops :as mops]
   #?@(:clj [[clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed]]
             [clojure.core.matrix.macros-clj :refer [native-array?]]]))
-  #?(:clj
-      (:import [clojure.lang IPersistentVector Indexed]
-               [java.util List])
+
+  #?(:clj (:import [clojure.lang IPersistentVector Indexed]
+                   [java.util List])
       :cljs (:require-macros
               [clojure.core.matrix.impl.persistent-vector :refer [vector-1d?]]
               [clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed]]
@@ -556,7 +556,7 @@
     (get-shape [m]
       (let [c (count m)]
         (cons c (if (> c 0)
-                  (mp/get-shape (.nth m 0))
+                  (mp/get-shape (#?(:clj .nth :cljs nth) m 0))
                   nil))))
     (dimension-count [m x]
       (let [x (long x)]
