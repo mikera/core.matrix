@@ -1,16 +1,21 @@
 (ns clojure.core.matrix.protocols
-  "Namespace for core.matrix protocols. These protocols are intended to be implemented by 
-   core.matrix array implemntations. 
+  "Namespace for core.matrix protocols. These protocols are intended to be implemented by
+   core.matrix array implemntations.
 
    End users should normally avoid using this namespace directly
    and instead use the functions in the main clojure.core.matrix API"
-  (:import [java.util List]
-           [clojure.lang Seqable])
-  (:require [clojure.core.matrix.utils :refer [error same-shape-object? broadcast-shape]]
-            [clojure.core.matrix.impl.mathsops :as mops]))
+  (:require [clojure.core.matrix.utils :refer [same-shape-object? broadcast-shape]]
+            [clojure.core.matrix.impl.mathsops :as mops])
+  (:refer-clojure :exclude [clone])
+  (#?(:clj :require :cljs :require-macros)
+           [clojure.core.matrix.macros :refer [error]])
+  #?(:clj (:import [java.util List]
+                   [clojure.lang Seqable])))
 
+#?(:clj (do
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
+))
 
 ;; ================================================================
 ;; clojure.core.matrix API protocols
@@ -38,7 +43,7 @@
      Each implementation should have one unique key. Official mapping of implementation keywords is
      maintained in the var clojure.core.matrix.implementations/KNOWN-IMPLEMENTATIONS.")
   (meta-info [m]
-    "Returns optional meta-information on the implementation. 
+    "Returns optional meta-information on the implementation.
 
      Standard keys:
        :doc - containing a string describing an implementation")
@@ -155,7 +160,7 @@
 (defprotocol PValidateShape
   "Optional protocol to validate the shape of a matrix. If the matrix has an incorrect shape, should
    throw an error. Otherwise it should return the correct shape."
-  (validate-shape 
+  (validate-shape
     [m]
     "Returns the shape of the array, performing validation and throwing an error if the shape is inconsistent"))
 
@@ -176,7 +181,7 @@
   (mutable-matrix [m]))
 
 (defprotocol PMutableCoercion
-  "Protocol for coercing to a mutable format. May return the original array, if it is already fully mutable, 
+  "Protocol for coercing to a mutable format. May return the original array, if it is already fully mutable,
    otherwise should return a fully mutable copy of the array.
 
    May return nil to indicate that a default implementation should be used.
@@ -223,10 +228,10 @@
     - They may be mutable (in which case set-0d! is expected to work)
     - They are not considered themselves to be scalars. Hence you must use get-0d to access the
       contained scalar value"
-  (get-0d 
+  (get-0d
     [m]
     "Gets the scalar value in an 0d array.")
-  (set-0d! 
+  (set-0d!
     [m value]
     "Sets the scalar value in the 0d array to a given value. Throws an error if not mutable."))
 
@@ -236,11 +241,11 @@
 
 (defprotocol PSpecialisedConstructors
   "Protocol for construction of special matrices."
-  (identity-matrix 
-    [m dims] 
+  (identity-matrix
+    [m dims]
     "Create a 2D identity matrix with the given number of dimensions")
-  (diagonal-matrix 
-    [m diagonal-values] 
+  (diagonal-matrix
+    [m diagonal-values]
     "Create a diagonal matrix with the specified leading diagonal values"))
 
 (defprotocol PPermutationMatrix
@@ -329,9 +334,9 @@
 (defprotocol PMatrixSlices
   "Protocol to support getting slices of an array.  If implemented, must return either a view, a scalar
    or an immutable sub-matrix: it must *not* return copied data. i.e. making a full copy must be avoided."
-  (get-row [m i] 
+  (get-row [m i]
     "Gets a row of a matrix with the given row index.")
-  (get-column [m i] 
+  (get-column [m i]
     "Gets a column of a matrix with the given row index.")
   (get-major-slice [m i]
     "Gets the major slice of an array with the given index. For a 2D matrix, equivalent to get-row")
@@ -371,7 +376,7 @@
    for the slices of a 1D vector.
 
    The default implementation uses get-major-slice-view to obtain the slices."
-  (get-major-slice-seq [m] 
+  (get-major-slice-seq [m]
     "Gets a sequence of all major array slices"))
 
 (defprotocol PSliceSeq2
@@ -379,7 +384,7 @@
 
    These must be views or immutable sub-arrays for higher order slices, or scalars
    for the slices of a 1D vector."
-  (get-slice-seq [m dim] 
+  (get-slice-seq [m dim]
     "Gets a sequence of all array slices"))
 
 (defprotocol PSliceViewSeq
@@ -401,7 +406,7 @@
   "Protocol for getting a sub-vector view of a vector. Must return a mutable view
    if the original vector is mutable. Should throw an exception if the specified
    subvector is out of bounds for the target vector."
-  (subvector [m start length] 
+  (subvector [m start length]
     "Gets a sub-vector of a vector. Must return a view if the vector is mutable."))
 
 ;; TODO: should return either an immutable sub-matrix or a mutable view
@@ -420,14 +425,14 @@
 
 (defprotocol PNewSparseArray
   "Protocol for constructing sparse arrays. Should return nil if the sparse array shape is not supported."
-  (new-sparse-array 
+  (new-sparse-array
     [m shape]
     "Creates a new sparse array with the given shape."))
 
 (defprotocol PZeroCount
-  "Protocol for counting the number of zeros in a numerical array. Must return an integer value 
+  "Protocol for counting the number of zeros in a numerical array. Must return an integer value
    representing the precise number of zeros."
-  (zero-count 
+  (zero-count
     [m]
     "Returns the number of zeros in the array"))
 
@@ -456,22 +461,22 @@
 
 (defprotocol PDoubleArrayOutput
   "Protocol for getting element data as a flattened double array"
-  (to-double-array 
+  (to-double-array
     [m]
     "Returns a double array containing the values of m in row-major order. May or may not be
      the internal double array used by m, depending on the implementation.")
-  (as-double-array 
+  (as-double-array
     [m]
     "Returns the internal double array used by m. If no such array is used, returns nil.
      Provides an opportunity to avoid copying the internal array."))
 
 (defprotocol PObjectArrayOutput
   "Protocol for getting element data as a flattened object array"
-  (to-object-array 
+  (to-object-array
     [m]
     "Returns an object array containing the values of m in row-major order. May or may not be
      the internal object array used by m, depending on the implementation.")
-  (as-object-array 
+  (as-object-array
     [m]
     "Returns the internal object array used by m. If no such array is used, returns nil.
      Provides an opportunity to avoid copying the internal array."))
@@ -479,13 +484,13 @@
 (defprotocol PValueEquality
   "Protocol for comparing two arrays, with the semantics of clojure.core/=.
    Must return false if the arrays are not of equal shape, or if any elements are not equal."
-  (value-equals 
+  (value-equals
     [m a]
     "Returns true if two arrays are equal both in shape and according to clojure.core/= for each element."))
 
 (defprotocol PMatrixEquality
   "Protocol for numerical array equality operations."
-  (matrix-equals 
+  (matrix-equals
     [a b]
     "Return true if a equals b, i.e. if a and b have the same shape and all elements are equal.
      Must use numerical value comparison on numbers (==) to account for matrices that may hold a mix of
@@ -494,11 +499,11 @@
      May throw an exception if the matrices are non-numeric"))
 
 (defprotocol PMatrixEqualityEpsilon
-  "Protocol for numerical array equality operations with a specified tolerance. Arrays are defined as equal 
+  "Protocol for numerical array equality operations with a specified tolerance. Arrays are defined as equal
    if the array shapes are the same and and for all corresponding elements ai and bi we have: |ai-bi|<=eps
 
    Should be equivalent to PMatrixEquality when eps is zero."
-  (matrix-equals-epsilon 
+  (matrix-equals-epsilon
     [a b eps]
     "As matrix-equals, but provides a numerical tolerance for equality testing."))
 
@@ -518,7 +523,7 @@
 
 (defprotocol PAddProduct
   "Optional protocol for add-product operation.
-   
+
    Intended to support optimised implementations for result = m + a * b"
   (add-product [m a b]))
 
@@ -526,14 +531,14 @@
   "Optional protocol for mutable add-product! operation.
 
    Intended to support optimised implementations for m = m + a * b"
-  (add-product! 
+  (add-product!
     [m a b] "Adds the elementwise product of a and b to m"))
 
 (defprotocol PAddScaledProduct
   "Protocol for add-product operation.
-   
+
    Intended to support optimised implementations for result = m + a * b * factor"
-  (add-scaled-product 
+  (add-scaled-product
     [m a b factor] "Adds the elementwise product of a, b and a scalar factor to m"))
 
 (defprotocol PAddScaledProductMutable
@@ -543,10 +548,10 @@
   (add-scaled-product! [m a b factor]))
 
 (defprotocol PAddScaled
-  "Protocol for add-scaled operation. 
+  "Protocol for add-scaled operation.
 
    Implementations may assume that factor is a scalar.
- 
+
    Intended to support optimised implementations for result = m + a * factor"
   (add-scaled [m a factor]))
 
@@ -580,8 +585,8 @@
   (element-multiply! [m a]))
 
 (defprotocol PVectorTransform
-  "Protocol to support transformation of a vector to another vector. Is equivalent to matrix multiplication 
-   when 2D matrices are used as transformations. But other transformations are possible, e.g. non-affine 
+  "Protocol to support transformation of a vector to another vector. Is equivalent to matrix multiplication
+   when 2D matrices are used as transformations. But other transformations are possible, e.g. non-affine
    transformations.
 
    A transformation need not be a core.matrix matrix: other types are permissible"
@@ -617,18 +622,18 @@
   (matrix-sub! [m a]))
 
 (defprotocol PScaleAdd
-  "Protocol to support the mutable scale-add! operation. This is a common operation that may be 
+  "Protocol to support the mutable scale-add! operation. This is a common operation that may be
    optimised by the underlying implementation. Implementations should consider extra optimisations for
    specific constant values e.g. 0.0 and 1.0 but this is not mandatory."
   (scale-add! [m1 a m2 b constant]
     "Scales array m1 in place by factor b, then adds array m2 scaled by factor b, then adds the constant"))
 
 (defprotocol PAddInnerProductMutable
-  "Protocol to support the mutable add-inner-product! operation. This is a common operation that may be 
+  "Protocol to support the mutable add-inner-product! operation. This is a common operation that may be
    optimised by the underlying implementation. Implementations should consider extra optimisations for
    specific constant factors e.g. 0.0 and 1.0 but this is not mandatory."
-  (add-inner-product! 
-    [m a b] 
+  (add-inner-product!
+    [m a b]
     [m a b factor]
     "Adds the inner product of a, b and an optional scalar factor to m"))
 
@@ -681,16 +686,16 @@
     "Transposes a mutable 2D matrix in place"))
 
 (defprotocol POrder
-  "Protocol for matrix reorder. 
+  "Protocol for matrix reorder.
 
-   By default, re-orders along the first (major) dimension, but may reorder along any dimension by 
+   By default, re-orders along the first (major) dimension, but may reorder along any dimension by
    specifiying the dimension argument.
 
    Indicies can be any seqable object containing the indices along the specified dimension to select.
    An index can be selected multiple times (which created repreated slices), or not at all (which excludes
    the slice from the result).
 
-   Some implementation may implement re-ordering using lightweight or mutable views over the original array 
+   Some implementation may implement re-ordering using lightweight or mutable views over the original array
    data."
   (order
     [m indices]
@@ -792,6 +797,30 @@
   "Protocol to support mutable element-wise logistic function on a numerical array."
   (logistic! [m]))
 
+(defprotocol PSoftplus
+  "Protocol to support element-wise softplus function on a numerical array."
+  (softplus [m]))
+
+(defprotocol PSoftplusMutable
+  "Protocol to support mutable element-wise softplus function on a numerical array."
+  (softplus! [m]))
+
+(defprotocol PReLU
+  "Protocol to support element-wise relu function on a numerical array."
+  (relu [m]))
+
+(defprotocol PReLUMutable
+  "Protocol to support mutable element-wise relu function on a numerical array."
+  (relu! [m]))
+
+(defprotocol PSoftmax
+  "Protocol to support element-wise softmax function on a numerical vector."
+  (softmax [m]))
+
+(defprotocol PSoftmaxMutable
+  "Protocol to support mutable element-wise softmax function on a numerical vector."
+  (softmax! [m]))
+
 ;; ==================================
 ;; Elementary Row Operation Protocols
 ;;
@@ -815,17 +844,53 @@
   (set-column [m i column])
   (set-column! [m i column]))
 
-;; code generation for protocol with unary mathematics operations defined in c.m.i.mathsops namespace
-;; also generate in-place versions e.g. signum!
-(eval
-  `(defprotocol PMathsFunctions
+(defprotocol PMathsFunctions
   "Protocol to support mathematical functions applied element-wise to a numerical array."
-  ~@(map (fn [[name func]] `(~name [~'m])) mops/maths-ops)))
+  (abs [m]) 
+  (acos [m])
+  (asin [m])
+  (atan [m])
+  (cbrt [m])
+  (ceil [m])
+  (cos [m])
+  (cosh [m])
+  (exp [m])
+  (floor [m])
+  (log [m])
+  (log10 [m])
+  (round [m])
+  (signum [m])
+  (sin [m])
+  (sinh [m])
+  (sqrt [m])
+  (tan [m])
+  (tanh [m])
+  (to-degrees [m])
+  (to-radians [m]))
 
-(eval
-  `(defprotocol PMathsFunctionsMutable
+(defprotocol PMathsFunctionsMutable
   "Protocol to support mutable mathematical functions applied element-wise to a numerical array."
-  ~@(map (fn [[name func]] `(~(symbol (str name "!")) [~'m])) mops/maths-ops)))
+  (abs! [m]) 
+  (acos! [m])
+  (asin! [m])
+  (atan! [m])
+  (cbrt! [m])
+  (ceil! [m])
+  (cos! [m])
+  (cosh! [m])
+  (exp! [m])
+  (floor! [m])
+  (log! [m])
+  (log10! [m])
+  (round! [m])
+  (signum! [m])
+  (sin! [m])
+  (sinh! [m])
+  (sqrt! [m])
+  (tan! [m])
+  (tanh! [m])
+  (to-degrees! [m])
+  (to-radians! [m]))
 
 (defprotocol PElementCount
   "Protocol to return the total count of elements in matrix. Result may be any integer type,
@@ -837,8 +902,8 @@
    if the array is not numerical."
   (element-min [m])
   (element-max [m])
-  (element-clamp [m a b] 
-    "Returns a matrix where the elements are clamped to be within lower and 
+  (element-clamp [m a b]
+    "Returns a matrix where the elements are clamped to be within lower and
     upper bounds specified by a and b, respectively."))
 
 (defprotocol PCompare
@@ -846,33 +911,33 @@
   (element-compare [a b]
     "Return the sign (signum) of the element-wise substraction of two scalars,
     arrays or matrices i.e., must satisfy (signum (sub A B).")
-  (element-if [m a b] 
+  (element-if [m a b]
     "Element-wise if statement.
-    
+
     Traverse each element, x, of a array or matrix, m. If:
-      - x > 0, return a (if scalar) or corresponding element of a (if a is an 
+      - x > 0, return a (if scalar) or corresponding element of a (if a is an
         array or matrix with same shape shape as m).
       - x <= 0, return b (if scalar) or corresponding element in b (if b is an
         array or matrix with same shape shape as m).
-    
+
     Return an array or matrix with the same shape as m.")
   (element-lt [m a]
-    "Return a binary array or matrix where elements of m less-than a are 
+    "Return a binary array or matrix where elements of m less-than a are
     represented by 1 and elements greater-than a are represented as 0.")
   (element-le [m a]
-    "Return a binary array or matrix where elements of m less-than-or-equal 
+    "Return a binary array or matrix where elements of m less-than-or-equal
     to a are  represented by 1 and elements greater-than a are represented as 0.")
   (element-gt [m a]
-    "Return a binary array or matrix where elements of m greater-than a are 
+    "Return a binary array or matrix where elements of m greater-than a are
     represented by 1 and elements less-than a are represented as 0.")
   (element-ge [m a]
-    "Return a binary array or matrix where elements of m greater-than-or-equal 
+    "Return a binary array or matrix where elements of m greater-than-or-equal
     to a are  represented by 1 and elements less than a are represented as 0.")
   (element-ne [m a]
-    "Return a binary array or matrix where elements of m not-equal to a are 
+    "Return a binary array or matrix where elements of m not-equal to a are
     represented by 1 and elements equal to a are represented as 0.")
   (element-eq [m a]
-    "Return a binary array or matrix where elements of m equal to a are 
+    "Return a binary array or matrix where elements of m equal to a are
     represented by 1 and elements not-equal to a are represented as 0."))
 
 (defprotocol PFunctionalOperations
@@ -911,7 +976,7 @@
     [m f a]
     [m f a more]
     "Maps f over all elements of m (and optionally other matrices), returning a new matrix.
-     f is expected to accept an index vector and the current element value, and produce 
+     f is expected to accept an index vector and the current element value, and produce
      elements of a type supported by the implementation of m - failure
      to do so may cause an error.")
   (element-map-indexed!
@@ -920,7 +985,7 @@
     [m f a more]
     "Maps f over all elements of m (and optionally other matrices), mutating the elements of m in place.
      Must throw an exception if m is not mutable.
-     f is expected to accept an index vector and the current element value, and produce 
+     f is expected to accept an index vector and the current element value, and produce
      elements of a type supported by the implementation of m - failure
      to do so may cause an error."))
 
@@ -973,7 +1038,7 @@
   (select [a args] "selects all elements at indices which are in the cartesian product of args"))
 
 (defprotocol PSelectView
-  "Protocol for the sel function. Like PSelect, but guarantees an mutable view. 
+  "Protocol for the sel function. Like PSelect, but guarantees an mutable view.
 
    If not supported by the implementation, may return nil to indicate that a default mutable view
    should be created."
@@ -1014,7 +1079,14 @@
 (defprotocol PDimensionLabels
   "Protocol for arrays supporting labelled dimensions"
   (label [m dim i] "Returns the label at a specific index along the given dimension")
-  (labels [m dim] "Returns all labels along a given dimension, as a vector")) 
+  (labels [m dim] "Returns all labels along a given dimension, as a vector"))
+
+(defprotocol PColumnNames
+  "Protocol for arrays supporting labelled columns. This is a specialisation of label functionality
+   intended for use by datasets, the key difference is that column-names should alwys select the 
+   last dimension."
+  (column-name [m column] "Returns the label at a specific column")
+  (column-names [m] "Returns all labels along the columns on an array")) 
 
 ;; ==========================================================
 ;; LINEAR ALGEBRA PROTOCOLS
@@ -1057,7 +1129,6 @@
 ;; TODO: break up and use generic labelling functionality?
 (defprotocol PDatasetImplementation
   "Protocol for general dataset functionality"
-  (column-names [ds] "Returns a persistent vector containing column names in the same order as they are placed in the dataset")
   (columns [ds] "Returns a persistent vector containing columns in the same order they are placed in the dataset")
   (select-columns [ds cols] "Produces a new dataset with the columns in the specified order")
   (select-rows [ds rows] "Produces a new dataset with specified rows")
@@ -1070,12 +1141,6 @@
   (join-rows [ds1 ds2] "Returns a dataset created by combining the rows of the given datasets")
   (join-columns [ds1 ds2] "Returns a dataset created by combining the columns of the given datasets"))
 
-(defprotocol PDimensionImplementation
-  "EXPERIMENTAL: Protocol for querying multi-dimensioned datasets"
-  (dimension-name [ds idx dim] "Returns the name of the specified index along a given numbered dimension")
-  (row-name [ds idx] "Returns the name of the row (dimension 0) at a specified index")
-  (column-name [ds idx] "returns the name of the column (dimension 1) at a specified column index"))
-
 ;; ============================================================
 ;; Utility functions
 
@@ -1087,12 +1152,13 @@
       (== dims 0) (get-0d x) ;; first handle scalar / 0d case
       (clojure.core/vector? x) (mapv convert-to-nested-vectors x)
       (== dims 1) (vec (element-seq x))
-      (instance? List x) (mapv convert-to-nested-vectors x)
-      (instance? Iterable x) (mapv convert-to-nested-vectors x)
-      (instance? Seqable x) (mapv convert-to-nested-vectors x)
-      (.isArray (class x)) (mapv convert-to-nested-vectors (seq x))
+      #?@(:clj [(instance? List x) (mapv convert-to-nested-vectors x)])
+      (instance? #?(:clj Iterable :cljs IIterable) x) (mapv convert-to-nested-vectors x)
+      (instance? #?(:clj Seqable :cljs ISeqable) x) (mapv convert-to-nested-vectors x)
+      #?@(:clj [(.isArray (class x)) (mapv convert-to-nested-vectors (seq x))])
       (not (is-scalar? x)) (mapv convert-to-nested-vectors (get-major-slice-seq x))
-      :default (error "Can't coerce to vector: " (class x)))))
+      :default (error "Can't coerce to vector: " #?(:clj (class x)
+                                                    :cljs (type x))))))
 
 (defn- calc-common-shape
   "Returns the larger of two shapes if they are compatible, nil otherwise"
@@ -1103,14 +1169,14 @@
       (if (< diff 0)
         (recur b a)
         (loop [i 0]
-          (if (< i cb) 
+          (if (< i cb)
             (if (== (nth a (+ diff i)) (nth b i))
               (recur (inc i))
               nil)
             a))))))
 
-(defn common-shape 
-  "Returns the common shape that can be broadcast to from all the shapes specified, 
+(defn common-shape
+  "Returns the common shape that can be broadcast to from all the shapes specified,
    or nil if such a shape does not exist."
   ([shapes]
     (loop [result []

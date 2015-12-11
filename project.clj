@@ -4,7 +4,7 @@
 ;; dependencies / configuration in this file may be out of date
 ;; if in doubt, please refer to the latest pom.xml
 
-(defproject net.mikera/core.matrix "0.44.0"
+(defproject net.mikera/core.matrix "0.45.0-CLJS-SNAPSHOT"
   :url "https://github.com/mikera/core.matrix"
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -23,13 +23,41 @@
                                   [org.clojure/tools.macro "0.1.5"]
                                   [hiccup "1.0.5"]
                                   [clatrix "0.5.0"]
-                                  [net.mikera/vectorz-clj "0.37.0"]
-                                  [org.clojure/test.check "0.8.2"]]                      
-                   
+                                  [net.mikera/vectorz-clj "0.37.0-SNAPSHOT"]
+                                  [org.clojure/test.check "0.8.2"]
+
+                                  [org.clojure/clojurescript "1.7.170"]
+                                  [thi.ng/ndarray "0.3.1-SNAPSHOT"]]
+
                    :source-paths ["src/dev/clojure"]
                    :jvm-opts ^:replace []
-                   :plugins [[lein-codox "0.9.0"]]}}
-  
+                   :plugins [[lein-codox "0.9.0"]
+                             [lein-figwheel "0.5.0-2"]
+                             [lein-cljsbuild "1.1.1"]]}}
+
+  :cljsbuild
+  {:test-commands {"unit" ["phantomjs" "resources/public/js/unit-test.js"]}
+
+   :builds
+   [{:id :dev
+     :figwheel true
+     :source-paths ["src/main/clojure" "src/test/cljs"]
+     :compiler {:output-to "resources/public/js/main.js"
+                :output-dir "resources/public/js/out"
+                :asset-path   "js/out"
+                :main clojure.core.matrix.test-basics
+                :optimizations :none
+                :pretty-print true}}
+
+    {:id :test
+     :source-paths ["src/main/clojure" "src/test/cljs"]
+     :compiler {:output-to "resources/public/js/unit-test.js"
+                :optimizations :whitespace
+                :pretty-print true}}]}
+
+  :figwheel {:load-warninged-code true
+             :css-dirs ["resources/public/css"]}
+
   :codox {:namespaces [clojure.core.matrix
                        clojure.core.matrix.dataset
                        clojure.core.matrix.io
@@ -43,3 +71,4 @@
                        clojure.core.matrix.stats]
           :src-dir-uri "https://github.com/mikera/core.matrix/blob/master/"
           :src-linenum-anchor-prefix "L"})
+

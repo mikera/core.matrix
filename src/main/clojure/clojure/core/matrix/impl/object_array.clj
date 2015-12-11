@@ -1,16 +1,17 @@
 (ns clojure.core.matrix.impl.object-array
-  "Namespace for core.matrix implementation using nested Java object arrays. 
+  "Namespace for core.matrix implementation using nested Java object arrays.
 
    Array format is defined as:
    - Top level object is a Java Object[] array
-   - If the array is 1-dimensional each element is a scalar 
+   - If the array is 1-dimensional each element is a scalar
    - Otherwise each element is an sub-array with identical shape (1 dimensional or more)"
   (:require [clojure.core.matrix.protocols :as mp]
             clojure.core.matrix.impl.persistent-vector
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.mathsops :as mops]
             [clojure.core.matrix.impl.wrappers :as wrap]
-            [clojure.core.matrix.utils :refer :all])
+            [clojure.core.matrix.utils :as u]
+            [clojure.core.matrix.macros :refer [error TODO is-object-array?]])
   (:import [java.util Arrays]))
 
 (set! *warn-on-reflection* true)
@@ -62,7 +63,7 @@
                   cmv (object-array-coerce mv)]
               (if (and (identical? m ret) (identical? mv cmv))
                 (recur ret (inc i))
-                (let [mm (copy-object-array m)]
+                (let [mm (u/copy-object-array m)]
                   (aset mm i cmv)
                   (recur mm (inc i)))))
             ret)))
@@ -154,11 +155,11 @@
 (extend-protocol mp/PIndexedSetting
   (Class/forName "[Ljava.lang.Object;")
     (set-1d [m x v]
-      (let [^objects arr (copy-object-array m)]
+      (let [^objects arr (u/copy-object-array m)]
         (aset arr (int x) v)
         arr))
     (set-2d [m x y v]
-      (let [^objects arr (copy-object-array m)
+      (let [^objects arr (u/copy-object-array m)
             x (int x)]
         (aset arr x (mp/set-1d (aget ^objects m x) y v))
         arr))
@@ -166,12 +167,12 @@
       (let [dims (long (count indexes))]
         (cond
           (== 1 dims)
-            (let [^objects arr (copy-object-array m)
+            (let [^objects arr (u/copy-object-array m)
                   x (int (first indexes))]
               (aset arr (int x) v)
               arr)
           (> dims 1)
-            (let [^objects arr (copy-object-array m)
+            (let [^objects arr (u/copy-object-array m)
                   x (int (first indexes))]
               (aset arr x (mp/set-nd (aget ^objects m x) (next indexes) v))
               arr)

@@ -1,13 +1,15 @@
 (ns clojure.core.matrix.impl.ndarray
   (:refer-clojure :exclude [vector?])
   (:require [clojure.walk :as w]
-            [clojure.core.matrix.impl.default]
+            [clojure.core.matrix.impl.defaults]
             [clojure.core.matrix.impl.ndarray-magic :as magic]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.mathsops :as mops]
-            [clojure.core.matrix.utils :refer :all]
-            [clojure.core.matrix.impl.ndarray-macro :refer :all]))
+            [clojure.core.matrix.utils :as u]
+            [clojure.core.matrix.impl.ndarray-macro :refer :all]
+            [clojure.core.matrix.macros :refer [error scalar-coerce c-for doseq-indexed]]
+            [clojure.core.matrix.macros-clj :refer [native-array?]]))
 
 ;; (error "NDArray loaded!")
 
@@ -746,7 +748,7 @@
                            row-a 0
                            col-a 0]
                       (if (< row-a nrows)
-                        (if (< col-a ncols) 
+                        (if (< col-a ncols)
                           (if (== (aget data i-a) (aget data-b i-b))
                             (recur (+ i-a step-col-a) (+ i-b step-col-b)
                                    row-a (inc col-a))

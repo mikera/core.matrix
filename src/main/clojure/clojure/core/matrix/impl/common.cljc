@@ -3,7 +3,7 @@
   (:require [clojure.string :as s]
             [clojure.core.matrix.utils :as u]
             [clojure.core.matrix.implementations :as mi]
-            [clojure.java.shell :refer [sh]]))
+    #?(:clj [clojure.java.shell :refer [sh]])))
 
 (defn get-impl-objs
   "Returns a list of available implementations' objects"
@@ -13,7 +13,9 @@
                 :when (not (#{:TODO :persistent-vector} ns))]
             (try
               {:name name, :obj (mi/get-canonical-object name)}
-              (catch Throwable t nil)))))
+              (catch #?(:clj Throwable :cljs js/Error) t nil)))))
+
+#?(:clj (do
 
 (defn find-implementers
   "Returns a set of implementation names of implementations that
@@ -37,3 +39,5 @@
   (-> (sh "git" "log" "--pretty=format:'%H'" "-n 1")
       :out
       (s/replace #"'" "")))
+
+))

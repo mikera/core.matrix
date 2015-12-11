@@ -1,49 +1,24 @@
 (ns clojure.core.matrix.utils
   "Namespace for core.matrix utilities. Intended mainly for library and tool writers."
   (:refer-clojure :exclude [update])
-  (:require [clojure.reflect :as r])
-  (:import [java.util Arrays]))
+  #?@(:clj [(:require [clojure.reflect :as r])
+            (:import [java.util Arrays]
+                     [clojure.lang IPersistentVector])])
+  (#?(:clj :require :cljs :require-macros)
+           [clojure.core.matrix.macros :refer [TODO doseq-indexed is-long-array?]]))
 
 ;; Some of these are copies of methods from the library
 ;;   https://github.com/mikera/clojure-utils
 ;;
 ;; duplicated here to avoid an extra dependency
 
+#?(:clj (do
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
-
-(defmacro error
-  "Throws an error with the provided message(s)"
-  ([& vals]
-    `(throw (RuntimeException. (str ~@vals)))))
-
-(defmacro error?
-  "Returns true if executing body throws an error, false otherwise."
-  ([& body]
-    `(try
-       ~@body
-       false
-       (catch Throwable t#
-         true))))
-
-;; useful TODO macro: facilitates searching for TODO while throwing an error at runtime :-)
-(defmacro TODO
-  ([] `(error "TODO: not yet implemented"))
-  ([& vals] `(error "TODO: " ~@vals)))
-
-(defmacro iae
-  "Throws IllegalArgumentException with provided string"
-  [exception-str]
-  `(throw (IllegalArgumentException. ~exception-str)))
-
-(defmacro iae-when-not
-  "Throws an IllegalArgumentException when the predicate is not satisfied"
-  [pred? exception-str]
-  `(when-not ~pred?
-     (iae ~exception-str)))
-
-(defmacro java-array? [m]
-  `(.isArray (.getClass ~m)))
+)
+:cljs (do
+(def class type)
+))
 
 (defn valid-shape?
   "returns true if the given object is a valid core.matrix array shape."
@@ -51,7 +26,7 @@
     (try
       (and (>= (count shape) 0)
            (every? integer? shape))
-      (catch Throwable t false))))
+      (catch #?(:clj Throwable :cljs js/Error) t false))))
 
 (defn same-shape-object?
   "Returns true if two shapes are the same."
@@ -59,7 +34,7 @@
     (cond
       (identical? sa sb) true
       (not= (count sa) (count sb)) false
-      :else 
+      :else
         (let [ca (count sa)]
           (loop [i 0]
             (if (>= i ca)
@@ -79,31 +54,23 @@
         (recur (if (first ss) (not p) p) (next ss))
         p))))
 
-(defmacro doseq-indexed
-  "loops over a set of values, binding index-sym to the 0-based index of each value"
-  ([[val-sym values index-sym] & code]
-  `(loop [vals# (seq ~values)
-          ~index-sym (long 0)]
-     (if vals#
-       (let [~val-sym (first vals#)]
-             ~@code
-             (recur (next vals#) (inc ~index-sym)))
-       nil))))
-
 (defn copy-double-array
   "Returns a copy of a double array"
   (^doubles [^doubles arr]
-    (Arrays/copyOf arr (int (alength arr)))))
+  #?(:clj (Arrays/copyOf arr (int (alength arr)))
+     :cljs (.slice arr 0))))
 
 (defn copy-long-array
   "Returns a copy of a long array"
   (^longs [^longs arr]
-    (Arrays/copyOf arr (int (alength arr)))))
+  #?(:clj (Arrays/copyOf arr (int (alength arr)))
+     :cljs (.slice arr 0))))
 
 (defn copy-object-array
   "Returns a copy of a long array"
   (^objects [^objects arr]
-    (Arrays/copyOf arr (int (alength arr)))))
+  #?(:clj (Arrays/copyOf arr (int (alength arr)))
+     :cljs (.slice arr 0))))
 
 (defn long-range
   "Returns a range of longs in a long[] array"
@@ -114,20 +81,13 @@
         (aset arr i (long i)))
       arr)))
 
-(defmacro is-object-array? [m]
-  `(instance? ~(Class/forName "[Ljava.lang.Object;") ~m))
-
-(defmacro is-long-array? [m]
-  `(instance? ~(Class/forName "[J") ~m))
-
-(defmacro is-double-array? [m]
-  `(instance? ~(Class/forName "[D") ~m))
-
+#?(:clj
 (defn to-long-array
   ([data]
     (if (is-long-array? data)
       data
       (long-array data))))
+)
 
 (defn long-array-of
   "Creates a long array with the specified values."
@@ -166,6 +126,16 @@
       (aset arr 1 b)
       (doseq-indexed [x more i] (aset arr (+ 2 i) x))
       arr)))
+
+(defn find-index
+  "Returns the index of a value in a vector, or nil if not present" 
+  ([^IPersistentVector v value]
+    (let [n (.count v)]
+      (loop [i 0]
+        (when (< i n)
+          (if (= value (.nth v i))
+            i
+            (recur (inc i))))))))
 
 (defn base-index-seq-for-shape
   "Returns a sequence of all possible index vectors for a given shape, in row-major order"
@@ -210,46 +180,9 @@
   ([from-shape to-shape]
     (TODO)))
 
-(defmacro c-for
-  "C-like loop with nested loops support"
-  [loops & body]
-  (letfn [(c-for-rec [loops body-stmts]
-            (if (seq loops)
-              (let [[var init check next] (take 4 loops)]
-                `((loop [~var ~init]
-                     (when ~check
-                       ~@(c-for-rec (nthrest loops 4) body-stmts)
-                       (recur ~next)))))
-              body-stmts))]
-    `(do ~@(c-for-rec loops body) nil)))
-
-(defmacro abutnth [i xs]
-  `(let [n# (alength ~xs)
-         new-xs# (Arrays/copyOf ~xs (int (dec n#)))]
-     (c-for [j# (int ~i) (< j# (dec n#)) (inc j#)]
-       (aset new-xs# (int j#) (aget ~xs (int (inc j#)))))
-     new-xs#))
-
-(defmacro areverse [xs]
-  `(let [n# (alength ~xs)
-         new-xs# (Arrays/copyOf ~xs (int n#))]
-     (c-for [i# (int 0) (< i# (quot n# 2)) (inc i#)]
-       (let [j# (- (- n# 1) i#)
-             t# (aget new-xs# j#)]
-         (aset new-xs# j# (aget new-xs# i#))
-         (aset new-xs# i# t#)))
-     new-xs#))
-
-(defmacro scalar-coerce
-  "Macro to coerce to scalar value with an efficient dispatch sequence"
-  ([x]
-  `(let [x# ~x]
-     (cond
-       (number? x#) x#
-       :else (clojure.core.matrix.protocols/get-0d x#)))))
-
 ;; utilities for protocol introspection
 
+#?(:clj
 (defn extends-deep?
   "This functions differs from ordinary `extends?` by using `extends?`
    on all ancestors of given type instead of just type itself. It also
@@ -262,11 +195,12 @@
     (extends? proto cls)
     (let [bases (-> cls (r/type-reflect :ancestors true) :ancestors)]
       (->> bases
-           (filter (complement #{'Object}))
+           (filter (complement #{'Object 'java.lang.Object}))
            (map resolve)
            (cons cls)
            (map (partial extends? proto))
            (some true?)))))
+)
 
 (defn protocol?
   "Returns true if an argument is a protocol'"
@@ -280,6 +214,8 @@
   [[name p]]
   (let [m (->> @p :var meta)]
     (assoc @p :line (:line m) :file (:file m) :name name)))
+
+#?(:clj (do
 
 (defn extract-protocols
   "Extracts protocol info from clojure.core.matrix.protocols"
@@ -299,7 +235,8 @@
   [m]
   (let [protocols (extract-protocols)
         m (if (class? m) m (class m))]
-    (map :name (filter #(not (extends-deep? % m)) protocols))))
+    (map :name (filter #(not (#?(:clj extends-deep? :cljs satisfies?) % m)) protocols))))
+))
 
 (defn update-indexed [xs idxs f]
   (reduce #(assoc %1 %2 (f %2 (get %1 %2))) xs idxs))

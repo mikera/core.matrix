@@ -4,7 +4,8 @@
             [clojure.core.matrix.generic :as generic]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.persistent-vector :as pvector]
-            [clojure.core.matrix.utils :as u :refer [error error?]]
+            [clojure.core.matrix.utils :as u]
+            [clojure.core.matrix.macros :refer [error error?]]
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.linear :refer :all]
             [clojure.test :refer :all]))
@@ -364,8 +365,9 @@
 (defn test-coerce-via-vectors [m]
   (testing "Vector coercion"
     (when (supports-dimensionality? m 1)
-      (testing "coerce works"
-        (is (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [1])))))
+      ; Probably can't assume this? may coerce to a different implementation
+      ; (testing "coerce works"
+      ;   (is (= (imp/get-implementation-key m) (imp/get-implementation-key (coerce m [1])))))
       (let [v (matrix [1])]
         (is (equals [1] (to-nested-vectors v))))))
   (testing "Matrix coercion"
@@ -742,7 +744,7 @@
 ;;
 ;; All matrix implementations must pass this test for any valid matrix
 (defn instance-test [m]
-  (try 
+  (try
     (when (numerical? m)
       (test-numeric-instance m))
     (test-array-assumptions m)

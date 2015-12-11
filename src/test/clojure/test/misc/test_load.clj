@@ -1,5 +1,5 @@
 (ns test.misc.test-load
-  (:require [clojure.core.matrix.utils :refer [error]]))
+  (:require [clojure.core.matrix.macros :refer [error]]))
 
 (defn foo []
   (doall

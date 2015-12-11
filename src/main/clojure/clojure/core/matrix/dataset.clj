@@ -4,8 +4,10 @@
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.dataset :as impl]
             [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.utils :refer [error]])
+            [clojure.core.matrix.macros :refer [error]]
+            [clojure.core.matrix.utils :as utils])
   (:import [clojure.core.matrix.impl.dataset DataSet]
+           [clojure.lang IPersistentVector]
            [java.util List]))
 
 (set! *warn-on-reflection* true)
@@ -14,10 +16,10 @@
 ;; ===============================================================
 ;; Specialised functions for dataset handling
 
-(defmacro dataset?
-  "Returns true if argument is a dataset."
-  ([d]
-    `(instance? DataSet ~d)))
+(defn dataset?
+  "Returns true if argument is a dataset, defined as a 2D array with column names"
+  (^Boolean [d]
+    (boolean (and (== 2 (mp/dimensionality d)) (mp/column-names d)))))
 
 (defn dataset
   "Creates dataset from on of the following:
@@ -25,9 +27,9 @@
    2. seq of rows
    3. seq of row maps (column names -> values for each row)
    4. map of columns with associated list of values.
-   5. seq of maps
+   5. existing dataset
 
-   If col-names are provided they will be used, else incrementing Long values starting from 0, 
+   If column names are provided then they will be used, else incrementing Long values starting from 0,
    i.e. 0, 1, 2, etc will be used as column names"
   ([col-names data]
     (cond
@@ -41,9 +43,12 @@
       :else (error "Don't know how to create dataset from shape"  (shape data))))
   ([data]
     (cond
+      ;; already a dataset, just return as-is
       (dataset? data) data
+
+      ;; construct a dataset using 2D matrix data
       (matrix? data) (impl/dataset-from-array data)
-      
+
       ;; map of names -> columns of elements
       (map? data)
         (let [col-names (keys data)
@@ -77,8 +82,8 @@
               col-names
               (reduce #(conj %1 (get col-map %2)) [] col-names))
             (error "Can't create dataset from incomplete maps")))
-        
-       :else 
+
+       :else
          (error "Don't know how to create dataset from data of type " (class data)))))
 
 (defn column-names
@@ -87,14 +92,33 @@
     (mp/column-names ds)))
 
 (defn column-name
-  "Returns column name at given index. Returns nil if index is not found."
-  ([ds idx]
-    (nth (mp/column-names ds) idx)))
+  "Returns column name at given index.
 
-(defn dimension-name
-  "Returns the name for a given index along the specified dimension."
-  ([ds dim idx]
-    (mp/dimension-name ds dim idx)))
+   Throws an exception if the index is out of bounds."
+  ([ds column-index]
+    (mp/column-name ds column-index)))
+
+(defn column-index
+  "Returns column index for a given column name.
+
+   Returns nil if column name does not exist."
+  ([ds column-name]
+    (when-let [cnames (mp/column-names ds)]
+      (let [cnames ^IPersistentVector (vec cnames)]
+        (and cnames (utils/find-index cnames column-name))))))
+
+(defn column
+  "TODO: name may change
+
+   Gets a named column from the dataset. Throws an error if the column does not exist."
+  ([ds col-name]
+    (if (number? col-name)
+      (get-column ds col-name)
+      (let [cnames (mp/labels ds 1)
+           ix (reduce (fn [i n] (if (= n col-name) (reduced i) (inc i)))
+                      0 cnames)]
+         (when (>= ix (count cnames)) (error "Column name not found: " col-name))
+         (slice ds 1 ix)))))
 
 (defn add-column
   "Adds column to the dataset."
@@ -111,13 +135,12 @@
   ([ds rows]
     (mp/select-rows ds rows)))
 
-(defn except-columns
-  "Returns new dataset with all columns except specified."
+(defn remove-columns
+  "Returns new dataset with the specified columns removed"
   ([ds col-names]
-    (let [col-names (clojure.set/difference
-                      (into #{} (column-names ds))
-                      (into #{} col-names))]
-      (mp/select-columns ds col-names))))
+    (let [col-names (into #{} col-names)
+          selected (filterv (complement col-names) (column-names ds))]
+      (mp/select-columns ds selected))))
 
 (defn row-maps
   "Returns vector of maps with row values."
@@ -125,13 +148,13 @@
     (mp/row-maps ds)))
 
 (defn to-map
-  "Returns map of columns with associated list of values."
+  "Returns map of column name -> columns (i.e. vectors of values in each column)."
   ([ds]
     (mp/to-map ds)))
 
 (defn merge-datasets
   "Returns a dataset created by combining columns of the given datasets. In case of columns with duplicate names, last-one-wins strategy is applied."
-  ([ds1 ds2] 
+  ([ds1 ds2]
     (mp/merge-datasets ds1 ds2))
   ([ds1 ds2 & args]
     (apply merge-datasets (merge-datasets ds1 ds2) args)))
@@ -146,14 +169,16 @@
   ([ds col-name vs]
      (mp/replace-column ds col-name vs)))
 
-(defn update-column
-  "Applies function f to column in a dataset"
+(defn emap-column
+  "Applies function f to every element in a column in a dataset.
+
+   Extra args to the function may be supplied."
   ([ds col-name f & args]
      (let [^List col-names (mp/column-names ds)
            col (mp/get-column ds (.indexOf col-names col-name))]
        (mp/replace-column
          ds col-name
-         (matrix col (map #(apply f % args) col))))))
+         (apply emap f col args)))))
 
 (defn join-rows
   "Returns a dataset created by combining the rows of the given datasets"

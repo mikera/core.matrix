@@ -1,11 +1,12 @@
-(ns clojure.core.matrix.test-select
+(ns clojure.core.matrix.test-selection
   "Namespace for testing the clojure.core.matrix.select API"
   (:refer-clojure :exclude [vector?])
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.utils :refer [error? broadcast-shape]]
-            [clojure.core.matrix.select :refer :all]
+            [clojure.core.matrix.utils :refer [broadcast-shape]]
+            [clojure.core.matrix.macros :refer [error?]]
+            [clojure.core.matrix.selection :refer :all]
             [clojure.test :refer :all]))
 
 (deftest test-sel
@@ -46,7 +47,7 @@
   (let [a [1 2 3 4 5]]
     (is (= a (sel a :all)))
     (is (= [1 2 3 4] (sel a :butlast)))
-    (is (= [2 3 4 5] (sel a :rest)))    
+    (is (= [2 3 4 5] (sel a :rest)))
     (is (error? (sel a -1)))
     (is (= 1 (sel a 0)))
     (is (= 5 (sel a 4)))
