@@ -46,7 +46,7 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>vectorz-clj</artifactId>
-			<version>0.37.0</version>
+			<version>0.38.0</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
