@@ -266,15 +266,6 @@
     (or (mp/immutable-matrix data)
         (to-nested-vectors data))))
 
-(defn ^{:deprecated true} mutable-matrix
-  "Constructs a mutable copy of the given matrix.
-
-   DEPRECATED: please use mutable instead"
-  ([data]
-    (mutable data))
-  ([data type]
-    (mutable data type)))
-
 (defn ensure-mutable
   "Checks if an array is mutable, and if not converts to a new mutable array. Guarantees
    that the result will be mutable, but may not be the same type as the original array."
