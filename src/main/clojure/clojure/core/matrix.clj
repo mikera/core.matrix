@@ -248,12 +248,7 @@
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/mutable-matrix data)
-        (default/construct-mutable-matrix data)))
-  ([data type]
-    (or (mp/mutable-matrix data)
-        (default/construct-mutable-matrix data))
-    ;; TODO: support creation with specific element types
-    ))
+        (default/construct-mutable-matrix data))))
 
 (defn immutable
   "Returns an immutable array containing the given array data.
