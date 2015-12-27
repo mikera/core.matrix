@@ -126,8 +126,8 @@
     (let [em (ensure-mutable m)]
       (is (mutable? em))
       (is (e= m em))))
-  (testing "mutable-matrix works ok"
-    (let [mm (mutable-matrix m)]
+  (testing "mutable works ok"
+    (let [mm (mutable m)]
       (is (mutable? mm))
       (is (not (identical? m mm)))
       (is (e= mm m))))
@@ -235,7 +235,7 @@
   (when (and m (pos? (ecount m))) ;; guard for nil and empty arrays
     (let [e (first (eseq m))
           n (assign m e)
-          mm (mutable-matrix m)]
+          mm (mutable m)]
       (is (zero-dimensional? e))
       (is (e= (broadcast e (shape m)) n))
       (is (same-shape? m n))

@@ -125,15 +125,15 @@
 (deftest test-shape-errors
   (is (error? (add [1] [2 3]))))
 
-(deftest test-mutable-matrix-fill
+(deftest test-mutable-fill
   (let [m [1 2 3]
-        mm (mutable-matrix m)]
+        mm (mutable m)]
     (fill! mm 0.5)
     (is (equals mm [0.5 0.5 0.5]))))
 
-(deftest test-mutable-matrix-assign
+(deftest test-mutable-assign
   (let [m [1 2 3]
-        mm (mutable-matrix m)]
+        mm (mutable m)]
     (assign! mm 0.5)
     (is (equals mm [0.5 0.5 0.5]))))
 
@@ -211,9 +211,9 @@
   (is (equals [[[[2]]]] (broadcast (array 2) [1 1 1 1])))
   (is (= [2 2] (add [1 1] 1))))
 
-(deftest test-mutable-matrix
+(deftest test-mutable
   (is (error? (scale! [1 2] 2)))
-  (is (equals (scale! (mutable-matrix [1 2]) 2) [2 4])))
+  (is (equals (scale! (mutable [1 2]) 2) [2 4])))
 
 (deftest test-reshape-2
   (is (equals 1 (reshape [1 2 3] [])))
@@ -338,7 +338,7 @@
     (is (= [[8.0]] (sub (array [[12.0]]) [[4.0]])))
     (is (= [[[8.0]]] (sub (array [[[12.0]]]) [[[4.0]]]))))
   (testing "mutable sub"
-    (let [v (mutable-matrix [10 10])]
+    (let [v (mutable [10 10])]
       (sub! v [1 2] [1 2])
       (is (equals [8 6] v))))
   (testing "arity 3 sub regression"
