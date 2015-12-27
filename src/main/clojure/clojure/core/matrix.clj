@@ -264,9 +264,6 @@
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/immutable-matrix data)
-        (to-nested-vectors data)))
-  ([data type]
-    (or (mp/immutable-matrix data)
         (to-nested-vectors data))))
 
 (defn ^{:deprecated true} mutable-matrix
