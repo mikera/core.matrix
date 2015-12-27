@@ -179,10 +179,12 @@
   "Protocol for coercing to a mutable format. May return the original array, if it is already fully mutable, 
    otherwise should return a fully mutable copy of the array.
 
-   May return nil to indicate that a default implementation should be used.
+   Should return nil to indicate that this implementation cannot create a mutable array from the given data.
 
    The default implementation will attempt to choose a suitable mutable matrix implementation."
-  (ensure-mutable [m]))
+  (ensure-mutable [m] "Returns this array if fully mutable, otherwise returns a new mutable array containing 
+                   a copy of this array. May return nil if the implementation cannot create a suitable mutable
+                   array."))
 
 (defprotocol PSparse
   "Protocol for constructing a sparse array from the given data. Implementations should

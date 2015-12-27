@@ -248,7 +248,11 @@
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/mutable-matrix data)
-        (default/construct-mutable-matrix data))))
+        (default/construct-mutable-matrix data)))
+  ([implementation data]
+    (let [imp (implementation-check implementation)]
+      (or (mp/ensure-mutable (mp/construct-matrix imp data))
+          (error "Unable to create mutable array for implementation " (mp/implementation-key imp))))))
 
 (defn immutable
   "Returns an immutable array containing the given array data.
