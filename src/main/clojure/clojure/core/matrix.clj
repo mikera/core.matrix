@@ -1717,8 +1717,8 @@
     (mp/cross-product! a b)
     a)
   ([dest a b]
-    (assign! dest a)
-    (cross! dest b)))
+    (mp/assign! dest a)
+    (mp/cross-product! dest b)))
 
 (defn distance
   "Calculates the euclidean distance between two numerical vectors.

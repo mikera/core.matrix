@@ -988,10 +988,18 @@
       (when-not (and (number? constant) (zero? constant)) (mp/matrix-add! m1 constant))
       m1))
 
+(extend-protocol mp/PScaleAdd2
+  Object
+    (scale-add [m1 a m2 b constant]
+      (let [r (mp/matrix-add (mp/scale m1 a) (mp/scale m2 b))]
+        (if (== 0.0 constant)
+          r
+          (mp/matrix-add r constant)))))
+
 (extend-protocol mp/PLerp
   Object
     (lerp [a b factor]
-      (mp/matrix-add (mp/scale a (- 1.0 (double factor))) (mp/scale b factor))))
+      (mp/scale-add a (- 1.0 (double factor)) b factor 0.0)))
 
 (extend-protocol mp/PAddInnerProductMutable
   Object

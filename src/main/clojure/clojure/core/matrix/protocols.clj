@@ -625,6 +625,11 @@
   (scale-add! [m1 a m2 b constant]
     "Scales array m1 in place by factor b, then adds array m2 scaled by factor b, then adds the constant"))
 
+(defprotocol PScaleAdd2
+  "Protocol to support the immutable scale-add! operation."
+  (scale-add [m1 a m2 b constant]
+    "Scales array m1 by factor b, then adds array m2 scaled by factor b, then adds the constant"))
+
 (defprotocol PLerp
   "Protocol to support the lerp linear interpolation function."
   (lerp [a b factor]
