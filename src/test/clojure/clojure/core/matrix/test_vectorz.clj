@@ -41,7 +41,9 @@
 
 (deftest test-mutable
   (is (vectorz? (mutable :vectorz [1 2 3])))
-  (is (not (vectorz? (mutable [1 2 3])))))
+  (is (not (vectorz? (mutable [1 2 3]))))
+  (is (vectorz? (with-implementation :vectorz (mutable [1 2 3]))))
+  (is (not (vectorz? (with-implementation :vectorz (mutable [1 2 :d]))))))
 
 (deftest test-emap-indexed
   (is (equals [[1 12] 
