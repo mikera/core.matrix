@@ -4,7 +4,7 @@
 
    Intended for use in random sampling, simulation etc."
   (:use clojure.core.matrix)
-  (:use [mikera.cljutils error])
+  (:require [clojure.core.matrix.utils :refer [error]])
   (:import [java.util Random])
   (:import [clojure.core.matrix.random RandomSeq]))
 
