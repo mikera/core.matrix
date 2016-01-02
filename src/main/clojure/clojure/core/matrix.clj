@@ -444,18 +444,18 @@
 ;; Matrix predicates and querying
 
 (defn array?
-  "Returns true if the parameter is an N-dimensional array, for any N>=0."
+  "Returns true if the parameter is a valid core.matrix N-dimensional array, for any N>=0."
   {:inline (fn [m] `(not (mp/is-scalar? ~m)))}
   ([m]
     (not (mp/is-scalar? m))))
 
 (defn matrix?
-  "Returns true if parameter is a valid matrix (i.e. an array with dimensionality == 2)"
+  "Returns true if parameter is a valid core.matrix matrix (i.e. an array with dimensionality == 2)"
   ([m]
     (== (long (mp/dimensionality m)) 2)))
 
 (defn vec?
-  "Returns true if the parameter is a vector (1-dimensional array)"
+  "Returns true if the parameter is a core.matrix vector (1-dimensional array)"
   ([m]
     (mp/is-vector? m)))
 
@@ -476,8 +476,8 @@
 (defn identity-matrix?
   "Returns true if the parameter is an identity-matrix, i.e. a symmetric square matrix with element values
    of 1 on the leading diagonal and 0 elsewhere."
-  [m]
-  (mp/identity-matrix? m))
+  ([m]
+    (mp/identity-matrix? m)))
 
 (defn zero-matrix?
   "Returns true if all the elements of the parameter are zero."
@@ -1010,7 +1010,7 @@
         :else   (mp/main-diagonal m)))))
 
 (defn join
-  "Joins arrays together, along dimension 0. For 1D vectors, this behaves as simple concatenation. 
+  "Joins arrays together, along the major dimension 0. For 1D vectors, this behaves as simple concatenation. 
 
    Other dimensions must be compatible. To join arrays along a different dimension, use 'join-along' instead."
   ([& arrays]
@@ -1069,7 +1069,8 @@
 
 (defn shift
   "Shifts all elements of an array along specified dimensions, maintaining the shape of the array.
-   New spaces shifted into the array are filled with the appropriate zero value."
+
+   New spaces shifted into the array are filled with zero."
   ([m dimension shift-amount]
     (mp/shift m dimension shift-amount))
   ([m shifts]
