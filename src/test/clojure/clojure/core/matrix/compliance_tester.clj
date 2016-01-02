@@ -531,11 +531,17 @@
       (is (not (orthogonal? m1)))
       (is (not (orthogonal? m2))))))
 
+(defn test-lerp [m]
+  (let [m2 (scale m 2)]
+    (is (equals m (lerp m m2 0)))
+    (is (equals m2 (lerp m m2 1)))))
+
 (defn test-numeric-instance [m]
   (is (numerical? m))
  ; (test-generic-numerical-assumptions m)
   (numeric-scalar-tests m)
   (misc-numeric-tests m)
+  (test-lerp m)
   (test-numeric-matrix-predicates m)
   (test-numeric-matrix-types m))
 

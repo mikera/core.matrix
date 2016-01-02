@@ -625,6 +625,11 @@
   (scale-add! [m1 a m2 b constant]
     "Scales array m1 in place by factor b, then adds array m2 scaled by factor b, then adds the constant"))
 
+(defprotocol PLerp
+  "Protocol to support the lerp linear interpolation function."
+  (lerp [a b factor]
+    "Linear interpolation: Scales array a by (1-factor), then adds array b scaled by factor."))
+
 (defprotocol PAddInnerProductMutable
   "Protocol to support the mutable add-inner-product! operation. This is a common operation that may be 
    optimised by the underlying implementation. Implementations should consider extra optimisations for
