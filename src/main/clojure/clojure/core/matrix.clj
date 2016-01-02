@@ -1569,6 +1569,12 @@
   ([a b factor]
     (mp/lerp a b factor)))
 
+(defn lerp!
+  "Performs linear interpolation between two arrays. If factor is 0.0, result will be equal to the first vector. 
+   If factor is 1.0, result will be equal to the second vector. Returns a the mutated first array."
+  ([a b factor]
+    (mp/lerp! a b factor)))
+
 (defn add-scaled!
   "Adds a numerical array scaled by a given factor to the first array. Returns the mutated array."
   ([m a factor]

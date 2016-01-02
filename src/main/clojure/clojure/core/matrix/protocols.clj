@@ -633,7 +633,9 @@
 (defprotocol PLerp
   "Protocol to support the lerp linear interpolation function."
   (lerp [a b factor]
-    "Linear interpolation: Scales array a by (1-factor), then adds array b scaled by factor."))
+    "Linear interpolation: Scales array a by (1-factor), then adds array b scaled by factor.")
+  (lerp! [a b factor]
+    "Linear interpolation: Scales array a by (1-factor), then adds array b scaled by factor. Mutates a."))
 
 (defprotocol PAddInnerProductMutable
   "Protocol to support the mutable add-inner-product! operation. This is a common operation that may be 

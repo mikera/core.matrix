@@ -999,7 +999,9 @@
 (extend-protocol mp/PLerp
   Object
     (lerp [a b factor]
-      (mp/scale-add a (- 1.0 (double factor)) b factor 0.0)))
+      (mp/scale-add a (- 1.0 (double factor)) b factor 0.0))
+    (lerp! [a b factor]
+      (mp/scale-add! a (- 1.0 (double factor)) b factor 0.0)))
 
 (extend-protocol mp/PAddInnerProductMutable
   Object

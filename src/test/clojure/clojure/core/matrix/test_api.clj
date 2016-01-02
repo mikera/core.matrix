@@ -219,6 +219,9 @@
   (is (equals [2 6] (scale-add [1 0] 2 [0 2] 3)))
   (is (equals [3 7] (scale-add [1 0] 2 [0 2] 3 1))))
 
+(deftest test-lerp
+  (is (equals [2 6] (lerp [1 0] [3 12] 0.5))))
+
 (deftest test-reshape-2
   (is (equals 1 (reshape [1 2 3] [])))
   (is (equals [1 2 3 4] (reshape [[1.0 2.0] [3.0 4.0]] [4])))
