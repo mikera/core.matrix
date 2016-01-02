@@ -1542,6 +1542,16 @@
   ([m a factor]
     (mp/add-scaled m a factor)))
 
+(defn scale-add
+  "Scales array m1 by factor a, then adds an array m2 scaled by factor b. May optionally add a constant.
+   Broadly equivalent to (add (mul m1 a) (mul m2 b) constant)
+
+   Returns a new array."
+  ([m1 a m2 b] 
+    (mp/scale-add m1 a m2 b 0.0))
+  ([m1 a m2 b constant] 
+    (mp/scale-add m1 a m2 b constant)))
+
 (defn scale-add!
   "Scales array m1 by factor a, then adds an array m2 scaled by factor b. May optionally add a constant.
    Broadly equivalent to (add! (mul! m1 a) (mul m2 b) constant)

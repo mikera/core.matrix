@@ -213,7 +213,11 @@
 
 (deftest test-mutable
   (is (error? (scale! [1 2] 2)))
-  (is (equals (scale! (mutable [1 2]) 2) [2 4])))
+  (is (equals [2 4] (scale! (mutable [1 2]) 2) )))
+
+(deftest test-scale-add
+  (is (equals [2 6] (scale-add [1 0] 2 [0 2] 3)))
+  (is (equals [3 7] (scale-add [1 0] 2 [0 2] 3 1))))
 
 (deftest test-reshape-2
   (is (equals 1 (reshape [1 2 3] [])))
