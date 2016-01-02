@@ -248,10 +248,12 @@
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/mutable-matrix data)
-        (default/construct-mutable-matrix data)))
+        (mutable (implementation-check) data)))
   ([implementation data]
-    (let [imp (implementation-check implementation)]
-      (or (mp/ensure-mutable (mp/construct-matrix imp data))
+    (let [imp (implementation-check implementation)
+          r (mp/construct-matrix imp data)]
+      (or (and r (mp/ensure-mutable r)) ;; ensure contructed array is mutable, else fall through with nil
+          (default/construct-mutable-matrix data)
           (error "Unable to create mutable array for implementation " (mp/implementation-key imp))))))
 
 (defn immutable

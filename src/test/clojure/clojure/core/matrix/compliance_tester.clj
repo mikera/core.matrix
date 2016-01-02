@@ -130,6 +130,7 @@
     (let [mm (mutable m)]
       (is (mutable? mm))
       (is (not (identical? m mm)))
+      (if (not (e= mm m)) (error "Mutable fail with class " (class m) " producing " (class mm) " with impl " (#'clojure.core.matrix/implementation-check)))
       (is (e= mm m))))
   (testing "modifying a cloned mutable array does not modify the original"
     (when (and (mutable? m) (> 0 (ecount m)))
@@ -308,6 +309,7 @@
   (test-as-vector m)
   (test-coerce m)
   (test-pack m)
+  (test-mutable-assumptions m)
   (test-assign m)
   (test-join m)
   (test-join-along m)
@@ -315,7 +317,6 @@
   (test-slice-assumptions m)
   (test-slice-returns-scalar-on-1d m)
   (test-submatrix-assumptions m)
-  (test-mutable-assumptions m)
   (test-mutable-select-view m)
   (test-immutable-assumptions m)
   (test-vector-round-trip m)
