@@ -1668,13 +1668,16 @@
     (mp/square m)))
 
 (defn normalise
-  "Normalises a numerical vector (scales to unit length).
-   Returns a new normalised vector."
+  "Normalises a numerical vector (scales to unit length). Returns a new normalised vector.
+   
+   The result is undefined if the initial length of the vector is zero (it is possible the 
+   implementation may return NaNs or zeros). If this is a concern, it is recommended to check
+   the length of the vector first in order to handle this as a special case."
   ([v]
     (mp/normalise v)))
 
 (defn normalise!
-  "Normalises a numerical vector in-place (scales to unit length).
+  "Like 'normalise', but mutates a numerical vector in-place (scales to unit length).
    
    Returns the modified vector."
   ([v]
