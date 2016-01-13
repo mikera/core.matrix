@@ -1010,6 +1010,14 @@
     (add-inner-product! [m a b factor]
       (mp/add-scaled! m (mp/inner-product a b) factor)))
 
+(extend-protocol mp/PSetInnerProductMutable
+  Object
+    (set-inner-product! [m a b]
+      (mp/assign! m (mp/inner-product a b)))
+    (set-inner-product! [m a b factor]
+      (mp/assign! m (mp/inner-product a b))
+      (mp/scale! m factor)))
+
 ;; type of matrix element
 ;; the default is to assume any type is possible
 (extend-protocol mp/PTypeInfo

@@ -646,6 +646,15 @@
     [m a b factor]
     "Adds the inner product of a, b and an optional scalar factor to m"))
 
+(defprotocol PSetInnerProductMutable
+  "Protocol to support the mutable set-inner-product! operation. This is a common operation that may be 
+   optimised by the underlying implementation. Implementations should consider extra optimisations for
+   specific constant factors e.g. 0.0 and 1.0 but this is not mandatory."
+  (set-inner-product! 
+    [m a b] 
+    [m a b factor]
+    "Adds the inner product of a, b and an optional scalar factor to m"))
+
 (defprotocol PSubMatrix
   "Protocol to get a subarray of another array. dim-ranges should be a sequence of [start len]
    pairs, one for each dimension. If a pair is nil, it should be interpreted to take the whole dimension.
