@@ -653,7 +653,7 @@
   (set-inner-product! 
     [m a b] 
     [m a b factor]
-    "Adds the inner product of a, b and an optional scalar factor to m"))
+    "Sets m to the inner product of a, b and an optional scalar factor to m"))
 
 (defprotocol PSubMatrix
   "Protocol to get a subarray of another array. dim-ranges should be a sequence of [start len]
