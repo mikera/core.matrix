@@ -190,9 +190,9 @@
 	</distributionManagement>
 
 	<scm>
-		<connection>scm:git:git@github.com:mikera/core.matrix.git</connection>
+		<connection>scm:git:git@github.com:mikera/core.matrix</connection>
 		<url>https://github.com/mikera/core.matrix</url>
-		<developerConnection>scm:git:git@github.com:mikera/core.matrix.git</developerConnection>
+		<developerConnection>scm:git:git@github.com:mikera/core.matrix</developerConnection>
 		<tag>core.matrix-0.49.0</tag>
 	</scm>
 </project>
