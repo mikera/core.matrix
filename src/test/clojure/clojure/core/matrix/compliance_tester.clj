@@ -745,17 +745,16 @@
 
 ;; ======================================
 ;; Instance test function
-;;
-;; Implementations can call to test specific instances of interest
-;;
-;; All matrix implementations must pass this test for any valid matrix
-(defn instance-test [m]
-  (try 
-    (when (numerical? m)
-      (test-numeric-instance m))
-    (test-array-assumptions m)
-    (catch Throwable t
-      (throw (RuntimeException. (str "Error testing instance: " m) t)))))
+
+(defn instance-test 
+  "Call to test a specific array instance from an implementation. A range of standard checks will be run."
+  ([m]
+    (try 
+      (when (numerical? m)
+        (test-numeric-instance m))
+      (test-array-assumptions m)
+      (catch Throwable t
+        (throw (RuntimeException. (str "Error testing instance: " m) t))))))
 
 ;; ==============================================
 ;; General NDArray test
