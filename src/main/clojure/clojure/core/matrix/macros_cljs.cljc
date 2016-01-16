@@ -3,6 +3,15 @@
   macros that can handle the differences between Clojure and Clojurescript."
   (:require [clojure.core.matrix.macros :refer [c-for TODO]]))
 
+(defmacro error?
+  "Returns true if executing body throws an error, false otherwise."
+  ([& body]
+    `(try
+       ~@body
+       false
+       (catch js/Error t#
+         true))))
+
 (defmacro abutnth [i xs]
   `(let [n# (alength ~xs)
          length# (int (dec n#))
@@ -24,7 +33,7 @@
 (defmacro try-current-implementation
   [sym form]
   `(if clojure.core.matrix.impl.defaults/*trying-current-implementation*
-     (TODO (str "Not yet implemented: " ~(str form) " for " (type ~sym)))
+     ;(TODO (str "Not yet implemented: " ~(str form) " for " (type ~sym)))
      (binding [clojure.core.matrix.impl.defaults/*trying-current-implementation* true]
        (let [imp# (imp/get-canonical-object)
              ~sym (mp/coerce-param imp# ~sym)]

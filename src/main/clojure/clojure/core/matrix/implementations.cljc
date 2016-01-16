@@ -1,9 +1,8 @@
 (ns clojure.core.matrix.implementations
   "Namespace for management of core.matrix implementations. Users should avoid using these
    functions directly as they are intended for library and tool writers."
-  (:require [clojure.core.matrix.protocols :as mp])
-  (#?(:clj :require :cljs :require-macros)
-           [clojure.core.matrix.macros :refer [TODO error]]))
+  (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.macros #?(:clj :refer :cljs :refer-macros) [TODO error]]))
 
 ;; =====================================================
 ;; Implementation utilities
@@ -158,6 +157,5 @@
     (when (keyword? m) (try-load-implementation m))
     #?(:clj (alter-var-root (var *matrix-implementation*)
                     (fn [_] (get-implementation-key m)))
-       :cljs (def *matrix-implementation* (get-implementation-key m)))))
-
+       :cljs (def ^:dynamic *matrix-implementation* (get-implementation-key m)))))
 

@@ -9,7 +9,7 @@
             [clojure.core.matrix.macros :refer [TODO error]]
             [clojure.core.matrix.macros-clj :refer [abutnth areverse]])
      :cljs (:require-macros
-             [clojure.core.matrix.macros :refer [TODO error]]
+             [clojure.core.matrix.macros :refer [TODO error c-for]]
              [clojure.core.matrix.macros-cljs :refer [abutnth areverse]]
              [clojure.core.matrix.impl.wrappers :refer [set-source-index]]))
   #?(:clj

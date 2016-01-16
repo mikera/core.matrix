@@ -1,13 +1,14 @@
 (ns clojure.core.matrix.macros
   "Namespace for core.matrix macros. Keeping them separate allows us to do conditional
-  macros that can handle the differences between Clojure and Clojurescript.")
+  macros that can handle the differences between Clojure and Clojurescript."
+  (:refer-clojure :exclude [array?]))
 
 (defmacro error
   "Throws an error with the provided message(s)"
   ([& vals]
-    `(throw (#?(:clj RuntimeException.
+   `(throw (#? (:clj RuntimeException.
                 :cljs js/Error.)
-                     (str ~@vals)))))
+               (str ~@vals)))))
 
 (defmacro error?
   "Returns true if executing body throws an error, false otherwise."

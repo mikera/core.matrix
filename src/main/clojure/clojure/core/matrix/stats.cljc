@@ -50,7 +50,7 @@
    ([values]
      (let [n (m/dimension-count values 0)
            u (mean values)
-           ss (m/sum-of-squares values)
+           ss (sum-of-squares values)
            nuu (m/mul n (m/emul u u))]
        (if (number? ss)
          (* (- ss nuu) (/ 1.0 (dec n)))

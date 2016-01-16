@@ -22,8 +22,8 @@
                                   [criterium/criterium "0.4.3"]
                                   [org.clojure/tools.macro "0.1.5"]
                                   [hiccup "1.0.5"]
-                                  [clatrix "0.5.0"]
-                                  [net.mikera/vectorz-clj "0.37.0-SNAPSHOT"]
+                                  [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
+                                  [net.mikera/vectorz-clj "0.37.0-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
                                   [org.clojure/test.check "0.8.2"]
 
                                   [org.clojure/clojurescript "1.7.170"]
@@ -41,19 +41,27 @@
    :builds
    [{:id :dev
      :figwheel true
-     :source-paths ["src/main/clojure" "src/test/cljs"]
-     :compiler {:output-to "resources/public/js/main.js"
+     :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
+     :compiler {:output-to "resources/public/js/unit-test.js"
                 :output-dir "resources/public/js/out"
-                :asset-path   "js/out"
-                :main clojure.core.matrix.test-basics
+                :asset-path "js/out"
                 :optimizations :none
                 :pretty-print true}}
 
     {:id :test
-     :source-paths ["src/main/clojure" "src/test/cljs"]
+     :figwheel true
+     :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
      :compiler {:output-to "resources/public/js/unit-test.js"
-                :optimizations :whitespace
-                :pretty-print true}}]}
+                :asset-path   "js/out"
+                :main "clojure.core.matrix.test-basics"
+                :optimizations :none
+                :pretty-print true}}
+
+    {:id :prod
+     :source-paths ["src/main/clojure"]
+     :compiler {:output-to "resources/public/js/core.matrix.js"
+                :optimizations :advanced
+                :pretty-print false}}]}
 
   :figwheel {:load-warninged-code true
              :css-dirs ["resources/public/css"]}
@@ -71,4 +79,3 @@
                        clojure.core.matrix.stats]
           :src-dir-uri "https://github.com/mikera/core.matrix/blob/master/"
           :src-linenum-anchor-prefix "L"})
-

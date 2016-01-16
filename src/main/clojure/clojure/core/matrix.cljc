@@ -19,6 +19,7 @@
             [clojure.core.matrix.impl.double-array]
             [clojure.core.matrix.impl.object-array])
      :cljs (:require-macros
+             [clojure.core.matrix :refer [def-mat-mop def-mat-mops]]
              [clojure.core.matrix.macros :refer [TODO error]])))
 
 ;; ==================================================================================
@@ -39,7 +40,6 @@
 ;;    exception or (in some cases) return nil to delegate to a fallback implementation
 ;;
 ;; ==================================================================================
-
 #? (:clj (do
   (set! *warn-on-reflection* true)
   (set! *unchecked-math* true))
@@ -382,6 +382,7 @@
   ([a]
     (mp/native? a)))
 
+#?(:clj
 (defmacro with-implementation
   "Runs a set of expressions using a specified matrix implementation.
 
@@ -391,6 +392,7 @@
   [impl & body]
   `(binding [imp/*matrix-implementation* (imp/get-canonical-object ~impl)]
      ~@body))
+)
 
 ;; ======================================
 ;; Implementation details
@@ -1049,23 +1051,23 @@
       (reduce #(mp/join-along %1 %2 dimension) arrays)
       (error "Failure to joins arrays"))))
 
-(defn conjoin 
-  "Adds a new value [b] as a new slice to an array [a], returning the extended array. 
+(defn conjoin
+  "Adds a new value [b] as a new slice to an array [a], returning the extended array.
    Broadcasts the new value to the correct shape of a slice of a if necessary.
 
    This can be considered as the array equivalent of clojure.core/conj"
   ;; TODO: implement using a protocol
   ([a b]
-    (let [ss (assoc (vec (mp/get-shape a)) 0 1)] 
+    (let [ss (assoc (vec (mp/get-shape a)) 0 1)]
       (join a (mp/broadcast b ss))))
   ([a b & more]
     (let [ss (vec (next (mp/get-shape a)))
-          slcs (mapv #(mp/broadcast % ss) (cons b more))] 
+          slcs (mapv #(mp/broadcast % ss) (cons b more))]
       (join a slcs))))
 
-(defn conjoin-along 
-  "Adds a new value [b] as a new slice to an array [a] along the given dimension, 
-   returning the extended array. 
+(defn conjoin-along
+  "Adds a new value [b] as a new slice to an array [a] along the given dimension,
+   returning the extended array.
    Broadcasts the new value to the correct shape of a slice of a if necessary.
 
    This can be considered as the array equivalent of clojure.core/conj using
@@ -1074,12 +1076,12 @@
   ([dim a b]
     (if (== (long dim) 0)
       (conjoin a b)
-      (let [ss (mp/get-shape (mp/get-slice a dim 0))] 
+      (let [ss (mp/get-shape (mp/get-slice a dim 0))]
         (join-along dim a (mp/broadcast b ss)))))
   ([dim a b & more]
-    (reduce 
-      (fn [a b] (conjoin-along dim a b)) 
-      (conjoin-along dim a b) 
+    (reduce
+      (fn [a b] (conjoin-along dim a b))
+      (conjoin-along dim a b)
       more)))
 
 (defn rotate
@@ -1403,7 +1405,7 @@
   "Return the index of a label along a given dimension. Returns nil if the label does not exist."
   ([m dim label]
     (let [ls (mp/labels m dim)]
-      (and ls (u/find-index ls label))))) 
+      (and ls (u/find-index ls label)))))
 
 
 ;; ======================================
@@ -1810,22 +1812,32 @@
     (mp/assign! m (pow m a))
     m))
 
+#?(:clj (do
+
+(defmacro def-mat-mop
+  "Define a mathematical operator using core.matrix.protocols so it works over arrays and values."
+  [op-sym fn-sym]
+  `(do
+     (defn ~op-sym
+       ~(str "Computes the " op-sym " function on all elements of an array, using double precision values. Returns a new array.")
+       ([~'m]
+        (~(symbol "clojure.core.matrix.protocols" (str op-sym)) ~'m)))
+
+     (defn ~(symbol (str op-sym "!"))
+       ~(str "Computes the " op-sym " function on all elements of an array, using double precision values. Mutates the array in-place.")
+       ([~'m]
+        (~(symbol "clojure.core.matrix.protocols" (str op-sym "!")) ~'m)
+        ~'m))))
+
+(defmacro def-mat-mops
+  []
+  `(do
+     ~@(for [[name# func#] mops/maths-ops]
+         `(def-mat-mop ~name# ~func#))))
+))
+
 ;; create all unary maths operators
-#?(:clj
-(eval
-  `(do ~@(map (fn [[name func]]
-           `(defn ~name
-              ~(str "Computes the " name " function on all elements of an array, using double precision values. Returns a new array.")
-              ([~'m]
-                (~(symbol "clojure.core.matrix.protocols" (str name)) ~'m)))) mops/maths-ops)
-     ~@(map (fn [[name func]]
-           `(defn ~(symbol (str name "!"))
-              ~(str "Computes the " name " function on all elements of an array, using double precision values. Mutates the array in-place.")
-              ([~'m]
-                (~(symbol "clojure.core.matrix.protocols" (str name "!")) ~'m)
-                ~'m))) mops/maths-ops))
-       )
-)
+(def-mat-mops)
 
 (defn logistic
   "Computes the sigmoid (logistic) function for every element of an array."
