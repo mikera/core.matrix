@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>core.matrix</artifactId>
 	<description>N-dimensional array programming API for Clojure</description>
@@ -12,6 +13,10 @@
 		<artifactId>clojure-pom</artifactId>
 		<version>0.6.0</version>
 	</parent>
+
+	<properties>
+		<directlinking>true</directlinking>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -30,7 +35,7 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>clojure</artifactId>
-			<version>1.8.0-RC5</version>
+			<version>1.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
