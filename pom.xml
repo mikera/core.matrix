@@ -14,10 +14,6 @@
 		<version>0.6.0</version>
 	</parent>
 
-	<properties>
-		<directlinking>true</directlinking>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>net.mikera</groupId>
