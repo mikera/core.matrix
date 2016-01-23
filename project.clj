@@ -14,7 +14,7 @@
 
   :test-paths ["src/test/clojure" "src/test/java"]
 
-  :dependencies [[org.clojure/clojure "1.8.0-beta2"]]
+  :dependencies [[org.clojure/clojure "1.8.0"]]
 
   :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
 
@@ -23,7 +23,7 @@
                                   [org.clojure/tools.macro "0.1.5"]
                                   [hiccup "1.0.5"]
                                   [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
-                                  [net.mikera/vectorz-clj "0.37.0-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
+                                  [net.mikera/vectorz-clj "0.41.0" :exclusions [net.mikera/core.matrix]]
                                   [org.clojure/test.check "0.8.2"]
 
                                   [org.clojure/clojurescript "1.7.170"]
@@ -32,8 +32,8 @@
                    :source-paths ["src/dev/clojure"]
                    :jvm-opts ^:replace []
                    :plugins [[lein-codox "0.9.0"]
-                             [lein-figwheel "0.5.0-2"]
-                             [lein-cljsbuild "1.1.1"]]}}
+                             [lein-figwheel "0.5.0-4"]
+                             [lein-cljsbuild "1.1.2"]]}}
 
   :cljsbuild
   {:test-commands {"unit" ["phantomjs" "resources/public/js/unit-test.js"]}

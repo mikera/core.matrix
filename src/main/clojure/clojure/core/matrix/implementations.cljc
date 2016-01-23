@@ -157,5 +157,5 @@
     (when (keyword? m) (try-load-implementation m))
     #?(:clj (alter-var-root (var *matrix-implementation*)
                     (fn [_] (get-implementation-key m)))
-       :cljs (def ^:dynamic *matrix-implementation* (get-implementation-key m)))))
+       :cljs (set! *matrix-implementation* (get-implementation-key m)))))
 
