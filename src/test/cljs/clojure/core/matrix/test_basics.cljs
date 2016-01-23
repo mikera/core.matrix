@@ -1,6 +1,6 @@
 (ns clojure.core.matrix.test-basics
   (:require
-    [figwheel.client :as figwheel :include-macros true]
+    ;[figwheel.client :as figwheel :include-macros true]
     [cljs.test :refer-macros [deftest is testing run-tests run-all-tests]]
     [clojure.string :as s]
     [clojure.core.matrix :as mat]
@@ -14,9 +14,9 @@
 
 (declare init)
 
-(figwheel/watch-and-reload
-  :websocket-url "ws://localhost:3449/figwheel-ws"
-  :jsload-callback init)
+;(figwheel/watch-and-reload
+;  :websocket-url "ws://localhost:3449/figwheel-ws"
+;  :jsload-callback init)
 
 (deftest test-matrix-math
   (let [a (mat/array [1 2 3])
