@@ -32,7 +32,7 @@
                    :source-paths ["src/dev/clojure"]
                    :jvm-opts ^:replace []
                    :plugins [[lein-codox "0.9.0"]
-                             [lein-figwheel "0.5.0-2"]
+                             [lein-figwheel "0.5.0-3"]
                              [lein-cljsbuild "1.1.1"]]}}
 
   :cljsbuild

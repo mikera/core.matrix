@@ -4,6 +4,15 @@
   (:require [clojure.core.matrix.macros :refer [TODO c-for]])
   (:import [java.util Arrays]))
 
+(defmacro error?
+  "Returns true if executing body throws an error, false otherwise."
+  ([& body]
+    `(try
+       ~@body
+       false
+       (catch Throwable t#
+         true))))
+ 
 (defmacro abutnth [i xs]
   `(let [n# (alength ~xs)
          length# (int (dec n#))

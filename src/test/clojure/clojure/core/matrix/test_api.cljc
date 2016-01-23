@@ -7,12 +7,13 @@
             [clojure.core.matrix :as m]
             [clojure.core.matrix.utils :refer [broadcast-shape]]
    #?@(:clj [[clojure.core.matrix.macros :refer [error]]
+             [clojure.core.matrix.macros-clj :refer [error?]]
              [clojure.test :refer [deftest is testing run-tests]]
              [clojure.core.matrix.demo.examples]]
       :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]
              [clojure.core.matrix :refer-macros [with-implementation]]
-             [clojure.core.matrix.macros-cljs :refer-macros [error?]]
-             [clojure.core.matrix.macros :refer-macros [error]] ]))
+             [clojure.core.matrix.macros :refer-macros [error]]
+             [clojure.core.matrix.macros-cljs :refer-macros [error?]]]))
   #?(:clj (:import [java.io StringWriter])))
 
 

@@ -6,18 +6,23 @@
 (defmacro error
   "Throws an error with the provided message(s)"
   ([& vals]
-   `(throw (#? (:clj RuntimeException.
-                :cljs js/Error.)
-               (str ~@vals)))))
+   `(throw (ex-info (str ~@vals) nil))))
 
-(defmacro error?
-  "Returns true if executing body throws an error, false otherwise."
-  ([& body]
-    `(try
-       ~@body
-       false
-       (catch #?(:clj Throwable :cljs js/Error) t#
-         true))))
+;(defmacro error
+;  "Throws an error with the provided message(s)"
+;  ([& vals]
+;   `(throw (#? (:clj RuntimeException.
+;                :cljs js/Error.)
+;               (str ~@vals)))))
+
+;(defmacro error?
+;  "Returns true if executing body throws an error, false otherwise."
+;  ([& body]
+;    `(try
+;       ~@body
+;       false
+;       (catch #?(:clj Throwable :cljs js/Error) t#
+;         true))))
 
 ;; useful TODO macro: facilitates searching for TODO while throwing an error at runtime :-)
 (defmacro TODO

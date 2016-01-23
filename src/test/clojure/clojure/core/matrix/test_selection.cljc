@@ -3,11 +3,13 @@
   (:refer-clojure :exclude [vector?])
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix :refer [matrix equals]]
             [clojure.core.matrix.utils :refer [broadcast-shape]]
-            [clojure.core.matrix.macros :refer [error?]]
-            [clojure.core.matrix.selection :refer :all]
-            [clojure.test :refer :all]))
+   #?(:clj  [clojure.core.matrix.macros-clj :refer [error?]]
+      :cljs [clojure.core.matrix.macros-cljs :refer-macros [error?]])
+            [clojure.core.matrix.selection :refer [sel where exclude irange set-sel set-sel! odd even end]]
+   #?(:clj  [clojure.test :refer [deftest testing is]]
+      :cljs [cljs.test :refer-macros [deftest testing is]])))
 
 (deftest test-sel
   (let [a [[1 2] [3 4]]]
