@@ -4,7 +4,8 @@
             [clojure.core.matrix.compliance-tester]
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.operators :refer [==]]
-            [clojure.core.matrix.macros :refer [error error?]]
+            [clojure.core.matrix.macros :refer [error]]
+            [clojure.core.matrix.macros-clj :refer [error?]]
             [clojure.test :refer :all]))
 
 ;; This namespace contains tests for the Java double[] array implementation

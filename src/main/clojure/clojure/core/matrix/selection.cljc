@@ -18,7 +18,7 @@
   "Runs through a set of args and evaluates them against the array and current dimension if it is a function."
   [a args]
   (when (not= (count args) (dimensionality a))
-    (error "Atempting to select with wrong number of dimensions with args: " args))
+    (error "Attempting to select with wrong number of dimensions with args: " args))
   (vec (map-indexed
          (fn [i arg]
            (cond

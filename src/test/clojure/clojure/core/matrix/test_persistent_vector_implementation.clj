@@ -5,7 +5,7 @@
             clojure.core.matrix.impl.persistent-vector
             [clojure.core.matrix.compliance-tester :as compliance]
             [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.macros :refer [error?]]
+            [clojure.core.matrix.macros-clj :refer [error?]]
             [clojure.core.matrix.protocols :as mp]
             [clojure.test :refer :all]))
 

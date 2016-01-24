@@ -1,9 +1,9 @@
 (ns clojure.core.matrix.test-index
   (:require [clojure.core.matrix :as m])
-  #?(:clj (:require [clojure.core.matrix.macros :refer [error?]]
+  #?(:clj (:require [clojure.core.matrix.macros-cljs :refer [error?]]
                     [clojure.test :refer [deftest is testing]])
     :cljs (:require-macros
-            [clojure.core.matrix.macros :refer [error?]]
+            [clojure.core.matrix.macros-cljs :refer [error?]]
             [cljs.test :refer [deftest is testing]])))
 
 (deftest test-int-index

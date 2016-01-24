@@ -3,7 +3,8 @@
             [clojure.core.matrix.compliance-tester :as compliance]
             [clojure.test :refer :all]
             [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.macros :refer [error error?]]
+            [clojure.core.matrix.macros :refer [error]]
+            [clojure.core.matrix.macros-clj :refer [error?]]
             [clojure.core.matrix.dataset :refer :all]))
 
 (deftest test-construct-dataset

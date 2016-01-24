@@ -188,7 +188,30 @@
         (cond
           (native-array? m) (mp/get-nd (nth m (first indexes)) (next indexes))
           :else (error "Indexed get failed, not defined for:" (class m)))
-        (mp/get-0d m))))
+        (mp/get-0d m)))
+
+#?@(:cljs
+     [cljs.core/LazySeq
+      (get-1d [m x] (nth m x))
+      (get-2d [m x y]
+        (if (seqable? (first m))
+          (mp/get-1d (nth m x) y)
+          (error "Can't do 2D get on a lazy seq")))
+      (get-nd [m indexes]
+        (if (seqable? (first m))
+          (mp/get-nd (nth m (first indexes)) (next indexes))
+          (error "Can't do ND get on a lazy seq")))
+
+      cljs.core/Range
+      (get-1d [m x] (nth m x))
+      (get-2d [m x y]
+        (error "Can't do 2D get on a range"))
+      (get-nd [m indexes]
+              (if (seq indexes)
+                (mp/get-nd (nth m (first indexes)) (next indexes))
+                (mp/get-0d m)))
+      ]
+))
 
 (extend-protocol mp/PArrayMetrics
   nil
@@ -572,7 +595,18 @@
       (dimension-count [m x]
                        (if (== x 0)
                          (count m)
-                         (mp/dimension-count (first m) (dec x))))]))
+                         (mp/dimension-count (first m) (dec x))))
+
+      cljs.core/Range
+      (dimensionality [m] (inc (mp/dimensionality (first m))))
+      (is-vector? [m] (== 0 (mp/dimensionality (first m))))
+      (is-scalar? [m] false)
+      (get-shape [m] (cons (count m) (mp/get-shape (first m))))
+      (dimension-count [m x]
+                       (if (== x 0)
+                         (count m)
+                         (mp/dimension-count (first m) (dec x))))
+      ]))
 
 (extend-protocol mp/PSameShape
   nil
@@ -1161,9 +1195,9 @@
       (cond
         (identical? a b) true
         (mp/same-shape? a b)
-          (if (== 0 (long (mp/dimensionality a)))
-            (== (mp/get-0d a) (scalar-coerce b))
-            (not-any? false? (map == (mp/element-seq a) (mp/element-seq b))))
+        (if (== 0 (long (mp/dimensionality a)))
+          (== (mp/get-0d a) (scalar-coerce b))
+          (not-any? false? (map == (mp/element-seq a) (mp/element-seq b))))
         :else false)))
 
 (extend-protocol mp/PValueEquality

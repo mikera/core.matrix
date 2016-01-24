@@ -1,22 +1,23 @@
 (ns clojure.core.matrix.test-basics
   (:require
-    ;[figwheel.client :as figwheel :include-macros true]
     [cljs.test :refer-macros [deftest is testing run-tests run-all-tests]]
     [clojure.string :as s]
     [clojure.core.matrix :as mat]
     [clojure.core.matrix.impl.wrappers :as wrap]
     [thi.ng.ndarray.core :as nd]
-    [clojure.core.matrix.impl.double-array])
+    [clojure.core.matrix.impl.double-array]
+    [clojure.core.matrix.compliance-tester :refer [compliance-test]]
+    [clojure.core.matrix.test-selection]
+    [clojure.core.matrix.test-random]
+    [clojure.core.matrix.test-index]
+    [clojure.core.matrix.test-nil]
+    [clojure.core.matrix.test-api])
   (:require-macros
-    [clojure.core.matrix.macros :refer [error?]]))
+    [clojure.core.matrix.macros-cljs :refer [error?]]))
 
 (enable-console-print!)
 
 (declare init)
-
-;(figwheel/watch-and-reload
-;  :websocket-url "ws://localhost:3449/figwheel-ws"
-;  :jsload-callback init)
 
 (deftest test-matrix-math
   (let [a (mat/array [1 2 3])
@@ -103,10 +104,13 @@
   (is (mat/equals 20 (mat/dot [1 2 3] [2 3 4])))
   (is (mat/equals [[1 2] [6 8]] (mat/dot [[1 0] [0 2]] [[1 2] [3 4]]))))
 
+(deftest test-compliance
+  (compliance-test (mat/array [1 2 3 4 5])))
+
 (defn set-html! [el content]
   (set! (.-innerHTML el) content))
 
-(defn ^:export init []
+(defn ^:export -main []
   (let [element (.getElementById js/document "app")
         test-results (with-out-str (run-all-tests))
         lines (remove #(zero? (count %)) (remove #(= "\n" %) (s/split-lines test-results)))
@@ -117,4 +121,4 @@
     (set-html! element report)
     (js/window.scrollTo 0 js/document.body.scrollHeight)))
 
-;(init)
+(-main)

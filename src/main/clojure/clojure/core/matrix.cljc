@@ -692,7 +692,6 @@
 ;; =======================================
 ;; Conversions
 
-#?(:clj (do
 (defn to-double-array
    "Returns a Java double[] array containing the values of a numerical array m in row-major order. Will
     throw an error if any of the array elements cannot be converted to doubles.
@@ -723,7 +722,6 @@
        (if want-copy?
          (if arr (u/copy-object-array arr) (mp/to-object-array m))
          arr))))
-))
 
 (defn pack
   "Packs array data in the most efficient format as defined by the implementation. May return the

@@ -2,10 +2,10 @@
   (:refer-clojure :exclude [vector?])
   (:require [clojure.core.matrix.compliance-tester :as compliance]
             [clojure.core.matrix :as m])
-  #?(:clj (:require [clojure.core.matrix.macros :refer [error?]]
+  #?(:clj (:require [clojure.core.matrix.macros-clj :refer [error?]]
                      [clojure.test :refer [deftest is testing run-tests]])
      :cljs (:require-macros
-                   [clojure.core.matrix.macros :refer [error?]]
+                   [clojure.core.matrix.macros-cljs :refer [error?]]
                    [cljs.test :refer [deftest is testing run-tests]])))
 
 ;; Tests for the specific behaviour of core.matrix functions on the nil value (a scalar)

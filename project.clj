@@ -43,9 +43,10 @@
      :figwheel true
      :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
      :compiler {:output-to "resources/public/js/unit-test.js"
-                :output-dir "resources/public/js/out"
                 :asset-path "js/out"
+                :main "clojure.core.matrix.test-basics"
                 :optimizations :none
+                :parallel-build true
                 :pretty-print true}}
 
     {:id :test
@@ -55,6 +56,7 @@
                 :asset-path   "js/out"
                 :main "clojure.core.matrix.test-basics"
                 :optimizations :none
+                :parallel-build true
                 :pretty-print true}}
 
     {:id :prod

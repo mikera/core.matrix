@@ -3,7 +3,7 @@
   (:require [clojure.core.matrix :refer :all]
             [clojure.core.matrix.operators :refer [==]]
             [clojure.core.matrix.utils :refer [broadcast-shape]]
-            [clojure.core.matrix.macros :refer [error?]]
+            [clojure.core.matrix.macros-clj :refer [error?]]
             [clojure.test :refer :all])
   (:import [java.io StringWriter]))
 

@@ -1,6 +1,5 @@
 (ns clojure.core.matrix.compliance-tester
   (:require
-    [clojure.core.matrix :as mat]
     [clojure.core.matrix.operators :as ops]
     [clojure.core.matrix.protocols :as mp]
     [clojure.core.matrix.generic :as generic]
@@ -8,11 +7,14 @@
     [clojure.core.matrix.impl.persistent-vector :as pvector]
     [clojure.core.matrix.utils :as u]
     [clojure.core.matrix.linear :as linear]
-    [clojure.core.matrix.macros #?(:clj :refer :cljs :refer-macros) [error]])
+    [clojure.core.matrix.macros #?(:clj :refer :cljs :refer-macros) [error]]
+    [clojure.core.matrix :as mat])
   #?(:clj (:require [clojure.test :refer [deftest is testing]]
                     [clojure.core.matrix.macros-clj :refer [error?]])
-     :cljs (:require [cljs.test :refer-macros [deftest is testing]]
-                     [clojure.core.matrix.macros-cljs :refer [error?]])))
+     :cljs (:require-macros 
+             [cljs.test :refer [deftest is testing]]
+             [clojure.core.matrix.macros-cljs :refer [error?]])))
+
 
 ;; ====================================
 ;; COMPLIANCE TESTING
@@ -118,8 +120,8 @@
   (testing "accessing outside existing dimensions is an error"
     (let [sh (mat/shape m)
           dims (count sh)]
-      (is (thrown? Throwable (mat/dimension-count m -1)))
-      (is (thrown? Throwable (mat/dimension-count m dims))))))
+      (is (thrown? #?(:clj Throwable :cljs js/Error) (mat/dimension-count m -1)))
+      (is (thrown? #?(:clj Throwable :cljs js/Error) (mat/dimension-count m dims))))))
 
 (defn test-immutable-assumptions [m]
   (testing "immutable coerce"
@@ -277,10 +279,13 @@
       (let [j (mat/join-along dim m m)]
         (check-joined-matrices dim m j)))))
 
+; TODO: Figure out pretty-print support for Clojurescript
+#?(:clj
 (defn test-pm
   "Test for matrix pretty-printing"
   ([m]
     (is (pos? (count (with-out-str (mat/pm m)))))))
+)
 
 (defn test-to-string [m]
   (when m ;; guard for nil
@@ -328,7 +333,7 @@
   (test-ndarray-round-trip m)
   (test-reshape m)
   (test-rotate m)
-  (test-pm m)
+  #?(:clj (test-pm m))
   (test-to-string m)
   (test-elements m)
   (test-array-output m)
@@ -402,6 +407,8 @@
     (is (not (mat/equals (mat/coerce m (mat/array [1]))
                      (mat/coerce m (mat/array 1)))))))
 
+#?(:clj (do
+
 (defn method-exists? [method im args]
   (try
     (apply method im (rest args))
@@ -422,6 +429,7 @@
           (is (method-exists? method m (first arglists))
               (str "check method " name
                    " of implementation " im-name)))))))
+))
 
 ;; =======================================
 ;; array interop tests
@@ -479,7 +487,7 @@
 (defn misc-numeric-tests [m]
   (is (mat/equals m (mat/sparse m)))
   (is (mat/equals m (mat/dense m)))
-  (is (mat/equals m (clojure.core.matrix.impl.double-array/to-double-arrays m)))
+  #?(:clj (is (mat/equals m (clojure.core.matrix.impl.double-array/to-double-arrays m))))
   (is (mat/equals (mat/add m m) (mat/scale m 2.0)))
   (is (mat/equals (mat/square m) (ops/** m 2) 0.0001))
   (is (mat/equals m (ops/** m 1)))
@@ -752,7 +760,7 @@
     (when (mat/numerical? m)
       (test-numeric-instance m))
     (test-array-assumptions m)
-    #?(:clj (catch Throwable t
+    #?(:clj (catch #?(:clj Throwable :cljs js/Error) t
               (throw (RuntimeException. (str "Error testing instance: " m) t)))
        :cljs (catch js/Error t
               (throw (js/Error. (str "Error testing instance: " m) t))))))
@@ -821,7 +829,8 @@
   "Runs the compliance test suite on a given matrix implementation.
    m can be either a matrix instance or the implementation keyword."
   [m]
-  (let [im (or (imp/get-canonical-object m) (error "Implementation not registered: " (class m)))
+  (let [im (or (imp/get-canonical-object m) 
+               (error "Implementation not registered: " (#?(:clj class :cljs type) m)))
         im (mat/clone im) ;; clone to avoid risk of modifying canonical object
         ik (imp/get-implementation-key im)]
     (binding [imp/*matrix-implementation* ik]
@@ -830,7 +839,7 @@
       (test-assumptions-for-all-sizes im)
       (test-coerce-via-vectors im)
       (test-equality im)
-      (test-methods-existence im)
+      #?(:clj (test-methods-existence im))
       (when (mat/supports-dimensionality? im 2)
         (matrix-tests-2d im))
       (when (mat/supports-dimensionality? im 1)
@@ -841,3 +850,4 @@
       (test-row-operations im)
       (test-qr im)
       (test-new-matrices im))))
+
