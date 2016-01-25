@@ -41,7 +41,7 @@
    :builds
    [{:id :dev
      :figwheel true
-     :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
+     :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure" "checkouts/babel/src"]
      :compiler {:output-to "resources/public/js/unit-test.js"
                 :asset-path "js/out"
                 :main "clojure.core.matrix.test-basics"

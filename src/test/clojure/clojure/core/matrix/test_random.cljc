@@ -26,6 +26,8 @@
     (is (mat/zero-matrix? (r/sample-rand-int [5 5] 1)))
     (is (not (mat/zero-matrix? (r/sample-rand-int [5 5] 1.5 567))))))
 
+#?(:clj (do
+
 (deftest test-random-sequence-seeds
   (is (= (take 1000 (r/randoms 1337)) (take 1000 (r/randoms 1337))))) 
 
@@ -46,4 +48,6 @@
     (is (not (mat/equals (r/sample-normal 10) (r/sample-normal 10))))
     (is (not (mat/equals (r/sample-binomial 10 0.5 10) (r/sample-binomial 10 0.5 10))))
     (is (not (mat/equals (r/sample-binomial 100 0.5) (r/sample-binomial 100 0.5))))))
+
+))
 
