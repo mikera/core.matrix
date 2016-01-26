@@ -532,7 +532,7 @@
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
-    (get-shape [m] #?(:cljs (js/console.log (str "nil shape of seq: " m))) nil)
+    (get-shape [m] nil)
     (dimension-count [m i] (error "nil has zero dimensionality, cannot get count for dimension: " i))
   #?(:clj clojure.lang.Keyword
      :cljs cljs.core.Keyword)
@@ -571,7 +571,6 @@
         #?(:clj (.isArray (.getClass m)) :cljs (= js/Array (type m))) false ;; Java arrays are core.matrix arrays
         :else true)) ;; assume objects are scalars unless told otherwise
     (get-shape [m]
-      #?(:cljs (js/console.log (str "object shape of seq: " m)))
       (cond
         #?(:clj (.isArray (.getClass m)) :cljs (= js/Array (type m)))
           (let [n (count m)]
@@ -787,7 +786,7 @@
                                        (mp/get-major-slice-seq a)
                                        (mp/get-major-slice-seq m)))) ;; TODO: implement with mutable accumulation
         :else
-          (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m))))
+        (mp/construct-matrix (imp/get-canonical-object) (map #(mp/inner-product % a) (mp/get-major-slice-seq m)))))
     (outer-product [m a]
       (cond
         (mp/is-scalar? m)

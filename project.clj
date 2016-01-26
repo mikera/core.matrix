@@ -23,7 +23,7 @@
                                   [org.clojure/tools.macro "0.1.5"]
                                   [hiccup "1.0.5"]
                                   [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
-                                  [net.mikera/vectorz-clj "0.41.0" :exclusions [net.mikera/core.matrix]]
+                                  [net.mikera/vectorz-clj "0.42.0" :exclusions [net.mikera/core.matrix]]
                                   [org.clojure/test.check "0.8.2"]
 
                                   [org.clojure/clojurescript "1.7.228"]
