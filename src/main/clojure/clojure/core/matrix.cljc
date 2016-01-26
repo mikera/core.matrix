@@ -2086,7 +2086,7 @@
   ([]
     (or
       (imp/get-canonical-object imp/*matrix-implementation*)
-      (error "No current clojure.core.matrix implementation available")))
+      (error "No current clojure.core.matrix implementation available (no canonical)")))
   ([impl]
     (if-let [im (imp/get-canonical-object impl)]
       im
