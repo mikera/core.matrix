@@ -59,7 +59,7 @@
   ([m]
     (let [dims (long (mp/dimensionality m))
           type (mp/element-type m)
-          double? (or #?(:clj (= Double/TYPE type) :cljs (= js/number type)))]
+          double? (or #?(:clj (= Double/TYPE type) :cljs (= js/Number type)))]
       (cond
         (== dims 0)
           (wrap/wrap-scalar (mp/get-0d m))
