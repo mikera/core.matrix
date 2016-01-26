@@ -102,7 +102,7 @@
   "Maps a function over a persistent vector, only modifying the vector if the function
    returns a different value"
   ([f ^#?(:clj IPersistentVector :cljs PersistentVector) v]
-    (let [n (.count v)]
+    (let [n  #?(:clj (.count v) :cljs (count v))]
       (loop [i 0 v v]
         (if (< i n)
           (let [x (nth v i)
@@ -569,10 +569,11 @@
 (extend-protocol mp/PElementCount
   #?(:clj IPersistentVector :cljs PersistentVector)
     (element-count [m]
-      (let [c (long (count m))]
+      (let [c (long (count m))
+            first-element #?(:clj (.nth m 0) :cljs (nth m 0))]
         (if (== c 0)
           0
-          (* c (mp/element-count (.nth m 0))))))) ;; can't avoid boxed warning here, may be a bigint
+          (* c (mp/element-count first-element)))))) ;; can't avoid boxed warning here, may be a bigint
 
 ;; we need to implement this for all persistent vectors since we need to check all nested components
 (extend-protocol mp/PConversion
@@ -594,13 +595,22 @@
         (doseq-indexed [v (mp/element-seq m) i]
           (aset arr (+ off i) (double v)))
       ;; m must be a vector from now on
-      (and (== size ct) (not (vector? (.nth ^IPersistentVector m 0 nil))))
+      (and (== size ct) (not (vector? 
+                               #?(:clj 
+                                   (.nth ^IPersistentVector m 0 nil)
+                                  :cljs
+                                   (nth ^PersistentVector m 0 nil)))))
         (dotimes [i size]
           (aset arr (+ off i) (double (nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i))))
       :else
         (let [skip (quot size ct)]
           (dotimes [i ct]
-            (copy-to-double-array (.nth ^IPersistentVector m i) arr (+ off (* i skip)) skip))))
+            (copy-to-double-array 
+              #?(:clj 
+                  (.nth ^IPersistentVector m i)
+                  :cljs
+                  (nth ^PersistentVector m i))
+               arr (+ off (* i skip)) skip))))
     arr))
 
 (extend-protocol mp/PDoubleArrayOutput
