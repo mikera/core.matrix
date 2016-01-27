@@ -6,7 +6,7 @@
 (defmacro error
   "Throws an error with the provided message(s)"
   ([& vals]
-   `(throw (ex-info (str ~@vals) nil))))
+   `(throw (ex-info (str ~@vals) {}))))
 
 ;(defmacro error
 ;  "Throws an error with the provided message(s)"

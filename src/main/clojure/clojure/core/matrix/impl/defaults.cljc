@@ -792,8 +792,7 @@
         (mp/is-scalar? m)
           (mp/pre-scale a m)
         :else
-          (mp/convert-to-nested-vectors
-            (mp/element-map m (fn [v] (mp/pre-scale a v)))))))
+        (mp/element-map m (fn [v] (mp/pre-scale a v))))))
 
 ;; matrix multiply
 ;; TODO: document returning NDArray
@@ -1323,7 +1322,7 @@
         (f init m)))
   #?(:clj Object :cljs object)
     (element-seq [m]
-      (let [c (class m)
+      (let [c (#?(:clj class :cljs type) m)
             dims (long (mp/dimensionality m))]
         (cond
           (== 0 dims)
@@ -1339,9 +1338,7 @@
       ([m f]
         (if (== 0 (long (mp/dimensionality m)))
           (f (mp/get-0d m)) ;; handle case of single element
-          (let [s (mapv f (mp/element-seq m))]
-            (mp/reshape (mp/coerce-param m s)
-                        (mp/get-shape m)))))
+          (mp/construct-matrix m (mapv f (mp/element-seq m)))))
       ([m f a]
         (if (== 0 (long (mp/dimensionality m)))
           (let [v (mp/get-0d m)]
