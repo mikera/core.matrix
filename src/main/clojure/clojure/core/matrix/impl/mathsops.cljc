@@ -16,29 +16,27 @@
 
 (def maths-ops
   '[(abs Math/abs)
-	  (acos Math/acos)
-	  (asin Math/asin)
-	  (atan Math/atan)
-	  (cbrt Math/cbrt)
-	  (ceil Math/ceil)
-	  (cos Math/cos)
-	  (cosh Math/cosh)
-	  (exp Math/exp)
-	  (floor Math/floor)
-	  (log Math/log)
-	  (log10 Math/log10)
-	  (round Math/rint)
-	  (signum #?(:clj Math/signum :cljs Math/sign))
-	  (sin Math/sin)
-	  (sinh Math/sinh)
-	  (sqrt Math/sqrt)
-	  (tan Math/tan)
-	  (tanh Math/tanh)
-   	(to-degrees #?(:clj Math/toDegrees :cljs to-degrees*))
-	  (to-radians #?(:clj Math/toRadians :cljs to-radians*))])
+    (acos Math/acos)
+    (asin Math/asin)
+    (atan Math/atan)
+    (cbrt Math/cbrt)
+    (ceil Math/ceil)
+    (cos Math/cos)
+    (cosh Math/cosh)
+    (exp Math/exp)
+    (floor Math/floor)
+    (log Math/log)
+    (log10 Math/log10)
+    (round Math/rint)
+    (signum #?(:clj Math/signum :cljs Math/sign))
+    (sin Math/sin)
+    (sinh Math/sinh)
+    (sqrt Math/sqrt)
+    (tan Math/tan)
+    (tanh Math/tanh)
+    (to-degrees #?(:clj Math/toDegrees :cljs to-degrees*))
+    (to-radians #?(:clj Math/toRadians :cljs to-radians*))])
 
-#?(:clj
-    (do
 (defmacro def-mop
   "Define a mathematical operator function."
   [op-sym fn-sym]
@@ -53,7 +51,6 @@
   `(do
      ~@(for [[sym# op#] maths-ops]
          `(def-mop ~sym# ~op#))))
-))
 
 (def-mops)
 
