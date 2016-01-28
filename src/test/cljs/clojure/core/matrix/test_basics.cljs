@@ -105,7 +105,7 @@
   (is (mat/equals [[1 2] [6 8]] (mat/dot [[1 0] [0 2]] [[1 2] [3 4]]))))
 
 (deftest test-compliance
-  (compliance-test (mat/array [1 2 3 4 5])))
+  (compliance-test (mat/new-array :ndarray [1 2 3 4 5])))
 
 (defn set-html! [el content]
   (set! (.-innerHTML el) content))

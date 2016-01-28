@@ -298,7 +298,7 @@
   "Protocol to broadcast into a given matrix shape and perform coercion in one step.
 
    Equivalent to (coerce m (broadcast-like m a)) but likely to be more efficient."
-  (broadcast-coerce [m a] "Broacasts and coerces a to the same shape and implementation as m"))
+  (broadcast-coerce [m a] "Broadcasts and coerces a to the same shape and implementation as m"))
 
 (defprotocol PConversion
   "Protocol to allow conversion to Clojure-friendly vector format. Optional for implementers,

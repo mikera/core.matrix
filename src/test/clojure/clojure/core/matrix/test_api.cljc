@@ -59,8 +59,8 @@
 (deftest test-set-selection
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
     (testing "m/set-selection"
-      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] (m/set-selection a 0 0 2)))
-      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]] (m/set-selection a [0 2] [0 3] 3))))))
+      (is (m/equals [[2 2 3 4] [5 6 7 8] [9 10 11 12]] (m/set-selection a 0 0 2)))
+      (is (m/equals [[3 2 3 3] [5 6 7 8] [3 10 11 3]] (m/set-selection a [0 2] [0 3] 3))))))
 
 (deftest test-set-selection!
   (let [a (m/matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
@@ -92,8 +92,9 @@
     (is (nil? (imp/get-canonical-object :random-fictitious-implementation-key))))
   (testing "with-implementation"
     (is (= [1 2] (m/with-implementation [] (m/matrix [1 2]))))
-    (is (= (#?(:clj class :cljs type) (double-array [1 2]))
-           (#?(:clj class :cljs type) (m/with-implementation :double-array (m/matrix [1 2])))))))
+    #?(:clj
+    (is (= (class (double-array [1 2]))
+           (class (m/with-implementation :double-array (m/matrix [1 2]))))))))
 
 (deftest test-products
   (is (m/equals 1 (m/inner-product [0 1 1] [1 1 0])))

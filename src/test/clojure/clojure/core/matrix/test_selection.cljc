@@ -26,16 +26,16 @@
 (deftest test-set-sel
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12]]]
     (testing "set-sel"
-      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] (set-sel a 0 0 2)))
-      (is (= [[3 2 3 3] [5 6 7 8] [3 10 11 3]] (set-sel a [0 2] [0 3] 3))))))
+      (is (mat/equals [[2 2 3 4] [5 6 7 8] [9 10 11 12]] (set-sel a 0 0 2)))
+      (is (mat/equals [[3 2 3 3] [5 6 7 8] [3 10 11 3]] (set-sel a [0 2] [0 3] 3))))))
 
 (deftest test-set-sel!
   (let [a (mat/matrix :ndarray [[1 2 3 4] [5 6 7 8] [9 10 11 12]])]
     (testing "set-sel!"
       (set-sel! a 0 0 2)
-      (is (= [[2 2 3 4] [5 6 7 8] [9 10 11 12]] a))
+      (is (mat/equals [[2 2 3 4] [5 6 7 8] [9 10 11 12]] a))
       (set-sel! a :all 0 0)
-      (is (= [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a)))))
+      (is (mat/equals [[0 2 3 4] [0 6 7 8] [0 10 11 12]] a)))))
 
 (deftest test-selector-functions
   (let [a [[1 2 3 4] [5 6 7 8] [9 10 11 12] [13 14 15 16]]]
@@ -47,19 +47,19 @@
 
 (deftest test-vector-selects
   (let [a [1 2 3 4 5]]
-    (is (= a (sel a :all)))
-    (is (= [1 2 3 4] (sel a :butlast)))
-    (is (= [2 3 4 5] (sel a :rest)))
+    (is (mat/equals a (sel a :all)))
+    (is (mat/equals [1 2 3 4] (sel a :butlast)))
+    (is (mat/equals [2 3 4 5] (sel a :rest)))
     (is (error? (sel a -1)))
-    (is (= 1 (sel a 0)))
-    (is (= 5 (sel a 4)))
+    (is (mat/equals 1 (sel a 0)))
+    (is (mat/equals 5 (sel a 4)))
     (is (error? (sel a 5))))
   (let [a [1]]
-    (is (= a (sel a :all)))
-    (is (= [] (sel a :butlast)))
-    (is (= [] (sel a :rest)))
+    (is (mat/equals a (sel a :all)))
+    (is (mat/equals [] (sel a :butlast)))
+    (is (mat/equals [] (sel a :rest)))
     (is (error? (sel a -1)))
-    (is (= 1 (sel a 0)))
+    (is (mat/equals 1 (sel a 0)))
     (is (error? (sel a 1)))))
 
 

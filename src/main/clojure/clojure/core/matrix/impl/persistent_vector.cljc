@@ -755,6 +755,10 @@
          (apply vector (mapv #(mp/select (nth a %) (next args))
                              (first args)))))))
 
+(extend-protocol mp/PIndexImplementation
+  #?(:clj IPersistentVector :cljs PersistentVector)
+	  (index? [m] true))
+
 ;; =====================================
 ;; Register implementation
 

@@ -611,6 +611,9 @@
   nil
     (same-shape? [a b]
       (== 0 (long (mp/dimensionality b))))
+  #?(:clj String :cljs string)
+    (same-shape? [a b]
+      (== 0 (long (mp/dimensionality b))))
   #?(:clj Number :cljs number)
     (same-shape? [a b]
       (== 0 (long (mp/dimensionality b))))
@@ -1338,7 +1341,8 @@
       ([m f]
         (if (== 0 (long (mp/dimensionality m)))
           (f (mp/get-0d m)) ;; handle case of single element
-          (mp/construct-matrix m (mapv f (mp/element-seq m)))))
+          (mp/reshape (mp/construct-matrix m (mapv f (mp/element-seq m)))
+                      (mp/get-shape m))))
       ([m f a]
         (if (== 0 (long (mp/dimensionality m)))
           (let [v (mp/get-0d m)]
@@ -1803,15 +1807,25 @@
 
 (extend-protocol mp/PExponent
   #?(:clj Number :cljs number)
-    (element-pow [m exponent]
-      (if (array? exponent)
-        (mp/element-map exponent #(Math/pow (.doubleValue m) (.doubleValue ^Number %)))
-        (Math/pow (.doubleValue m) (double exponent))))
+  (element-pow [m exponent]
+    #?(:clj
+        (if (array? exponent)
+          (mp/element-map exponent #(Math/pow (.doubleValue m) (.doubleValue ^Number %)))
+          (Math/pow (.doubleValue m) (double exponent)))
+       :cljs
+        (if (array? exponent)
+          (mp/element-map exponent #(Math/pow m %))
+          (Math/pow m exponent))))
   #?(:clj Object :cljs object)
-    (element-pow [m exponent]
-      (if (array? exponent)
-        (mp/element-map m #(Math/pow (.doubleValue ^Number %1) (.doubleValue ^Number %2)) exponent)
-        (mp/element-map m #(Math/pow (.doubleValue ^Number %) exponent)))))
+  (element-pow [m exponent]
+    #?(:clj
+        (if (array? exponent)
+          (mp/element-map m #(Math/pow (.doubleValue ^Number %1) (.doubleValue ^Number %2)) exponent)
+          (mp/element-map m #(Math/pow (.doubleValue ^Number %) exponent)))
+       :cljs
+        (if (array? exponent)
+          (mp/element-map m #(Math/pow %1 %2) exponent)
+          (mp/element-map m #(Math/pow % exponent))))))
 
 (extend-protocol mp/PSquare
   #?(:clj Number :cljs number)
