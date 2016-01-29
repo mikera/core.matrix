@@ -14,7 +14,8 @@
 
   :test-paths ["src/test/clojure" "src/test/java"]
 
-  :dependencies [[org.clojure/clojure "1.8.0"]]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [net.mikera/cljunit "0.3.1"]]
 
   :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
 
