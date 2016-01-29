@@ -5,8 +5,9 @@
   "
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.utils :as u])
-  (:require-macros [clojure.core.matrix.macros :refer [error is-double-array?]]))
+  (:require-macros [clojure.core.matrix.macros :refer [scalar-coerce error is-double-array?]]))
 
 (defn new-double-array
   "Creates a new zero-filled nested double array of the given shape"
@@ -200,6 +201,38 @@
 	  (index-coerce [m a]
       m))
 
+(extend-protocol mp/PBroadcast
+  array
+  (broadcast [m new-shape]
+    (let [nshape new-shape
+          mshape (mp/get-shape m)
+          mdims (count mshape)
+          ndims (count nshape)]
+      (cond
+        (and (== mdims ndims) (u/same-shape-object? nshape mshape)) m
+        :else (wrap/wrap-broadcast m new-shape)))))
+
 (extend-protocol mp/PNumerical
   array
   (numerical? [m] true))
+
+(extend-protocol mp/PSubVector
+  array
+  (subvector [m start length]
+    (mp/subvector (wrap/wrap-nd m) start length)))
+
+(extend-protocol mp/PMatrixEquality
+  array
+  (matrix-equals [a b]
+    (cond
+      (identical? a b) true
+      (mp/same-shape? a b)
+      (if (== 0 (long (mp/dimensionality a)))
+        (== (mp/get-0d a) (scalar-coerce b))
+        (not-any? false? (map == (mp/element-seq a) (mp/element-seq b))))
+      :else false)))
+
+(extend-protocol mp/PSameShape
+  array
+  (same-shape? [a b]
+    (u/same-shape-object? (mp/get-shape a) (mp/get-shape b))))

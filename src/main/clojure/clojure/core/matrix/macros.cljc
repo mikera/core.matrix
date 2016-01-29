@@ -86,6 +86,6 @@
 
 (defmacro array?
   "Returns true if the parameter is an N-dimensional array of any type"
-  ([m]
-    `(not (mp/is-scalar? ~m))))
+  [m]
+  `(not (mp/is-scalar? ~m)))
 

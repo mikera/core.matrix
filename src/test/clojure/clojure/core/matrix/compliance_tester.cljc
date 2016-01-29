@@ -11,7 +11,7 @@
     [clojure.core.matrix :as mat])
   #?(:clj (:require [clojure.test :refer [deftest is testing]]
                     [clojure.core.matrix.macros-clj :refer [error?]])
-     :cljs (:require-macros 
+     :cljs (:require-macros
              [cljs.test :refer [deftest is testing]]
              [clojure.core.matrix.macros-cljs :refer [error?]])))
 
@@ -829,7 +829,7 @@
   "Runs the compliance test suite on a given matrix implementation.
    m can be either a matrix instance or the implementation keyword."
   [m]
-  (let [im (or (imp/get-canonical-object m) 
+  (let [im (or (imp/get-canonical-object m)
                (error "Implementation not registered: " (#?(:clj class :cljs type) m)))
         im (mat/clone im) ;; clone to avoid risk of modifying canonical object
         ik (imp/get-implementation-key im)]

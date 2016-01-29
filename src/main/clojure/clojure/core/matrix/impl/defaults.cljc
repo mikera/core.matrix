@@ -198,9 +198,9 @@
           (mp/get-1d (nth m x) y)
           (error "Can't do 2D get on a lazy seq")))
       (get-nd [m indexes]
-        (if (seqable? (first m))
+        (if (seq indexes)
           (mp/get-nd (nth m (first indexes)) (next indexes))
-          (error "Can't do ND get on a lazy seq")))
+          (mp/get-0d m)))
 
       cljs.core/Range
       (get-1d [m x] (nth m x))
@@ -586,7 +586,37 @@
           :else (error "Can't determine count of dimension " i " on Object: " (class m)))))
 
 #?@(:cljs
-     [cljs.core/LazySeq
+     [cljs.core/List
+      (dimensionality [m] (inc (mp/dimensionality (first m))))
+      (is-vector? [m] (== 0 (mp/dimensionality (first m))))
+      (is-scalar? [m] false)
+      (get-shape [m] (cons (count m) (mp/get-shape (first m))))
+      (dimension-count [m x]
+                       (if (== x 0)
+                         (count m)
+                         (mp/dimension-count (first m) (dec x))))
+
+      cljs.core/LazySeq
+      (dimensionality [m] (inc (mp/dimensionality (first m))))
+      (is-vector? [m] (== 0 (mp/dimensionality (first m))))
+      (is-scalar? [m] false)
+      (get-shape [m] (cons (count m) (mp/get-shape (first m))))
+      (dimension-count [m x]
+                       (if (== x 0)
+                         (count m)
+                         (mp/dimension-count (first m) (dec x))))
+
+      cljs.core/IndexedSeq
+      (dimensionality [m] (inc (mp/dimensionality (first m))))
+      (is-vector? [m] (== 0 (mp/dimensionality (first m))))
+      (is-scalar? [m] false)
+      (get-shape [m] (cons (count m) (mp/get-shape (first m))))
+      (dimension-count [m x]
+                       (if (== x 0)
+                         (count m)
+                         (mp/dimension-count (first m) (dec x))))
+
+      cljs.core/Cons
       (dimensionality [m] (inc (mp/dimensionality (first m))))
       (is-vector? [m] (== 0 (mp/dimensionality (first m))))
       (is-scalar? [m] false)
@@ -1209,6 +1239,11 @@
         (and
           (== 0 (long (mp/dimensionality b)))
           (nil? (mp/get-0d b)))))
+  #?(:clj Number :cljs number)
+  (value-equals [a b]
+    (and
+      (== 0 (long (mp/dimensionality b)))
+      (== a (mp/get-0d b))))
   #?(:clj Object :cljs object)
     (value-equals [a b]
       (and
@@ -1328,6 +1363,8 @@
       (let [c (#?(:clj class :cljs type) m)
             dims (long (mp/dimensionality m))]
         (cond
+          (> dims 1) (mapcat mp/element-seq m)
+          (seq? m) m
           (== 0 dims)
             (vector (mp/get-0d m))
  #?@(:clj [(and (.isArray c) (.isPrimitive (.getComponentType c))) m]
@@ -1382,7 +1419,21 @@
       ([m f a more] (error "Can't do element-map! on nil")))
     (element-reduce
       ([m f] nil)
-      ([m f init] (f init nil))))
+      ([m f init] (f init nil)))
+
+#?@(:cljs
+  [cljs.core/List
+    (element-seq [m]
+     (cond
+        (== 0 (count m))
+          nil
+        (>= (long (mp/dimensionality (nth m 0))) 1)
+          ;; we are a 2D+ array, so be conservative and create a concatenated sequence
+          (mapcat mp/element-seq m)
+        :else
+          ;; we are a 1D vector, so already a valid seqable result for element-seq
+          m))])
+    )
 
 (defn- cart [colls]
   (if (empty? colls)
@@ -1703,10 +1754,10 @@
                   (if (< i n)
                     (recur (inc i) (conj res (mp/get-1d m i)))
                     res))))
-          (array? m)
-              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
           (sequential? m)
               (mapv mp/convert-to-nested-vectors m)
+          (array? m)
+              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
           (seq? m)
               (mapv mp/convert-to-nested-vectors m)
           :default
@@ -2220,7 +2271,7 @@
 
 (defn compute-q [m ^doubles qr-data mcols mrows min-len
                  ^doubles us ^doubles vs ^doubles gammas]
-  (let [q ^doubles (mp/to-double-array (mp/identity-matrix vector mrows))
+  (let [q ^doubles (mp/to-double-array (mp/identity-matrix [] mrows))
         mcols (long mcols)
         mrows (long mrows)
         min-len (long min-len)]

@@ -16,7 +16,6 @@
              [clojure.core.matrix.macros-cljs :refer-macros [error?]]]))
   #?(:clj (:import [java.io StringWriter])))
 
-
 ;; This namespace is intended for general purpose tests of the core.matrix API functions
 
 (deftest test-indexed-access
@@ -120,7 +119,9 @@
 (deftest test-new
   (is (m/e= [0.0] (m/new-vector :ndarray 1)))
   (is (m/e= [[0.0]] (m/new-matrix :ndarray 1 1)))
-  (is (m/e= [nil] (m/new-array :ndarray [1])))
+  ; This doesn't seem correct, as some implementations can zero out rather than
+  ; have nil values when allocating.  At least according to the documentation.
+  ;(is (m/e= [nil] (m/new-array :ndarray [1])))
   (is (m/equals [0 0 0] (m/new-vector :persistent-vector 3)))
   (is (m/equals [0 0 0] (m/new-vector :ndarray-double 3)))
   (is (= [0.0 0.0 0.0] (seq (m/new-vector :double-array 3))))
@@ -264,7 +265,7 @@
     (is (m/e= [1 2] (m/array [1 2])))
     (is (m/e= [1 2] [1 2] [1 2] [1 2]))
     (is (not (m/e= [1 2] [3 4])))
-    (is (not (m/e= [1 2] [1.0 2.0])))
+    #?(:clj (is (not (m/e= [1 2] [1.0 2.0]))))
     (is (not (m/e= [1 2] [1 2] [1 3] [1 2]))))
   (testing "=="
     (is (op/== 2 2))

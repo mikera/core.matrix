@@ -3,7 +3,8 @@
   (:require [clojure.core.matrix.compliance-tester :as compliance]
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.utils :refer :all]
-            [clojure.test :refer :all]))
+            [clojure.test :refer :all]
+            [clojure.core.matrix.macros-clj :refer [array?]]))
 
 ;; This namespace is intended for tests of core.matrix functions on arbitrary Java arrays
 ;;

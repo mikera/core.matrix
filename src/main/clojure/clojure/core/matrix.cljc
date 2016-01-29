@@ -1345,10 +1345,9 @@
   ([m a]
     (mp/element-ne m a)))
 
-(defn eq
-  "Element-wise equal comparison operation. Returns a binary array where
-  elements equal to the argument are represented by 1 and elements not-equal to
-  the argument are 0.
+(defn eq "Element-wise equal comparison operation. Returns a binary
+array where elements equal to the argument are represented by 1 and
+elements not-equal to the argument are 0.
 
   Performs broadcasting of arguments if required to match the size of the largest array.
 

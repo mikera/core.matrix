@@ -24,10 +24,10 @@
         b (mat/array [1 2 3])
         c (mat/array [[2 2] [2 2]])
         d (mat/array [[3 3] [3 3]])]
-    (is (= [2 4 6] (vec (mat/add a b))))
-    (is (= [1 4 9] (vec (mat/mul a b))))
-    (is (= [[12 12] [12 12]]) (vec (map vec (mat/mmul c d))))
-    (is (mat/array [[12 12] [12 12]]) (mat/mmul c d))))
+    (is (mat/equals [2 4 6] (vec (mat/add a b))))
+    (is (mat/equals [1 4 9] (vec (mat/mul a b))))
+    (is (mat/equals [[12 12] [12 12]] (mat/mmul c d)))
+    (is (mat/equals [[12 12] [12 12]] (mat/mmul c d)))))
 
 (deftest test-regressions
   (testing "vector 3D transpose"
@@ -105,7 +105,7 @@
   (is (mat/equals [[1 2] [6 8]] (mat/dot [[1 0] [0 2]] [[1 2] [3 4]]))))
 
 (deftest test-compliance
-  (compliance-test (mat/new-array :ndarray [1 2 3 4 5])))
+  (compliance-test (mat/array :ndarray [[1 2] [3 4]])))
 
 (defn set-html! [el content]
   (set! (.-innerHTML el) content))

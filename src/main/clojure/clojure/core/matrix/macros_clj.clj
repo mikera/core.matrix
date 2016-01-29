@@ -12,7 +12,7 @@
        false
        (catch Throwable t#
          true))))
- 
+
 (defmacro abutnth [i xs]
   `(let [n# (alength ~xs)
          length# (int (dec n#))
