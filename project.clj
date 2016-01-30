@@ -15,6 +15,7 @@
   :test-paths ["src/test/clojure" "src/test/java"]
 
   :dependencies [[org.clojure/clojure "1.8.0"]
+                 [net.mikera/vectorz-clj "0.42.0" :exclusions [net.mikera/core.matrix]]
                  [net.mikera/cljunit "0.3.1"]]
 
   :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
@@ -24,7 +25,6 @@
                                   [org.clojure/tools.macro "0.1.5"]
                                   [hiccup "1.0.5"]
                                   [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
-                                  [net.mikera/vectorz-clj "0.42.0" :exclusions [net.mikera/core.matrix]]
                                   [org.clojure/test.check "0.8.2"]
 
                                   [org.clojure/clojurescript "1.7.228"]

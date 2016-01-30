@@ -22,6 +22,28 @@
               r0 (new-double-array ns)]
           (into-array (cons r0 (for [i (range (dec rn))] (new-double-array ns))))))))
 
+(defn construct-double-array [data]
+  (let [dims (long (mp/dimensionality data))]
+    (cond
+     ;(== dims 2)
+     ; (let [x (long (mp/dimension-count data 0))
+     ;       y (long (mp/dimension-count data 1))
+     ;       r (double-array (* x y))]
+     ;   (dotimes [i x]
+     ;     (dotimes [j y]
+     ;       (aset-double r i j (double (mp/get-2d data i j)))))
+     ;   r)
+     (== dims 1)
+       (let [n (long (mp/dimension-count data 0))
+             r (double-array n)]
+           (dotimes [i n]
+             (aset r i (double (mp/get-1d data i))))
+           r)
+     (== dims 0)
+       (double (mp/get-0d data))
+     :default
+       nil)))
+
 (extend-protocol mp/PImmutableAssignment
   number
   (assign [m source] nil))
@@ -236,3 +258,10 @@
   array
   (same-shape? [a b]
     (u/same-shape-object? (mp/get-shape a) (mp/get-shape b))))
+
+(extend-protocol mp/PSelect
+  array
+  (select [a area]
+    (or (mp/select-view a area)
+        (wrap/wrap-selection a area))))
+

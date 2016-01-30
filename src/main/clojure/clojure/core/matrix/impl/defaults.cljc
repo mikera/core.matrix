@@ -3,20 +3,17 @@
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.impl.mathsops :as mops]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.utils :as u])
-  #?@(:clj [(:require [clojure.core.matrix.impl.double-array :as da]
-                      [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
-                      [clojure.core.matrix.macros-clj :refer [try-current-implementation eps== native-array?]])
+            [clojure.core.matrix.utils :as u]
+            [clojure.core.matrix.impl.double-array :as da])
+  #?@(:clj [(:require
+              [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
+              [clojure.core.matrix.macros-clj :refer [try-current-implementation eps== native-array?]])
             (:import [clojure.lang ISeq])]
       :cljs [(:require-macros
                [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
                [clojure.core.matrix.macros-cljs :refer [try-current-implementation eps== native-array?]])]))
 
 (def ^:dynamic *trying-current-implementation* nil)
-
-#?(:cljs (do
-(def class type)
-))
 
 ;; =========================================================================
 ;; This namespace contains default implementations for core.matrix protocols
@@ -54,6 +51,7 @@
       :else (count m))))
 
 ;; TODO: make smarter for different numeric types
+;; TODO: have this return ndarrays once we have cljs support
 (defn construct-mutable-matrix
   "Constructs a new mutable matrix with the given data."
   ([m]
@@ -63,15 +61,57 @@
       (cond
         (== dims 0)
           (wrap/wrap-scalar (mp/get-0d m))
-
-#?@(:clj [(and (== dims 1) double?) (da/construct-double-array m)])
-
+        (and (== dims 1) double?) ; TODO: let it use double-array in cljs once more complete
+          #?(:clj (da/construct-double-array m)
+             :cljs (mp/coerce-param (imp/get-canonical-object :thing-ndarray) m))
         double?
-          (mp/coerce-param (imp/get-canonical-object :ndarray-double) m)
+          (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray-double :cljs :thing-ndarray)) m)
         :else
-          (mp/coerce-param (imp/get-canonical-object :ndarray) m)))))
+          (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray :cljs :thing-ndarray)) m)))))
 
+(defn mapmatrix
+  "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
+   Assumes correct dimensionality / shape.
 
+   First array argument must be nested persistent vectors. Others may be
+   any arrays of the same shape.
+
+   Returns a nested persistent vector matrix or a scalar value."
+  ([f m]
+   (let [dims (long (mp/dimensionality m))
+         res (cond
+               (== 0 dims) (f (scalar-coerce m))
+               (== 1 dims) (mapv f m)
+               :else (mapv (partial mapmatrix f) m))]
+     res))
+  ([f m1 m2]
+    (let [dims (long (mp/dimensionality m1))]
+      (cond
+        (== 0 dims) (f m1 (scalar-coerce m2))
+        (== 1 dims) (mapv f m1 (mp/element-seq m2))
+        :else (mapv (partial mapmatrix f)
+                    m1
+                    (mp/get-major-slice-seq m2)))))
+  ([f m1 m2 m3]
+    (let [dims (long (mp/dimensionality m1))]
+      (cond
+        (== 0 dims) (f m1 (scalar-coerce m2) (scalar-coerce m3))
+        (== 1 dims) (mapv f m1 (mp/element-seq m2) (mp/element-seq m3))
+        :else (mapv (partial mapmatrix f)
+                    m1
+                    (mp/get-major-slice-seq m2)
+                    (mp/get-major-slice-seq m3)))))
+  ([f m1 m2 m3 & more]
+    (let [dims (long (mp/dimensionality m1))]
+      (cond
+        (== 0 dims) (apply f m1 (scalar-coerce m2) (scalar-coerce m3) (map mp/get-0d more))
+        (== 1 dims) (apply mapv f m1 (mp/element-seq m2) (mp/element-seq m3) (map mp/element-seq more))
+        :else (apply mapv (partial mapmatrix f)
+                     m1
+                     (mp/get-major-slice-seq m2)
+                     (mp/get-major-slice-seq m3)
+                     (map mp/get-major-slice-seq more))))))
+ 
 ;; ============================================================
 ;; Default implementations
 ;; - default behaviour for java.lang.Number scalars
@@ -187,7 +227,7 @@
       (if (seq indexes)
         (cond
           (native-array? m) (mp/get-nd (nth m (first indexes)) (next indexes))
-          :else (error "Indexed get failed, not defined for:" (class m)))
+          :else (error "Indexed get failed, not defined for:" (#?(:clj class :cljs type) m)))
         (mp/get-0d m)))
 
 #?@(:cljs
@@ -423,7 +463,7 @@
                   (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-view-seq m) xss)))
                 (doseq [ms (mp/get-major-slice-view-seq m)] (mp/assign! ms x))))
            :else
-              (error "Can't assign to a non-array object: " (class m)))))
+              (error "Can't assign to a non-array object: " (#?(:clj class :cljs type) m)))))
     (assign-array!
       ([m arr]
           (let [alen (long (count arr))]
@@ -583,7 +623,7 @@
             (if (== i 0) (count m) (mp/dimension-count (nth m 0) (dec i)))
           (== 0 i)
             (count m)
-          :else (error "Can't determine count of dimension " i " on Object: " (class m)))))
+          :else (error "Can't determine count of dimension " i " on Object: " (#?(:clj class :cljs type) m)))))
 
 #?@(:cljs
      [cljs.core/List
@@ -839,7 +879,7 @@
       (cond
         (number? a) (* m a)
         (array? a) (mp/pre-scale a m)
-        :else (error "Don't know how to multiply number with: " (class a))))
+        :else (error "Don't know how to multiply number with: " (#?(:clj class :cljs type) a))))
   #?(:clj Object :cljs object)
     (matrix-multiply [m a]
       (let [mdims (long (mp/dimensionality m))
@@ -1095,7 +1135,7 @@
   #?(:clj Object :cljs object)
     (element-type [a]
       (if (native-array? a)
-        (.getComponentType (class a))
+        (.getComponentType (#?(:clj class :cljs type) a))
         #?(:clj Object :cljs js/Object))))
 
 ;; generic element values
@@ -1124,7 +1164,7 @@
     (vector-transform [m a]
       (cond
         (== 2 (long (mp/dimensionality m))) (mp/matrix-multiply m a)
-        :else (error "Don't know how to transform using: " (class m))))
+        :else (error "Don't know how to transform using: " (#?(:clj class :cljs type) m))))
     (vector-transform! [m a]
       (mp/assign! a (mp/vector-transform m a))))
 
@@ -1360,7 +1400,7 @@
         (f init m)))
   #?(:clj Object :cljs object)
     (element-seq [m]
-      (let [c (#?(:clj class :cljs type) m)
+      (let [c (#?(:clj #?(:clj class :cljs type) :cljs type) m)
             dims (long (mp/dimensionality m))]
         (cond
           (> dims 1) (mapcat mp/element-seq m)
@@ -1374,27 +1414,41 @@
           (array? m)
             (mapcat mp/element-seq (mp/get-major-slice-seq m))
           :else (error "Don't know how to create element-seq from: " m))))
+    ;(element-map
+    ;  ([m f]
+    ;   (if (== 0 (long (mp/dimensionality m)))
+    ;     (f (mp/get-0d m)) ;; handle case of single element
+    ;     (let [s (mapv f (mp/element-seq m))]
+    ;       (mp/reshape (mp/coerce-param m s)
+    ;                   (mp/get-shape m)))))
+    ;  ([m f a]
+    ;   (if (== 0 (long (mp/dimensionality m)))
+    ;     (let [v (mp/get-0d m)]
+    ;       (mp/element-map a #(f v %)))
+    ;     (let [[m a] (mp/broadcast-compatible m a)
+    ;           s (mapv f (mp/element-seq m) (mp/element-seq a))]
+    ;       (mp/reshape (mp/coerce-param m s) ;; TODO: faster construction method?
+    ;                   (mp/get-shape m)))))
+    ;  ([m f a more]
+    ;   (let [s (mapv f (mp/element-seq m) (mp/element-seq a))
+    ;         s (apply mapv f (list* (mp/element-seq m)
+    ;                                (mp/element-seq a)
+    ;                                (map mp/element-seq more)))]
+    ;     (mp/reshape (mp/coerce-param m s)
+    ;                 (mp/get-shape m)))))
     (element-map
       ([m f]
-        (if (== 0 (long (mp/dimensionality m)))
-          (f (mp/get-0d m)) ;; handle case of single element
-          (mp/reshape (mp/construct-matrix m (mapv f (mp/element-seq m)))
-                      (mp/get-shape m))))
+        (mp/construct-matrix m (mapmatrix f m)))
       ([m f a]
-        (if (== 0 (long (mp/dimensionality m)))
-          (let [v (mp/get-0d m)]
-            (mp/element-map a #(f v %)))
-          (let [[m a] (mp/broadcast-compatible m a)
-                s (mapv f (mp/element-seq m) (mp/element-seq a))]
-            (mp/reshape (mp/coerce-param m s) ;; TODO: faster construction method?
-                        (mp/get-shape m)))))
+        (let [[m a] (mp/broadcast-same-shape m a)]
+          (mp/construct-matrix m (mapmatrix f m a))))
       ([m f a more]
-        (let [s (mapv f (mp/element-seq m) (mp/element-seq a))
-              s (apply mapv f (list* (mp/element-seq m)
-                                     (mp/element-seq a)
-                                     (map mp/element-seq more)))]
-          (mp/reshape (mp/coerce-param m s)
-                      (mp/get-shape m)))))
+        (let [arrays (cons m (cons a more))
+              shapes (map mp/get-shape arrays)
+              sh (or (mp/common-shape shapes) (error "Attempt to do element map with incompatible shapes: " (mapv mp/get-shape arrays)))
+              arrays (map #(mp/broadcast % sh) arrays)]
+          (mp/construct-matrix m (apply mapmatrix f arrays)))))
+
     (element-map!
       ([m f]
         (mp/assign! m (mp/element-map m f)))
@@ -1526,7 +1580,7 @@
                 shapes (mapv mp/validate-shape ss)]
             (if (mp/same-shapes? ss)
               (vec (cons (mp/dimension-count m 0) (first shapes)))
-              (error "Inconsistent shapes for sub arrays in " (class m)))))))
+              (error "Inconsistent shapes for sub arrays in " (#?(:clj class :cljs type) m)))))))
 
 (extend-protocol mp/PMatrixSlices
   #?(:clj Object :cljs object)
@@ -1761,7 +1815,7 @@
           (seq? m)
               (mapv mp/convert-to-nested-vectors m)
           :default
-              (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
+              (error "Can't work out how to convert to nested vectors: " (#?(:clj class :cljs type) m) " = " m)))))
 
 (extend-protocol mp/PRowColMatrix
   nil

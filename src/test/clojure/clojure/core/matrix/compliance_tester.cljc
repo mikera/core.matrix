@@ -582,6 +582,12 @@
     (is (mat/equals [-1 2 -1] (mat/cross m [1 1 1])))
     (is (mutable-equivalent? m #(mat/cross! % [3 4 5]) #(mat/cross % [3 4 5])))))
 
+(defn test-vector-products [m]
+  (let [a (mat/matrix m [1 2 3])
+        b (mat/matrix m [4 5 6])]
+    (is (mat/equals [[4 5 6] [8 10 12] [12 15 18]] (mat/outer-product a b)))
+    (is (mat/equals 32 (mat/inner-product a b)))))
+
 (defn test-vector-mutable-add [im]
   (let [m (mat/matrix im [1 2 3])]
     (is (mutable-equivalent? m #(mat/add! % [3 4 5]) #(mat/add % [3 4 5])))
@@ -626,7 +632,8 @@
   (test-vector-distance im)
   (test-element-add im)
   (test-1d-instances im)
-  (test-1d-mmul im))
+  (test-1d-mmul im)
+  (test-vector-products im))
 
 ;; ========================================
 ;; 2D matrix tests

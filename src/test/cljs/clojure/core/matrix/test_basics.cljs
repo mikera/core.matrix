@@ -16,6 +16,7 @@
     [clojure.core.matrix.macros-cljs :refer [error?]]))
 
 (enable-console-print!)
+(mat/set-current-implementation :thing-ndarray)
 
 (declare init)
 
@@ -105,7 +106,7 @@
   (is (mat/equals [[1 2] [6 8]] (mat/dot [[1 0] [0 2]] [[1 2] [3 4]]))))
 
 (deftest test-compliance
-  (compliance-test (mat/array :ndarray [[1 2] [3 4]])))
+  (compliance-test (mat/array :thing-ndarray [[1 2] [3 4]])))
 
 (defn set-html! [el content]
   (set! (.-innerHTML el) content))

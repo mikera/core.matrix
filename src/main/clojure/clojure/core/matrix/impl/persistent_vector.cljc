@@ -9,6 +9,7 @@
    Note that this allows for other array implementations to be nested inside persistent vectors."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.impl.defaults :refer [mapmatrix]]
             [clojure.core.matrix.impl.mathsops :as mops]
   #?@(:clj [[clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed]]
             [clojure.core.matrix.macros-clj :refer [native-array?]]]))
@@ -55,48 +56,6 @@
   `(let [pv# ^IPersistentVector ~pv]
      (or (== 0 (count pv#)) (== 0 (long (mp/dimensionality (nth pv# 0)))))))
 )
-
-(defn- mapmatrix
-  "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
-   Assumes correct dimensionality / shape.
-
-   First array argument must be nested persistent vectors. Others may be
-   any arrays of the same shape.
-
-   Returns a nested persistent vector matrix or a scalar value."
-  ([f m]
-    (let [dims (long (mp/dimensionality m))]
-      (cond
-        (== 0 dims) (f (scalar-coerce m))
-        (== 1 dims) (mapv f m)
-        :else (mapv (partial mapmatrix f) m))))
-  ([f m1 m2]
-    (let [dims (long (mp/dimensionality m1))]
-      (cond
-        (== 0 dims) (f m1 (scalar-coerce m2))
-        (== 1 dims) (mapv f m1 (mp/element-seq m2))
-        :else (mapv (partial mapmatrix f)
-                    m1
-                    (mp/get-major-slice-seq m2)))))
-  ([f m1 m2 m3]
-    (let [dims (long (mp/dimensionality m1))]
-      (cond
-        (== 0 dims) (f m1 (scalar-coerce m2) (scalar-coerce m3))
-        (== 1 dims) (mapv f m1 (mp/element-seq m2) (mp/element-seq m3))
-        :else (mapv (partial mapmatrix f)
-                    m1
-                    (mp/get-major-slice-seq m2)
-                    (mp/get-major-slice-seq m3)))))
-  ([f m1 m2 m3 & more]
-    (let [dims (long (mp/dimensionality m1))]
-      (cond
-        (== 0 dims) (apply f m1 (scalar-coerce m2) (scalar-coerce m3) (map mp/get-0d more))
-        (== 1 dims) (apply mapv f m1 (mp/element-seq m2) (mp/element-seq m3) (map mp/element-seq more))
-        :else (apply mapv (partial mapmatrix f)
-                     m1
-                     (mp/get-major-slice-seq m2)
-                     (mp/get-major-slice-seq m3)
-                     (map mp/get-major-slice-seq more))))))
 
 (defn- mapv-identity-check
   "Maps a function over a persistent vector, only modifying the vector if the function
@@ -520,6 +479,7 @@
     (add-row [m i j factor]
       (assoc m i (mp/matrix-add (m i) (mp/matrix-multiply (m j) factor)))))
 
+
 ;; helper functin to build generic maths operations
 (defn build-maths-function
   ([[name func]]
@@ -565,6 +525,14 @@
              :cljs (count m))
           #?(:clj (mp/dimension-count (.nth m 0) (dec x))
              :cljs (mp/dimension-count (m 0) (dec x)))))))
+
+(extend-protocol mp/PTypeInfo
+  #?(:clj IPersistentVector :cljs PersistentVector)
+    (element-type [a]
+      (let [first-element #?(:clj (.nth a 0) :cljs (nth a 0))]
+        (if (vector? first-element)
+          (mp/element-type first-element)
+          (#?(:clj class :cljs type) first-element)))))
 
 (extend-protocol mp/PElementCount
   #?(:clj IPersistentVector :cljs PersistentVector)

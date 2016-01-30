@@ -15,7 +15,7 @@
     (is (<= 0 (reduce + (take 1000 rs)) 1000)))
   (let [rs (nnext (r/randoms))]
     (is (= (take 1000 rs) (take 1000 rs)))
-    (is (<= 0 (reduce + (take 1000 rs)) 1000)))) 
+    (is (<= 0 (reduce + (take 1000 rs)) 1000))))
 
 (deftest test-sample-rand-int
   (testing "Integer results"
@@ -29,7 +29,7 @@
 #?(:clj (do
 
 (deftest test-random-sequence-seeds
-  (is (= (take 1000 (r/randoms 1337)) (take 1000 (r/randoms 1337))))) 
+  (is (= (take 1000 (r/randoms 1337)) (take 1000 (r/randoms 1337)))))
 
 (deftest test-sample-seed
   (testing "Same seed should produce same result"
