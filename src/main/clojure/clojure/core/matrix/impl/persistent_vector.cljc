@@ -537,11 +537,10 @@
 (extend-protocol mp/PElementCount
   #?(:clj IPersistentVector :cljs PersistentVector)
     (element-count [m]
-      (let [c (long (count m))
-            first-element #?(:clj (.nth m 0) :cljs (nth m 0))]
+      (let [c (long (count m))]
         (if (== c 0)
           0
-          (* c (mp/element-count first-element)))))) ;; can't avoid boxed warning here, may be a bigint
+          (* c (mp/element-count #?(:clj (.nth m 0) :cljs (nth m 0)))))))) ;; can't avoid boxed warning here, may be a bigint
 
 ;; we need to implement this for all persistent vectors since we need to check all nested components
 (extend-protocol mp/PConversion

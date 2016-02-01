@@ -113,6 +113,7 @@
   (testing "zero-dimensionality"
     (is (= (mat/zero-dimensional? m) (== 0 (mat/dimensionality m)))))
   (testing "element count"
+    (is (== 0 (mat/ecount (mat/new-array [0]))))
     (is (== (mat/ecount m) (reduce * 1 (mat/shape m))))
     (is (== (mat/ecount m) (mat/ereduce (fn [acc _] (inc acc)) 0 m)))
     (is (== (mat/ecount m) (reduce (fn [acc _] (inc acc)) 0 (mat/eseq m))))
