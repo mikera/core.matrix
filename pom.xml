@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/thinktopic/core.matrix.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/thinktopic/core.matrix.git</developerConnection>
-    <tag>99522c15954c4bc4252f2b58ab827281d77dbbbf
+    <tag>0b3dbb22ea9e8c26e298e21fd2e2ae87d8ea0a80
 </tag>
     <url>https://github.com/thinktopic/core.matrix</url>
   </scm>
@@ -100,17 +100,6 @@
     </dependency>
     <dependency>
       <groupId>net.mikera</groupId>
-      <artifactId>vectorz-clj</artifactId>
-      <version>0.42.0</version>
-      <exclusions>
-        <exclusion>
-          <groupId>net.mikera</groupId>
-          <artifactId>core.matrix</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>net.mikera</groupId>
       <artifactId>cljunit</artifactId>
       <version>0.3.1</version>
       <scope>test</scope>
@@ -137,6 +126,18 @@
       <groupId>clatrix</groupId>
       <artifactId>clatrix</artifactId>
       <version>0.5.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>net.mikera</groupId>
+          <artifactId>core.matrix</artifactId>
+        </exclusion>
+      </exclusions>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.mikera</groupId>
+      <artifactId>vectorz-clj</artifactId>
+      <version>0.42.0</version>
       <exclusions>
         <exclusion>
           <groupId>net.mikera</groupId>

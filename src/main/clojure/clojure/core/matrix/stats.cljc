@@ -38,7 +38,7 @@
   ([values]
     (let [values (m/slices values)
           n (m/dimension-count values 0)
-          s (m/esum values)]
+          s (sum values)]
       (if (number? s)
         (/ s n)
         (m/scale! s (/ 1.0 n)) ;; abuse the fact that s must be a new mutable matrix....
