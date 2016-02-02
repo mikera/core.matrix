@@ -562,8 +562,8 @@
         (doseq-indexed [v (mp/element-seq m) i]
           (aset arr (+ off i) (double v)))
       ;; m must be a vector from now on
-      (and (== size ct) (not (vector? 
-                               #?(:clj 
+      (and (== size ct) (not (vector?
+                               #?(:clj
                                    (.nth ^IPersistentVector m 0 nil)
                                   :cljs
                                    (nth ^PersistentVector m 0 nil)))))
@@ -572,8 +572,8 @@
       :else
         (let [skip (quot size ct)]
           (dotimes [i ct]
-            (copy-to-double-array 
-              #?(:clj 
+            (copy-to-double-array
+              #?(:clj
                   (.nth ^IPersistentVector m i)
                   :cljs
                   (nth ^PersistentVector m i))

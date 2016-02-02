@@ -460,8 +460,9 @@
 
 (defn test-scale
   ([m]
-    (is (mutable-equivalent? m #(mat/scale! % 2) #(mat/scale % 2)))
-    (is (mutable-equivalent? m #(mat/mul! % 2) #(mat/mul % 2)))))
+   (is (mat/equals [] (mat/mul! (mat/new-array m [0]) 0.95)))
+   (is (mutable-equivalent? m #(mat/scale! % 2) #(mat/scale % 2)))
+   (is (mutable-equivalent? m #(mat/mul! % 2) #(mat/mul % 2)))))
 
 (defn test-numeric-functions [im]
   (when (mat/supports-dimensionality? im 2)

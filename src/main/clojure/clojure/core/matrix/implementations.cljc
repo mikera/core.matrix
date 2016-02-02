@@ -80,6 +80,7 @@
   ([canonical-object]
     (register-implementation (mp/implementation-key canonical-object) canonical-object))
   ([key canonical-object]
+   (println "register-implementation: " key (type canonical-object) canonical-object)
     (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: "
                                     #?(:clj (class key)
                                        :cljs (type key))))
@@ -93,6 +94,7 @@
   "Attempts to load an implementation for the given keyword.
    Returns nil if not possible, a non-nil matrix value of the correct implementation otherwise."
   ([k]
+   (println "trying to load implementation...")
     (or
       (@canonical-objects k)
       #?(:clj

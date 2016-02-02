@@ -111,7 +111,7 @@
                      (mp/get-major-slice-seq m2)
                      (mp/get-major-slice-seq m3)
                      (map mp/get-major-slice-seq more))))))
- 
+
 ;; ============================================================
 ;; Default implementations
 ;; - default behaviour for java.lang.Number scalars
@@ -1562,9 +1562,10 @@
   nil (element-count [m] 1)
   #?(:clj Number :cljs number) (element-count [m] 1)
   #?(:clj Object :cljs object)
-    (element-count [m] (if (array? m)
-                         (calc-element-count m)
-                         1)))
+    (element-count [m]
+      (if (array? m)
+        (calc-element-count m)
+        1)))
 
 (extend-protocol mp/PValidateShape
   nil

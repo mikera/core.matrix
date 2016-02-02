@@ -33,7 +33,7 @@
                    :source-paths ["src/dev/clojure"]
                    :jvm-opts ^:replace []
                    :plugins [[lein-codox "0.9.0"]
-                             [lein-figwheel "0.5.0-4"]
+                             [lein-figwheel "0.5.0-6"]
                              [lein-cljsbuild "1.1.2"]]}}
 
   :cljsbuild {
@@ -42,9 +42,8 @@
    :builds
    [{:id :dev
      :figwheel true
-     :source-paths ["src/main/cljs" "src/main/clojure"
-                    "src/test/cljs" "src/test/clojure"
-                    "checkouts/ndarray/src"]
+     :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"
+                    "checkouts/ndarray/src" "checkouts/vectorz-clj/src"]
      :compiler {:output-to "resources/public/js/unit-test.js"
                 :asset-path "js/out"
                 :main "clojure.core.matrix.test-basics"
@@ -54,8 +53,7 @@
 
     {:id :test
      :figwheel true
-     :source-paths ["src/main/cljs" "src/main/clojure"
-                    "src/test/cljs" "src/test/clojure"]
+     :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
      :compiler {:output-to "resources/public/js/unit-test.js"
                 :asset-path   "js/out"
                 :main "clojure.core.matrix.test-basics"
