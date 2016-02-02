@@ -63,7 +63,7 @@
   ([f m1 m2]
     (let [dims (long (mp/dimensionality m1))]
       (cond
-        (== 0 dims) (f m1 (scalar-coerce m2))
+        (== 0 dims) (f (scalar-coerce m1) (scalar-coerce m2))
         (== 1 dims) (mapv f m1 (mp/element-seq m2))
         :else (mapv (partial mapmatrix f)
                     m1
@@ -71,7 +71,7 @@
   ([f m1 m2 m3]
     (let [dims (long (mp/dimensionality m1))]
       (cond
-        (== 0 dims) (f m1 (scalar-coerce m2) (scalar-coerce m3))
+        (== 0 dims) (f (scalar-coerce m1) (scalar-coerce m2) (scalar-coerce m3))
         (== 1 dims) (mapv f m1 (mp/element-seq m2) (mp/element-seq m3))
         :else (mapv (partial mapmatrix f)
                     m1
@@ -80,11 +80,53 @@
   ([f m1 m2 m3 & more]
     (let [dims (long (mp/dimensionality m1))]
       (cond
-        (== 0 dims) (apply f m1 (scalar-coerce m2) (scalar-coerce m3) (map mp/get-0d more))
+        (== 0 dims) (apply f (scalar-coerce m1) (scalar-coerce m2) (scalar-coerce m3) (map mp/get-0d more))
         (== 1 dims) (apply mapv f m1 (mp/element-seq m2) (mp/element-seq m3) (map mp/element-seq more))
         :else (apply mapv (partial mapmatrix f)
                      m1
                      (mp/get-major-slice-seq m2)
                      (mp/get-major-slice-seq m3)
                      (map mp/get-major-slice-seq more))))))
+
+(defn logistic-fn
+  "Logistic function, with primitive type hints"
+  (^double [^double t]
+    (let [e-t (Math/exp (- t))]
+      (/ 1.0 (+ 1.0 e-t)))))
+
+(defn softplus-fn
+  "Softplus function, with primitive type hints"
+  (^double [^double t]
+    (if (> t 100.0) ;; catch the case of overflow to infinity for large inputs
+      t
+      (let [et (Math/exp t)]
+        (Math/log (+ 1.0 et))))))
+
+(defn relu-fn
+  "ReLU function, with primitive type hints"
+  (^double [^double t]
+    (Math/max 0.0 t)))
+
+(defn square?
+  "Returns true if matrix is square (2D with same number of rows and columns)"
+  ([m]
+    (and
+      (== 2 (long (mp/dimensionality m)))
+      (== (long (mp/dimension-count m 0)) (long (mp/dimension-count m 1))))))
+
+;; Helper function for symmetric? predicate in PMatrixPredicates.
+;; Note loop/recur instead of letfn/recur is 20-25% slower.
+;; not possible to eliminate boxing warnings - needs to handle any numeric type
+(defn symmetric-matrix-entries?
+  "Returns true iff square matrix m is symmetric."
+  [m]
+  (let [dim (long (first (mp/get-shape m)))]
+    (letfn [(f [^long i ^long j]
+              (cond
+                (>= i dim) true                         ; all entries match: symmetric
+                (>= j dim) (recur (+ 1 i) (+ 2 i))      ; all j's OK: restart with new i
+                (= (mp/get-2d m i j)
+                   (mp/get-2d m j i)) (recur i (inc j)) ; OK, so check next pair
+                :else false))]                          ; not same, not symmetric
+      (f 0 1))))
 

@@ -28,14 +28,14 @@
     (log Math/log)
     (log10 Math/log10)
     (round Math/rint)
-    (signum #?(:clj Math/signum :cljs Math/sign))
+    (signum Math/signum Math/sign)
     (sin Math/sin)
     (sinh Math/sinh)
     (sqrt Math/sqrt)
     (tan Math/tan)
     (tanh Math/tanh)
-    (to-degrees #?(:clj Math/toDegrees :cljs to-degrees*))
-    (to-radians #?(:clj Math/toRadians :cljs to-radians*))])
+    (to-degrees Math/toDegrees to-degrees*)
+    (to-radians Math/toRadians to-radians*)])
 
 (defmacro def-mop
   "Define a mathematical operator function."

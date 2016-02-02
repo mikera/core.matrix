@@ -524,7 +524,7 @@
           #?(:clj (.length m)
              :cljs (count m))
           #?(:clj (mp/dimension-count (.nth m 0) (dec x))
-             :cljs (mp/dimension-count (m 0) (dec x)))))))
+             :cljs (mp/dimension-count (nth m 0) (dec x)))))))
 
 (extend-protocol mp/PTypeInfo
   #?(:clj IPersistentVector :cljs PersistentVector)
@@ -598,13 +598,15 @@
         (doseq-indexed [v (mp/element-seq m) i]
           (aset arr (+ off i) v))
       ;; m must be a vector from now on
-      (and (== size ct) (not (vector? (.nth ^IPersistentVector m 0 nil))))
+      (and (== size ct) (not (vector? (#?(:clj .nth :cljs nth)
+                                       ^#?(:clj IPersistentVector :cljs PersistentVector) m 0 nil))))
         (dotimes [i size]
           (aset arr (+ off i) (nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i)))
       :else
         (let [skip (quot size ct)]
           (dotimes [i ct]
-            (copy-to-object-array (.nth ^IPersistentVector m i) arr (+ off (* i skip)) skip))))
+            (copy-to-object-array (#?(:clj .nth :cljs nth)
+                                   ^#?(:clj IPersistentVector :cljs PersistentVector) m i) arr (+ off (* i skip)) skip))))
     arr))
 
 (extend-protocol mp/PObjectArrayOutput

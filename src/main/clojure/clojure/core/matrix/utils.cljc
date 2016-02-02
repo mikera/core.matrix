@@ -29,26 +29,26 @@
                      (str ~@vals)))))
 
 ;; this duplicates clojure.core.matrix.utils.macros
-(defmacro error?
-  "Returns true if executing body throws an error, false otherwise."
-  ([& body]
-    `(try
-       ~@body
-       false
-       (catch #?(:clj Throwable :cljs js/Error) t#
-         true))))
-
-;; this duplicates clojure.core.matrix.utils.macros
-(defmacro doseq-indexed
-  "loops over a set of values, binding index-sym to the 0-based index of each value"
-  ([[val-sym values index-sym] & code]
-  `(loop [vals# (seq ~values)
-          ~index-sym (long 0)]
-     (if vals#
-       (let [~val-sym (first vals#)]
-             ~@code
-             (recur (next vals#) (inc ~index-sym)))
-       nil))))
+;(defmacro error?
+;  "Returns true if executing body throws an error, false otherwise."
+;  ([& body]
+;    `(try
+;       ~@body
+;       false
+;       (catch #?(:clj Throwable :cljs js/Error) t#
+;         true))))
+;
+;;; this duplicates clojure.core.matrix.utils.macros
+;(defmacro doseq-indexed
+;  "loops over a set of values, binding index-sym to the 0-based index of each value"
+;  ([[val-sym values index-sym] & code]
+;  `(loop [vals# (seq ~values)
+;          ~index-sym (long 0)]
+;     (if vals#
+;       (let [~val-sym (first vals#)]
+;             ~@code
+;             (recur (next vals#) (inc ~index-sym)))
+;       nil))))
 
 (defn valid-shape?
   "returns true if the given object is a valid core.matrix array shape."

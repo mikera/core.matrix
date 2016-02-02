@@ -2,15 +2,18 @@
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.common :refer [mapmatrix]]
             [clojure.core.matrix.impl.wrappers :as wrap]
-            [clojure.core.matrix.impl.mathsops :as mops]
+            [clojure.core.matrix.impl.mathsops :as mops :refer [to-degrees* to-radians*]]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.utils :as u]
-            [clojure.core.matrix.impl.double-array :as da])
+            [clojure.core.matrix.impl.double-array :as da]
+            [clojure.core.matrix.impl.common :refer [logistic-fn softplus-fn relu-fn
+                                                     square? symmetric-matrix-entries?]]
+            [clojure.core.matrix.utils :as u])
   #?@(:clj [(:require
               [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
               [clojure.core.matrix.macros-clj :refer [try-current-implementation eps== native-array?]])
             (:import [clojure.lang ISeq])]
       :cljs [(:require-macros
+               [clojure.core.matrix.impl.defaults :refer [def-PMathsFunctions def-PMathsFunctionsMutable]]
                [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
                [clojure.core.matrix.macros-cljs :refer [try-current-implementation eps== native-array?]])]))
 
@@ -37,13 +40,6 @@
 ;; Utility functions for default implementations
 ))
 
-(defn- square?
-  "Returns true if matrix is square (2D with same number of rows and columns)"
-  ([m]
-    (and
-      (== 2 (long (mp/dimensionality m)))
-      (== (long (mp/dimension-count m 0)) (long (mp/dimension-count m 1))))))
-
 (defn- calc-element-count
   "Returns the total count of elements in an array"
   ([m]
@@ -62,7 +58,7 @@
       (cond
         (== dims 0)
           (wrap/wrap-scalar (mp/get-0d m))
-        (and (== dims 1) double?) ; TODO: let it use double-array in cljs once more complete
+        (and (== dims 1) double?)
           #?(:clj (da/construct-double-array m)
              :cljs (mp/coerce-param (imp/get-canonical-object :thing-ndarray) m))
         double?
@@ -446,6 +442,9 @@
     (assign [m source]
       (let [r (mp/broadcast-coerce m source)]
         (if (identical? r source) (mp/clone r) r)))
+  #?(:clj Number :cljs number)
+  (assign [m source]
+    source)
   #?(:clj Object :cljs object)
     (assign [m source]
       (let [r (mp/broadcast-coerce m source)]
@@ -1898,12 +1897,6 @@
   #?(:clj Object :cljs object)
    (square [m] (mp/element-multiply m m)))
 
-(defn- logistic-fn
-  "Logistic function, with primitive type hints"
-  (^double [^double t]
-    (let [e-t (Math/exp (- t))]
-      (/ 1.0 (+ 1.0 e-t)))))
-
 (extend-protocol mp/PLogistic
   #?(:clj Number :cljs number)
     (logistic [m]
@@ -1917,15 +1910,6 @@
   #?(:clj Object :cljs object)
     (logistic! [m]
       (mp/element-map! m logistic-fn)))
-
-
-(defn- softplus-fn
-  "Softplus function, with primitive type hints"
-  (^double [^double t]
-    (if (> t 100.0) ;; catch the case of overflow to infinity for large inputs
-      t
-      (let [et (Math/exp t)]
-        (Math/log (+ 1.0 et))))))
 
 (extend-protocol mp/PSoftplus
   #?(:clj Number :cljs number)
@@ -1954,11 +1938,6 @@
     (softplus! [m]
       (mp/element-map! m softplus-fn)))
 
-(defn- relu-fn
-  "ReLU function, with primitive type hints"
-  (^double [^double t]
-    (Math/max 0.0 t)))
-
 (extend-protocol mp/PReLU
   #?(:clj Number :cljs number)
     (relu [m]
@@ -1972,31 +1951,60 @@
     (relu! [m]
       (mp/element-map! m relu-fn)))
 
+
 #?(:clj  (do
 
-;; define standard Java maths functions for numbers
-(eval
-  `(extend-protocol mp/PMathsFunctions
-     #?(:clj Number :cljs number)
-       ~@(map (fn [[name func]]
-                `(~name [~'m] (double (~func (double ~'m)))))
-              mops/maths-ops)
-     #?(:clj Object :cljs object)
-       ~@(map (fn [[name func]]
-                `(~name [~'m] (mp/element-map ~'m #(double (~func (double %))))))
-              mops/maths-ops)))
+(defmacro def-PMathsFunctions
+  [clj?]
+ `(extend-protocol mp/PMathsFunctions
+    ~(if clj? 'Number 'number)
+    ~@(map (fn [[name func cljs-func]]
+             (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+               `(~name [~'m] (~'double (~func (~'double ~'m))))))
+        `~mops/maths-ops)
 
-(eval
+    ~(if clj? 'Object 'object)
+    ~@(map (fn [[name func cljs-func]]
+             (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+               `(~name [~'m] (mp/element-map ~'m #(~'double (~func (~'double %)))))))
+        `~mops/maths-ops)
+
+    ~@(when (not clj?)
+      `[~'array
+        ~@(map (fn [[name func cljs-func]]
+                 (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+                   `(~name [~'m] (mp/element-map ~'m #(~'double (~func (~'double %)))))))
+               `~mops/maths-ops)
+       ]))
+ )
+
+(defmacro def-PMathsFunctionsMutable
+  [clj?]
   `(extend-protocol mp/PMathsFunctionsMutable
-     #?(:clj Number :cljs number)
-       ~@(map (fn [[name func]]
-                `(~(symbol (str name "!")) [~'m] (error "Number is not mutable!")))
-              mops/maths-ops)
-     #?(:clj Object :cljs object)
-       ~@(map (fn [[name func]]
-                `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(double (~func (double %))))))
-              mops/maths-ops)))
+    ~(if clj? 'Number 'number)
+    ~@(map (fn [[name func cljs-func]]
+             (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+               `(~(symbol (str name "!")) [~'m] (error "Number is not mutable!"))))
+        `~mops/maths-ops)
+
+    ~(if clj? 'Object 'object)
+    ~@(map (fn [[name func cljs-func]]
+             (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+               `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(~'double (~func (~'double %)))))))
+        `~mops/maths-ops)
+
+    ~@(when (not clj?)
+      `[~'array
+        ~@(map (fn [[name func cljs-func]]
+                 (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+                   `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(~'double (~func (~'double %)))))))
+               `~mops/maths-ops)
+      ])
+    ))
 ))
+
+(def-PMathsFunctions #?(:clj true :cljs false))
+(def-PMathsFunctionsMutable #?(:clj true :cljs false))
 
 (extend-protocol mp/PMatrixSubComponents
   #?(:clj Object :cljs object)
@@ -2049,22 +2057,6 @@
                                                               (new-block (- i acc-dim)))))))]
                             (aux dm (subvec blocks 1)))))]
         (aux [] blocks))))
-
-;; Helper function for symmetric? predicate in PMatrixPredicates.
-;; Note loop/recur instead of letfn/recur is 20-25% slower.
-;; not possible to eliminate boxing warnings - needs to handle any numeric type
-(defn- symmetric-matrix-entries?
-  "Returns true iff square matrix m is symmetric."
-  [m]
-  (let [dim (long (first (mp/get-shape m)))]
-    (letfn [(f [^long i ^long j]
-              (cond
-                (>= i dim) true                         ; all entries match: symmetric
-                (>= j dim) (recur (+ 1 i) (+ 2 i))      ; all j's OK: restart with new i
-                (= (mp/get-2d m i j)
-                   (mp/get-2d m j i)) (recur i (inc j)) ; OK, so check next pair
-                :else false))]                          ; not same, not symmetric
-      (f 0 1))))
 
 (extend-protocol mp/PMatrixPredicates
   #?(:clj Object :cljs object)
