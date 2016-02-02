@@ -92,7 +92,6 @@
   "Attempts to load an implementation for the given keyword.
    Returns nil if not possible, a non-nil matrix value of the correct implementation otherwise."
   ([k]
-   (println "trying to load implementation...")
     (or
       (@canonical-objects k)
       #?(:clj
