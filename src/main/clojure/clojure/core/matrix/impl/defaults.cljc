@@ -1,5 +1,6 @@
 (ns clojure.core.matrix.impl.defaults
   (:require [clojure.core.matrix.protocols :as mp]
+            [clojure.core.matrix.impl.common :refer [mapmatrix]]
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.impl.mathsops :as mops]
             [clojure.core.matrix.implementations :as imp]
@@ -69,48 +70,6 @@
         :else
           (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray :cljs :thing-ndarray)) m)))))
 
-(defn mapmatrix
-  "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
-   Assumes correct dimensionality / shape.
-
-   First array argument must be nested persistent vectors. Others may be
-   any arrays of the same shape.
-
-   Returns a nested persistent vector matrix or a scalar value."
-  ([f m]
-   (let [dims (long (mp/dimensionality m))
-         res (cond
-               (== 0 dims) (f (scalar-coerce m))
-               (== 1 dims) (mapv f m)
-               :else (mapv (partial mapmatrix f) m))]
-     res))
-  ([f m1 m2]
-    (let [dims (long (mp/dimensionality m1))]
-      (cond
-        (== 0 dims) (f m1 (scalar-coerce m2))
-        (== 1 dims) (mapv f m1 (mp/element-seq m2))
-        :else (mapv (partial mapmatrix f)
-                    m1
-                    (mp/get-major-slice-seq m2)))))
-  ([f m1 m2 m3]
-    (let [dims (long (mp/dimensionality m1))]
-      (cond
-        (== 0 dims) (f m1 (scalar-coerce m2) (scalar-coerce m3))
-        (== 1 dims) (mapv f m1 (mp/element-seq m2) (mp/element-seq m3))
-        :else (mapv (partial mapmatrix f)
-                    m1
-                    (mp/get-major-slice-seq m2)
-                    (mp/get-major-slice-seq m3)))))
-  ([f m1 m2 m3 & more]
-    (let [dims (long (mp/dimensionality m1))]
-      (cond
-        (== 0 dims) (apply f m1 (scalar-coerce m2) (scalar-coerce m3) (map mp/get-0d more))
-        (== 1 dims) (apply mapv f m1 (mp/element-seq m2) (mp/element-seq m3) (map mp/element-seq more))
-        :else (apply mapv (partial mapmatrix f)
-                     m1
-                     (mp/get-major-slice-seq m2)
-                     (mp/get-major-slice-seq m3)
-                     (map mp/get-major-slice-seq more))))))
 
 ;; ============================================================
 ;; Default implementations

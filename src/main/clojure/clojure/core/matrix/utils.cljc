@@ -5,7 +5,7 @@
             (:import [java.util Arrays]
                      [clojure.lang IPersistentVector])])
   (#?(:clj :require :cljs :require-macros)
-           [clojure.core.matrix.macros :refer [TODO doseq-indexed is-long-array?]]))
+           [clojure.core.matrix.macros :refer [TODO doseq-indexed is-long-array? scalar-coerce]]))
 
 ;; Some of these are copies of methods from the library
 ;;   https://github.com/mikera/clojure-utils
@@ -240,3 +240,5 @@
 
 (defn update-indexed [xs idxs f]
   (reduce #(assoc %1 %2 (f %2 (get %1 %2))) xs idxs))
+
+

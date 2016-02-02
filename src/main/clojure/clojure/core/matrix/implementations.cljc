@@ -63,8 +63,7 @@
    Canonical objects may be used to invoke protocol methods on an instance of the correct
    type to get implementation-specific behaviour. Canonical objects are required to support
    all mandatory core.matrix protocols."}
-  canonical-objects
-   (atom {}))
+  canonical-objects (atom {}))
 
 (defn get-implementation-key
   "Returns the implementation keyword  for a given object"
@@ -80,7 +79,6 @@
   ([canonical-object]
     (register-implementation (mp/implementation-key canonical-object) canonical-object))
   ([key canonical-object]
-   (println "register-implementation: " key (type canonical-object) canonical-object)
     (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: "
                                     #?(:clj (class key)
                                        :cljs (type key))))

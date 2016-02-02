@@ -4,6 +4,7 @@
    These wrapper types enable efficient of convenient implementation of various core.matrix protocols."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
+            [clojure.core.matrix.impl.persistent-vector]
             [clojure.core.matrix.utils :as u])
   #?(:clj (:require
             [clojure.core.matrix.macros :refer [TODO error]]
@@ -454,4 +455,4 @@
                                          (object-array 0)
                                          (long-array [0])))
 
-(imp/register-implementation (SliceWrapper. [1 2] 0))
+;(imp/register-implementation (SliceWrapper. [1 2] 0))

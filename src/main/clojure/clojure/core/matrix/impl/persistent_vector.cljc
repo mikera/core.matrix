@@ -9,7 +9,7 @@
    Note that this allows for other array implementations to be nested inside persistent vectors."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.impl.defaults :refer [mapmatrix]]
+            [clojure.core.matrix.impl.common :refer [mapmatrix]]
             [clojure.core.matrix.impl.mathsops :as mops]
   #?@(:clj [[clojure.core.matrix.macros :refer [scalar-coerce error doseq-indexed]]
             [clojure.core.matrix.macros-clj :refer [native-array?]]]))

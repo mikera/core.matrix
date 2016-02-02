@@ -4,7 +4,7 @@
 
    End users should normally avoid using this namespace directly
    and instead use the functions in the main clojure.core.matrix API"
-  (:require [clojure.core.matrix.utils :refer [same-shape-object? broadcast-shape]]
+  (:require [clojure.core.matrix.utils :refer [same-shape-object?]]
             [clojure.core.matrix.impl.mathsops :as mops])
   (:refer-clojure :exclude [clone])
   (#?(:clj :require :cljs :require-macros)
