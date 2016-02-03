@@ -32,13 +32,13 @@ Key goals of *core.matrix*:
 
 ### Documentation
 
-API documentation is available here
-
- - https://mikera.github.io/core.matrix/doc/index.html
-
 For general `core.matrix` documentation and examples see the Wiki:
 
  - https://github.com/mikera/core.matrix/wiki
+
+API documentation is available here
+
+ - https://mikera.github.io/core.matrix/doc/index.html
 
 For a general introduction, the slide and video from the 2013 Clojure Conj talk are available here:
 
@@ -55,11 +55,10 @@ matrix implementations. The most mature implementations are currently:
  - [**Clatrix**](https://github.com/tel/clatrix) : native code matrix library using BLAS
  - **NDArray** : a general purpose pure Clojure N-dimensional array implementation, included as part of `core.matrix` itself
 
-However the API is still *subject to some changes* at present (at least up until release 1.0.0),
+The API is relatively mature but still *subject to some changes* at present (at least up until release 1.0.0),
 so users should be prepared to deal with potential breaking changes when updating to future releases.
 
 The plan is to become an official Clojure Contrib language extension once the API has been well tested.
-
 
 
 ### Contributing

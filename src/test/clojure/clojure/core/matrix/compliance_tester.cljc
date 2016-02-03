@@ -15,7 +15,6 @@
              [cljs.test :refer [deftest is testing]]
              [clojure.core.matrix.macros-cljs :refer [error?]])))
 
-
 ;; ====================================
 ;; COMPLIANCE TESTING
 ;;

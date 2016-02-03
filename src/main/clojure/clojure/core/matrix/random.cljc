@@ -4,9 +4,8 @@
 
    Intended for use in random sampling, simulation etc."
   (:require [clojure.core.matrix :as m])
-  #?(:clj (:import [java.util Random]
-                   [clojure.core.matrix.random RandomSeq])))
-
+#?(:clj (:import [java.util Random]
+                 [clojure.core.matrix.random RandomSeq])))
 
 #?(:clj (do
 (set! *warn-on-reflection* true)

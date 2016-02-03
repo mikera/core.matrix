@@ -184,10 +184,12 @@
   "Protocol for coercing to a mutable format. May return the original array, if it is already fully mutable,
    otherwise should return a fully mutable copy of the array.
 
-   May return nil to indicate that a default implementation should be used.
+   Should return nil to indicate that this implementation cannot create a mutable array from the given data.
 
    The default implementation will attempt to choose a suitable mutable matrix implementation."
-  (ensure-mutable [m]))
+  (ensure-mutable [m] "Returns this array if fully mutable, otherwise returns a new mutable array containing 
+                   a copy of this array. May return nil if the implementation cannot create a suitable mutable
+                   array."))
 
 (defprotocol PSparse
   "Protocol for constructing a sparse array from the given data. Implementations should
@@ -628,6 +630,18 @@
   (scale-add! [m1 a m2 b constant]
     "Scales array m1 in place by factor b, then adds array m2 scaled by factor b, then adds the constant"))
 
+(defprotocol PScaleAdd2
+  "Protocol to support the immutable scale-add! operation."
+  (scale-add [m1 a m2 b constant]
+    "Scales array m1 by factor b, then adds array m2 scaled by factor b, then adds the constant"))
+
+(defprotocol PLerp
+  "Protocol to support the lerp linear interpolation function."
+  (lerp [a b factor]
+    "Linear interpolation: Scales array a by (1-factor), then adds array b scaled by factor.")
+  (lerp! [a b factor]
+    "Linear interpolation: Scales array a by (1-factor), then adds array b scaled by factor. Mutates a."))
+
 (defprotocol PAddInnerProductMutable
   "Protocol to support the mutable add-inner-product! operation. This is a common operation that may be
    optimised by the underlying implementation. Implementations should consider extra optimisations for
@@ -636,6 +650,15 @@
     [m a b]
     [m a b factor]
     "Adds the inner product of a, b and an optional scalar factor to m"))
+
+(defprotocol PSetInnerProductMutable
+  "Protocol to support the mutable set-inner-product! operation. This is a common operation that may be 
+   optimised by the underlying implementation. Implementations should consider extra optimisations for
+   specific constant factors e.g. 0.0 and 1.0 but this is not mandatory."
+  (set-inner-product! 
+    [m a b] 
+    [m a b factor]
+    "Sets m to the inner product of a, b and an optional scalar factor to m"))
 
 (defprotocol PSubMatrix
   "Protocol to get a subarray of another array. dim-ranges should be a sequence of [start len]

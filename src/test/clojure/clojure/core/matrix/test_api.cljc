@@ -216,13 +216,20 @@
   (is (not (m/conforming? [[0.0]] [0.0 0.0]))))
 
 (deftest test-broadcast
-  (is (= [[1 1] [1 1]] (m/coerce [] (m/broadcast 1 [2 2]))))
+  (is (m/equals [[1 1] [1 1]] (m/coerce [] (m/broadcast 1 [2 2]))))
   (is (m/equals [[[[2]]]] (m/broadcast (m/array 2) [1 1 1 1])))
-  (is (= [2 2] (m/add [1 1] 1))))
+  (is (m/equals [2 2] (m/add [1 1] 1))))
 
-(deftest test-mutable-matrix
+(deftest test-mutable
   (is (error? (m/scale! [1 2] 2)))
-  (is (m/equals (m/scale! (m/mutable [1 2]) 2) [2 4])))
+  (is (m/equals [2 4] (m/scale! (m/mutable [1 2]) 2) )))
+
+(deftest test-scale-add
+  (is (m/equals [2 6] (m/scale-add [1 0] 2 [0 2] 3)))
+  (is (m/equals [3 7] (m/scale-add [1 0] 2 [0 2] 3 1))))
+
+(deftest test-lerp
+  (is (m/equals [2 6] (m/lerp [1 0] [3 12] 0.5))))
 
 (deftest test-reshape-2
   (is (m/equals 1 (m/reshape [1 2 3] [])))

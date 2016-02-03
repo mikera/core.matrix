@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/thinktopic/core.matrix.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/thinktopic/core.matrix.git</developerConnection>
-    <tag>0b3dbb22ea9e8c26e298e21fd2e2ae87d8ea0a80
+    <tag>84d6d120fbcad4271044c06ecc5c0f9914021a3f
 </tag>
     <url>https://github.com/thinktopic/core.matrix</url>
   </scm>

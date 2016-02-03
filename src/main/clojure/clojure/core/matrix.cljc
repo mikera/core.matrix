@@ -259,12 +259,13 @@
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/mutable-matrix data)
-        (default/construct-mutable-matrix data)))
-  ([data type]
-    (or (mp/mutable-matrix data)
-        (default/construct-mutable-matrix data))
-    ;; TODO: support creation with specific element types
-    ))
+        (mutable (implementation-check) data)))
+  ([implementation data]
+    (let [imp (implementation-check implementation)
+          r (mp/construct-matrix imp data)]
+      (or (and r (mp/ensure-mutable r)) ;; ensure contructed array is mutable, else fall through with nil
+          (default/construct-mutable-matrix data)
+          (error "Unable to create mutable array for implementation " (mp/implementation-key imp))))))
 
 (defn immutable
   "Returns an immutable array containing the given array data.
@@ -275,19 +276,7 @@
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
     (or (mp/immutable-matrix data)
-        (to-nested-vectors data)))
-  ([data type]
-    (or (mp/immutable-matrix data)
         (to-nested-vectors data))))
-
-(defn ^{:deprecated true} mutable-matrix
-  "Constructs a mutable copy of the given matrix.
-
-   DEPRECATED: please use mutable instead"
-  ([data]
-    (mutable data))
-  ([data type]
-    (mutable data type)))
 
 (defn ensure-mutable
   "Checks if an array is mutable, and if not converts to a new mutable array. Guarantees
@@ -468,18 +457,18 @@
 ;; Matrix predicates and querying
 
 (defn array?
-  "Returns true if the parameter is an N-dimensional array, for any N>=0."
+  "Returns true if the parameter is a valid core.matrix N-dimensional array, for any N>=0."
   {:inline (fn [m] `(not (mp/is-scalar? ~m)))}
   ([m]
     (not (mp/is-scalar? m))))
 
 (defn matrix?
-  "Returns true if parameter is a valid matrix (i.e. an array with dimensionality == 2)"
+  "Returns true if parameter is a valid core.matrix matrix (i.e. an array with dimensionality == 2)"
   ([m]
     (== (long (mp/dimensionality m)) 2)))
 
 (defn vec?
-  "Returns true if the parameter is a vector (1-dimensional array)"
+  "Returns true if the parameter is a core.matrix vector (1-dimensional array)"
   ([m]
     (mp/is-vector? m)))
 
@@ -500,8 +489,8 @@
 (defn identity-matrix?
   "Returns true if the parameter is an identity-matrix, i.e. a symmetric square matrix with element values
    of 1 on the leading diagonal and 0 elsewhere."
-  [m]
-  (mp/identity-matrix? m))
+  ([m]
+    (mp/identity-matrix? m)))
 
 (defn zero-matrix?
   "Returns true if all the elements of the parameter are zero."
@@ -1034,8 +1023,7 @@
         :else   (mp/main-diagonal m)))))
 
 (defn join
-  "Joins arrays together, along dimension 0. For 1D vectors, this behaves as simple concatenation.
-
+  "Joins arrays together, along the major dimension 0. For 1D vectors, this behaves as simple concatenation.
    Other dimensions must be compatible. To join arrays along a different dimension, use 'join-along' instead."
   ([& arrays]
     (reduce mp/join arrays)))
@@ -1093,7 +1081,8 @@
 
 (defn shift
   "Shifts all elements of an array along specified dimensions, maintaining the shape of the array.
-   New spaces shifted into the array are filled with the appropriate zero value."
+
+   New spaces shifted into the array are filled with zero."
   ([m dimension shift-amount]
     (mp/shift m dimension shift-amount))
   ([m shifts]
@@ -1567,6 +1556,16 @@ elements not-equal to the argument are 0.
   ([m a factor]
     (mp/add-scaled m a factor)))
 
+(defn scale-add
+  "Scales array m1 by factor a, then adds an array m2 scaled by factor b. May optionally add a constant.
+   Broadly equivalent to (add (mul m1 a) (mul m2 b) constant)
+
+   Returns a new array."
+  ([m1 a m2 b]
+    (mp/scale-add m1 a m2 b 0.0))
+  ([m1 a m2 b constant]
+    (mp/scale-add m1 a m2 b constant)))
+
 (defn scale-add!
   "Scales array m1 by factor a, then adds an array m2 scaled by factor b. May optionally add a constant.
    Broadly equivalent to (add! (mul! m1 a) (mul m2 b) constant)
@@ -1577,6 +1576,18 @@ elements not-equal to the argument are 0.
   ([m1 a m2 b constant]
     (mp/scale-add! m1 a m2 b constant)
     m1))
+
+(defn lerp
+  "Performs linear interpolation between two arrays. If factor is 0.0, result will be equal to the first vector.
+   If factor is 1.0, result will be equal to the second vector. Returns a new array."
+  ([a b factor]
+    (mp/lerp a b factor)))
+
+(defn lerp!
+  "Performs linear interpolation between two arrays. If factor is 0.0, result will be equal to the first vector.
+   If factor is 1.0, result will be equal to the second vector. Returns a the mutated first array."
+  ([a b factor]
+    (mp/lerp! a b factor)))
 
 (defn add-scaled!
   "Adds a numerical array scaled by a given factor to the first array. Returns the mutated array."
@@ -1608,6 +1619,17 @@ elements not-equal to the argument are 0.
     m)
   ([m a b factor]
     (mp/add-inner-product! m a b factor)
+    m))
+
+(defn set-inner-product!
+  "Sets an array equal to the inner product of two numerical arrays.
+   Returns the mutated first array.
+   This is equivalent to (assign! m (inner-product a b)) but may be optimised by the underlying implementation."
+  ([m a b]
+    (mp/set-inner-product! m a b)
+    m)
+  ([m a b factor]
+    (mp/set-inner-product! m a b factor)
     m))
 
 (defn sub
@@ -1668,14 +1690,16 @@ elements not-equal to the argument are 0.
     (mp/square m)))
 
 (defn normalise
-  "Normalises a numerical vector (scales to unit length).
-   Returns a new normalised vector."
+  "Normalises a numerical vector (scales to unit length). Returns a new normalised vector.
+
+   The result is undefined if the initial length of the vector is zero (it is possible the
+   implementation may return NaNs or zeros). If this is a concern, it is recommended to check
+   the length of the vector first in order to handle this as a special case."
   ([v]
     (mp/normalise v)))
 
 (defn normalise!
-  "Normalises a numerical vector in-place (scales to unit length).
-
+  "Like 'normalise', but mutates a numerical vector in-place (scales to unit length).
    Returns the modified vector."
   ([v]
     (mp/normalise! v)
@@ -1736,8 +1760,8 @@ elements not-equal to the argument are 0.
     (mp/cross-product! a b)
     a)
   ([dest a b]
-    (assign! dest a)
-    (cross! dest b)))
+    (mp/assign! dest a)
+    (mp/cross-product! dest b)))
 
 (defn distance
   "Calculates the euclidean distance between two numerical vectors.

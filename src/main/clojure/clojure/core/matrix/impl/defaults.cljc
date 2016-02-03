@@ -1075,13 +1075,37 @@
       (when-not (and (number? constant) (zero? constant)) (mp/matrix-add! m1 constant))
       m1))
 
+(extend-protocol mp/PScaleAdd2
+  #?(:clj Object :cljs object)
+    (scale-add [m1 a m2 b constant]
+      (let [r (mp/matrix-add (mp/scale m1 a) (mp/scale m2 b))]
+        (if (== 0.0 constant)
+          r
+          (mp/matrix-add r constant)))))
+
+(extend-protocol mp/PLerp
+  #?(:clj Object :cljs object)
+    (lerp [a b factor]
+      (mp/scale-add a (- 1.0 (double factor)) b factor 0.0))
+    (lerp! [a b factor]
+      (mp/scale-add! a (- 1.0 (double factor)) b factor 0.0)))
+
 (extend-protocol mp/PAddInnerProductMutable
   #?(:clj Object :cljs object)
     (add-inner-product!
       ([m a b]
-       (mp/matrix-add! m (mp/inner-product a b)))
+        (mp/matrix-add! m (mp/inner-product a b)))
       ([m a b factor]
-       (mp/add-scaled! m (mp/inner-product a b) factor))))
+        (mp/add-scaled! m (mp/inner-product a b) factor))))
+
+(extend-protocol mp/PSetInnerProductMutable
+  #?(:clj Object :cljs object)
+    (set-inner-product!
+      ([m a b]
+        (mp/assign! m (mp/inner-product a b)))
+      ([m a b factor]
+        (mp/assign! m (mp/inner-product a b))
+        (mp/scale! m factor))))
 
 ;; type of matrix element
 ;; the default is to assume any type is possible
