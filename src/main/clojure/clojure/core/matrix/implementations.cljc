@@ -50,12 +50,15 @@
    May be re-bound to temporarily use a different core.matrix implementation."
   DEFAULT-IMPLEMENTATION)
 
-(def ^:dynamic *debug-options*
-  "A dynamic var supporting debugging option for core.matrix implementers.
+(defonce
+  ^{:doc "A dynamic var supporting debugging option for core.matrix implementers.
 
    Currently supported values:
-     :print-registrations  - print when core.matrix implementations are registered"
-  {:print-registrations false})
+     :print-registrations  - print when core.matrix implementations are registered
+     :reload-namespaces  - require :reload implementation namespaces when setting the current implementation"
+    :dynamic true}
+  *debug-options* {:print-registrations false
+                   :reload-namespaces false})
 
 (defonce
   ^{:doc "An atom holding a map of canonical objects for each loaded core.matrix implementation.
@@ -92,15 +95,21 @@
   "Attempts to load an implementation for the given keyword.
    Returns nil if not possible, a non-nil matrix value of the correct implementation otherwise."
   ([k]
-    (or
-      (@canonical-objects k)
-      #?(:clj
-          (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
-            (try
-              (do
-                (require ns-sym)
-                (@canonical-objects k))
-              (catch Throwable t nil)))))))
+   #?(:clj
+       (or (@canonical-objects k)
+           (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
+             (try
+               (do
+                 (when (:print-registrations *debug-options*)
+                   (println (str "Loading core.matrix implementation [" k "] in ns: " ns-sym)))
+                 (if (:reload-namespaces *debug-options*)
+                   (require :reload ns-sym)
+                   (require ns-sym))
+                 (@canonical-objects k))
+               (catch Throwable t
+                 (println "Error loading implementation: " ns-sym)
+                 (println t)))))
+       :cljs (println "INFO: No dynamic loading of implementations in Clojurescript. You must require the implementation explicitly."))))
 
 (defn load-implementation
   "Attempts to load the implementation for a given keyword or matrix object.

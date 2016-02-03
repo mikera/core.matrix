@@ -87,5 +87,5 @@
 (defmacro array?
   "Returns true if the parameter is an N-dimensional array of any type"
   [m]
-  `(not (mp/is-scalar? ~m)))
+  `(not (clojure.core.matrix.protocols/is-scalar? ~m)))
 

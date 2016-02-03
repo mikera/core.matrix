@@ -55,11 +55,13 @@
    Returns a nested persistent vector matrix or a scalar value."
   ([f m]
    (let [dims (long (mp/dimensionality m))
+         _ (println "mapping matrix: " dims " dims")
          res (cond
                (== 0 dims) (f (scalar-coerce m))
-               (== 1 dims) (mapv f m)
-               :else (mapv (partial mapmatrix f) m))]
-     res))
+               (== 1 dims) (mapv f (mp/element-seq m))
+               :else (mapv (partial mapmatrix f) (mp/get-major-slice-seq m)))]
+     (mp/reshape (mp/coerce-param m res)
+                 (mp/get-shape m))))
   ([f m1 m2]
     (let [dims (long (mp/dimensionality m1))]
       (cond
