@@ -823,7 +823,9 @@
         (mp/is-scalar? m)
           (mp/pre-scale a m)
         :else
-        (mp/element-map m (fn [v] (mp/pre-scale a v))))))
+        (mp/reshape (mp/coerce-param m (mp/element-map m (fn [v] (println "v: " v) (mp/pre-scale a v))))
+                    [(first (mp/get-shape m))
+                     (first (mp/get-shape a))]))))
 
 ;; matrix multiply
 ;; TODO: document returning NDArray
@@ -1385,7 +1387,7 @@
       (let [c (#?(:clj #?(:clj class :cljs type) :cljs type) m)
             dims (long (mp/dimensionality m))]
         (cond
-          (> dims 1) (mapcat mp/element-seq m)
+          (> dims 1) (mapcat mp/element-seq (mp/get-major-slice-seq m))
           (seq? m) m
           (== 0 dims)
             (vector (mp/get-0d m))
@@ -1396,28 +1398,6 @@
           (array? m)
             (mapcat mp/element-seq (mp/get-major-slice-seq m))
           :else (error "Don't know how to create element-seq from: " m))))
-    ;(element-map
-    ;  ([m f]
-    ;   (if (== 0 (long (mp/dimensionality m)))
-    ;     (f (mp/get-0d m)) ;; handle case of single element
-    ;     (let [s (mapv f (mp/element-seq m))]
-    ;       (mp/reshape (mp/coerce-param m s)
-    ;                   (mp/get-shape m)))))
-    ;  ([m f a]
-    ;   (if (== 0 (long (mp/dimensionality m)))
-    ;     (let [v (mp/get-0d m)]
-    ;       (mp/element-map a #(f v %)))
-    ;     (let [[m a] (mp/broadcast-compatible m a)
-    ;           s (mapv f (mp/element-seq m) (mp/element-seq a))]
-    ;       (mp/reshape (mp/coerce-param m s) ;; TODO: faster construction method?
-    ;                   (mp/get-shape m)))))
-    ;  ([m f a more]
-    ;   (let [s (mapv f (mp/element-seq m) (mp/element-seq a))
-    ;         s (apply mapv f (list* (mp/element-seq m)
-    ;                                (mp/element-seq a)
-    ;                                (map mp/element-seq more)))]
-    ;     (mp/reshape (mp/coerce-param m s)
-    ;                 (mp/get-shape m)))))
     (element-map
       ([m f]
         (mp/construct-matrix m (mapmatrix f m)))
@@ -1863,21 +1843,23 @@
       (mp/reshape [m] shape))
   #?(:clj Object :cljs object)
     (reshape [m shape]
-      (let [gv (mp/generic-value m) ;; generic value for array padding. Typically nil or zero
-            es (concat (mp/element-seq m) (repeat gv))
-            partition-shape (fn partition-shape [es shape]
-                              (if-let [s (seq shape)]
-                                (let [ns (next s)
-                                      plen (reduce * 1 ns)]
-                                  (map #(partition-shape % ns) (partition plen es)))
-                                (first es)))]
-        (if-let [shape (seq shape)]
-          (let [fs (long (first shape))
-                parts (partition-shape es shape)]
-            (or
-              (mp/construct-matrix m (take fs parts))
-              (mp/construct-matrix [] (take fs parts))))
-          (first es)))))
+      (if (= (mp/shape m) shape) ;; Short circuit if already the desired shape
+        m
+        (let [gv (mp/generic-value m) ;; generic value for array padding. Typically nil or zero
+              es (concat (mp/element-seq m) (repeat gv))
+              partition-shape (fn partition-shape [es shape]
+                                (if-let [s (seq shape)]
+                                  (let [ns (next s)
+                                        plen (reduce * 1 ns)]
+                                    (map #(partition-shape % ns) (partition plen es)))
+                                  (first es)))]
+          (if-let [shape (seq shape)]
+            (let [fs (long (first shape))
+                  parts (partition-shape es shape)]
+              (or
+                (mp/construct-matrix m (take fs parts))
+                (mp/construct-matrix [] (take fs parts))))
+            (first es))))))
 
 (extend-protocol mp/PCoercion
   nil

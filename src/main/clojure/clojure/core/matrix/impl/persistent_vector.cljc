@@ -445,7 +445,7 @@
           :else
            (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m)))))
     (outer-product [m a]
-      (mp/element-map m (fn [v] (mp/pre-scale a v)))))
+      (mp/element-map m (fn [v] (println "v: " v) (mp/pre-scale a v)))))
 
 (extend-protocol mp/PVectorTransform
   #?(:clj IPersistentVector :cljs PersistentVector)

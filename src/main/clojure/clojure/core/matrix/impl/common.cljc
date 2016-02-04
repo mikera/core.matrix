@@ -45,6 +45,28 @@
 
 ))
 
+;(element-map
+;  ([m f]
+;   (if (== 0 (long (mp/dimensionality m)))
+;     (f (mp/get-0d m)) ;; handle case of single element
+;     (let [s (mapv f (mp/element-seq m))]
+;       (mp/reshape (mp/coerce-param m s)
+;                   (mp/get-shape m)))))
+;  ([m f a]
+;   (if (== 0 (long (mp/dimensionality m)))
+;     (let [v (mp/get-0d m)]
+;       (mp/element-map a #(f v %)))
+;     (let [[m a] (mp/broadcast-compatible m a)
+;           s (mapv f (mp/element-seq m) (mp/element-seq a))]
+;       (mp/reshape (mp/coerce-param m s) ;; TODO: faster construction method?
+;                   (mp/get-shape m)))))
+;  ([m f a more]
+;   (let [s (mapv f (mp/element-seq m) (mp/element-seq a))
+;         s (apply mapv f (list* (mp/element-seq m)
+;                                (mp/element-seq a)
+;                                (map mp/element-seq more)))]
+;     (mp/reshape (mp/coerce-param m s)
+;                 (mp/get-shape m)))))
 (defn mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
    Assumes correct dimensionality / shape.
@@ -55,40 +77,52 @@
    Returns a nested persistent vector matrix or a scalar value."
   ([f m]
    (let [dims (long (mp/dimensionality m))
-         _ (println "mapping matrix: " dims " dims")
+         m-shape (mp/get-shape m)
+         _ (println "mapmatrix dims: " dims)
          res (cond
                (== 0 dims) (f (scalar-coerce m))
                (== 1 dims) (mapv f (mp/element-seq m))
-               :else (mapv (partial mapmatrix f) (mp/get-major-slice-seq m)))]
-     (mp/reshape (mp/coerce-param m res)
-                 (mp/get-shape m))))
+               :else (mapv (partial mapmatrix f) (mp/get-major-slice-seq m)))
+         res-shape (if (pos? (mp/dimensionality (first res)))
+                     (concat m-shape (next (mp/get-shape res)))
+                     m-shape)]
+     (println "res: " res )
+     (mp/reshape (mp/coerce-param m res) res-shape)))
   ([f m1 m2]
-    (let [dims (long (mp/dimensionality m1))]
-      (cond
-        (== 0 dims) (f (scalar-coerce m1) (scalar-coerce m2))
-        (== 1 dims) (mapv f m1 (mp/element-seq m2))
-        :else (mapv (partial mapmatrix f)
-                    m1
-                    (mp/get-major-slice-seq m2)))))
+    (let [dims (long (mp/dimensionality m1))
+          res (cond
+                (== 0 dims) (f (scalar-coerce m1) (scalar-coerce m2))
+                (== 1 dims) (mapv f (mp/element-seq m1) (mp/element-seq m2))
+                :else (mapv (partial mapmatrix f)
+                            (mp/get-major-slice-seq m1)
+                            (mp/get-major-slice-seq m2)))]
+      (mp/reshape (mp/coerce-param m1 res)
+                  (mp/get-shape m1))))
   ([f m1 m2 m3]
-    (let [dims (long (mp/dimensionality m1))]
-      (cond
-        (== 0 dims) (f (scalar-coerce m1) (scalar-coerce m2) (scalar-coerce m3))
-        (== 1 dims) (mapv f m1 (mp/element-seq m2) (mp/element-seq m3))
-        :else (mapv (partial mapmatrix f)
-                    m1
-                    (mp/get-major-slice-seq m2)
-                    (mp/get-major-slice-seq m3)))))
+    (let [dims (long (mp/dimensionality m1))
+          res (cond
+                (== 0 dims) (f (scalar-coerce m1) (scalar-coerce m2) (scalar-coerce m3))
+                (== 1 dims) (mapv f (mp/element-seq m1) (mp/element-seq m2) (mp/element-seq m3))
+                :else (mapv (partial mapmatrix f)
+                            (mp/get-major-slice-seq m1)
+                            (mp/get-major-slice-seq m2)
+                            (mp/get-major-slice-seq m3)))]
+      (mp/reshape (mp/coerce-param m1 res)
+                  (mp/get-shape m1))))
   ([f m1 m2 m3 & more]
-    (let [dims (long (mp/dimensionality m1))]
-      (cond
-        (== 0 dims) (apply f (scalar-coerce m1) (scalar-coerce m2) (scalar-coerce m3) (map mp/get-0d more))
-        (== 1 dims) (apply mapv f m1 (mp/element-seq m2) (mp/element-seq m3) (map mp/element-seq more))
-        :else (apply mapv (partial mapmatrix f)
-                     m1
-                     (mp/get-major-slice-seq m2)
-                     (mp/get-major-slice-seq m3)
-                     (map mp/get-major-slice-seq more))))))
+    (let [dims (long (mp/dimensionality m1))
+          res (cond
+                (== 0 dims) (apply f (scalar-coerce m1) (scalar-coerce m2)
+                                   (scalar-coerce m3) (map mp/get-0d more))
+                (== 1 dims) (apply mapv f (mp/element-seq m1) (mp/element-seq m2)
+                                   (mp/element-seq m3) (map mp/element-seq more))
+                :else (apply mapv (partial mapmatrix f)
+                             (mp/get-major-slice-seq m1)
+                             (mp/get-major-slice-seq m2)
+                             (mp/get-major-slice-seq m3)
+                             (map mp/get-major-slice-seq more)))]
+      (mp/reshape (mp/coerce-param m1 res)
+                  (mp/get-shape m1)))))
 
 (defn logistic-fn
   "Logistic function, with primitive type hints"
