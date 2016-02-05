@@ -166,7 +166,7 @@
 (deftest test-mutable-multiply
   (let [a (double-array [1 2])
         b (double-array [2 3])]
-    (is (identical? a (emul! a b)))
+    (is (identical? a (mul! a b)))
     (is (equals [2.0 6.0] (vec a)))
     (is (equals [2.0 6.0] a))))
 

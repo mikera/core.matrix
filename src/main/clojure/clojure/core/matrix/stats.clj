@@ -5,8 +5,8 @@
    they have now been fully integrated into core.matrix."
   (:use clojure.core.matrix))
 
-(defn sum 
-  "Calculates the sum of a collection of values. 
+(defn sum
+  "Calculates the sum of a collection of values.
    Values may be scalars, vectors or higher-dimensional matrices."
   ([values]
     (if (== 1 (dimensionality values))
@@ -18,13 +18,13 @@
         result))))
 
 (defn sum-of-squares
-  "Calculates the sum of squares of a collection of values. 
+  "Calculates the sum of squares of a collection of values.
    Values may be scalars, vectors or higher-dimensional matrices."
   ([values]
     (if (== 1 (dimensionality values))
       (inner-product values values)
       (let [values (slices values)
-            fv (first values) 
+            fv (first values)
             result (mutable (mul fv fv))]
         (doseq [v (next values)]
           (add! result (mul v v))
@@ -33,7 +33,7 @@
         result))))
 
 (defn mean
-  "Calculates the mean of a collection of values. 
+  "Calculates the mean of a collection of values.
    Values may be scalars, vectors or higher-dimensional matrices."
   ([values]
     (let [values (slices values)
@@ -51,11 +51,11 @@
      (let [n (dimension-count values 0)
            u (mean values)
            ss (sum-of-squares values)
-           nuu (mul n (emul u u))]
+           nuu (mul n (mul u u))]
        (if (number? ss)
          (* (- ss nuu) (/ 1.0 (dec n)))
          (do ;; must be a new mutable matrix, so we abuse this fact to use it as an accumulator...
-           (sub! ss nuu) 
+           (sub! ss nuu)
            (scale! ss (/ 1.0 (dec n)))
            ss)))))
 
@@ -67,7 +67,7 @@
 
 (defn normalise-probabilities
   "Normalises a numerical probability vector, i.e. to a vector where all elements sum to 1.0.
-   
+
    A zero vector will be set set to [1/n .... 1/n]."
   ([v]
     (let [len (double (sum v))]

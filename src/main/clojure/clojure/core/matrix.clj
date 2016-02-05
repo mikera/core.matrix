@@ -1423,7 +1423,7 @@
     (reduce mp/matrix-multiply (mp/matrix-multiply a b) more)))
 
 (defn e*
-  "An element-wise multiply operator equivalent to `emul`."
+  "An element-wise multiply operator equivalent to `mul`."
   ([] 1.0)
   ([a] a)
   ([a b]
