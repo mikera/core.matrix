@@ -94,6 +94,27 @@
       (count m)
       (error "Double array does not have dimension: " x))))
 
+(extend-protocol mp/PReshaping
+  array
+  (reshape [m shape]
+    (if (= (mp/get-shape m) shape) ;; Short circuit if already the desired shape
+      m
+      (let [gv (mp/generic-value m) ;; generic value for array padding. Typically nil or zero
+            es (concat (mp/element-seq m) (repeat gv))
+            partition-shape (fn partition-shape [es shape]
+                              (if-let [s (seq shape)]
+                                (let [ns (next s)
+                                      plen (reduce * 1 ns)]
+                                  (map #(partition-shape % ns) (partition plen es)))
+                                (first es)))]
+        (if-let [shape (seq shape)]
+          (let [fs (long (first shape))
+                parts (partition-shape es shape)]
+            (or
+              (mp/construct-matrix m (take fs parts))
+              (mp/construct-matrix [] (take fs parts))))
+          (first es))))))
+
 (extend-protocol mp/PTypeInfo
   array
   (element-type [m] js/Number))

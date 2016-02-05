@@ -823,9 +823,7 @@
         (mp/is-scalar? m)
           (mp/pre-scale a m)
         :else
-        (mp/reshape (mp/coerce-param m (mp/element-map m (fn [v] (println "v: " v) (mp/pre-scale a v))))
-                    [(first (mp/get-shape m))
-                     (first (mp/get-shape a))]))))
+        (mp/element-map m (fn [v] (mp/pre-scale a v))))))
 
 ;; matrix multiply
 ;; TODO: document returning NDArray
@@ -1843,7 +1841,7 @@
       (mp/reshape [m] shape))
   #?(:clj Object :cljs object)
     (reshape [m shape]
-      (if (= (mp/shape m) shape) ;; Short circuit if already the desired shape
+      (if (= (mp/get-shape m) shape) ;; Short circuit if already the desired shape
         m
         (let [gv (mp/generic-value m) ;; generic value for array padding. Typically nil or zero
               es (concat (mp/element-seq m) (repeat gv))

@@ -25,8 +25,8 @@
         b (mat/array [1 2 3])
         c (mat/array [[2 2] [2 2]])
         d (mat/array [[3 3] [3 3]])]
-    (is (mat/equals [2 4 6] (vec (mat/add a b))))
-    (is (mat/equals [1 4 9] (vec (mat/mul a b))))
+    (is (mat/equals [2 4 6] (mat/add a b)))
+    (is (mat/equals [1 4 9] (mat/mul a b)))
     (is (mat/equals [[12 12] [12 12]] (mat/mmul c d)))
     (is (mat/equals [[12 12] [12 12]] (mat/mmul c d)))))
 
