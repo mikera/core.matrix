@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/thinktopic/core.matrix.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/thinktopic/core.matrix.git</developerConnection>
-    <tag>84d6d120fbcad4271044c06ecc5c0f9914021a3f
+    <tag>c78536f69b528336dcd7fd674529f521280a72dd
 </tag>
     <url>https://github.com/thinktopic/core.matrix</url>
   </scm>
@@ -29,6 +29,9 @@
       </resource>
     </resources>
     <testResources>
+      <testResource>
+        <directory>dev-resources</directory>
+      </testResource>
       <testResource>
         <directory>resources</directory>
       </testResource>
@@ -102,6 +105,29 @@
       <groupId>net.mikera</groupId>
       <artifactId>cljunit</artifactId>
       <version>0.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.nrepl</artifactId>
+      <version>0.2.6</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>clojure-complete</groupId>
+      <artifactId>clojure-complete</artifactId>
+      <version>0.2.3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
       <scope>test</scope>
     </dependency>
     <dependency>

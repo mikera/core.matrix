@@ -14,12 +14,13 @@
 
   :test-paths ["src/test/clojure" "src/test/java"]
 
-  :dependencies [[org.clojure/clojure "1.8.0"]]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 ;;If you don't want cljunit included then don't include test in the java source paths
+                 [net.mikera/cljunit "0.3.1"]]
 
   :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
 
-  :profiles {:dev {:dependencies [[net.mikera/cljunit "0.3.1"]
-                                  [criterium/criterium "0.4.3"]
+  :profiles {:dev {:dependencies [[criterium/criterium "0.4.3"]
                                   [org.clojure/tools.macro "0.1.5"]
                                   [hiccup "1.0.5"]
                                   [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
