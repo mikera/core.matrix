@@ -78,7 +78,6 @@
   ([f m]
    (let [dims (long (mp/dimensionality m))
          m-shape (mp/get-shape m)
-         _ (println "mapmatrix dims: " dims)
          res (cond
                (== 0 dims) (f (scalar-coerce m))
                (== 1 dims) (mapv f (mp/element-seq m))
