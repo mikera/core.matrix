@@ -529,7 +529,7 @@
 (extend-protocol mp/PTypeInfo
   #?(:clj IPersistentVector :cljs PersistentVector)
     (element-type [a]
-      (let [first-element #?(:clj (.nth a 0) :cljs (nth a 0))]
+      (let [first-element (first a)]
         (if (vector? first-element)
           (mp/element-type first-element)
           (#?(:clj class :cljs type) first-element)))))

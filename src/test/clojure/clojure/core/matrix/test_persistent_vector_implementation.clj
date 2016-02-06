@@ -217,7 +217,7 @@
 (deftest test-clamp
   (is (error? (clamp [[1 2] [3 4]] 6 1))))
 
-;; run complicance tests
+;; run compliance tests
 
 (deftest instance-tests
   (testing "empty persistent vectors are supported"
