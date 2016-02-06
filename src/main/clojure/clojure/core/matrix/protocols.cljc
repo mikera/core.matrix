@@ -187,7 +187,7 @@
    Should return nil to indicate that this implementation cannot create a mutable array from the given data.
 
    The default implementation will attempt to choose a suitable mutable matrix implementation."
-  (ensure-mutable [m] "Returns this array if fully mutable, otherwise returns a new mutable array containing 
+  (ensure-mutable [m] "Returns this array if fully mutable, otherwise returns a new mutable array containing
                    a copy of this array. May return nil if the implementation cannot create a suitable mutable
                    array."))
 
@@ -652,11 +652,11 @@
     "Adds the inner product of a, b and an optional scalar factor to m"))
 
 (defprotocol PSetInnerProductMutable
-  "Protocol to support the mutable set-inner-product! operation. This is a common operation that may be 
+  "Protocol to support the mutable set-inner-product! operation. This is a common operation that may be
    optimised by the underlying implementation. Implementations should consider extra optimisations for
    specific constant factors e.g. 0.0 and 1.0 but this is not mandatory."
-  (set-inner-product! 
-    [m a b] 
+  (set-inner-product!
+    [m a b]
     [m a b factor]
     "Sets m to the inner product of a, b and an optional scalar factor to m"))
 
@@ -869,7 +869,7 @@
 
 (defprotocol PMathsFunctions
   "Protocol to support mathematical functions applied element-wise to a numerical array."
-  (abs [m]) 
+  (abs [m])
   (acos [m])
   (asin [m])
   (atan [m])
@@ -893,7 +893,7 @@
 
 (defprotocol PMathsFunctionsMutable
   "Protocol to support mutable mathematical functions applied element-wise to a numerical array."
-  (abs! [m]) 
+  (abs! [m])
   (acos! [m])
   (asin! [m])
   (atan! [m])
@@ -1106,10 +1106,10 @@
 
 (defprotocol PColumnNames
   "Protocol for arrays supporting labelled columns. This is a specialisation of label functionality
-   intended for use by datasets, the key difference is that column-names should alwys select the 
+   intended for use by datasets, the key difference is that column-names should always select the
    last dimension."
   (column-name [m column] "Returns the label at a specific column")
-  (column-names [m] "Returns all labels along the columns on an array")) 
+  (column-names [m] "Returns all labels along the columns on an array"))
 
 ;; ==========================================================
 ;; LINEAR ALGEBRA PROTOCOLS
