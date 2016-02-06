@@ -413,9 +413,6 @@
         mshape (long-array (mp/get-shape m))
         mdims (alength mshape)
         dim-map (long-array (concat (repeat (- tdims mdims) -1) (range mdims)))]
-    ;;(println "mshape:" (seq mshape))
-    ;;(println "mdims:" mdims)
-    ;;(println "tdims:" tdims)
     (NDWrapper.
       m
       tshape
