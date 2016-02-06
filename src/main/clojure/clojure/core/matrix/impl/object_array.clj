@@ -101,7 +101,7 @@
   (Class/forName "[Ljava.lang.Object;")
     (dimensionality [m]
       (let [^objects m m]
-        (+ 1 (long (mp/dimensionality (aget m 0))))))
+        (+ 1 (if (empty? m) 0 (long (mp/dimensionality (aget m 0)))))))
     (is-vector? [m]
       (let [^objects m m]
         (or

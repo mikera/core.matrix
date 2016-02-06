@@ -14,11 +14,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git://github.com/thinktopic/core.matrix.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/thinktopic/core.matrix.git</developerConnection>
-    <tag>c78536f69b528336dcd7fd674529f521280a72dd
+    <tag>3b2c3ed8e347e712769878e1d53194db8febb6d2
 </tag>
-    <url>https://github.com/thinktopic/core.matrix</url>
+    <url/>
   </scm>
   <build>
     <sourceDirectory>src/main/clojure</sourceDirectory>
@@ -29,9 +27,6 @@
       </resource>
     </resources>
     <testResources>
-      <testResource>
-        <directory>dev-resources</directory>
-      </testResource>
       <testResource>
         <directory>resources</directory>
       </testResource>
@@ -105,30 +100,6 @@
       <groupId>net.mikera</groupId>
       <artifactId>cljunit</artifactId>
       <version>0.3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>tools.nrepl</artifactId>
-      <version>0.2.6</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.clojure</groupId>
-          <artifactId>clojure</artifactId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>clojure-complete</groupId>
-      <artifactId>clojure-complete</artifactId>
-      <version>0.2.3</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.clojure</groupId>
-          <artifactId>clojure</artifactId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>criterium</groupId>
