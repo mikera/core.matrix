@@ -1400,7 +1400,7 @@
   ([a b & more]
     (reduce mul (mul a b) more)))
 
-(defn emul
+(defn ^{:deprecated true} emul
   "Performs element-wise multiplication between arrays."
   ([] 1.0)
   ([a] a)
@@ -1469,7 +1469,7 @@
       (mp/element-multiply! a c))
     a))
 
-(defn emul!
+(defn ^{:deprecated true} emul!
   "Performs in-place element-wise multiplication of numerical arrays.
 
    Returns the first argument after mutation."
