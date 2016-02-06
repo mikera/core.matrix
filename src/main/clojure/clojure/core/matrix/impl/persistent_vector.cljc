@@ -526,14 +526,6 @@
           #?(:clj (mp/dimension-count (.nth m 0) (dec x))
              :cljs (mp/dimension-count (nth m 0) (dec x)))))))
 
-;(extend-protocol mp/PTypeInfo
-;  #?(:clj IPersistentVector :cljs PersistentVector)
-;    (element-type [a]
-;      (let [first-element (first a)]
-;        (if (vector? first-element)
-;          (mp/element-type first-element)
-;          (#?(:clj class :cljs type) first-element)))))
-
 (extend-protocol mp/PElementCount
   #?(:clj IPersistentVector :cljs PersistentVector)
     (element-count [m]
