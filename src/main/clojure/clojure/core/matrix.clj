@@ -1794,13 +1794,23 @@
   ([a]
     (mp/trace a)))
 
-(defn length
+(defn magnitude
   "Calculates the euclidean length (magnitude) of a numerical vector"
   ([m]
     (mp/length m)))
 
-(defn length-squared
+(defn magnitude-squared
   "Calculates the squared length (squared magnitude) of a numerical vector"
+  ([m]
+     (mp/length-squared m)))
+
+(defn ^{:deprecated true} length
+  "DEPRECATED: please use magnitude instead."
+  ([m]
+    (mp/length m)))
+
+(defn ^{:deprecated true} length-squared
+  "DEPRECATED: please use magnitude-squared instead."
   ([m]
      (mp/length-squared m)))
 
