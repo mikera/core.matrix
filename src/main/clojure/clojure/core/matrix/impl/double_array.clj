@@ -510,7 +510,7 @@
               ^doubles vs (double-array more-count)]
           (dotimes [i (alength m)]
             (dotimes [j more-count] (aset vs j (aget ^doubles (more j) i)))
-            (aset m i (double (apply f (aget m i) (aget a i) vs))))
+              (aset m i (double (apply f (aget m i) (aget a i) vs))))
           m)))
     (element-map!
       ([m f]
