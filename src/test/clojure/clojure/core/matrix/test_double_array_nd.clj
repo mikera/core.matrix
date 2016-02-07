@@ -1,4 +1,4 @@
-(ns clojure.core.matrix.test-double-array-2d
+(ns clojure.core.matrix.test-double-array-nd
   (:refer-clojure :exclude [==])
   (:require [clojure.test :refer :all]
             [clojure.core.matrix :refer :all]
@@ -196,7 +196,9 @@
 
 (deftest instance-test
   (clojure.core.matrix.compliance-tester/instance-test (construct-double-array [[1 1 2]
-                                                                                [-13 -8 -5]])))
+                                                                                [-13 -8 -5]]))
+  (clojure.core.matrix.compliance-tester/instance-test (construct-double-array [[[1 1 2]
+                                                                                 [-13 -8 -5]]])))
 
 (deftest compliance-test
   (clojure.core.matrix.compliance-tester/compliance-test (construct-double-array [[0.23]])))

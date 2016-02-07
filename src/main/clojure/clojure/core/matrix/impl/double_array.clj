@@ -202,11 +202,11 @@
     (get-1d [m x]
       (error "Cannot do get-1d from a 2D double array"))
     (get-2d [m x y]
-      ^double (aget ^"[[D" m x y))
+      (aget ^"[[D" m x y))
     (get-nd [m indexes]
       (if (== 2 (count indexes))
         (let [[x y] indexes]
-          ^double (aget ^"[[D" m (int x) (int y)))
+          (aget ^"[[D" m (int x) (int y)))
         (error "Can't get from double array with dimensionality: " (count indexes)))))
 
 (extend-protocol mp/PSummable
