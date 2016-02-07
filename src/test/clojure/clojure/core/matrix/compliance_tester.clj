@@ -484,16 +484,16 @@
   (is (equals m (div m 1)))
   (let [m (add (square m) 1)]
     (is (equals m (div (square m) m) 0.0001)))
-  (is (equals (emul m m) (square m)))
+  (is (equals (mul m m) (square m)))
   (is (equals (esum m) (ereduce + m) 0.0001))
   (is (= (seq (map inc (eseq m))) (seq (eseq (emap inc m)))))
   (if (#{:vectorz} (current-implementation))
     (let [v (->> #(rand 1000.0) repeatedly (take 5) vec normalise array)
           i (identity-matrix 5)
-          m (sub i (emul 2.0 (outer-product v v)))]
+          m (sub i (mul 2.0 (outer-product v v)))]
       (is (equals m (transpose m) 1.0E-12))
       (is (equals m (inverse m) 1.0E-12))
-      (is (equals (mmul m m) i 1.0E-12))))
+      (is (equals (mul m m) i 1.0E-12))))
   (let [m1 (matrix m [[1 2 3 4]])
         m2 (matrix m [[1 2 3] [4 5 6] [7 8 9] [10 11 12]])
         m3 (matrix m [[2 3]
@@ -680,7 +680,7 @@
     (is (column-matrix? cm))
     (is (row-matrix? (transpose cm)))))
 
-(defn test-matrix-emul [im]
+(defn test-matrix-mul [im]
   (is (equals [[2 2] [4 4]] (e* (matrix im [[1 1] [2 2]]) 2)))
   (is (equals [[2 2] [4 4]] (e* 2 (matrix im [[1 1] [2 2]]))))
   (when (supports-dimensionality? im 1)
@@ -733,7 +733,7 @@
   (test-transpose im)
   (test-diagonal im)
   (test-trace im)
-  (test-matrix-emul im)
+  (test-matrix-mul im)
   (test-identity im)
   (test-order im)
   (test-2d-instances im)
@@ -746,7 +746,7 @@
 ;; ======================================
 ;; Instance test function
 
-(defn instance-test 
+(defn instance-test
   "Call to test a specific array instance from an implementation. A range of standard checks will be run."
   ([m]
     (try 

@@ -15,7 +15,7 @@
   (is (= [2 2] (shape '((1 2) (3 4))))))
 
 (deftest sequence-ops
-  (is (equals (emul (range 10) (range 10)) '(0 1 4 9 16 25 36 49 64 81))))
+  (is (equals (mul (range 10) (range 10)) '(0 1 4 9 16 25 36 49 64 81))))
 
 ;; sequences should get converted to a better implementation
 (deftest test-to-vectors
