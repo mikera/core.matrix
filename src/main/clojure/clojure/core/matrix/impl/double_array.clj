@@ -182,8 +182,7 @@
         (dotimes [i rows]
           (let [^doubles row (aget ^"[[D" m i)]
             (dotimes [j cols]
-              ;; TODO: fix identity hack that is needed to fix reflection warning
-              (aset res (+ j (* i cols)) (identity (aget row j))))))
+              (aset res (+ j (* i cols)) (nth row j)))))
         res))
     (as-object-array [m] nil))
 
