@@ -38,31 +38,32 @@
               ^Object r0 (new-double-array ns)]
           (into-array (.getClass r0) (cons r0 (for [i (range (dec rn))] (new-double-array ns))))))))
 
-(defn construct-double-array [data]
-  (let [dims (long (mp/dimensionality data))]
-    (cond
-     (== dims 2)
-      (let [x (long (mp/dimension-count data 0))
-            y (long (mp/dimension-count data 1))
-            r (make-array Double/TYPE x y)]
-        (dotimes [i x]
-          (dotimes [j y]
-            (aset-double r i j (double (mp/get-2d data i j)))))
-        r)
-     (== dims 1)
-       (let [n (long (mp/dimension-count data 0))
-             r (double-array n)]
-           (dotimes [i n]
-             (aset r i (double (mp/get-1d data i))))
-           r)
-     (== dims 0)
-       (double (mp/get-0d data))
-     :default
-       nil)))
-
+(defn construct-double-array 
+  "Constructs nested double arrays from the given numerical data. Uses 2D double[][] arrays where needed. Guarantees a full copy."
+  ([data]
+    (let [dims (long (mp/dimensionality data))]
+      (cond
+       (== dims 0)
+         (double (mp/get-0d data))
+       (== dims 1)
+         (mp/to-double-array data) 
+       (== dims 2)
+        (let [d0 (long (mp/dimension-count data 0))
+              d1 (long (mp/dimension-count data 1))
+              r (make-array Double/TYPE d0 d1)]
+          (dotimes [i d0]
+            (dotimes [j d1]
+              (aset-double r i j (double (mp/get-2d data i j)))))
+          r)
+       :default
+         (let [sh (mp/get-shape data)
+               da (apply make-array Double/TYPE sh)]
+           (dotimes [i (long (first sh))]
+             (mp/assign! (nth da i) (mp/get-major-slice data i)))
+           da)))))
 
 (defn to-double-arrays
-  "Converts an array to nested double arrays with the same shape."
+  "Converts a numerical array to nested double arrays with the same shape. Does not guarantee a full copy."
   [m]
   (if-let [dims (long (mp/dimensionality m))]
     (cond 
