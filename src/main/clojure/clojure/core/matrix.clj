@@ -1401,7 +1401,7 @@
     (reduce mul (mul a b) more)))
 
 (defn ^{:deprecated true} emul
-  "Performs element-wise multiplication between arrays."
+  "DEPRECATED: please use mul instead."
   ([] 1.0)
   ([a] a)
   ([a b]
