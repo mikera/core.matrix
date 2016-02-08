@@ -3,7 +3,7 @@
   <groupId>net.mikera</groupId>
   <artifactId>core.matrix</artifactId>
   <packaging>jar</packaging>
-  <version>0.45.0-CLJS-SNAPSHOT</version>
+  <version>0.50.0-SNAPSHOT</version>
   <name>core.matrix</name>
   <description/>
   <url>https://github.com/mikera/core.matrix</url>
@@ -14,9 +14,11 @@
     </license>
   </licenses>
   <scm>
-    <tag>3b2c3ed8e347e712769878e1d53194db8febb6d2
+    <connection>scm:git:git://github.com/thinktopic/core.matrix.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/thinktopic/core.matrix.git</developerConnection>
+    <tag>9698efdc0198c432b5f4655f491d3aa818051049
 </tag>
-    <url/>
+    <url>https://github.com/thinktopic/core.matrix</url>
   </scm>
   <build>
     <sourceDirectory>src/main/clojure</sourceDirectory>
@@ -134,7 +136,7 @@
     <dependency>
       <groupId>net.mikera</groupId>
       <artifactId>vectorz-clj</artifactId>
-      <version>0.42.0</version>
+      <version>0.43.1-SNAPSHOT</version>
       <exclusions>
         <exclusion>
           <groupId>net.mikera</groupId>
