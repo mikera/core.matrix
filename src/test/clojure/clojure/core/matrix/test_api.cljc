@@ -658,4 +658,3 @@
   (is (= 100.0 (li/norm (vector 1 2 3 4) 3)))
   (is (= 4 (li/norm (vector 1 2 3 4) #?(:clj Double/POSITIVE_INFINITY :cljs Infinity)))))
 
-

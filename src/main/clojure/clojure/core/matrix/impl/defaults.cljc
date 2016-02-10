@@ -61,11 +61,11 @@
           (wrap/wrap-scalar (mp/get-0d m))
         (and (== dims 1) double?)
           #?(:clj (da/construct-double-array m)
-             :cljs (mp/coerce-param (imp/get-canonical-object :thing-ndarray) m))
+             :cljs (mp/coerce-param (imp/get-canonical-object :aljabr) m))
         double?
-          (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray-double :cljs :thing-ndarray)) m)
+          (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray-double :cljs :aljabr)) m)
         :else
-          (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray :cljs :thing-ndarray)) m)))))
+          (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray :cljs :aljabr)) m)))))
 
 
 ;; ============================================================

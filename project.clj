@@ -5,44 +5,33 @@
 
   :dependencies [[org.clojure/clojure "1.8.0"]]
 
-  :plugins [[lein-codox "0.9.0"]]
-  :source-paths ["src/main/clojure"]
+  :source-paths      ["src/main/clojure"]
   :java-source-paths ["src/main/java"]
-  :test-paths ["src/test/clojure" "src/test/java"]
+  :test-paths        ["src/test/clojure" "src/test/java"]
 
   :profiles {:dev {:dependencies
                    [[net.mikera/vectorz-clj "0.43.1-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
                     [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
-
                     [org.clojure/test.check "0.8.2"]
                     [net.mikera/cljunit "0.3.1"]
                     [criterium/criterium "0.4.3"]
-                    [org.clojure/tools.macro "0.1.5"]]
+                    [org.clojure/tools.macro "0.1.5"]
+                    [hiccup "1.0.5"]]
+
+                   :plugins [[lein-codox "0.9.0"]]
+
                    :source-paths ["src/dev/clojure"]
                    :java-source-paths  ["src/test/java"]
                    :jvm-opts ^:replace []}
 
-             :cljs {:dependencies [[hiccup "1.0.5"]
-                                   [org.clojure/clojurescript "1.7.228"]
-                                   [thi.ng/ndarray "0.3.1-SNAPSHOT"]]
-                    ;:source-paths ["src/dev/clojure"]
+             :cljs-dev {:dependencies [[org.clojure/clojurescript "1.7.228"]
+                                       [thinktopic/aljabr "0.1.0-SNAPSHOT" :exclusions [net.mikera/core.matrix]]]
 
                     :plugins [[lein-figwheel "0.5.0-6"]
                               [lein-cljsbuild "1.1.2"]]
 
-                    :cljsbuild {
-                                ;:test-commands {"unit" ["phantomjs" "resources/public/js/unit-test.js"]}
-                                :builds
+                    :cljsbuild {:builds
                                 [{:id :dev
-                                  :figwheel true
-                                  :source-paths ["src/main/clojure"]
-                                  :compiler {:output-to "resources/public/js/core.matrix.js"
-                                             :asset-path "js/out"
-                                             :optimizations :none
-                                             :parallel-build true
-                                             :pretty-print true}}
-
-                                 {:id :test
                                   :figwheel true
                                   :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
                                   :compiler {:output-to "resources/public/js/unit-test.js"
@@ -50,17 +39,25 @@
                                              :main "clojure.core.matrix.test-basics"
                                              :optimizations :none
                                              :parallel-build true
-                                             :pretty-print true}}
+                                             :pretty-print true}}]
 
-                                 {:id :prod
+                                ;:test-commands {"unit" ["phantomjs" "resources/public/js/unit-test.js"]}
+                                }
+
+                    :figwheel {:load-warninged-code true
+                               :css-dirs ["resources/public/css"]
+                               :server-port 8765}}
+
+             :cljs {:dependencies [[org.clojure/clojurescript "1.7.228"]]
+                    :plugins [[lein-cljsbuild "1.1.2"]]
+
+                    :cljsbuild {:builds
+                                [{:id :prod
                                   :jar true
                                   :source-paths ["src/main/clojure"]
                                   :compiler {:output-to "resources/public/js/core.matrix.js"
                                              :optimizations :advanced
-                                             :pretty-print false}}]}
-
-                    :figwheel {:load-warninged-code true
-                               :css-dirs ["resources/public/css"]}}}
+                                             :pretty-print false}}]}}}
 
   :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
 

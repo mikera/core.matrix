@@ -4,7 +4,7 @@
     [clojure.string :as s]
     [clojure.core.matrix :as mat]
     [clojure.core.matrix.impl.wrappers :as wrap]
-    [thi.ng.ndarray.core :as nd]
+    [thinktopic.aljabr.core]
     [clojure.core.matrix.impl.double-array]
     [clojure.core.matrix.compliance-tester :refer [compliance-test]]
     [clojure.core.matrix.test-selection]
@@ -16,7 +16,7 @@
     [clojure.core.matrix.macros-cljs :refer [error?]]))
 
 (enable-console-print!)
-(mat/set-current-implementation :thing-ndarray)
+(mat/set-current-implementation :aljabr)
 
 (declare init)
 

@@ -62,5 +62,3 @@
     (is (mat/equals 1 (sel a 0)))
     (is (error? (sel a 1)))))
 
-
-

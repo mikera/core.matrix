@@ -36,7 +36,7 @@
    :ujmp :TODO
    :commons-math 'apache-commons-matrix.core
    :mtj 'cav.mtj.core.matrix
-   :thing-ndarray 'thi.ng.ndarray.core))
+   :aljabr 'thinktopic.aljabr.core))
 
 (def DEFAULT-IMPLEMENTATION
   "The default implementation used in core.matrix. Currently set to `:persistent-vector` for maximum
