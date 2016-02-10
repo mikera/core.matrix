@@ -24,12 +24,20 @@
                                   [hiccup "1.0.5"]
                                   [clatrix "0.5.0"]
                                   [net.mikera/vectorz-clj "0.37.0"]
-                                  [org.clojure/test.check "0.8.2"]]                      
-                   
+                                  [org.clojure/test.check "0.8.2"]]
+
                    :source-paths ["src/dev/clojure"]
                    :jvm-opts ^:replace []
-                   :plugins [[lein-codox "0.9.0"]]}}
-  
+                   :plugins [[lein-codox "0.9.0"]]}
+
+             :test {:dependencies [[net.mikera/cljunit "0.3.1"]
+                                   [criterium/criterium "0.4.3"]
+                                   [org.clojure/tools.macro "0.1.5"]
+                                   [clatrix "0.5.0"]
+                                   [net.mikera/vectorz-clj "0.37.0"]
+                                   [org.clojure/test.check "0.8.2"]]}
+             }
+
   :codox {:namespaces [clojure.core.matrix
                        clojure.core.matrix.dataset
                        clojure.core.matrix.io
@@ -43,3 +51,4 @@
                        clojure.core.matrix.stats]
           :src-dir-uri "https://github.com/mikera/core.matrix/blob/master/"
           :src-linenum-anchor-prefix "L"})
+
