@@ -3,7 +3,7 @@
   <groupId>net.mikera</groupId>
   <artifactId>core.matrix</artifactId>
   <packaging>jar</packaging>
-  <version>0.45.0-CLJS-SNAPSHOT</version>
+  <version>0.50.0-SNAPSHOT</version>
   <name>core.matrix</name>
   <description/>
   <url>https://github.com/mikera/core.matrix</url>
@@ -14,7 +14,7 @@
     </license>
   </licenses>
   <scm>
-    <tag>9698efdc0198c432b5f4655f491d3aa818051049
+    <tag>6b3620560b9bd1f07fbf67bed9ecb699fcc88ec6
 </tag>
     <url/>
   </scm>
