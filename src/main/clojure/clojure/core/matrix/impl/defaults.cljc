@@ -824,7 +824,10 @@
         (mp/is-scalar? m)
           (mp/pre-scale a m)
         :else
-        (mp/element-map m (fn [v] (mp/pre-scale a v))))))
+        (mp/element-map m (fn [v] (mp/pre-scale a v)))
+        ;; convert to nested vectors first, this enables trick of extending dimensionality for each element with element-map
+        ;(mp/element-map (mp/convert-to-nested-vectors m) (fn [v] (mp/pre-scale a v)))
+        )))
 
 ;; matrix multiply
 ;; TODO: document returning NDArray

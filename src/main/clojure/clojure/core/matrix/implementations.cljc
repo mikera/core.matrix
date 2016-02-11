@@ -107,9 +107,9 @@
                    (require ns-sym))
                  (@canonical-objects k))
                (catch Throwable t
-                 (println "Error loading implementation: " ns-sym)
+                 (println "Error loading core.matrix implementation: " ns-sym)
                  (println t)))))
-       :cljs (println "INFO: No dynamic loading of implementations in Clojurescript. You must require the implementation explicitly."))))
+       :cljs (println "INFO: No dynamic loading of implementations in Clojurescript.\nYou must require an implementation explicitly in a namespace, for example thinktopic.aljabr.core"))))
 
 (defn load-implementation
   "Attempts to load the implementation for a given keyword or matrix object.
@@ -167,4 +167,3 @@
     #?(:clj (alter-var-root (var *matrix-implementation*)
                     (fn [_] (get-implementation-key m)))
        :cljs (set! *matrix-implementation* (get-implementation-key m)))))
-

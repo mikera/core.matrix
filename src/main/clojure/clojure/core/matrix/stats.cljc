@@ -45,16 +45,16 @@
         ))))
 
 (defn variance
-   "Calculates the unbiased sample variance of a set of values.
-   Values may be scalars, vectors or higher-dimensional matrices."
-   ([values]
-     (let [n (m/dimension-count values 0)
-           u (mean values)
-           ss (sum-of-squares values)
-           nuu (m/mul n (m/emul u u))]
-       (if (number? ss)
-         (* (- ss nuu) (/ 1.0 (dec n)))
-         (do ;; must be a new mutable matrix, so we abuse this fact to use it as an accumulator...
+  "Calculates the unbiased sample variance of a set of values.
+  Values may be scalars, vectors or higher-dimensional matrices."
+  ([values]
+   (let [n (m/dimension-count values 0)
+         u (mean values)
+         ss (sum-of-squares values)
+         nuu (m/mul n (m/emul u u))]
+     (if (number? ss)
+       (* (- ss nuu) (/ 1.0 (dec n)))
+       (do ;; must be a new mutable matrix, so we abuse this fact to use it as an accumulator...
            (m/sub! ss nuu)
            (m/scale! ss (/ 1.0 (dec n)))
            ss)))))

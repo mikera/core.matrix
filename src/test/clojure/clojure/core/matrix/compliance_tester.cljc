@@ -498,13 +498,13 @@
   (is (mat/equals m (mat/div m 1)))
   (let [m (mat/add (mat/square m) 1)]
     (is (mat/equals m (mat/div (mat/square m) m) 0.0001)))
-  (is (mat/equals (mat/emul m m) (mat/square m)))
+  (is (mat/equals (mat/mul m m) (mat/square m)))
   (is (mat/equals (mat/esum m) (mat/ereduce + m) 0.0001))
   (is (= (seq (map inc (mat/eseq m))) (seq (mat/eseq (mat/emap inc m)))))
   (if (#{:vectorz} (mat/current-implementation))
     (let [v (->> #(rand 1000.0) repeatedly (take 5) vec mat/normalise mat/array)
           i (mat/identity-matrix 5)
-          m (mat/sub i (mat/emul 2.0 (mat/outer-product v v)))]
+          m (mat/sub i (mat/mul 2.0 (mat/outer-product v v)))]
       (is (mat/equals m (mat/transpose m) 1.0E-12))
       (is (mat/equals m (mat/inverse m) 1.0E-12))
       (is (mat/equals (mat/mmul m m) i 1.0E-12))))
@@ -695,7 +695,7 @@
     (is (mat/column-matrix? cm))
     (is (mat/row-matrix? (mat/transpose cm)))))
 
-(defn test-matrix-emul [im]
+(defn test-matrix-mul [im]
   (is (mat/equals [[2 2] [4 4]] (mat/e* (mat/matrix im [[1 1] [2 2]]) 2)))
   (is (mat/equals [[2 2] [4 4]] (mat/e* 2 (mat/matrix im [[1 1] [2 2]]))))
   (when (mat/supports-dimensionality? im 1)
@@ -747,7 +747,7 @@
   (test-transpose im)
   (test-diagonal im)
   (test-trace im)
-  (test-matrix-emul im)
+  (test-matrix-mul im)
   (test-identity im)
   (test-order im)
   (test-2d-instances im)

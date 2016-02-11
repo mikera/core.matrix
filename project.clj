@@ -12,6 +12,7 @@
   :profiles {:dev {:dependencies
                    [[net.mikera/vectorz-clj "0.43.1-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
                     [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
+
                     [org.clojure/test.check "0.8.2"]
                     [net.mikera/cljunit "0.3.1"]
                     [criterium/criterium "0.4.3"]
@@ -19,10 +20,16 @@
                     [hiccup "1.0.5"]]
 
                    :plugins [[lein-codox "0.9.0"]]
-
                    :source-paths ["src/dev/clojure"]
                    :java-source-paths  ["src/test/java"]
                    :jvm-opts ^:replace []}
+
+             :test {:dependencies [[net.mikera/cljunit "0.3.1"]
+                                   [criterium/criterium "0.4.3"]
+                                   [org.clojure/tools.macro "0.1.5"]
+                                   [clatrix "0.5.0"]
+                                   [net.mikera/vectorz-clj "0.37.0"]
+                                   [org.clojure/test.check "0.8.2"]]}
 
              :cljs-dev {:dependencies [[org.clojure/clojurescript "1.7.228"]
                                        [thinktopic/aljabr "0.1.0-SNAPSHOT" :exclusions [net.mikera/core.matrix]]]
@@ -57,9 +64,11 @@
                                   :source-paths ["src/main/clojure"]
                                   :compiler {:output-to "resources/public/js/core.matrix.js"
                                              :optimizations :advanced
-                                             :pretty-print false}}]}}}
+                                             :pretty-print false}}]}}
+             }
 
   :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
+
 
   :codox {:namespaces [clojure.core.matrix
                        clojure.core.matrix.dataset
@@ -74,3 +83,4 @@
                        clojure.core.matrix.stats]
           :src-dir-uri "https://github.com/mikera/core.matrix/blob/master/"
           :src-linenum-anchor-prefix "L"})
+

@@ -1411,8 +1411,8 @@ elements not-equal to the argument are 0.
   ([a b & more]
     (reduce mul (mul a b) more)))
 
-(defn emul
-  "Performs element-wise multiplication between arrays."
+(defn ^{:deprecated true} emul
+  "DEPRECATED: please use mul instead."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -1434,7 +1434,7 @@ elements not-equal to the argument are 0.
     (reduce mp/matrix-multiply (mp/matrix-multiply a b) more)))
 
 (defn e*
-  "An element-wise multiply operator equivalent to `emul`."
+  "An element-wise multiply operator equivalent to `mul`."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -1480,7 +1480,7 @@ elements not-equal to the argument are 0.
       (mp/element-multiply! a c))
     a))
 
-(defn emul!
+(defn ^{:deprecated true} emul!
   "Performs in-place element-wise multiplication of numerical arrays.
 
    Returns the first argument after mutation."
@@ -1804,13 +1804,23 @@ elements not-equal to the argument are 0.
   ([a]
     (mp/trace a)))
 
-(defn length
+(defn magnitude
   "Calculates the euclidean length (magnitude) of a numerical vector"
   ([m]
     (mp/length m)))
 
-(defn length-squared
+(defn magnitude-squared
   "Calculates the squared length (squared magnitude) of a numerical vector"
+  ([m]
+     (mp/length-squared m)))
+
+(defn ^{:deprecated true} length
+  "DEPRECATED: please use magnitude instead."
+  ([m]
+    (mp/length m)))
+
+(defn ^{:deprecated true} length-squared
+  "DEPRECATED: please use magnitude-squared instead."
   ([m]
      (mp/length-squared m)))
 
