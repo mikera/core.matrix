@@ -28,7 +28,7 @@
                                    [criterium/criterium "0.4.3"]
                                    [org.clojure/tools.macro "0.1.5"]
                                    [clatrix "0.5.0"]
-                                   [net.mikera/vectorz-clj "0.37.0"]
+                                   [net.mikera/vectorz-clj "0.43.1-SNAPSHOT"]
                                    [org.clojure/test.check "0.8.2"]]}
 
              :cljs-dev {:dependencies [[org.clojure/clojurescript "1.7.228"]
@@ -40,7 +40,8 @@
                     :cljsbuild {:builds
                                 [{:id :dev
                                   :figwheel true
-                                  :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
+                                  :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"
+                                                 "checkouts/aljabr/src"]
                                   :compiler {:output-to "resources/public/js/unit-test.js"
                                              :asset-path   "js/out"
                                              :main "clojure.core.matrix.test-basics"

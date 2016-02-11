@@ -51,7 +51,7 @@
    (let [n (m/dimension-count values 0)
          u (mean values)
          ss (sum-of-squares values)
-         nuu (m/mul n (m/emul u u))]
+         nuu (m/mul n (m/mul u u))]
      (if (number? ss)
        (* (- ss nuu) (/ 1.0 (dec n)))
        (do ;; must be a new mutable matrix, so we abuse this fact to use it as an accumulator...
