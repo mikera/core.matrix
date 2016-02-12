@@ -53,7 +53,7 @@
                             :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
                             :compiler {:output-to "resources/public/js/unit-test.js"
                                        :asset-path   "js/out"
-                                       :main "clojure.core.matrix.test-basics"
+                                       ;:main "clojure.core.matrix.test-basics"
                                        :optimizations :advanced
                                        :parallel-build true
                                        :pretty-print false}}]

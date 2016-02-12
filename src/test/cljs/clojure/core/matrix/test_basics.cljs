@@ -35,10 +35,6 @@
     (is (= [[[1]]] (mat/transpose [[[1]]]))))
   (testing "vector wrapper coerce"
     (is (= 1.0 (mat/coerce [] (wrap/wrap-scalar 1.0)))))
-    ;(is (= [1.0 2.0] (mat/coerce [] (mat/slices (double-array [1 2])))))
-
-  (testing "vector length"
-    (is (== 5 (mat/length [3 4]))))
   (testing "scalar broadcast"
     (is (mat/e= [11 12 13] (mat/add [1 2 3] 10)))
     (is (mat/e= [11 12 13] (mat/add 10 [1 2 3]))))
@@ -56,8 +52,6 @@
 
 (deftest test-assign
   (is (= [[1 2] [1 2]] (mat/assign [[1 2] [3 4]] [1 2]))))
-  ;(is (error? (mat/assign [1 2] [[1 2] [3 4]])))
-
 
 (deftest test-construction
   (is (mat/equals [[0 0] [0 0]] (mat/zero-array [] [2 2]))))
@@ -96,8 +90,6 @@
   (is (mat/equals [1 3 3] (mat/order [1 2 3 4] [0 2 2])))
   (is (mat/equals [4] (mat/order [1 2 3 4] [3])))
   (is (mat/equals [[1 2] [4 5]] (mat/order [[1 2 3] [4 5 6]] 1 [0 1]))))
-  ;(is (error? (mat/order [1 2] 1 [0])))
-  ;(is (error? (mat/order [1 2] [2])))
 
 (deftest test-dot
   (is (mat/equals [2 4 6] (mat/dot 2 [1 2 3])))
