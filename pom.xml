@@ -14,11 +14,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git://github.com/thinktopic/core.matrix.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/thinktopic/core.matrix.git</developerConnection>
-    <tag>fbf8749a09d278996e1317cdcdfc3b907b634ef8
+    <tag>99e37527628aecca6b47dcf169acdcc3021d5280
 </tag>
-    <url>https://github.com/thinktopic/core.matrix</url>
+    <url/>
   </scm>
   <build>
     <sourceDirectory>src/main/clojure</sourceDirectory>

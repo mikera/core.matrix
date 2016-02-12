@@ -410,10 +410,13 @@
     m))
 
 (defn assign-array!
-  "Assigns values to a core.matrix array from a Java array.
+  "Assigns values to a core.matrix array from a Java array, in element-wise order. Element type of Java array must be compatible.
    Returns the mutated core.matrix array"
-  ([m a]
-    (mp/assign-array! m a)
+  ([m arr]
+    (mp/assign-array! m arr)
+    m)
+  ([m arr offset]
+    (mp/assign-array! m arr offset (mp/element-count m))
     m))
 
 (defn assign
