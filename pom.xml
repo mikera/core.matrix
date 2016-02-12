@@ -14,9 +14,11 @@
     </license>
   </licenses>
   <scm>
-    <tag>6b3620560b9bd1f07fbf67bed9ecb699fcc88ec6
+    <connection>scm:git:git://github.com/thinktopic/core.matrix.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/thinktopic/core.matrix.git</developerConnection>
+    <tag>fbf8749a09d278996e1317cdcdfc3b907b634ef8
 </tag>
-    <url/>
+    <url>https://github.com/thinktopic/core.matrix</url>
   </scm>
   <build>
     <sourceDirectory>src/main/clojure</sourceDirectory>
@@ -141,6 +143,12 @@
       <groupId>org.clojure</groupId>
       <artifactId>tools.macro</artifactId>
       <version>0.1.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>hiccup</groupId>
+      <artifactId>hiccup</artifactId>
+      <version>1.0.5</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

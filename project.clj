@@ -12,7 +12,6 @@
   :profiles {:dev {:dependencies
                    [[net.mikera/vectorz-clj "0.43.1-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
                     [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
-
                     [org.clojure/test.check "0.8.2"]
                     [net.mikera/cljunit "0.3.1"]
                     [criterium/criterium "0.4.3"]
@@ -24,11 +23,11 @@
                    :java-source-paths  ["src/test/java"]
                    :jvm-opts ^:replace []}
 
-             :test {:dependencies [[net.mikera/cljunit "0.3.1"]
+             :test {:dependencies [[net.mikera/vectorz-clj "0.43.1-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
+                                   [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
+                                   [net.mikera/cljunit "0.3.1"]
                                    [criterium/criterium "0.4.3"]
                                    [org.clojure/tools.macro "0.1.5"]
-                                   [clatrix "0.5.0"]
-                                   [net.mikera/vectorz-clj "0.43.1-SNAPSHOT"]
                                    [org.clojure/test.check "0.8.2"]]}
 
              :cljs-dev {:dependencies [[org.clojure/clojurescript "1.7.228"]
@@ -40,8 +39,7 @@
                     :cljsbuild {:builds
                                 [{:id :dev
                                   :figwheel true
-                                  :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"
-                                                 "checkouts/aljabr/src"]
+                                  :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
                                   :compiler {:output-to "resources/public/js/unit-test.js"
                                              :asset-path   "js/out"
                                              :main "clojure.core.matrix.test-basics"
