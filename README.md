@@ -54,13 +54,20 @@ For a general introduction, the slide and video from the 2013 Clojure Conj talk 
 
 ### Clojurescript
 
-To develop with clojurescript support you will need to add the cljs-dev profile
+To develop for clojurescript you will need to use the cljs-dev profile
 like this:
 
     lein with-profile +cljs-dev repl
 
 or using figwheel:
-    lein with-profile +cljs-dev figwheel                                                                                                  (cljc ✗) -
+
+    lein with-profile +cljs-dev figwheel
+
+To build the Clojurescript unit tests you can run:
+
+    lein with-profile +cljs cljsbuild once
+
+and then load resources/public/test.html in a browser to run the tests.
 
 ### Status
 

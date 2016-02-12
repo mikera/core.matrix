@@ -44,12 +44,19 @@
                           [{:id :dev
                             :figwheel true
                             :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
+                            :compiler {:output-to "resources/public/js/core.matrix.js"
+                                       :asset-path   "js/out"
+                                       :optimizations :none
+                                       :parallel-build true
+                                       :pretty-print true}}
+                           {:id :test
+                            :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
                             :compiler {:output-to "resources/public/js/unit-test.js"
                                        :asset-path   "js/out"
                                        :main "clojure.core.matrix.test-basics"
-                                       :optimizations :none
+                                       :optimizations :advanced
                                        :parallel-build true
-                                       :pretty-print true}}]
+                                       :pretty-print false}}]
 
                           ;:test-commands {"unit" ["phantomjs" "resources/public/js/unit-test.js"]}
                           }

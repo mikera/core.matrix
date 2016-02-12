@@ -121,3 +121,5 @@
         report (apply str content results)]
     (set-html! element report)
     (js/window.scrollTo 0 js/document.body.scrollHeight)))
+
+(-main)
