@@ -196,4 +196,3 @@
 		<developerConnection>scm:git:git@github.com:mikera/core.matrix.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
-</project>
