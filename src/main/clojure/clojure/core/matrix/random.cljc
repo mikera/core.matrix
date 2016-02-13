@@ -38,15 +38,15 @@
 (defn rand-gaussian
   ([] (rand-gaussian 0.0 1.0))
   ([mu sigma]
-   (let [u1  (rand)
-         u2* (rand)
-         u2 (- 1. u2*)
-         s (* 4 (/ (.exp #?(:clj Math :cljs js/Math) (- 0.5)) (.sqrt #?(:clj Math :cljs js/Math) 2.0)))
-         z (* s (/ (- u1 0.5) u2))
-         zz (+ (* 0.25 z z) (.log #?(:clj Math :cljs js/Math) u2))]
-     (if (> zz 0)
-       (recur mu sigma)
-       (+ mu (* sigma z))))))
+    (let [u1  (rand)
+          u2* (rand)
+          u2 (- 1.0 (double u2*))
+          s (* 4 (/ #?(:clj (Math/exp -0.5) :cljs (.exp js/Math -0.5)) #?(:clj (Math/sqrt 2.0) :cljs (.sqrt js/Math 2.0))))
+          z (* s (/ (- (double u1) 0.5) u2))
+          zz (+ (* 0.25 z z) #?(:clj (Math/log u2) :cljs (.log js/Math u2)))]
+      (if (> zz 0)
+        (recur mu sigma)
+        (+ (double mu) (* (double sigma) z))))))
 
 (defn randoms
   "Returns a lazy sequence of random samples from a uniform distribution on [0,1).
