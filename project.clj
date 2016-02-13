@@ -28,7 +28,7 @@
              :test
              {:dependencies [[net.mikera/vectorz-clj "0.43.1-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
                              [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
-                             [net.mikera/cljunit "0.3.1"]
+                             [net.mikera/cljunit "0.4.0"]
                              [criterium/criterium "0.4.3"]
                              [org.clojure/tools.macro "0.1.5"]
                              [org.clojure/test.check "0.8.2"]]}
