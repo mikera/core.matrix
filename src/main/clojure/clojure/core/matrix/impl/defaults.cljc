@@ -1,12 +1,11 @@
 (ns clojure.core.matrix.impl.defaults
   (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.impl.common :refer [mapmatrix]]
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.impl.mathsops :as mops :refer [to-degrees* to-radians*]]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.double-array :as da]
             [clojure.core.matrix.impl.common :refer [logistic-fn softplus-fn relu-fn
-                                                     square? symmetric-matrix-entries?]]
+                                                     square? symmetric-matrix-entries? mapmatrix]]
             [clojure.core.matrix.utils :as u])
   #?@(:clj [(:require
               [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]

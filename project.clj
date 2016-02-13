@@ -7,7 +7,7 @@
 
   :source-paths      ["src/main/clojure"]
   :java-source-paths ["src/main/java"]
-  :test-paths        ["src/test/clojure" "src/test/java"]
+  :test-paths        [ "src/test/java" "src/test/clojure"]
 
   :profiles {:dev
              {:dependencies
