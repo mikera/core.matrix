@@ -11,10 +11,10 @@
 
   :profiles {:dev
              {:dependencies
-              [[net.mikera/vectorz-clj "0.43.1-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
+              [[net.mikera/vectorz-clj "0.43.0" :exclusions [net.mikera/core.matrix]]
                [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
-               [org.clojure/test.check "0.8.2"]
-               [net.mikera/cljunit "0.3.1"]
+               [org.clojure/test.check "0.9.0"]
+               [net.mikera/cljunit "0.4.0"]
                [criterium/criterium "0.4.3"]
                [org.clojure/tools.macro "0.1.5"]
                [hiccup "1.0.5"]]
@@ -26,12 +26,13 @@
               :jvm-opts ^:replace []}
 
              :test
-             {:dependencies [[net.mikera/vectorz-clj "0.43.1-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
+             {:dependencies [[net.mikera/vectorz-clj "0.43.0" :exclusions [net.mikera/core.matrix]]
                              [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
                              [net.mikera/cljunit "0.4.0"]
                              [criterium/criterium "0.4.3"]
+                             [org.clojure/clojurescript "1.7.228"]
                              [org.clojure/tools.macro "0.1.5"]
-                             [org.clojure/test.check "0.8.2"]]}
+                             [org.clojure/test.check "0.9.0"]]}
 
              :cljs
              {:dependencies [[org.clojure/clojurescript "1.7.228"]
