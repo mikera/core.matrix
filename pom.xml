@@ -25,7 +25,7 @@
 		<dependency>
 			<groupId>criterium</groupId>
 			<artifactId>criterium</artifactId>
-			<version>0.4.3</version>
+			<version>0.4.4</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
