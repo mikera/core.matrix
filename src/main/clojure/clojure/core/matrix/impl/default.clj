@@ -589,25 +589,37 @@
 
 (extend-protocol mp/PTranspose
   nil
-    (transpose [m] m)
+  (transpose
+    ([m] m)
+    ([m ordering] m))
   Number
-    (transpose [m] m)
+  (transpose
+    ([m] m)
+    ([m ordering] m))
   Object
-    (transpose [m]
-      (mp/coerce-param
-       m
-       (case (long (mp/dimensionality m))
-         0 m
-         1 m
-         2 (apply mapv vector (mapv
-                               #(mp/convert-to-nested-vectors %)
-                               (mp/get-major-slice-seq m)))
-         (let [ss (mapv mp/transpose (mp/get-major-slice-seq m))]
-           ;; note that function must come second for mp/element-map
-           (case (count ss)
-             1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
-             2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
-             (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss))))))))
+  (transpose
+    ([m]
+     (mp/coerce-param
+      m
+      (case (long (mp/dimensionality m))
+        0 m
+        1 m
+        2 (apply mapv vector (mapv
+                              #(mp/convert-to-nested-vectors %)
+                              (mp/get-major-slice-seq m)))
+        (let [ss (mapv mp/transpose (mp/get-major-slice-seq m))]
+          ;; note that function must come second for mp/element-map
+          (case (count ss)
+            1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
+            2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
+            (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss)))))))
+    ([m ordering]
+     (mp/coerce-param
+      m
+      (case (long (mp/dimensionality m))
+        0 m
+        1 m
+        (mp/reshape (mp/transpose m) (map #(nth (mp/get-shape m) %) ordering)))))))
 
 (extend-protocol mp/PTransposeInPlace
   Object
