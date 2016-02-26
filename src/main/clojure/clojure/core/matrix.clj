@@ -1141,9 +1141,9 @@
 
    If ordering is provided, will re-order dimensions according to the provided order."
   ([m]
-    (mp/transpose m))
+   (mp/transpose m))
   ([m ordering]
-    (TODO)))
+   (mp/transpose m ordering)))
 
 (defn transpose!
   "Transposes a square 2D matrix in-place. 
