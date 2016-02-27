@@ -668,13 +668,15 @@
   (compute-matrix [m shape f]))
 
 (defprotocol PTranspose
-  "Protocol for array transpose operation"
-  (transpose [m]
-    "Returns the transpose of a matrix. Equivalent to reversing the \"shape\".
+  "Protocol for array transpose operation
+  Returns the transpose of a matrix reshaping the axes according to ordering.
+  If no ordering vector is provided, then it returns the transpose of the matrix.
      Note that:
      - The transpose of a scalar is the same scalar
-     - The transpose of a 1D vector is the same 1D vector
-     - The transpose of a 2D matrix swaps rows and columns"))
+     - The transpose of a 1D vector is the same 1D vector"
+  (transpose
+    [m]
+    [m ordering]))
 
 (defprotocol PRotate
   "Rotates an array along a specified dimension by the given number of places.

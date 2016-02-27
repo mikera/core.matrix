@@ -199,6 +199,14 @@
       (is (= (seq (shape m))
              (seq (reverse (shape mt))))))))
 
+(defn test-general-dim-transpose [m]
+  (when (and (pos? (ecount m))
+             (> 0 (dimensionality m)))
+    (let [shp (shape m)
+          ordering (take (count shp) (repeatedly #(rand-int (count shp))))
+          mt (transpose m ordering)]
+      (is (= (shape mt) (map #(nth (shape m) %) ordering))))))
+
 (defn test-rotate [m]
   (let [sh (shape m)
         dims (dimensionality m)]
@@ -328,7 +336,8 @@
   (test-elements m)
   (test-array-output m)
   (test-broadcast m)
-  (test-general-transpose m))
+  (test-general-transpose m)
+  (test-general-dim-transpose m))
 
 (defn test-assumptions-for-all-sizes [im]
   (doseq [vm (create-supported-matrices im)]
@@ -632,6 +641,13 @@
       (is (= (imp/get-canonical-object m)
              (imp/get-canonical-object (transpose m)))))))
 
+(defn test-dim-transpose [im]
+  (testing "ND axes order and transpose"
+    (let [m (matrix im [[1 2] [3 4]])]
+      ;; in 2D matrixes swapping the axes twice gives the same matrix
+      (is (equals m (transpose (transpose m [1 0]) [1 0])))
+      (is (equals [[[1] [3]] [[2] [4]]] (transpose (reshape m [2 1 2]) [2 0 1]))))))
+
 (defn test-order [im]
   (testing "order"
     (let [m (matrix im [[1 2 4] [4 5 6]])]
@@ -731,6 +747,7 @@
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)
   (test-transpose im)
+  (test-dim-transpose im)
   (test-diagonal im)
   (test-trace im)
   (test-matrix-mul im)
