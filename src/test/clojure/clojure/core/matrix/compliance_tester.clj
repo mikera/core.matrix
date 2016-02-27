@@ -646,9 +646,7 @@
     (let [m (matrix im [[1 2] [3 4]])]
       ;; in 2D matrixes swapping the axes twice gives the same matrix
       (is (equals m (transpose (transpose m [1 0]) [1 0])))
-      (is (equals [[[1] [3]] [[2] [4]]] (transpose (reshape m [2 1 2]) [2 0 1])))
-      (is (= (imp/get-canonical-object m)
-             (imp/get-canonical-object (transpose (reshape m [2 1 2]) [1 0 2])))))))
+      (is (equals [[[1] [3]] [[2] [4]]] (transpose (reshape m [2 1 2]) [2 0 1]))))))
 
 (defn test-order [im]
   (testing "order"
@@ -749,6 +747,7 @@
 (defn matrix-tests-2d [im]
   (test-row-column-matrices im)
   (test-transpose im)
+  (test-dim-transpose im)
   (test-diagonal im)
   (test-trace im)
   (test-matrix-mul im)
