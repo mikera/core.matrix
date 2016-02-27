@@ -614,12 +614,14 @@
             2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
             (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss)))))))
     ([m ordering]
-     (mp/coerce-param
-      m
-      (case (long (mp/dimensionality m))
-        0 m
-        1 m
-        (mp/reshape (mp/transpose m) (map #(nth (mp/get-shape m) %) ordering)))))))
+     (if (= (mp/dimensionality m) (count ordering))
+       (mp/coerce-param
+        m
+        (case (long (mp/dimensionality m))
+          0 m
+          1 m
+          (mp/reshape (mp/transpose m) (map #(nth (mp/get-shape m) %) ordering))))
+       (error "The given ordering vector has not the same length than the dimensionality of the array.")))))
 
 (extend-protocol mp/PTransposeInPlace
   Object
