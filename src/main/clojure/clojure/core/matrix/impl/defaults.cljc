@@ -1565,6 +1565,18 @@
           (== 0 ldimension) (mp/get-major-slice m i)
           :else (mp/get-slice (mp/convert-to-nested-vectors m) dimension i)))))
 
+(extend-protocol mp/PBLASBase
+  #?(:clj Object :cljs object)
+  (gemm! [c trans-a? trans-b? alpha a b beta]
+    (let [a (if trans-a? (mp/transpose a) a)
+          b (if trans-b? (mp/transpose b) b)]
+      (mp/scale! c beta)
+      (mp/add-inner-product! c a b alpha)))
+  (gemv! [c trans-a? alpha a b beta]
+    (let [a (if trans-a? (mp/transpose a) a)]
+      (mp/scale! c beta)
+      (mp/add-inner-product! c a b alpha))))
+
 (extend-protocol mp/PMatrixColumns
   #?(:clj Object :cljs object)
   (get-columns [m]

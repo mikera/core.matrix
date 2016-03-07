@@ -943,8 +943,9 @@
           "add-scaled operates on arrays of equal shape")
         (let [^typename# b (mp/clone m)]
           (loop-over [a b]
-            (aset b-data b-idx (* (type-cast# factor)
-                                  (aget a-data a-idx))))
+            (aset b-data b-idx (+ (aget b-data b-idx)
+                                  (* (type-cast# factor)
+                                    (aget a-data a-idx)))))
           b)))
 
   mp/PAddScaledMutable
