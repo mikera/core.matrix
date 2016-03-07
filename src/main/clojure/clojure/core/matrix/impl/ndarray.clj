@@ -955,8 +955,9 @@
                                                (ints (.shape a)))
           "add-scaled operates on arrays of equal shape")
         (loop-over [m a]
-          (aset m-data m-idx (* (type-cast# factor)
-                                (aget a-data a-idx))))
+          (aset m-data m-idx (+ (aget m-data m-idx)
+                                (* (type-cast# factor)
+                                   (aget a-data a-idx)))))
         m))
 
   mp/PMatrixDivide
