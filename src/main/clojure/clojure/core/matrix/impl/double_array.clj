@@ -1,11 +1,12 @@
 (ns clojure.core.matrix.impl.double-array
   "Implementation supporting:
-   
+
    - Java double[] arrays as core.matrix 1D vectors
    - Java double[][] arrays as core.matrix 2D matrices"
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.utils :refer :all]))
+            [clojure.core.matrix.utils :as u]
+            [clojure.core.matrix.macros :refer [error is-double-array?]]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
@@ -29,10 +30,10 @@
   "Creates a new zero-filled nested double array of the given shape"
   [shape]
   (let [dims (count shape)]
-    (cond 
+    (cond
       (== 0 dims) 0.0
       (== 1 dims) (double-array (int (first shape)))
-      :else 
+      :else
         (let [ns (next shape)
               rn (long (first shape))
               ^Object r0 (new-double-array ns)]
@@ -66,7 +67,7 @@
   "Converts a numerical array to nested double arrays with the same shape. Does not guarantee a full copy."
   [m]
   (if-let [dims (long (mp/dimensionality m))]
-    (cond 
+    (cond
       (== 0 dims) (double (mp/get-0d m))
       (== 1 dims) (mp/to-double-array m)
       :else (let [r0 (to-double-arrays (mp/get-major-slice m 0))
@@ -75,7 +76,7 @@
 
 (defn ^"[[D" copy-2d-double-array [^"[[D" m]
   (into-array (Class/forName "[D")
-              (mapv copy-double-array ^"[[D" m)))
+              (mapv u/copy-double-array ^"[[D" m)))
 
 (defmacro loop-over-2d
   "Defines a convinient way to loop through 2D Java arrays, binding i and j
@@ -104,7 +105,7 @@
       (meta-info [m#]
         {:doc "Clojure.core.matrix implementation for Java double arrays"})
       (new-vector [m# length#] (double-array (int length#)))
-      (new-matrix [m# rows# columns#] 
+      (new-matrix [m# rows# columns#]
         (new-double-array [rows# columns#]))
       (new-matrix-nd [m# shape#]
         (new-double-array shape#))
@@ -154,7 +155,7 @@
 
 (extend-protocol mp/PDoubleArrayOutput
   (Class/forName "[D")
-    (to-double-array [m] (copy-double-array m))
+    (to-double-array [m] (u/copy-double-array m))
     (as-double-array [m] m))
 
 (extend-protocol mp/PObjectArrayOutput
@@ -176,7 +177,7 @@
 
 (extend-protocol mp/PObjectArrayOutput
   (Class/forName "[[D")
-    (to-object-array [m] 
+    (to-object-array [m]
       (let [[^long rows ^long cols] (mp/get-shape m)
             ^"[Ljava.lang.Object;" res (object-array (* rows cols))]
         (dotimes [i rows]
@@ -228,14 +229,14 @@
 (extend-protocol mp/PIndexedSetting
   (Class/forName "[D")
     (set-1d [m x v]
-      (let [^doubles arr (copy-double-array m)]
+      (let [^doubles arr (u/copy-double-array m)]
         (aset arr (int x) (double v))
         arr))
     (set-2d [m x y v]
       (error "Can't do 2D set on double array"))
     (set-nd [m indexes v]
       (if (== 1 (count indexes))
-        (let [^doubles arr (copy-double-array m)
+        (let [^doubles arr (u/copy-double-array m)
               x (int (first indexes))]
           (aset arr (int x) (double v))
           arr)
@@ -255,7 +256,7 @@
         (let [^"[[D" mat (copy-2d-double-array m)
               [x y] indexes]
           (aset-double mat x y (double v))
-          mat) 
+          mat)
         (error "Can't set on double array with dimensionality: " (count indexes))))
     (is-mutable? [m] true))
 
@@ -285,7 +286,7 @@
 (extend-protocol mp/PMutableMatrixConstruction
   (Class/forName "[D")
     (mutable-matrix [m]
-      (copy-double-array m)))
+      (u/copy-double-array m)))
 
 (extend-protocol mp/PMutableMatrixConstruction
   (Class/forName "[[D")
@@ -430,9 +431,9 @@
                    (aset-double final-results i
                                 (let [^doubles a (aget m i)]
                                   (areduce a j res 0.0
-                                           (+ res (* (aget b j) 
+                                           (+ res (* (aget b j)
                                             (aget a j))))))
-                   (recur (inc i))) 
+                   (recur (inc i)))
                  final-results)))
          (== 2 bdims)
            (let [^doubles final-results (double-array len)]
@@ -477,7 +478,7 @@
   (Class/forName "[[D")
     (clone [m]
       (let [m ^"[[D" m
-            len (int (alength ^"[[D" m)) 
+            len (int (alength ^"[[D" m))
             ^"[[D" res (make-array (Class/forName "[D") len)]
         (dotimes [i len]
           (let [^doubles arr (aget m i)]
@@ -555,7 +556,7 @@
     ([m f a more]
      (let [[x y] (mp/get-shape m)
            ^"[[D" a (mp/broadcast-coerce m a)
-           ^"[[D" res (make-array Double/TYPE x y) 
+           ^"[[D" res (make-array Double/TYPE x y)
            more (mapv #(mp/broadcast-coerce m %) more)
            more-count (count more)
            ^doubles vs (double-array more-count)]
@@ -749,7 +750,7 @@
                 ^doubles res-i (aget ^"[[D" res (x i))]
             (dotimes [j count-y]
               (aset-double res-i j
-                           (aget m-i (y j)))))) 
+                           (aget m-i (y j))))))
         res)
       (error "select on 2D double array takes only 2 arguments"))))
 

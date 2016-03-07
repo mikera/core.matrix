@@ -3,7 +3,8 @@
             [clojure.core.matrix.compliance-tester :as compliance]
             [clojure.test :refer :all]
             [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.utils :refer [error?]]
+            [clojure.core.matrix.macros :refer [error]]
+            [clojure.core.matrix.macros-clj :refer [error?]]
             [clojure.core.matrix.dataset :refer :all]))
 
 (deftest test-construct-dataset
@@ -107,7 +108,7 @@
 (defn- round-trip [x]
   (read-string (pr-str x)))
 
-(deftest test-round-trip 
+(deftest test-round-trip
   (let [ds (dataset [:a :b] [[1 2] ["Bob" "Mike"]])]
     (is (= ds (round-trip ds)))
     (let [dr (second (rows ds))]
@@ -115,7 +116,7 @@
 
 (deftest instance-tests
   (let [dset (ds/dataset-from-columns [:bar :baz] [["Foo" "Bar"] [1 2]])]
-    
+
     (compliance/instance-test dset)
     (compliance/instance-test (slice dset 0 1))))
 

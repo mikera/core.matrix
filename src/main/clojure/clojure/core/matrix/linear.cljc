@@ -3,8 +3,7 @@
 
    These function complement the main core.matrix API with specialised functions for linear
    algebra operations."
-  (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix :refer :all]))
+  (:require [clojure.core.matrix.protocols :as mp]))
 
 
 (defn norm

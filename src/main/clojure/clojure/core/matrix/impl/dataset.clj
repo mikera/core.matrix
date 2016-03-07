@@ -1,5 +1,5 @@
 (ns clojure.core.matrix.impl.dataset
-  "Namespace for default core.matrix dataset implementation. 
+  "Namespace for default core.matrix dataset implementation.
 
    Represents a dataset as a 2D array such that:
    - Each column has an (optional) name as a label
@@ -7,9 +7,10 @@
    - Columns may have different types"
   (:require [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.wrappers :as wrap]
-            [clojure.core.matrix.impl default persistent-vector] ;; these are needed during loading
+            [clojure.core.matrix.impl defaults persistent-vector] ;; these are needed during loading
             [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.utils :refer :all])
+            [clojure.core.matrix.macros :refer [error]]
+            [clojure.core.matrix.utils])
   (:import [java.io Writer])
   (:import [clojure.lang IPersistentVector]
            [java.util List]))
@@ -26,13 +27,13 @@
    ^long index]
   clojure.lang.Indexed
     (count [m] (count column-names))
-    (nth [m i] 
+    (nth [m i]
       (mp/get-1d (nth columns i) index))
-    (nth [m i not-found] 
+    (nth [m i not-found]
       (when (< -1 i (long (mp/dimension-count (first columns) 0)))
         (mp/get-1d (nth columns i) index)))
   clojure.lang.Seqable
-    (seq [m] 
+    (seq [m]
       (seq (mp/convert-to-nested-vectors m)))
   clojure.lang.IPersistentCollection
     (cons [m v]
@@ -60,7 +61,7 @@
 
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
-        cc (long (count col-names)) 
+        cc (long (count col-names))
         ^IPersistentVector cols (vec (mp/get-rows (vec cols)))
         rc (long (mp/dimension-count (first cols) 0))]
     (when (not= cc (count cols))
@@ -154,10 +155,10 @@
   DataSet
     (select-columns [ds col-names]
       (let [^List all-col-names (.column-names ds)
-            indices (mapv (fn [name] 
+            indices (mapv (fn [name]
                             (let [ix (.indexOf all-col-names name)]
                               (when (== -1 ix) (error "Column name " name "not found in Dataset"))
-                              ix)) 
+                              ix))
                           col-names)
             cols (mapv #(.nth ^IPersistentVector (.columns ds) (long %)) indices)]
         (dataset-from-columns col-names cols)))
@@ -234,26 +235,26 @@
   DataSet
     (label [m dim i]
       (let [dim (long dim)]
-        (cond 
+        (cond
           (== 1 dim) (nth (.column-names m) i)
           :else nil)))
     (labels [m dim]
       (let [dim (long dim)]
-        (cond 
+        (cond
           (== 1 dim) (.column-names m)
           :else nil)))
-    
+
   DataSetRow
     (label [m dim i]
       (let [dim (long dim)]
-        (cond 
+        (cond
           (== 0 dim) (nth (.column-names m) i)
           :else nil)))
     (labels [m dim]
       (let [dim (long dim)]
-        (cond 
+        (cond
           (== 0 dim) (.column-names m)
-          :else nil)))) 
+          :else nil))))
 
 (extend-protocol mp/PColumnNames
   DataSet
@@ -261,12 +262,12 @@
       (nth (.column-names m) i))
     (column-names [m]
       (.column-names m))
-    
+
   DataSetRow
     (column-name [m i]
       (nth (.column-names m) i))
     (column-names [m]
-      (.column-names m))) 
+      (.column-names m)))
 
 (extend-protocol mp/PImplementation
   DataSet
@@ -289,7 +290,7 @@
 	      nil))
 	  (supports-dimensionality? [m dims]
 	    (<= 1 (long dims) 2))
-   
+
    DataSetRow
     (implementation-key [m] :dataset)
 	  (meta-info [m]
@@ -322,7 +323,7 @@
       (.shape m))
     (dimension-count [m dim]
       (.nth ^IPersistentVector (.shape m) (long dim)))
-    
+
   DataSetRow
     (dimensionality [m]
       1)
@@ -350,7 +351,7 @@
           (== 2 dims) (mp/get-2d m (first indexes) (second indexes))
           (> 2 dims) (mp/get-nd (mp/get-2d m (first indexes) (second indexes)) (nnext indexes))
           :else (error "Invalid dimensionality access with index: " (vec indexes)))))
-    
+
   DataSetRow
     (get-1d [m x]
       (mp/get-1d (.nth ^IPersistentVector (.columns m) (long x)) (.index m)))
@@ -377,14 +378,14 @@
       (apply concat (mp/get-rows m)))
     (element-map
       ([m f]
-        (reduce 
+        (reduce
           (fn [m i]
             (update-in m [:columns i] mp/element-map f))
           m
           (range (.nth ^IPersistentVector (.shape m) 1))))
       ([m f a]
         (let [as (broadcast-cols a (mp/get-shape m))]
-          (reduce 
+          (reduce
             (fn [m i]
               (update-in m [:columns i] mp/element-map f (nth as i)))
             m
@@ -393,7 +394,7 @@
         (let [shape (.shape m)
               as (broadcast-cols a shape)
               mores (apply mapv vector (map #(broadcast-cols % shape) more))]
-          (reduce 
+          (reduce
             (fn [m i]
               (update-in m [:columns i] mp/element-map f (nth as i) (nth mores i)))
             m
@@ -429,17 +430,17 @@
 
 ;; Printing methods for Datasets
 
-(defmethod print-dup DataSet [^clojure.core.matrix.impl.dataset.DataSet x ^Writer writer] 
+(defmethod print-dup DataSet [^clojure.core.matrix.impl.dataset.DataSet x ^Writer writer]
   (.write writer (str "#dataset/dataset " (into {} x))))
 
-(defmethod print-method DataSet [^clojure.core.matrix.impl.dataset.DataSet x ^Writer writer] 
+(defmethod print-method DataSet [^clojure.core.matrix.impl.dataset.DataSet x ^Writer writer]
   (.write writer (str "#dataset/dataset " (into {} x))))
 
-(defmethod print-dup DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer] 
+(defmethod print-dup DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer]
   (.write writer (str "#dataset/row " {:column-names (.column-names x)
                                        :values (into [] x)})))
 
-(defmethod print-method DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer] 
+(defmethod print-method DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer]
   (.write writer (str "#dataset/row " {:column-names (.column-names x)
                                        :values (into [] x)})))
 
@@ -448,16 +449,16 @@
 (defn read-dataset
   "Reader function for a core.matrix DataSet"
   ([a]
-    (dataset-from-columns 
-      (:column-names a) 
+    (dataset-from-columns
+      (:column-names a)
       (:columns a))))
 
 (defn read-dataset-row
   "Reader function for a core.matrix DataSetRow. Creates a single row backed with persistent vectors"
   ([a]
-    (DataSetRow. 
-      (vec (:column-names a)) 
-      (mapv vector (:values a)) 
+    (DataSetRow.
+      (vec (:column-names a))
+      (mapv vector (:values a))
       0)))
 
 ;; Dataset with a two named columns and both numeric and non-numeric data

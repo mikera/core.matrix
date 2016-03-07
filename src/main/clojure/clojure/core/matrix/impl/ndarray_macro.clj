@@ -5,7 +5,8 @@
             [clojure.core.matrix.impl.ndarray-magic :as magic]
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.utils :refer :all]))
+            [clojure.core.matrix.macros :refer :all]
+            [clojure.core.matrix.macros-clj :refer :all]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)

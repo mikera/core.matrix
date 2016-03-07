@@ -5,7 +5,8 @@ core.matrix
 
 [![Build Status](https://travis-ci.org/mikera/core.matrix.png?branch=master)](https://travis-ci.org/mikera/core.matrix) [![Dependency Status](https://www.versioneye.com/user/projects/54deecf4271c9379ed000042/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54deecf4271c9379ed000042)
 
-core.matrix provides array programming as a language extension for Clojure, with a focus on numerical computing.
+The core.matrix library provides array programming as a language extension for
+Clojure/Clojurescript, with a focus on numerical computing.
 
 The central objective of `core.matrix` is to make matrix and array programming
 idiomatic, productive, elegant and fast in the Clojure environment.
@@ -18,6 +19,12 @@ idiomatic, productive, elegant and fast in the Clojure environment.
 => [[4.0 2.0]
     [3.0 7.0]]
 
+(shape [[2 3 4] [5 6 7]]) ; => [2 3]
+
+(mmul
+  (array [[2 2] [3 3]])
+  (array [[4 4] [5 5]])) ; => [[18 18] [27 27]]
+
 ;; Note: nested Clojure vectors can be used as matrices
 ```
 
@@ -25,7 +32,7 @@ Key goals of *core.matrix*:
 
  - Provide a clear, standard API / abstraction for **matrix and array programming** in Clojure
  - Enable **pluggable** support for different underlying matrix library implementations
- - Provide general purpose **n-dimensional array** implementations 
+ - Provide general purpose **n-dimensional array** implementations
  - Provide a **foundation** for other projects in the ecosystem (e.g. Incanter)
  - Enable **high performance** numerical computing
  - Allow **idiomatic** Clojure coding for numerical code
@@ -45,6 +52,23 @@ For a general introduction, the slide and video from the 2013 Clojure Conj talk 
  - http://www.slideshare.net/mikeranderson/2013-1114-enter-thematrix
  - http://www.youtube.com/watch?v=_h9TLJtjSJo
 
+### Clojurescript
+
+To develop for clojurescript you will need to use the cljs-dev profile
+like this:
+
+    lein with-profile +cljs-dev repl
+
+or using figwheel:
+
+    lein with-profile +cljs-dev figwheel
+
+To build the Clojurescript unit tests you can run:
+
+    lein with-profile +cljs cljsbuild once
+
+and then load resources/public/test.html in a browser to run the tests.
+
 ### Status
 
 `core.matrix` is fully functional and usable in production applications. As well as supporting
@@ -54,6 +78,10 @@ matrix implementations. The most mature implementations are currently:
  - [**vectorz-clj**](https://github.com/mikera/vectorz-clj) : a fast pure-JVM matrix library for Clojure
  - [**Clatrix**](https://github.com/tel/clatrix) : native code matrix library using BLAS
  - **NDArray** : a general purpose pure Clojure N-dimensional array implementation, included as part of `core.matrix` itself
+
+For Clojurescript:
+
+ - [**aljabr**](https://github.com/thinktopic/aljabr) : a cljc matrix library supporting Clojurescript
 
 The API is relatively mature but still *subject to some changes* at present (at least up until release 1.0.0),
 so users should be prepared to deal with potential breaking changes when updating to future releases.

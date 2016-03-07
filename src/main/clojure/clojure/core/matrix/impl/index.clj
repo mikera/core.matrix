@@ -1,14 +1,15 @@
 (ns clojure.core.matrix.impl.index
   "Implementations for common index types:
-   - int arrays 
-   - long arrays 
+   - int arrays
+   - long arrays
    - Clojure vectors"
   (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.utils :refer :all])
+            [clojure.core.matrix.macros :refer [error]])
   (:import [clojure.lang IPersistentVector]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
+
 
 (extend-protocol mp/PIndexImplementation
   (Class/forName "[J")

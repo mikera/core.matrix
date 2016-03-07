@@ -2,7 +2,7 @@
   "Namespace for management of core.matrix implementations. Users should avoid using these
    functions directly as they are intended for library and tool writers."
   (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix.utils :refer [error]]))
+            [clojure.core.matrix.macros #?(:clj :refer :cljs :refer-macros) [TODO error]]))
 
 ;; =====================================================
 ;; Implementation utilities
@@ -10,9 +10,9 @@
 ;; Tools to support the registration / manangement of clojure.core.matrix implementations
 
 (def KNOWN-IMPLEMENTATIONS
-  "A map of known core.matrix implementation namespaces. 
+  "A map of known core.matrix implementation namespaces.
 
-   core.matrix will attempt to load these namespaces when an array of the specified 
+   core.matrix will attempt to load these namespaces when an array of the specified
    keyword type is requested."
   (array-map
    :vectorz 'mikera.vectorz.matrix-api
@@ -35,35 +35,38 @@
    :ejml :TODO
    :ujmp :TODO
    :commons-math 'apache-commons-matrix.core
-   :mtj 'cav.mtj.core.matrix))
+   :mtj 'cav.mtj.core.matrix
+   :aljabr 'thinktopic.aljabr.core))
 
-(def DEFAULT-IMPLEMENTATION 
-  "The default implementation used in core.matrix. Currently set to `:persistent-vector` for maximum 
+(def DEFAULT-IMPLEMENTATION
+  "The default implementation used in core.matrix. Currently set to `:persistent-vector` for maximum
    compatibility with regular Clojure code."
   :persistent-vector)
 
 
-(def ^:dynamic *matrix-implementation* 
-  "A dynamic var specifying the current core.matrix implementation in use. 
+(def ^:dynamic *matrix-implementation*
+  "A dynamic var specifying the current core.matrix implementation in use.
 
-   May be re-bound to temporarily use a different core.matrix implementation." 
+   May be re-bound to temporarily use a different core.matrix implementation."
   DEFAULT-IMPLEMENTATION)
 
-(def ^:dynamic *debug-options* 
-  "A dynamic var supporting debugging option for core.matrix implementers.
+(defonce
+  ^{:doc "A dynamic var supporting debugging option for core.matrix implementers.
 
    Currently supported values:
-     :print-registrations  - print when core.matrix implementations are registered" 
-  {:print-registrations false})
+     :print-registrations  - print when core.matrix implementations are registered
+     :reload-namespaces  - require :reload implementation namespaces when setting the current implementation"
+    :dynamic true}
+  *debug-options* {:print-registrations false
+                   :reload-namespaces false})
 
-(defonce 
+(defonce
   ^{:doc "An atom holding a map of canonical objects for each loaded core.matrix implementation.
 
    Canonical objects may be used to invoke protocol methods on an instance of the correct
    type to get implementation-specific behaviour. Canonical objects are required to support
    all mandatory core.matrix protocols."}
-  canonical-objects 
-   (atom {}))
+  canonical-objects (atom {}))
 
 (defn get-implementation-key
   "Returns the implementation keyword  for a given object"
@@ -79,28 +82,39 @@
   ([canonical-object]
     (register-implementation (mp/implementation-key canonical-object) canonical-object))
   ([key canonical-object]
-    (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: " (class key))) 
+    (when-not (keyword? key) (error "Implementation key must be a Clojure keyword but got: "
+                                    #?(:clj (class key)
+                                       :cljs (type key))))
     (when (:print-registrations *debug-options*)
-      (println (str "Registering core.matrix implementation [" key "] with canonical object [" (class canonical-object) "]")))
+      (println (str "Registering core.matrix implementation [" key "] with canonical object ["
+                    #?(:clj (class canonical-object)
+                       :cljs (type canonical-object)) "]")))
     (swap! canonical-objects assoc key canonical-object)))
 
 (defn- try-load-implementation
   "Attempts to load an implementation for the given keyword.
    Returns nil if not possible, a non-nil matrix value of the correct implementation otherwise."
   ([k]
-    (or
-      (@canonical-objects k)
-      (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
-       (try
-         (do
-           (require ns-sym)
-           (@canonical-objects k))
-         (catch Throwable t nil))))))
+   #?(:clj
+       (or (@canonical-objects k)
+           (if-let [ns-sym (KNOWN-IMPLEMENTATIONS k)]
+             (try
+               (do
+                 (when (:print-registrations *debug-options*)
+                   (println (str "Loading core.matrix implementation [" k "] in ns: " ns-sym)))
+                 (if (:reload-namespaces *debug-options*)
+                   (require :reload ns-sym)
+                   (require ns-sym))
+                 (@canonical-objects k))
+               (catch Throwable t
+                 (println "Error loading core.matrix implementation: " ns-sym)
+                 (println t)))))
+       :cljs (println "INFO: No dynamic loading of implementations in Clojurescript.\nYou must require an implementation explicitly in a namespace, for example thinktopic.aljabr.core"))))
 
-(defn load-implementation 
+(defn load-implementation
   "Attempts to load the implementation for a given keyword or matrix object.
    Returns nil if not possible, a non-nil matrix value of the correct implementation otherwise."
-  ([korm] 
+  ([korm]
     (if (keyword? korm)
       (try-load-implementation korm)
       (try-load-implementation (mp/implementation-key korm)))))
@@ -123,6 +137,7 @@
            nil)
         nil))))
 
+
 (defn get-canonical-object-or-throw
   "Like get-canonical-object, except it throws an exception if the implementation cannot be found"
   ([mk]
@@ -137,10 +152,11 @@
         (mp/coerce-param m data)
         (mp/coerce-param [] data))))
 
-(defn set-current-implementation
-  "Sets the currently active core.matrix implementation. 
 
-   Parameter may be 
+(defn set-current-implementation
+  "Sets the currently active core.matrix implementation.
+
+   Parameter may be
     - A known keyword for the implementation e.g. :vectorz
     - An existing instance from the implementation
 
@@ -148,7 +164,6 @@
    implementation used for expressions like: (matrix [[1 2] [3 4]])"
   ([m]
     (when (keyword? m) (try-load-implementation m))
-    (alter-var-root (var *matrix-implementation*)
-                    (fn [_] (get-implementation-key m)))))
-
-
+    #?(:clj (alter-var-root (var *matrix-implementation*)
+                    (fn [_] (get-implementation-key m)))
+       :cljs (set! *matrix-implementation* (get-implementation-key m)))))

@@ -2,7 +2,8 @@
   (:refer-clojure :exclude [vector?])
   (:require [clojure.walk :as w]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.utils :refer :all]))
+            [clojure.core.matrix.utils :as u]
+            [clojure.core.matrix.macros :refer :all]))
 
 (set! *warn-on-reflection* true)
 

@@ -1,11 +1,12 @@
-(ns clojure.core.matrix.select
+(ns clojure.core.matrix.selection
   "Namespace for fully featured core.matrix select API.
 
    Supports selection functions, which are defined as:
       (fn [array dim] ...) => set of indices for dimension "
   (:require [clojure.core.matrix.protocols :as mp]
-            [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.utils :as u :refer [TODO error]]))
+            [clojure.core.matrix :refer [select set-selection set-selection! slice dimensionality dimension-count]])
+  (#?(:clj :require :cljs :require-macros)
+           [clojure.core.matrix.macros :refer [TODO error]]))
 
 ;; high-level array indexing
 ;; Provides a matlab-like dsl for matrix indexing.
@@ -13,16 +14,16 @@
 ;; adds support for linear-indexing, logical-indexing and use of selector
 ;; functions to build up selections.
 
-(defn- eval-args 
+(defn- eval-args
   "Runs through a set of args and evaluates them against the array and current dimension if it is a function."
   [a args]
   (when (not= (count args) (dimensionality a))
-    (error "Atempting to select with wrong number of dimensions with args: " args))
-  (vec (map-indexed 
-         (fn [i arg] 
-           (cond 
+    (error "Attempting to select with wrong number of dimensions with args: " args))
+  (vec (map-indexed
+         (fn [i arg]
+           (cond
              (vector? arg) arg
-             (fn? arg) (arg a i) 
+             (fn? arg) (arg a i)
              :else arg))
          args)))
 
@@ -49,14 +50,14 @@
    (sel-set [[1 2][3 4]] (irange) (irange) 1) ;=> [[1 1][1 1]]
    (sel-set [[-2 -1][0 1]] (where neg?) 0) ;=> [[0 0][0 1]]"
   [a & args]
-  (let [val (last args) 
+  (let [val (last args)
         sel-args (eval-args a (butlast args))]
     (apply set-selection a (concat sel-args  (list val)))))
 
 (defn set-sel!
   "like set-sel but destructively modifies a in place"
   [a & args]
-  (let [val (last args) 
+  (let [val (last args)
         sel-args (eval-args a (butlast args))]
     (apply set-selection! a (concat sel-args  (list val)))))
 

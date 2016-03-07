@@ -4,7 +4,8 @@
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.dataset :as impl]
             [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.utils :as utils :refer [error]])
+            [clojure.core.matrix.macros :refer [error]]
+            [clojure.core.matrix.utils :as utils])
   (:import [clojure.core.matrix.impl.dataset DataSet]
            [clojure.lang IPersistentVector]
            [java.util List]))
@@ -28,7 +29,7 @@
    4. map of columns with associated list of values.
    5. existing dataset
 
-   If column names are provided then they will be used, else incrementing Long values starting from 0, 
+   If column names are provided then they will be used, else incrementing Long values starting from 0,
    i.e. 0, 1, 2, etc will be used as column names"
   ([col-names data]
     (cond
@@ -44,10 +45,10 @@
     (cond
       ;; already a dataset, just return as-is
       (dataset? data) data
-      
+
       ;; construct a dataset using 2D matrix data
       (matrix? data) (impl/dataset-from-array data)
-      
+
       ;; map of names -> columns of elements
       (map? data)
         (let [col-names (keys data)
@@ -81,8 +82,8 @@
               col-names
               (reduce #(conj %1 (get col-map %2)) [] col-names))
             (error "Can't create dataset from incomplete maps")))
-        
-       :else 
+
+       :else
          (error "Don't know how to create dataset from data of type " (class data)))))
 
 (defn column-names
@@ -91,14 +92,14 @@
     (mp/column-names ds)))
 
 (defn column-name
-  "Returns column name at given index. 
+  "Returns column name at given index.
 
    Throws an exception if the index is out of bounds."
   ([ds column-index]
     (mp/column-name ds column-index)))
 
 (defn column-index
-  "Returns column index for a given column name. 
+  "Returns column index for a given column name.
 
    Returns nil if column name does not exist."
   ([ds column-name]
@@ -114,7 +115,7 @@
     (if (number? col-name)
       (get-column ds col-name)
       (let [cnames (mp/labels ds 1)
-           ix (reduce (fn [i n] (if (= n col-name) (reduced i) (inc i))) 
+           ix (reduce (fn [i n] (if (= n col-name) (reduced i) (inc i)))
                       0 cnames)]
          (when (>= ix (count cnames)) (error "Column name not found: " col-name))
          (slice ds 1 ix)))))
@@ -153,7 +154,7 @@
 
 (defn merge-datasets
   "Returns a dataset created by combining columns of the given datasets. In case of columns with duplicate names, last-one-wins strategy is applied."
-  ([ds1 ds2] 
+  ([ds1 ds2]
     (mp/merge-datasets ds1 ds2))
   ([ds1 ds2 & args]
     (apply merge-datasets (merge-datasets ds1 ds2) args)))

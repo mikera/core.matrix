@@ -1,11 +1,22 @@
-(ns clojure.core.matrix.impl.default
-  (:require [clojure.core.matrix.impl.double-array :as da]
-            [clojure.core.matrix.protocols :as mp]
+(ns clojure.core.matrix.impl.defaults
+  (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.wrappers :as wrap]
-            [clojure.core.matrix.impl.mathsops :as mops]
+            [clojure.core.matrix.impl.mathsops :as mops :refer [to-degrees* to-radians*]]
             [clojure.core.matrix.implementations :as imp]
-            [clojure.core.matrix.utils :refer :all])
-  (:import [clojure.lang ISeq]))
+            [clojure.core.matrix.impl.double-array :as da]
+            [clojure.core.matrix.impl.common :refer [logistic-fn softplus-fn relu-fn
+                                                     square? symmetric-matrix-entries? mapmatrix]]
+            [clojure.core.matrix.utils :as u])
+  #?@(:clj [(:require
+              [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
+              [clojure.core.matrix.macros-clj :refer [try-current-implementation eps== native-array?]])
+            (:import [clojure.lang ISeq])]
+      :cljs [(:require-macros
+               [clojure.core.matrix.impl.defaults :refer [def-PMathsFunctions def-PMathsFunctionsMutable]]
+               [clojure.core.matrix.macros :refer [TODO error scalar-coerce c-for doseq-indexed array?]]
+               [clojure.core.matrix.macros-cljs :refer [try-current-implementation eps== native-array?]])]))
+
+(def ^:dynamic *trying-current-implementation* nil)
 
 ;; =========================================================================
 ;; This namespace contains default implementations for core.matrix protocols
@@ -18,24 +29,15 @@
 ;; - java.lang.Object : any unrecognised object, will be treated as an array
 ;;
 
+#? (:clj (do
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* true)
+
 ;; (set! *unchecked-math* :warn-on-boxed) ;; use to check for boxing
 
 ;; ============================================================
 ;; Utility functions for default implementations
-
-(defmacro array?
-  "Returns true if the parameter is an N-dimensional array of any type"
-  ([m]
-    `(not (mp/is-scalar? ~m))))
-
-(defn- square?
-  "Returns true if matrix is square (2D with same number of rows and columns)"
-  ([m]
-    (and
-      (== 2 (long (mp/dimensionality m)))
-      (== (long (mp/dimension-count m 0)) (long (mp/dimension-count m 1))))))
+))
 
 (defn- calc-element-count
   "Returns the total count of elements in an array"
@@ -45,21 +47,24 @@
       :else (count m))))
 
 ;; TODO: make smarter for different numeric types
+;; TODO: have this return ndarrays once we have cljs support
 (defn construct-mutable-matrix
   "Constructs a new mutable matrix with the given data."
   ([m]
     (let [dims (long (mp/dimensionality m))
           type (mp/element-type m)
-          double? (or (= Double/TYPE type))]
+          double? #?(:clj (or (= Double/TYPE type) (= java.lang.Double type))
+                     :cljs (= js/Number type))]
       (cond
         (== dims 0)
           (wrap/wrap-scalar (mp/get-0d m))
         (and (== dims 1) double?)
-          (da/construct-double-array m)
+          #?(:clj (da/construct-double-array m)
+             :cljs (mp/coerce-param (imp/get-canonical-object :aljabr) m))
         double?
-          (mp/coerce-param (imp/get-canonical-object :ndarray-double) m)
+          (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray-double :cljs :aljabr)) m)
         :else
-          (mp/coerce-param (imp/get-canonical-object :ndarray) m)))))
+          (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray :cljs :aljabr)) m)))))
 
 
 ;; ============================================================
@@ -72,7 +77,7 @@
 ;; default overall implementation
 
 (extend-protocol mp/PImplementation
-  Object
+  #?(:clj Object :cljs object)
     (implementation-key [m] :default)
     (meta-info [m] {})
     (construct-matrix [m data]
@@ -85,9 +90,10 @@
       (mp/new-matrix-nd [] shape))
     (supports-dimensionality? [m dimensions]
       true)
-  
+
   ;; keyword implementation looks up implementation by keyword
-  clojure.lang.Keyword
+  #?(:clj clojure.lang.Keyword
+     :cljs cljs.core.Keyword)
     (implementation-key [m] m)
     (meta-info [m] (mp/meta-info (imp/get-canonical-object-or-throw m)))
     (construct-matrix [m data]
@@ -107,7 +113,7 @@
       (mp/sparse data))
     (sparse [m]
       nil)
-  Object
+  #?(:clj Object :cljs object)
     (sparse-coerce [m data]
       nil) ;; allow fall through if sparse coercion is not directly supported
     (sparse [m]
@@ -118,14 +124,14 @@
     (native [m]
       nil)
     (native? [m] false)
-  Object
+  #?(:clj Object :cljs object)
     (native [m]
       nil) ;; allow fall through if native coercion is not directly supported
     (native? [m]
       false))
 
 (extend-protocol mp/PNewSparseArray
-  Object
+  #?(:clj Object :cljs object)
     (new-sparse-array [m shape]
       ;; we don't support sparse arrays by default, so just return nil
       nil))
@@ -136,7 +142,7 @@
       (mp/dense data))
     (dense [m]
       nil)
-  Object
+  #?(:clj Object :cljs object)
     (dense-coerce [m data]
       nil) ;; allow fall-through if dense coercion is not directly supported
     (dense [m]
@@ -154,7 +160,7 @@
       (if-let [s (seq indexes)]
         (error "Can't do ND get on nil with indexes: " s)
         m))
-  Number
+  #?(:clj Number :cljs number)
     (get-1d [m x]
       (error "Can't do 1D get on a scalar number"))
     (get-2d [m x y]
@@ -163,28 +169,51 @@
       (if-let [s (seq indexes)]
         (error "Can't do ND get on a scalar number with indexes: " s)
         m))
-  Object
+  #?(:clj Object :cljs object)
     (get-1d [m x]
       (cond
-        (java-array? m) (mp/get-0d (nth m x))
+        (native-array? m) (mp/get-0d (nth m x))
         :else (mp/get-nd m [x])))
     (get-2d [m x y]
       (cond
-        (java-array? m) (mp/get-1d (nth m x) y)
+        (native-array? m) (mp/get-1d (nth m x) y)
         :else (mp/get-nd m [x y])))
     (get-nd [m indexes]
       (if (seq indexes)
         (cond
-          (java-array? m) (mp/get-nd (nth m (first indexes)) (next indexes))
-          :else (error "Indexed get failed, not defined for:" (class m)))
-        (mp/get-0d m))))
+          (native-array? m) (mp/get-nd (nth m (first indexes)) (next indexes))
+          :else (error "Indexed get failed, not defined for:" (#?(:clj class :cljs type) m)))
+        (mp/get-0d m)))
+
+#?@(:cljs
+     [cljs.core/LazySeq
+      (get-1d [m x] (nth m x))
+      (get-2d [m x y]
+        (if (seqable? (first m))
+          (mp/get-1d (nth m x) y)
+          (error "Can't do 2D get on a lazy seq")))
+      (get-nd [m indexes]
+        (if (seq indexes)
+          (mp/get-nd (nth m (first indexes)) (next indexes))
+          (mp/get-0d m)))
+
+      cljs.core/Range
+      (get-1d [m x] (nth m x))
+      (get-2d [m x y]
+        (error "Can't do 2D get on a range"))
+      (get-nd [m indexes]
+              (if (seq indexes)
+                (mp/get-nd (nth m (first indexes)) (next indexes))
+                (mp/get-0d m)))
+      ]
+))
 
 (extend-protocol mp/PArrayMetrics
   nil
     (nonzero-count [m] 1)
-  Number
+  #?(:clj Number :cljs number)
     (nonzero-count [m] (if (zero? m) 0 1)) ;; not possible to remove boxing warning
-  Object
+  #?(:clj Object :cljs object)
     (nonzero-count [m]
       (mp/element-reduce m (fn [cnt e] (if (zero? e) cnt (inc cnt))) 0))) ;; not possible to remove boxing warning
 
@@ -194,7 +223,7 @@
       ([m] 0.0)
       ([m value]
         (wrap/wrap-scalar value)))
-  Object
+  #?(:clj Object :cljs object)
     (new-scalar-array
       ([m] (wrap/wrap-scalar 0.0))
       ([m value] (wrap/wrap-scalar value))))
@@ -205,22 +234,22 @@
       nil)
     (set-0d! [m value]
       (error "Can't set the value of nil!"))
-  String
+  #?(:clj String :cljs string)
     (get-0d [m]
       m)
     (set-0d! [m value]
       (error "Can't set a string value!"))
-  clojure.lang.Keyword
+  #?(:clj clojure.lang.Keyword :cljs cljs.core.Keyword)
     (get-0d [m]
       m)
     (set-0d! [m value]
       (error "Can't set a keyword!"))
-  Number
+  #?(:clj Number :cljs number)
     (get-0d [m]
       m)
     (set-0d! [m value]
       (error "Can't set a scalar number!"))
-  Object
+  #?(:clj Object :cljs object)
     (get-0d [m]
       ;; assume this is a scalar value
       m)
@@ -232,7 +261,7 @@
     (set-0d [m value]
       value ;; should be OK, since scalars satisfy 0d array abstraction
       )
-  Object
+  #?(:clj Object :cljs object)
     (set-0d [m value]
       value ;; should be OK, since scalars satisfy 0d array abstraction
       ))
@@ -249,7 +278,7 @@
         v))
     (is-mutable? [m]
       false)
-  Number
+  #?(:clj Number :cljs number)
     (set-1d [m row v]
       (error "Can't do 1D set on a scalar number"))
     (set-2d [m row column v]
@@ -260,7 +289,7 @@
         v))
     (is-mutable? [m]
       false)
-  Object
+  #?(:clj Object :cljs object)
     (set-1d [m row v]
       (let [m (mp/clone m)]
         (mp/set-1d! m row v)
@@ -274,25 +303,25 @@
         (mp/set-nd! m indexes v)
         m))
     (is-mutable? [m]
-      ;; assume an object is mutable unless we know otherwise. 
+      ;; assume an object is mutable unless we know otherwise.
       ;; certainly true for arbitrary Java arrays, for example.
       true))
 
 (extend-protocol mp/PNumerical
-  Number
+  #?(:clj Number :cljs number)
     (numerical? [m]
       true)
   nil
     (numerical? [m]
       false)
-  Object
+  #?(:clj Object :cljs object)
     (numerical? [m]
       (if (mp/is-scalar? m)
         false ;; it's a scalar but not a number, so we do not recognise it as numerical
         (every? number? (mp/element-seq m)))))
 
 (extend-protocol mp/PVectorOps
-  Number
+  #?(:clj Number :cljs number)
     (vector-dot [a b] (mp/pre-scale b a))
     (length [a] (double a))
     (length-squared [a] (Math/sqrt (double a)))
@@ -302,7 +331,7 @@
           (> a 0.0) 1.0
           (< a 0.0) -1.0
           :else 0.0)))
-  Object
+  #?(:clj Object :cljs object)
     (vector-dot [a b]
       (mp/element-sum (mp/element-multiply a b)))
     (length [a]
@@ -313,16 +342,16 @@
       (mp/scale a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
 
 (extend-protocol mp/PVectorDistance
-  Number
-    (distance [a b] 
-      (if (number? b) 
+  #?(:clj Number :cljs number)
+    (distance [a b]
+      (if (number? b)
         (Math/abs (- (double b) (double a)))
         (mp/distance b a)))
-  Object
+  #?(:clj Object :cljs object)
     (distance [a b] (double (mp/length (mp/matrix-sub a b)))))
 
 (extend-protocol mp/PVectorCross
-  Object
+  #?(:clj Object :cljs object)
     (cross-product [a b]
       (let [x1 (double (mp/get-1d a 0))
             y1 (double (mp/get-1d a 1))
@@ -346,12 +375,12 @@
         a)))
 
 (extend-protocol mp/PMutableVectorOps
-  Object
+  #?(:clj Object :cljs object)
     (normalise! [a]
       (mp/scale! a (/ 1.0 (Math/sqrt (double (mp/length-squared a)))))))
 
 (extend-protocol mp/PAssignment
-  Object
+  #?(:clj Object :cljs object)
     (assign! [m x]
       (let [dims (long (mp/dimensionality m))]
         (cond
@@ -370,12 +399,12 @@
               ;; otherwise use indexed access
               (let [xdims (long (mp/dimensionality x))
                     msize (long (mp/dimension-count m 0))]
-                (cond 
+                (cond
                   (== 0 xdims)
                     (let [value (mp/get-0d x)]
                       (dotimes [i msize] (mp/set-1d! m i value)))
                   (== 1 xdims)
-                    (do 
+                    (do
                       (when (not= msize (long (mp/dimension-count x 0))) (error "Mismatched shapes in assign!"))
                       (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i))))
                   :else
@@ -389,7 +418,7 @@
                   (doall (map (fn [a b] (mp/assign! a b)) (mp/get-major-slice-view-seq m) xss)))
                 (doseq [ms (mp/get-major-slice-view-seq m)] (mp/assign! ms x))))
            :else
-              (error "Can't assign to a non-array object: " (class m)))))
+              (error "Can't assign to a non-array object: " (#?(:clj class :cljs type) m)))))
     (assign-array!
       ([m arr]
           (let [alen (long (count arr))]
@@ -413,13 +442,16 @@
     (assign [m source]
       (let [r (mp/broadcast-coerce m source)]
         (if (identical? r source) (mp/clone r) r)))
-  Object
+  #?(:clj Number :cljs number)
+  (assign [m source]
+    source)
+  #?(:clj Object :cljs object)
     (assign [m source]
       (let [r (mp/broadcast-coerce m source)]
         (if (identical? r source) (mp/clone r) r))))
 
 (extend-protocol mp/PMutableFill
-  Object
+  #?(:clj Object :cljs object)
     (fill! [m value]
       (mp/assign! m value)))
 
@@ -427,15 +459,15 @@
    nil
      (clone [m]
        m)
-   Number
+   #?(:clj Number :cljs number)
      (clone [m]
        m)
-   Object
+   #?(:clj Object :cljs object)
      (clone [m]
        (mp/construct-matrix m m)))
 
 (extend-protocol mp/PSparseArray
-   Object
+   #?(:clj Object :cljs object)
      (is-sparse? [m]
        false))
 
@@ -443,7 +475,7 @@
   nil
     (immutable-matrix [m]
       nil)
-  Object
+  #?(:clj Object :cljs object)
     (immutable-matrix [m]
       (if (mp/is-mutable? m)
         (mp/convert-to-nested-vectors m)
@@ -453,11 +485,11 @@
   nil
     (zero-count [m]
       0)
-  Number
+  #?(:clj Number :cljs number)
      (zero-count [m]
        ;; not possible to remove boxing warning, m may be any numeric type
-       (if (zero? m) 1 0)) 
-  Object
+       (if (zero? m) 1 0))
+  #?(:clj Object :cljs object)
      (zero-count [m]
        ;; not possible to remove boxing warning, m may be any numeric type
        (mp/element-reduce m (fn [acc e] (if (zero? e) (inc acc) acc)) 0)))
@@ -467,10 +499,10 @@
   nil
     (mutable-matrix [m]
       (wrap/wrap-scalar m))
-  Number
+  #?(:clj Number :cljs number)
     (mutable-matrix [m]
       (wrap/wrap-scalar m))
-  Object
+  #?(:clj Object :cljs object)
     (mutable-matrix [m]
       (construct-mutable-matrix m)))
 
@@ -478,20 +510,20 @@
   nil
     (ensure-mutable [m]
       (wrap/wrap-scalar m))
-  Number
+  #?(:clj Number :cljs number)
     (ensure-mutable [m]
       (wrap/wrap-scalar m))
-  Object
+  #?(:clj Object :cljs object)
     (ensure-mutable [m]
       (if (mp/is-mutable? m)
         m
         (construct-mutable-matrix m))))
 
 (extend-protocol mp/PComputeMatrix
-  Object
+  #?(:clj Object :cljs object)
     (compute-matrix [m shape f]
       (let [m (mp/new-matrix-nd m shape)]
-        (reduce (fn [m ix] (mp/set-nd m ix (apply f ix))) m (base-index-seq-for-shape shape)))))
+        (reduce (fn [m ix] (mp/set-nd m ix (apply f ix))) m (u/base-index-seq-for-shape shape)))))
 
 (extend-protocol mp/PDimensionInfo
   nil
@@ -500,75 +532,131 @@
     (is-vector? [m] false)
     (get-shape [m] nil)
     (dimension-count [m i] (error "nil has zero dimensionality, cannot get count for dimension: " i))
-  clojure.lang.Keyword
+  #?(:clj clojure.lang.Keyword
+     :cljs cljs.core.Keyword)
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
     (get-shape [m] nil)
     (dimension-count [m i] (error "Keyword has zero dimensionality, cannot get count for dimension: " i))
-  String
+  #?(:clj String :cljs string)
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
     (get-shape [m] nil)
     (dimension-count [m i] (error "String has zero dimensionality, cannot get count for dimension: " i))
-  Number
+  #?(:clj Number :cljs number)
     (dimensionality [m] 0)
     (is-scalar? [m] true)
     (is-vector? [m] false)
     (get-shape [m] nil)
     (dimension-count [m i] (error "Number has zero dimensionality, cannot get count for dimension: " i))
-  Object
+  #?(:clj Object :cljs object)
     (dimensionality [m]
       (cond
-        (.isArray (.getClass m))
+        #?(:clj (.isArray (.getClass m)) :cljs (= js/Array (type m)))
           (let [n (long (count m))]
             (if (> n 0) (inc (long (mp/dimensionality (nth m 0)))) 1))
         :else 0))
     (is-vector? [m]
       (cond
-        (.isArray (.getClass m))
+        #?(:clj (.isArray (.getClass m)) :cljs (= js/Array (type m)))
           (let [n (long (count m))]
             (or (== n 0) (== 0 (long (mp/dimensionality (nth m 0))))))
         :else false))
     (is-scalar? [m]
       (cond
-        (.isArray (.getClass m)) false ;; Java arrays are core.matrix arrays
+        #?(:clj (.isArray (.getClass m)) :cljs (= js/Array (type m))) false ;; Java arrays are core.matrix arrays
         :else true)) ;; assume objects are scalars unless told otherwise
     (get-shape [m]
       (cond
-        (.isArray (.getClass m))
+        #?(:clj (.isArray (.getClass m)) :cljs (= js/Array (type m)))
           (let [n (count m)]
             (if (== n 0) [0] (cons n (mp/get-shape (nth m 0)))))
         :else nil))
     (dimension-count [m i]
       (let [i (long i)]
         (cond
-          (.isArray (.getClass m))
+          #?(:clj (.isArray (.getClass m)) :cljs (= js/Array (type m)))
             (if (== i 0) (count m) (mp/dimension-count (nth m 0) (dec i)))
           (== 0 i)
             (count m)
-          :else (error "Can't determine count of dimension " i " on Object: " (class m))))))
+          :else (error "Can't determine count of dimension " i " on Object: " (#?(:clj class :cljs type) m)))))
+
+#?@(:cljs
+     [cljs.core/List
+      (dimensionality [m] (inc (mp/dimensionality (first m))))
+      (is-vector? [m] (== 0 (mp/dimensionality (first m))))
+      (is-scalar? [m] false)
+      (get-shape [m] (cons (count m) (mp/get-shape (first m))))
+      (dimension-count [m x]
+                       (if (== x 0)
+                         (count m)
+                         (mp/dimension-count (first m) (dec x))))
+
+      cljs.core/LazySeq
+      (dimensionality [m] (inc (mp/dimensionality (first m))))
+      (is-vector? [m] (== 0 (mp/dimensionality (first m))))
+      (is-scalar? [m] false)
+      (get-shape [m] (cons (count m) (mp/get-shape (first m))))
+      (dimension-count [m x]
+                       (if (== x 0)
+                         (count m)
+                         (mp/dimension-count (first m) (dec x))))
+
+      cljs.core/IndexedSeq
+      (dimensionality [m] (inc (mp/dimensionality (first m))))
+      (is-vector? [m] (== 0 (mp/dimensionality (first m))))
+      (is-scalar? [m] false)
+      (get-shape [m] (cons (count m) (mp/get-shape (first m))))
+      (dimension-count [m x]
+                       (if (== x 0)
+                         (count m)
+                         (mp/dimension-count (first m) (dec x))))
+
+      cljs.core/Cons
+      (dimensionality [m] (inc (mp/dimensionality (first m))))
+      (is-vector? [m] (== 0 (mp/dimensionality (first m))))
+      (is-scalar? [m] false)
+      (get-shape [m] (cons (count m) (mp/get-shape (first m))))
+      (dimension-count [m x]
+                       (if (== x 0)
+                         (count m)
+                         (mp/dimension-count (first m) (dec x))))
+
+      cljs.core/Range
+      (dimensionality [m] (inc (mp/dimensionality (first m))))
+      (is-vector? [m] (== 0 (mp/dimensionality (first m))))
+      (is-scalar? [m] false)
+      (get-shape [m] (cons (count m) (mp/get-shape (first m))))
+      (dimension-count [m x]
+                       (if (== x 0)
+                         (count m)
+                         (mp/dimension-count (first m) (dec x))))
+      ]))
 
 (extend-protocol mp/PSameShape
   nil
     (same-shape? [a b]
       (== 0 (long (mp/dimensionality b))))
-  Number
+  #?(:clj String :cljs string)
     (same-shape? [a b]
       (== 0 (long (mp/dimensionality b))))
-  Object
+  #?(:clj Number :cljs number)
     (same-shape? [a b]
-      (same-shape-object? (mp/get-shape a) (mp/get-shape b))))
+      (== 0 (long (mp/dimensionality b))))
+  #?(:clj Object :cljs object)
+    (same-shape? [a b]
+      (u/same-shape-object? (mp/get-shape a) (mp/get-shape b))))
 
 ;; generic versions of matrix ops
 (extend-protocol mp/PMatrixOps
   nil
     (trace [m] m)
-  Number
+  #?(:clj Number :cljs number)
     (trace [m] m)
     (inverse [m] (/ m))
-  Object
+  #?(:clj Object :cljs object)
     (trace [m]
       (when-not (== 2 (long (mp/dimensionality m))) (error "Trace requires a 2D matrix"))
       (let [rc (long (mp/dimension-count m 0))
@@ -590,9 +678,9 @@
 (extend-protocol mp/PTranspose
   nil
     (transpose [m] m)
-  Number
+  #?(:clj Number :cljs number)
     (transpose [m] m)
-  Object
+  #?(:clj Object :cljs object)
     (transpose [m]
       (mp/coerce-param
        m
@@ -610,7 +698,7 @@
              (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss))))))))
 
 (extend-protocol mp/PTransposeInPlace
-  Object
+  #?(:clj Object :cljs object)
     (transpose! [m]
       (let [n (long (mp/dimension-count m 0))]
         (when (not= n (long (mp/dimension-count m 1))) (error "transpose! requires a quare matrix"))
@@ -624,9 +712,9 @@
 (extend-protocol mp/PRotate
   nil
     (rotate [m dim places] nil)
-  Number
+  #?(:clj Number :cljs number)
     (rotate [m dim places] m)
-  Object
+  #?(:clj Object :cljs object)
     (rotate [m dim places]
       (let [dim (long dim)
             places (long places)]
@@ -647,34 +735,34 @@
 (extend-protocol mp/PRotateAll
   nil
     (rotate-all [m shifts] nil)
-  Number
+  #?(:clj Number :cljs number)
     (rotate-all [m shifts] m)
-  Object
+  #?(:clj Object :cljs object)
     (rotate-all [m shifts]
       (reduce (fn [m [^long dim ^long shift]] (if (zero? shift) m (mp/rotate m dim shift)))
          m
          (map-indexed (fn [i v] [i v]) shifts))))
 
 (extend-protocol mp/PShift
-  Object
-    (shift [m dim shift] 
+  #?(:clj Object :cljs object)
+    (shift [m dim shift]
       (let [shift (long shift)
             z (mp/generic-zero m)
             c (long (mp/dimension-count m dim))
             sh (vec (mp/get-shape m))]
-        (cond 
+        (cond
           (== shift 0) m
           (>= shift c) (mp/broadcast-coerce m z)
           (<= shift (- c)) (mp/broadcast-coerce m z)
-          (< shift 0) (mp/join-along 
+          (< shift 0) (mp/join-along
                         (mp/broadcast (mp/construct-matrix m z) (assoc sh dim (- shift)))
-                        (mp/submatrix m (map vector 
-                                             (vec (repeat (count sh) 0)) 
+                        (mp/submatrix m (map vector
+                                             (vec (repeat (count sh) 0))
                                              (assoc sh dim (+ c shift))))
                         dim)
-          (> shift 0) (mp/join-along 
-                        (mp/submatrix m (map vector 
-                                             (assoc (vec (repeat (count sh) 0)) dim shift) 
+          (> shift 0) (mp/join-along
+                        (mp/submatrix m (map vector
+                                             (assoc (vec (repeat (count sh) 0)) dim shift)
                                              (assoc sh dim (- c shift))))
                         (mp/broadcast (mp/construct-matrix m z) (assoc sh dim shift))
                         dim)
@@ -687,16 +775,16 @@
 
 (extend-protocol mp/POrder
   nil
-    (order 
+    (order
       ([m indices] (error "Can't reorder a scalar nil"))
       ([m dim indices] (error "Can't reorder a scalar nil")))
-  Number
-    (order 
+  #?(:clj Number :cljs number)
+    (order
       ([m indices] (error "Can't reorder a scalar number"))
       ([m dim indices] (error "Can't reorder a scalar number")))
-  Object
-    (order 
-      ([m indices] 
+  #?(:clj Object :cljs object)
+    (order
+      ([m indices]
         (let [mshape (vec (mp/get-shape m))
               subshape (assoc m 0 1)
               ss (map #(mp/broadcast (mp/get-major-slice m %) subshape) indices)]
@@ -706,7 +794,7 @@
 
 ;; not possible to remove boxing warning, may be any numeric type
 (extend-protocol mp/PMatrixProducts
-  Number
+  #?(:clj Number :cljs number)
     (inner-product [m a]
       (if (number? a)
         (clojure.core/* m a)
@@ -715,7 +803,7 @@
       (if (number? a)
         (clojure.core/* m a)
         (mp/pre-scale a m)))
-  Object
+  #?(:clj Object :cljs object)
     (inner-product [m a]
       (cond
         (mp/is-scalar? m)
@@ -729,19 +817,21 @@
                                        (mp/get-major-slice-seq a)
                                        (mp/get-major-slice-seq m)))) ;; TODO: implement with mutable accumulation
         :else
-          (mapv #(mp/inner-product % a) (mp/get-major-slice-seq m))))
+        (mp/construct-matrix (imp/get-canonical-object) (map #(mp/inner-product % a) (mp/get-major-slice-seq m)))))
     (outer-product [m a]
       (cond
         (mp/is-scalar? m)
           (mp/pre-scale a m)
         :else
-          ;; convert to nested vectors first, this enables trick of extending dimensionality for each element with element-map
-          (mp/element-map (mp/convert-to-nested-vectors m) (fn [v] (mp/pre-scale a v))))))
+        (mp/element-map m (fn [v] (mp/pre-scale a v)))
+        ;; convert to nested vectors first, this enables trick of extending dimensionality for each element with element-map
+        ;(mp/element-map (mp/convert-to-nested-vectors m) (fn [v] (mp/pre-scale a v)))
+        )))
 
 ;; matrix multiply
 ;; TODO: document returning NDArray
 (extend-protocol mp/PMatrixMultiply
-  Number
+  #?(:clj Number :cljs number)
     (element-multiply [m a]
       (if (number? a)
         (clojure.core/* m a)
@@ -750,8 +840,8 @@
       (cond
         (number? a) (* m a)
         (array? a) (mp/pre-scale a m)
-        :else (error "Don't know how to multiply number with: " (class a))))
-  Object
+        :else (error "Don't know how to multiply number with: " (#?(:clj class :cljs type) a))))
+  #?(:clj Object :cljs object)
     (matrix-multiply [m a]
       (let [mdims (long (mp/dimensionality m))
             adims (long (mp/dimensionality a))]
@@ -791,37 +881,37 @@
 
 ;; matrix multiply
 (extend-protocol mp/PMatrixMultiplyMutable
-  Number
+  #?(:clj Number :cljs number)
     (element-multiply! [m a]
       (error "Can't do mutable multiply on a scalar number"))
     (matrix-multiply! [m a]
       (error "Can't do mutable multiply on a scalar number"))
-  Object
+  #?(:clj Object :cljs object)
     (element-multiply! [m a]
       (mp/assign! m (mp/element-multiply m a)))
     (matrix-multiply! [m a]
       (mp/assign! m (mp/matrix-multiply m a))))
 
 (extend-protocol mp/PMatrixDivide
-  Number
+  #?(:clj Number :cljs number)
     (element-divide
       ([m] (/ m))
       ([m a] (mp/pre-scale (mp/element-divide a) m)))
-  Object
+  #?(:clj Object :cljs object)
     (element-divide
-      ([m] 
-        (if (mp/get-shape m) 
+      ([m]
+        (if (mp/get-shape m)
           (mp/element-map m mp/element-divide)
           (error "Don't know how to take reciprocal of " (type m))))
       ([m a]
         (mp/element-multiply m (mp/element-divide a)))))
 
 (extend-protocol mp/PMatrixDivideMutable
-  Number
+  #?(:clj Number :cljs number)
 	  (element-divide!
 	    ([m] (error "Can't do mutable divide on a scalar number"))
 	    ([m a] (error "Can't do mutable divide on a scalar numer")))
-  Object
+  #?(:clj Object :cljs object)
 	  (element-divide!
 	    ([m] (mp/element-map! m /))
 	    ([m a]
@@ -830,22 +920,22 @@
 
 ;; matrix element summation
 (extend-protocol mp/PSummable
-  Number
+  #?(:clj Number :cljs number)
     (element-sum [a] a)
-  Object
+  #?(:clj Object :cljs object)
     (element-sum [a]
       (mp/element-reduce a (if (mp/numerical? a) + mp/matrix-add))))
 
 ;; not possible to eliminate boxing warnings - needs to handle any numeric type
 (extend-protocol mp/PElementMinMax
-  Number
+  #?(:clj Number :cljs number)
     (element-min [m] m)
     (element-max [m] m)
     (element-clamp [m a b]
       (if-not (<= a b)
         (error "min argument: " a " should be <= max argument: " b)
         (if (< m a) a (if (> m b) b m))))
-  Object
+  #?(:clj Object :cljs object)
     (element-min [m]
       (mp/element-reduce m
                        (fn [best v] (if (or (not best) (< v best)) v best))
@@ -860,43 +950,43 @@
         (mp/element-map m #(if (< %1 a) a (if (> %1 b) b %1))))))
 
 (extend-protocol mp/PCompare
-  Number
-    (element-compare [a b] 
-      (if (number? b) 
+  #?(:clj Number :cljs number)
+    (element-compare [a b]
+      (if (number? b)
         (long (mops/signum (- a b)))
         (mp/signum (mp/matrix-sub a b))))
-    (element-if [m a b] 
-      (let [[a b] (mp/broadcast-same-shape a b)] 
+    (element-if [m a b]
+      (let [[a b] (mp/broadcast-same-shape a b)]
         (if (> m 0) a b)))
-    (element-lt [m a] 
-      (if (number? a) 
+    (element-lt [m a]
+      (if (number? a)
         (if (< m a) 1 0)
         (mp/element-gt a m)))
-    (element-le [m a] 
+    (element-le [m a]
       (if (number? a)
         (if (<= m a) 1 0)
         (mp/element-ge a m)))
-    (element-gt [m a] 
-      (if (number? a) 
+    (element-gt [m a]
+      (if (number? a)
         (if (> m a) 1 0)
         (mp/element-lt a m)))
-    (element-ge [m a] 
-      (if (number? a) 
+    (element-ge [m a]
+      (if (number? a)
         (if (>= m a) 1 0)
         (mp/element-le a m)))
-    (element-ne [m a] 
-      (if (number? a) 
+    (element-ne [m a]
+      (if (number? a)
         (if (not= m a) 1 0)
         (mp/element-ne a m)))
-    (element-eq [m a] 
+    (element-eq [m a]
       (if (number? a)
         (if (= m a) 1 0)
         (mp/element-eq a m)))
-  Object
-    (element-compare [a b] 
+  #?(:clj Object :cljs object)
+    (element-compare [a b]
       (mp/element-map (mp/matrix-sub a b) #(long (mops/signum %))))
     (element-if [m a b]
-      (cond 
+      (cond
         (and (number? a) (number? b))
           (mp/element-map m #(if (> %1 0) a b))
         (number? a)
@@ -932,56 +1022,56 @@
 
 ;; add-product operations
 (extend-protocol mp/PAddProduct
-  Number
+  #?(:clj Number :cljs number)
     (add-product [m a b]
       (mp/matrix-add (mp/element-multiply a b) m ))
-  Object
+  #?(:clj Object :cljs object)
     (add-product [m a b]
       (mp/matrix-add m (mp/element-multiply a b))))
 
 (extend-protocol mp/PAddProductMutable
-  Number
+  #?(:clj Number :cljs number)
     (add-product! [m a b]
       (error "Numbers are not mutable"))
-  Object
+  #?(:clj Object :cljs object)
     (add-product! [m a b]
       (mp/matrix-add! m (mp/element-multiply a b))))
 
 (extend-protocol mp/PAddScaled
-  Number
+  #?(:clj Number :cljs number)
     (add-scaled [m a factor]
       (mp/matrix-add (mp/scale a factor) m))
-  Object
+  #?(:clj Object :cljs object)
     (add-scaled [m a factor]
       (mp/matrix-add m (mp/scale a factor))))
 
 (extend-protocol mp/PAddScaledMutable
-  Number
+  #?(:clj Number :cljs number)
     (add-scaled! [m a factor]
       (error "Numbers are not mutable"))
-  Object
+  #?(:clj Object :cljs object)
     (add-scaled! [m a factor]
       (mp/matrix-add! m (mp/scale a factor))))
 
 (extend-protocol mp/PAddScaledProduct
-  Number
+  #?(:clj Number :cljs number)
     (add-scaled-product [m a b factor]
       (mp/matrix-add (mp/scale (mp/element-multiply a b) factor) m))
-  Object
+  #?(:clj Object :cljs object)
     (add-scaled-product [m a b factor]
       (mp/matrix-add m (mp/scale (mp/element-multiply a b) factor))))
 
 (extend-protocol mp/PAddScaledProductMutable
-  Number
+  #?(:clj Number :cljs number)
     (add-scaled-product! [m a b factor]
       (error "Numbers are not mutable"))
-  Object
+  #?(:clj Object :cljs object)
     (add-scaled-product! [m a b factor]
       (mp/matrix-add! m (mp/scale (mp/element-multiply a b) factor))))
 
 ;; not possible to eliminate boxing warnings - needs to handle any numeric type
 (extend-protocol mp/PScaleAdd
-  Object
+  #?(:clj Object :cljs object)
     (scale-add! [m1 a m2 b constant]
       (mp/element-multiply! m1 a)
       (when-not (and (number? b) (zero? b)) (mp/add-product! m1 m2 b))
@@ -989,7 +1079,7 @@
       m1))
 
 (extend-protocol mp/PScaleAdd2
-  Object
+  #?(:clj Object :cljs object)
     (scale-add [m1 a m2 b constant]
       (let [r (mp/matrix-add (mp/scale m1 a) (mp/scale m2 b))]
         (if (== 0.0 constant)
@@ -997,23 +1087,23 @@
           (mp/matrix-add r constant)))))
 
 (extend-protocol mp/PLerp
-  Object
+  #?(:clj Object :cljs object)
     (lerp [a b factor]
       (mp/scale-add a (- 1.0 (double factor)) b factor 0.0))
     (lerp! [a b factor]
       (mp/scale-add! a (- 1.0 (double factor)) b factor 0.0)))
 
 (extend-protocol mp/PAddInnerProductMutable
-  Object
-    (add-inner-product! 
+  #?(:clj Object :cljs object)
+    (add-inner-product!
       ([m a b]
         (mp/matrix-add! m (mp/inner-product a b)))
       ([m a b factor]
         (mp/add-scaled! m (mp/inner-product a b) factor))))
 
 (extend-protocol mp/PSetInnerProductMutable
-  Object
-    (set-inner-product! 
+  #?(:clj Object :cljs object)
+    (set-inner-product!
       ([m a b]
         (mp/assign! m (mp/inner-product a b)))
       ([m a b factor]
@@ -1025,16 +1115,17 @@
 (extend-protocol mp/PTypeInfo
   nil
     (element-type [a]
-      Object)
-  Object
+      #?(:clj Object :cljs js/Object))
+
+  #?(:clj Object :cljs object)
     (element-type [a]
-      (if (java-array? a)
-        (.getComponentType (class a))
-        Object)))
+      (if (native-array? a)
+        (.getComponentType (#?(:clj class :cljs type) a))
+        #?(:clj Object :cljs js/Object))))
 
 ;; generic element values
 (extend-protocol mp/PGenericValues
-  Object
+  #?(:clj Object :cljs object)
     (generic-zero [m]
       0)
     (generic-one [m]
@@ -1044,7 +1135,8 @@
 
 ;; general transformation of a vector
 (extend-protocol mp/PVectorTransform
-  clojure.lang.IFn
+  #?(:clj clojure.lang.IFn
+     :cljs cljs.core.IFn)
     (vector-transform [m a]
       (if
         (vector? m) (mp/matrix-multiply m a)
@@ -1053,18 +1145,18 @@
       (if
         (vector? m) (mp/assign! a (mp/matrix-multiply m a))
         (mp/assign! a (m a))))
-  Object
+  #?(:clj Object :cljs object)
     (vector-transform [m a]
       (cond
         (== 2 (long (mp/dimensionality m))) (mp/matrix-multiply m a)
-        :else (error "Don't know how to transform using: " (class m))))
+        :else (error "Don't know how to transform using: " (#?(:clj class :cljs type) m))))
     (vector-transform! [m a]
       (mp/assign! a (mp/vector-transform m a))))
 
 ;; matrix scaling
 ;; not possible to eliminate boxing warnings - needs to handle any numeric type
 (extend-protocol mp/PMatrixScaling
-  Number
+  #?(:clj Number :cljs number)
     (scale [m a]
       (if (number? a)
         (* m a)
@@ -1073,7 +1165,7 @@
       (if (number? a)
         (* a m)
         (mp/scale a m)))
-  Object
+  #?(:clj Object :cljs object)
     (scale [m a]
       (mp/element-map m #(* % a)))
     (pre-scale [m a]
@@ -1081,12 +1173,12 @@
 
 ;; not possible to eliminate boxing warnings - needs to handle any numeric type
 (extend-protocol mp/PMatrixMutableScaling
-  Number
+  #?(:clj Number :cljs number)
     (scale! [m a]
       (error "Can't scale! a numeric value: " m))
     (pre-scale! [m a]
       (error "Can't pre-scale! a numeric value: " m))
-  Object
+  #?(:clj Object :cljs object)
     (scale! [m a]
       (mp/element-map! m #(* % a))
       m)
@@ -1097,17 +1189,17 @@
 ;; not possible to eliminate boxing warnings - needs to handle any numeric type
 (extend-protocol mp/PMatrixAdd
   ;; matrix add for scalars
-  Number
+  #?(:clj Number :cljs number)
     (matrix-add [m a]
-      (if (number? a) 
+      (if (number? a)
         (+ m a)
         (mp/matrix-add a m)))
     (matrix-sub [m a]
-      (if (number? a) 
+      (if (number? a)
         (- m a)
         (mp/negate (mp/matrix-sub a m))))
   ;; default impelementation - assume we can use emap?
-  Object
+  #?(:clj Object :cljs object)
     (matrix-add [m a]
       (let [[m a] (mp/broadcast-compatible m a)]
         (mp/element-map m clojure.core/+ a)))
@@ -1119,13 +1211,13 @@
 
 (extend-protocol mp/PMatrixAddMutable
   ;; matrix add for scalars
-  Number
+  #?(:clj Number :cljs number)
     (matrix-add! [m a]
       (error "Can't do mutable add! on a scalar number"))
     (matrix-sub! [m a]
       (error "Can't do mutable sub! on a scalar number"))
   ;; default impelementation - assume we can use emap?
-  Object
+  #?(:clj Object :cljs object)
     (matrix-add! [m a]
       (mp/element-map! m clojure.core/+ a))
     (matrix-sub! [m a]
@@ -1135,10 +1227,10 @@
   nil
     (negate [m]
       (error "Can't negate nil!"))
-  Number
+  #?(:clj Number :cljs number)
     (negate [m]
       (- m))
-  Object
+  #?(:clj Object :cljs object)
     (negate [m]
       (mp/scale m -1.0)))
 
@@ -1148,20 +1240,20 @@
   nil
     (matrix-equals [a b]
       (error "nil is not a valid numerical value in equality testing"))
-  Number
+  #?(:clj Number :cljs number)
     (matrix-equals [a b]
       (cond
         (number? b) (== a b)
         (== 0 (mp/dimensionality b)) (== a (scalar-coerce b))
         :else false))
-  Object
+  #?(:clj Object :cljs object)
     (matrix-equals [a b]
       (cond
         (identical? a b) true
         (mp/same-shape? a b)
-          (if (== 0 (long (mp/dimensionality a)))
-            (== (mp/get-0d a) (scalar-coerce b))
-            (not-any? false? (map == (mp/element-seq a) (mp/element-seq b))))
+        (if (== 0 (long (mp/dimensionality a)))
+          (== (mp/get-0d a) (scalar-coerce b))
+          (not-any? false? (map == (mp/element-seq a) (mp/element-seq b))))
         :else false)))
 
 (extend-protocol mp/PValueEquality
@@ -1172,27 +1264,29 @@
         (and
           (== 0 (long (mp/dimensionality b)))
           (nil? (mp/get-0d b)))))
-  Object
+  #?(:clj Number :cljs number)
+  (value-equals [a b]
+    (and
+      (== 0 (long (mp/dimensionality b)))
+      (== a (mp/get-0d b))))
+  #?(:clj Object :cljs object)
     (value-equals [a b]
       (and
         (mp/same-shape? a b)
         (every? true? (map = (mp/element-seq a) (mp/element-seq b))))))
-
-(defmacro eps== [a b eps]
-  `(<= (Math/abs (- (double ~a) (double ~b))) (double ~eps) ))
 
 ;; equality checking
 (extend-protocol mp/PMatrixEqualityEpsilon
   nil
     (matrix-equals-epsilon [a b eps]
       (error "nil is not a valid numerical value in equality testing"))
-  Number
+  #?(:clj Number :cljs number)
     (matrix-equals-epsilon [a b eps]
       (cond
         (number? b) (eps== a b eps)
         (== 0 (long (mp/dimensionality b))) (eps== a (mp/get-0d b) eps)
         :else false))
-  Object
+  #?(:clj Object :cljs object)
     (matrix-equals-epsilon [a b eps]
       (cond
         (identical? a b) true
@@ -1202,11 +1296,11 @@
         :else false)))
 
 (extend-protocol mp/PDoubleArrayOutput
-  Number
+  #?(:clj Number :cljs number)
     (to-double-array [m]
       (let [arr (double-array 1)] (aset arr 0 (double m)) arr))
     (as-double-array [m] nil)
-  Object
+  #?(:clj Object :cljs object)
     (to-double-array [m]
       (double-array (mp/element-seq m)))
     (as-double-array [m] nil))
@@ -1216,18 +1310,18 @@
     (to-object-array [m]
       (let [arr (object-array 1)] arr))
     (as-object-array [m] nil)
-  Number
+  #?(:clj Number :cljs number)
     (to-object-array [m]
       (let [arr (object-array 1)] (aset arr 0 m) arr))
     (as-object-array [m] nil)
-  Object
+  #?(:clj Object :cljs object)
     (to-object-array [m]
       (object-array (mp/element-seq m)))
     (as-object-array [m] nil))
 
 ;; row operations
 (extend-protocol mp/PRowOperations
-  Object
+  #?(:clj Object :cljs object)
     (swap-rows [m i j]
       (mp/swap-rows (mp/convert-to-nested-vectors m) i j))
     (multiply-row [m i k]
@@ -1236,7 +1330,7 @@
       (mp/add-row (mp/convert-to-nested-vectors m) i j k)))
 
 (extend-protocol mp/PRowSetting
-  Object
+  #?(:clj Object :cljs object)
     (set-row [m i row]
       (let [svec (vec (mp/get-major-slice-seq m))
             row (mp/broadcast-like (svec 0) row)]
@@ -1248,7 +1342,7 @@
         m)))
 
 (extend-protocol mp/PColumnSetting
-  Object
+  #?(:clj Object :cljs object)
   (set-column [m i column]
     (let [scol (mp/get-column m 0)
           column (mp/broadcast-like scol column)
@@ -1265,7 +1359,7 @@
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
-  Number
+  #?(:clj Number :cljs number)
     (element-seq [m]
       (vector m))
     (element-map
@@ -1289,15 +1383,17 @@
         m)
       ([m f init]
         (f init m)))
-  Object
+  #?(:clj Object :cljs object)
     (element-seq [m]
-      (let [c (.getClass m)
+      (let [c (#?(:clj #?(:clj class :cljs type) :cljs type) m)
             dims (long (mp/dimensionality m))]
         (cond
+          (> dims 1) (mapcat mp/element-seq (mp/get-major-slice-seq m))
+          (seq? m) m
           (== 0 dims)
             (vector (mp/get-0d m))
-          (and (.isArray c) (.isPrimitive (.getComponentType c)))
-            m
+ #?@(:clj [(and (.isArray c) (.isPrimitive (.getComponentType c))) m]
+    :cljs [(= js/Array c) m])
           (== 1 dims)
             (mp/convert-to-nested-vectors m)
           (array? m)
@@ -1305,26 +1401,17 @@
           :else (error "Don't know how to create element-seq from: " m))))
     (element-map
       ([m f]
-        (if (== 0 (long (mp/dimensionality m)))
-          (f (mp/get-0d m)) ;; handle case of single element
-          (let [s (mapv f (mp/element-seq m))]
-            (mp/reshape (mp/coerce-param m s)
-                        (mp/get-shape m)))))
+        (mp/construct-matrix m (mapmatrix f m)))
       ([m f a]
-        (if (== 0 (long (mp/dimensionality m)))
-          (let [v (mp/get-0d m)]
-            (mp/element-map a #(f v %)))
-          (let [[m a] (mp/broadcast-compatible m a)
-                s (mapv f (mp/element-seq m) (mp/element-seq a))]
-            (mp/reshape (mp/coerce-param m s) ;; TODO: faster construction method?
-                        (mp/get-shape m)))))
+        (let [[m a] (mp/broadcast-same-shape m a)]
+          (mp/construct-matrix m (mapmatrix f m a))))
       ([m f a more]
-        (let [s (mapv f (mp/element-seq m) (mp/element-seq a))
-              s (apply mapv f (list* (mp/element-seq m)
-                                     (mp/element-seq a)
-                                     (map mp/element-seq more)))]
-          (mp/reshape (mp/coerce-param m s)
-                      (mp/get-shape m)))))
+        (let [arrays (cons m (cons a more))
+              shapes (map mp/get-shape arrays)
+              sh (or (mp/common-shape shapes) (error "Attempt to do element map with incompatible shapes: " (mapv mp/get-shape arrays)))
+              arrays (map #(mp/broadcast % sh) arrays)]
+          (mp/construct-matrix m (apply mapmatrix f arrays)))))
+
     (element-map!
       ([m f]
         (mp/assign! m (mp/element-map m f)))
@@ -1349,7 +1436,21 @@
       ([m f a more] (error "Can't do element-map! on nil")))
     (element-reduce
       ([m f] nil)
-      ([m f init] (f init nil))))
+      ([m f init] (f init nil)))
+
+#?@(:cljs
+  [cljs.core/List
+    (element-seq [m]
+     (cond
+        (== 0 (count m))
+          nil
+        (>= (long (mp/dimensionality (nth m 0))) 1)
+          ;; we are a 2D+ array, so be conservative and create a concatenated sequence
+          (mapcat mp/element-seq m)
+        :else
+          ;; we are a 1D vector, so already a valid seqable result for element-seq
+          m))])
+    )
 
 (defn- cart [colls]
   (if (empty? colls)
@@ -1362,7 +1463,7 @@
   (cart (map range (mp/get-shape m))))
 
 (extend-protocol mp/PMapIndexed
-  Number
+  #?(:clj Number :cljs number)
     (element-map-indexed
       ([m f]
         (f [] m))
@@ -1379,7 +1480,7 @@
         (error "java.lang.Number instance is not mutable!"))
       ([m f a more]
         (error "java.lang.Number instance is not mutable!")))
-  Object
+  #?(:clj Object :cljs object)
     (element-map-indexed
       ([m f]
         (if (== 0 (long (mp/dimensionality m)))
@@ -1422,17 +1523,18 @@
 
 (extend-protocol mp/PElementCount
   nil (element-count [m] 1)
-  Number (element-count [m] 1)
-  Object
-    (element-count [m] (if (array? m)
-                         (calc-element-count m)
-                         1)))
+  #?(:clj Number :cljs number) (element-count [m] 1)
+  #?(:clj Object :cljs object)
+    (element-count [m]
+      (if (array? m)
+        (calc-element-count m)
+        1)))
 
 (extend-protocol mp/PValidateShape
   nil
     (validate-shape [m]
       nil)
-  Object
+  #?(:clj Object :cljs object)
     (validate-shape [m]
       (cond
         (== 0 (long (mp/dimensionality m)))
@@ -1442,19 +1544,19 @@
                 shapes (mapv mp/validate-shape ss)]
             (if (mp/same-shapes? ss)
               (vec (cons (mp/dimension-count m 0) (first shapes)))
-              (error "Inconsistent shapes for sub arrays in " (class m)))))))
+              (error "Inconsistent shapes for sub arrays in " (#?(:clj class :cljs type) m)))))))
 
 (extend-protocol mp/PMatrixSlices
-  Object
+  #?(:clj Object :cljs object)
     (get-row [m i]
-      (if (java-array? m)
+      (if (native-array? m)
         (nth m i)
         (mp/get-major-slice m i)))
     (get-column [m i]
       (mp/get-slice m 1 i))
     (get-major-slice [m i]
       (cond
-        (java-array? m) (nth m i)
+        (native-array? m) (nth m i)
         (== 1 (long (mp/dimensionality m))) (mp/get-1d m i)
         :else (clojure.core.matrix.impl.wrappers/wrap-slice m i)))
     (get-slice [m dimension i]
@@ -1464,7 +1566,7 @@
           :else (mp/get-slice (mp/convert-to-nested-vectors m) dimension i)))))
 
 (extend-protocol mp/PMatrixColumns
-  Object
+  #?(:clj Object :cljs object)
   (get-columns [m]
     (case (long (mp/dimensionality m))
       0 (error "Can't get columns of a 0-dimensional object")
@@ -1473,7 +1575,7 @@
       (mapcat mp/get-columns (mp/get-major-slice-seq m)))))
 
 (extend-protocol mp/PMatrixRows
-  Object
+  #?(:clj Object :cljs object)
   (get-rows [m]
     (case (long (mp/dimensionality m))
       0 (error "Can't get rows of a 0-dimensional object")
@@ -1482,11 +1584,11 @@
       (mapcat mp/get-rows (mp/get-major-slice-seq m)))))
 
 (extend-protocol mp/PSliceView
-  Object
+  #?(:clj Object :cljs object)
     ;; default implementation uses a lightweight wrapper object
     (get-major-slice-view [m i]
       (cond
-        (java-array? m)
+        (native-array? m)
           (let [ss (nth m i)]
             (if (array? ss)
               ss
@@ -1494,24 +1596,24 @@
         :else (clojure.core.matrix.impl.wrappers/wrap-slice m i))))
 
 (extend-protocol mp/PSliceView2
-  Object
+  #?(:clj Object :cljs object)
     (get-slice-view [m dim i]
       (if (zero? dim)
         (mp/get-major-slice-view m i)
         (mp/get-slice-view (clojure.core.matrix.impl.wrappers/wrap-nd m) dim i))))
 
 (extend-protocol mp/PSliceSeq
-  Object
+  #?(:clj Object :cljs object)
     (get-major-slice-seq [m]
       (let [dims (long (mp/dimensionality m))]
         (cond
           (<= dims 0) (error "Can't get slices on [" dims "]-dimensional object")
-          (.isArray (.getClass m)) (seq m)
+          #?(:clj (.isArray (.getClass m)) :cljs (= js/Array (type m))) (seq m)
           (== dims 1) (for [i (range (mp/dimension-count m 0))] (mp/get-1d m i))
           :else (map #(mp/get-major-slice m %) (range (mp/dimension-count m 0)))))))
 
 (extend-protocol mp/PSliceSeq2
-  Object
+  #?(:clj Object :cljs object)
     (get-slice-seq [m dimension]
       (let [ldimension (long dimension)]
         (cond
@@ -1520,7 +1622,7 @@
           :else (map #(mp/get-slice m dimension %) (range (mp/dimension-count m dimension)))))))
 
 (extend-protocol mp/PSliceViewSeq
-  Object
+  #?(:clj Object :cljs object)
     (get-major-slice-view-seq [m]
       (let [n (mp/dimension-count m 0)]
         (for [i (range n)]
@@ -1530,10 +1632,10 @@
   nil
     (join [m a]
       (error "Can't join an array to a nil value!"))
-  Number
+  #?(:clj Number :cljs number)
     (join [m a]
       (error "Can't join an array to a scalar number!"))
-  Object
+  #?(:clj Object :cljs object)
     (join [m a]
       (let [dims (long (mp/dimensionality m))
             adims (long (mp/dimensionality a))]
@@ -1551,18 +1653,18 @@
   nil
   (join-along [m a dim]
     (error "Can't join an array to a nil value!"))
-  Number
+  #?(:clj Number :cljs number)
   (join-along [m a dim]
     (error "Can't join an array to a scalar number!"))
-  Object
+  #?(:clj Object :cljs object)
   (join-along [m a dim]
     (mp/coerce-param m
-      (let [dim (long dim)] 
+      (let [dim (long dim)]
         (cond
           (== dim 0)
             (mp/join m a)
           :else
-            (let [ddim (dec dim)]  
+            (let [ddim (dec dim)]
               (mapv #(mp/join-along %1 %2 ddim)
                    (mp/get-major-slice-seq m)
                    (mp/get-major-slice-seq a))))))))
@@ -1571,10 +1673,10 @@
   nil
     (subvector [m start length]
       (error "Can't take subvector of nil"))
-  Number
+  #?(:clj Number :cljs number)
     (subvector [m start length]
       (error "Can't take subvector of a scalar number"))
-  Object
+  #?(:clj Object :cljs object)
     (subvector [m start length]
       (mp/subvector (wrap/wrap-nd m) start length)))
 
@@ -1584,12 +1686,12 @@
       (if (seq index-ranges)
         (error "Can't take partial submatrix of nil")
         m))
-  Number
+  #?(:clj Number :cljs number)
     (submatrix [m index-ranges]
       (if (seq index-ranges)
         (error "Can't take partial submatrix of a scalar number")
         m))
-  Object
+  #?(:clj Object :cljs object)
     (submatrix [m index-ranges]
       (wrap/wrap-submatrix m index-ranges)))
 
@@ -1603,14 +1705,18 @@
 ;      (if (seq new-shape)
 ;        (mp/broadcast ())
 ;        m))
-  Object
+  #?(:cljs number)
+  #?(:cljs (broadcast [m new-shape]
+                      (wrap/wrap-broadcast m new-shape)))
+
+  #?(:clj Object :cljs object)
     (broadcast [m new-shape]
       (let [nshape new-shape
             mshape (mp/get-shape m)
             mdims (count mshape)
             ndims (count nshape)]
         (cond
-          (and (== mdims ndims) (same-shape-object? nshape mshape)) m
+          (and (== mdims ndims) (u/same-shape-object? nshape mshape)) m
           ;(and (> ndims mdims) (== mshape (drop (- ndims mdims) nshape)))
           ;  (let [rep (nth nshape (- ndims mdims 1))]
           ;    (mp/broadcast (vec (repeat rep m)) new-shape))
@@ -1620,10 +1726,10 @@
   nil
     (broadcast-like [m a]
       (wrap/wrap-broadcast a (mp/get-shape m)))
-  Object
+  #?(:clj Object :cljs object)
     (broadcast-like [m a]
       (let [sm (mp/get-shape m) sa (mp/get-shape a)]
-        (if (same-shape-object? sm sa)
+        (if (u/same-shape-object? sm sa)
           a
           (mp/broadcast a sm)))))
 
@@ -1631,7 +1737,7 @@
   nil
     (broadcast-coerce [m a]
       (mp/coerce-param m (mp/broadcast-like m a)))
-  Object
+  #?(:clj Object :cljs object)
     (broadcast-coerce [m a]
       (mp/coerce-param m (mp/broadcast-like m a))))
 
@@ -1639,7 +1745,7 @@
   nil
     (pack [m]
       nil)
-  Object
+  #?(:clj Object :cljs object)
     (pack [m]
       m))
 
@@ -1648,11 +1754,11 @@
   nil
     (convert-to-nested-vectors [m]
       nil)
-  Number
+  #?(:clj Number :cljs number)
     (convert-to-nested-vectors [m]
       ;; we accept a scalar as a "nested vector" for these purposes
       m)
-  Object
+  #?(:clj Object :cljs object)
     (convert-to-nested-vectors [m]
       (let [dims (long (mp/dimensionality m))]
         (cond
@@ -1666,37 +1772,37 @@
                   (if (< i n)
                     (recur (inc i) (conj res (mp/get-1d m i)))
                     res))))
-          (array? m)
-              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
           (sequential? m)
               (mapv mp/convert-to-nested-vectors m)
+          (array? m)
+              (mapv mp/convert-to-nested-vectors (mp/get-major-slice-seq m))
           (seq? m)
               (mapv mp/convert-to-nested-vectors m)
           :default
-              (error "Can't work out how to convert to nested vectors: " (class m) " = " m)))))
+              (error "Can't work out how to convert to nested vectors: " (#?(:clj class :cljs type) m) " = " m)))))
 
 (extend-protocol mp/PRowColMatrix
   nil
     (column-matrix [m data] (error "Can't create a column matrix from nil"))
     (row-matrix [m data] (error "Can't create a column matrix from nil"))
-  Object
+  #?(:clj Object :cljs object)
     (column-matrix [m data]
       (if (== 1 (long (mp/dimensionality data)))
         (mp/coerce-param m (mapv vector (mp/element-seq data)))
         (error "Can't create a column matrix: input must be 1D vector")))
     (row-matrix [m data]
       (if (== 1 (long (mp/dimensionality data)))
-        (mp/coerce-param m (vector data)) ;; i.e. just wrap in a 
+        (mp/coerce-param m (vector data)) ;; i.e. just wrap in a
         (error "Can't create a row matrix: input must be 1D vector"))))
 
 (extend-protocol mp/PVectorView
   nil
     (as-vector [m]
       [nil])
-  Number
+  #?(:clj Number :cljs number)
     (as-vector [m]
       [m])
-  Object
+  #?(:clj Object :cljs object)
     (as-vector [m]
       (let [dims (long (mp/dimensionality m))]
         (cond
@@ -1715,10 +1821,10 @@
   nil
     (to-vector [m]
       [nil])
-  Number
+  #?(:clj Number :cljs number)
     (to-vector [m]
       [m])
-  Object
+  #?(:clj Object :cljs object)
     (to-vector [m]
       (let [dims (long (mp/dimensionality m))]
         (cond
@@ -1733,35 +1839,37 @@
   nil
     (reshape [m shape]
       (mp/reshape [nil] shape))
-  Number
+  #?(:clj Number :cljs number)
     (reshape [m shape]
       (mp/reshape [m] shape))
-  Object
+  #?(:clj Object :cljs object)
     (reshape [m shape]
-      (let [gv (mp/generic-value m) ;; generic value for array padding. Typically nil or zero
-            es (concat (mp/element-seq m) (repeat gv))
-            partition-shape (fn partition-shape [es shape]
-                              (if-let [s (seq shape)]
-                                (let [ns (next s)
-                                      plen (reduce * 1 ns)]
-                                  (map #(partition-shape % ns) (partition plen es)))
-                                (first es)))]
-        (if-let [shape (seq shape)]
-          (let [fs (long (first shape))
-                parts (partition-shape es shape)]
-            (or 
-              (mp/construct-matrix m (take fs parts))
-              (mp/construct-matrix [] (take fs parts))))
-          (first es)))))
+      (if (= (mp/get-shape m) shape) ;; Short circuit if already the desired shape
+        m
+        (let [gv (mp/generic-value m) ;; generic value for array padding. Typically nil or zero
+              es (concat (mp/element-seq m) (repeat gv))
+              partition-shape (fn partition-shape [es shape]
+                                (if-let [s (seq shape)]
+                                  (let [ns (next s)
+                                        plen (reduce * 1 ns)]
+                                    (map #(partition-shape % ns) (partition plen es)))
+                                  (first es)))]
+          (if-let [shape (seq shape)]
+            (let [fs (long (first shape))
+                  parts (partition-shape es shape)]
+              (or
+                (mp/construct-matrix m (take fs parts))
+                (mp/construct-matrix [] (take fs parts))))
+            (first es))))))
 
 (extend-protocol mp/PCoercion
   nil
     (coerce-param [m param]
       param)
-  Number
+  #?(:clj Number :cljs number)
     (coerce-param [m param]
       param)
-  Object
+  #?(:clj Object :cljs object)
     (coerce-param [m param]
       ;; NOTE: leave param unchanged if coercion not possible (probably an invalid shape for implementation)
       (let [param (if (instance? ISeq param) (mp/convert-to-nested-vectors param) param)] ;; ISeqs can be slow, so convert to vectors
@@ -1769,122 +1877,144 @@
            param))))
 
 (extend-protocol mp/PExponent
-  Number
-    (element-pow [m exponent]
-      (if (array? exponent)
-        (mp/element-map exponent #(Math/pow (.doubleValue m) (.doubleValue ^Number %)))
-        (Math/pow (.doubleValue m) (double exponent))))
-  Object
-    (element-pow [m exponent]
-      (if (array? exponent)
-        (mp/element-map m #(Math/pow (.doubleValue ^Number %1) (.doubleValue ^Number %2)) exponent)
-        (mp/element-map m #(Math/pow (.doubleValue ^Number %) exponent)))))
+  #?(:clj Number :cljs number)
+  (element-pow [m exponent]
+    #?(:clj
+        (if (array? exponent)
+          (mp/element-map exponent #(Math/pow (.doubleValue m) (.doubleValue ^Number %)))
+          (Math/pow (.doubleValue m) (double exponent)))
+       :cljs
+        (if (array? exponent)
+          (mp/element-map exponent #(Math/pow m %))
+          (Math/pow m exponent))))
+  #?(:clj Object :cljs object)
+  (element-pow [m exponent]
+    #?(:clj
+        (if (array? exponent)
+          (mp/element-map m #(Math/pow (.doubleValue ^Number %1) (.doubleValue ^Number %2)) exponent)
+          (mp/element-map m #(Math/pow (.doubleValue ^Number %) exponent)))
+       :cljs
+        (if (array? exponent)
+          (mp/element-map m #(Math/pow %1 %2) exponent)
+          (mp/element-map m #(Math/pow % exponent))))))
 
 (extend-protocol mp/PSquare
-  Number
+  #?(:clj Number :cljs number)
    (square [m] (* m m)) ;; can't eliminate boxing warning, may be any numerical type
-  Object
+  #?(:clj Object :cljs object)
    (square [m] (mp/element-multiply m m)))
 
-(defn- logistic-fn
-  "Logistic function, with primitive type hints"
-  (^double [^double t]
-    (let [e-t (Math/exp (- t))]
-      (/ 1.0 (+ 1.0 e-t)))))
-
 (extend-protocol mp/PLogistic
-  Number
+  #?(:clj Number :cljs number)
     (logistic [m]
       (let [e-t (Math/exp (- (double m)))]
         (/ 1.0 (+ 1.0 e-t))))
-  Object
+  #?(:clj Object :cljs object)
     (logistic [m]
       (mp/element-map m logistic-fn)))
 
 (extend-protocol mp/PLogisticMutable
-  Object
+  #?(:clj Object :cljs object)
     (logistic! [m]
       (mp/element-map! m logistic-fn)))
 
-(defn- softplus-fn
-  "Softplus function, with primitive type hints"
-  (^double [^double t]
-    (if (> t 100.0) ;; catch the case of overflow to infinity for large inputs
-      t
-      (let [et (Math/exp t)]
-        (Math/log (+ 1.0 et))))))
-
 (extend-protocol mp/PSoftplus
-  Number
+  #?(:clj Number :cljs number)
     (softplus [m]
       (let [et (Math/exp (double m))]
         (Math/log (+ 1.0 et))))
-  Object
+  #?(:clj Object :cljs object)
     (softplus [m]
       (mp/element-map m softplus-fn)))
 
 (extend-protocol mp/PSoftmax
-  Object
+  #?(:clj Object :cljs object)
     (softmax [m]
       (let [em (mp/exp m)]
         (mp/element-divide em (mp/element-sum em)))))
 
 (extend-protocol mp/PSoftmaxMutable
-  Object
+  #?(:clj Object :cljs object)
     (softmax! [m]
       (mp/exp! m)
       (mp/element-divide! m (mp/element-sum m))
       m))
 
 (extend-protocol mp/PSoftplusMutable
-  Object
+  #?(:clj Object :cljs object)
     (softplus! [m]
       (mp/element-map! m softplus-fn)))
 
-(defn- relu-fn
-  "ReLU function, with primitive type hints"
-  (^double [^double t]
-    (Math/max 0.0 t)))
-
 (extend-protocol mp/PReLU
-  Number
+  #?(:clj Number :cljs number)
     (relu [m]
       (Math/max 0.0 (double m)))
-  Object
+  #?(:clj Object :cljs object)
     (relu [m]
       (mp/element-map m relu-fn)))
 
 (extend-protocol mp/PReLUMutable
-  Object
+  #?(:clj Object :cljs object)
     (relu! [m]
       (mp/element-map! m relu-fn)))
 
 
-;; define standard Java maths functions for numbers
-(eval
-  `(extend-protocol mp/PMathsFunctions
-     Number
-       ~@(map (fn [[name func]]
-                `(~name [~'m] (double (~func (double ~'m)))))
-              mops/maths-ops)
-     Object
-       ~@(map (fn [[name func]]
-                `(~name [~'m] (mp/element-map ~'m #(double (~func (double %))))))
-              mops/maths-ops)))
+#?(:clj  (do
 
-(eval
+(defmacro def-PMathsFunctions
+  [clj?]
+ `(extend-protocol mp/PMathsFunctions
+    ~(if clj? 'Number 'number)
+    ~@(map (fn [[name func cljs-func]]
+             (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+               `(~name [~'m] (~'double (~func (~'double ~'m))))))
+        `~mops/maths-ops)
+
+    ~(if clj? 'Object 'object)
+    ~@(map (fn [[name func cljs-func]]
+             (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+               `(~name [~'m] (mp/element-map ~'m #(~'double (~func (~'double %)))))))
+        `~mops/maths-ops)
+
+    ~@(when (not clj?)
+      `[~'array
+        ~@(map (fn [[name func cljs-func]]
+                 (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+                   `(~name [~'m] (mp/element-map ~'m #(~'double (~func (~'double %)))))))
+               `~mops/maths-ops)
+       ]))
+ )
+
+(defmacro def-PMathsFunctionsMutable
+  [clj?]
   `(extend-protocol mp/PMathsFunctionsMutable
-     Number
-       ~@(map (fn [[name func]]
-                `(~(symbol (str name "!")) [~'m] (error "Number is not mutable!")))
-              mops/maths-ops)
-     Object
-       ~@(map (fn [[name func]]
-                `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(double (~func (double %))))))
-              mops/maths-ops)))
+    ~(if clj? 'Number 'number)
+    ~@(map (fn [[name func cljs-func]]
+             (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+               `(~(symbol (str name "!")) [~'m] (error "Number is not mutable!"))))
+        `~mops/maths-ops)
+
+    ~(if clj? 'Object 'object)
+    ~@(map (fn [[name func cljs-func]]
+             (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+               `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(~'double (~func (~'double %)))))))
+        `~mops/maths-ops)
+
+    ~@(when (not clj?)
+      `[~'array
+        ~@(map (fn [[name func cljs-func]]
+                 (let [func (if (and cljs-func (not clj?)) cljs-func func)]
+                   `(~(symbol (str name "!")) [~'m] (mp/element-map! ~'m #(~'double (~func (~'double %)))))))
+               `~mops/maths-ops)
+      ])
+    ))
+))
+
+(def-PMathsFunctions #?(:clj true :cljs false))
+(def-PMathsFunctionsMutable #?(:clj true :cljs false))
 
 (extend-protocol mp/PMatrixSubComponents
-  Object
+  #?(:clj Object :cljs object)
     (main-diagonal [m]
       (let [sh (mp/get-shape m)
             rank (count sh)
@@ -1893,7 +2023,7 @@
         (imp/construct m diag-vals))))
 
 (extend-protocol mp/PSpecialisedConstructors
-  Object
+  #?(:clj Object :cljs object)
     (identity-matrix [m dims]
       (mp/diagonal-matrix m (repeat dims 1.0)))
     (diagonal-matrix [m diagonal-values]
@@ -1905,7 +2035,7 @@
         (mp/coerce-param m dm))))
 
 (extend-protocol mp/PPermutationMatrix
-  Object
+  #?(:clj Object :cljs object)
     (permutation-matrix [m permutation]
       (let [v (mp/convert-to-nested-vectors permutation)
             n (count v)
@@ -1917,7 +2047,7 @@
 
 ;; TODO: can this implementation be improved?
 (extend-protocol mp/PBlockDiagonalMatrix
-  Object
+  #?(:clj Object :cljs object)
     (block-diagonal-matrix [m blocks]
       (let [aux (fn aux [acc blocks]
                   (if (empty? blocks)
@@ -1935,24 +2065,8 @@
                             (aux dm (subvec blocks 1)))))]
         (aux [] blocks))))
 
-;; Helper function for symmetric? predicate in PMatrixPredicates.
-;; Note loop/recur instead of letfn/recur is 20-25% slower.
-;; not possible to eliminate boxing warnings - needs to handle any numeric type
-(defn- symmetric-matrix-entries?
-  "Returns true iff square matrix m is symmetric."
-  [m]
-  (let [dim (long (first (mp/get-shape m)))]
-    (letfn [(f [^long i ^long j]
-              (cond
-                (>= i dim) true                         ; all entries match: symmetric
-                (>= j dim) (recur (+ 1 i) (+ 2 i))      ; all j's OK: restart with new i
-                (= (mp/get-2d m i j)
-                   (mp/get-2d m j i)) (recur i (inc j)) ; OK, so check next pair
-                :else false))]                          ; not same, not symmetric
-      (f 0 1))))
-
 (extend-protocol mp/PMatrixPredicates
-  Object
+  #?(:clj Object :cljs object)
   (identity-matrix? [m]
     (let [rc (long (mp/dimension-count m 0))
           cc (long (mp/dimension-count m 1))]
@@ -1989,15 +2103,15 @@
 ;; default implementation for higher-level array indexing
 
 (extend-protocol mp/PIndicesAccess
-  Object
+  #?(:clj Object :cljs object)
   (get-indices [a indices]
     (let [vals (map #(mp/get-nd a %1) (map mp/element-seq indices))] ;; TODO: use index coerce?
-      (or 
+      (or
         (when (array? a) (mp/construct-matrix a vals))
         (mp/construct-matrix [] vals)))))
 
 (extend-protocol mp/PIndicesSetting
-  Object
+  #?(:clj Object :cljs object)
   (set-indices [a indices values]
     (let [indices (map mp/element-seq indices)
           values (mp/element-seq (mp/broadcast values [(count indices)]))]
@@ -2011,7 +2125,7 @@
           (mp/set-nd! a id v) (recur idx vs))))))
 
 (extend-protocol mp/PNonZeroIndices
-  Object
+  #?(:clj Object :cljs object)
   (non-zero-indices
     [m]
     (if (mp/is-vector? m)
@@ -2023,7 +2137,7 @@
 
 ;; TODO: proper generic implementations
 (extend-protocol mp/PMatrixTypes
-  Object
+  #?(:clj Object :cljs object)
   (diagonal? [m]
     (if (= (long (mp/dimensionality m)) 2)
       (let [[^long mrows ^long mcols] (mp/get-shape m)]
@@ -2067,13 +2181,13 @@
     (select [a area]
       (when (seq area) (error "Trying to select on nil with selection: " area))
       nil)
-  Number
+  #?(:clj Number :cljs number)
     (select [a area]
       (when (seq area) (error "Trying to select on numerical scalar with selection: " area))
       a)
-  Object
+  #?(:clj Object :cljs object)
     (select [a area]
-      (or 
+      (or
         (mp/select-view a area) ;; use a view if supported by the implementation
         (wrap/wrap-selection a area))))
 
@@ -2081,17 +2195,17 @@
   nil
     (select-view [a area]
       (when (seq area) (error "Trying to select on nil with selection: " area))
-      nil)  Object
-  Number
+      nil)  #?(:clj Object :cljs object)
+  #?(:clj Number :cljs number)
     (select-view [a area]
       (when (seq area) (error "Trying to select on numerical scalar with selection: " area))
       a)
-  Object  
+  #?(:clj Object :cljs object)
     (select-view [a area]
       (wrap/wrap-selection a area)))
 
 (extend-protocol mp/PSelect
-  Number
+  #?(:clj Number :cljs number)
   (select [a area]
     (if (empty? area)
       a
@@ -2107,7 +2221,7 @@
 
 
 (extend-protocol mp/PSetSelection
-  Object
+  #?(:clj Object :cljs object)
   (set-selection [m area vals]
     (let [;; create a mutable clone
           mm (or (mp/mutable-matrix m)
@@ -2117,7 +2231,7 @@
       mm)))
 
 (extend-protocol mp/PIndexImplementation
-  Object
+  #?(:clj Object :cljs object)
 	  (index? [m]
       false) ;; we default to saying something isn't an index, unless it is explicitly supported
 	  (index-to-longs [m]
@@ -2135,34 +2249,34 @@
 ;; default label implementation
 
 (extend-protocol mp/PDimensionLabels
-  Object
+  #?(:clj Object :cljs object)
     (label [m dim i]
-      (if (<= 0 (long i) (dec (long (mp/dimension-count m dim)))) 
+      (if (<= 0 (long i) (dec (long (mp/dimension-count m dim))))
         nil
         (error "Dimension index out of range: " i)))
     (labels [m dim]
-      (if (<= 0 (long dim) (dec (long (mp/dimensionality m)))) 
+      (if (<= 0 (long dim) (dec (long (mp/dimensionality m))))
         nil
-        (error "Dimension out of range: " dim)))) 
+        (error "Dimension out of range: " dim))))
 
 (extend-protocol mp/PColumnNames
-  Object
+  #?(:clj Object :cljs object)
     (column-name [m i]
-      (let [dim (dec (long (mp/dimensionality m)))] 
+      (let [dim (dec (long (mp/dimensionality m)))]
         (mp/label m dim i)))
     (column-names [m]
-      (let [dim (dec (long (mp/dimensionality m)))] 
-        (mp/labels m dim)))) 
+      (let [dim (dec (long (mp/dimensionality m)))]
+        (mp/labels m dim))))
 
 
 ;; =======================================================
 ;; default linear algebra implementations
 
 (extend-protocol mp/PNorm
-  Object
+  #?(:clj Object :cljs object)
   (norm [m p]
     (cond
-      (= p Double/POSITIVE_INFINITY) (mp/element-max m)
+      (= p #?(:clj Double/POSITIVE_INFINITY :cljs js/Number.POSITIVE_INFINITY)) (mp/element-max m)
       (number? p) (mp/element-sum (mp/element-pow (mp/element-map m mops/abs) p))
       :else (error "p must be a number"))))
 
@@ -2170,7 +2284,7 @@
 
 (defn compute-q [m ^doubles qr-data mcols mrows min-len
                  ^doubles us ^doubles vs ^doubles gammas]
-  (let [q ^doubles (mp/to-double-array (mp/identity-matrix vector mrows))
+  (let [q ^doubles (mp/to-double-array (mp/identity-matrix [] mrows))
         mcols (long mcols)
         mrows (long mrows)
         min-len (long min-len)]
@@ -2225,9 +2339,9 @@
                   0)))]
     (if compact?
       (let [slcs (mp/get-major-slice-seq cm)
-            non-zero-rows (long (reduce 
-                            (fn [^long cnt slice] (if (every? zero? slice) (inc cnt) cnt)) 
-                            0 
+            non-zero-rows (long (reduce
+                            (fn [^long cnt slice] (if (every? zero? slice) (inc cnt) cnt))
+                            0
                             slcs))]
         ;; TODO: is this broken? Looks like mcols and mrows in wrong order?
         (mp/reshape cm [mcols (- mrows non-zero-rows)]))
@@ -2269,7 +2383,7 @@
            :error false})))))
 
 (defn update-qr [^doubles qr-data idx mcols mrows ^doubles vs
-                 ^doubles us ^Double gamma ^Double tau]
+                 ^doubles us gamma tau]
   (let [idx (long idx)
         mrows (long mrows)
         mcols (long mcols)
@@ -2315,7 +2429,7 @@
 
 
 (extend-protocol mp/PQRDecomposition
-  Object
+  #?(:clj Object :cljs object)
   (qr [m options]
     (let [[mrows mcols] (mp/get-shape m)
           mrows (long mrows)
@@ -2350,43 +2464,33 @@
            (into {})))))))
 
 ;; temp var to prevent recursive coercion if implementation does not support liear algebra operation
-(def ^:dynamic *trying-current-implementation* nil)
-
-(defmacro try-current-implementation
-  [sym form]
-  `(if *trying-current-implementation*
-     (TODO (str "Not yet implemented: " ~(str form) " for " (class ~sym)))
-     (binding [*trying-current-implementation* true]
-       (let [imp# (imp/get-canonical-object)
-             ~sym (mp/coerce-param imp# ~sym)]
-         ~form))))
-
 (extend-protocol mp/PCholeskyDecomposition
-  Object
+  #?(:clj Object :cljs object)
   (cholesky [m options]
     (try-current-implementation m (mp/cholesky m options))))
 
 (extend-protocol mp/PLUDecomposition
-  Object
+  #?(:clj Object :cljs object)
   (lu [m options]
     (try-current-implementation m (mp/lu m options))))
 
 (extend-protocol mp/PSVDDecomposition
-  Object
+  #?(:clj Object :cljs object)
   (svd [m options]
     (try-current-implementation m (mp/svd m options))))
 
 (extend-protocol mp/PEigenDecomposition
-  Object
+  #?(:clj Object :cljs object)
   (eigen [m options]
     (try-current-implementation m (mp/eigen m options))))
 
 (extend-protocol mp/PSolveLinear
-  Object
+  #?(:clj Object :cljs object)
   (solve [a b]
     (try-current-implementation a (mp/solve a b))))
 
 (extend-protocol mp/PLeastSquares
-  Object
+  #?(:clj Object :cljs object)
   (least-squares [a b]
     (try-current-implementation a (mp/least-squares a b))))
+
