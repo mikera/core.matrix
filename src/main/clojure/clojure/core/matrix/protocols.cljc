@@ -963,6 +963,14 @@
     "Return a binary array or matrix where elements of m equal to a are
     represented by 1 and elements not-equal to a are represented as 0."))
 
+(defprotocol PBLASBase
+  "Base blas support.  Note that the largest differences
+from the C blas functions is that the return value is provided
+first so that the protocol machinery can work (as opposed to alpha, which
+would often be a numeric base type)."
+  (gemm! [c trans-a? trans-b? alpha a b beta])
+  (gemv! [c trans-a? alpha a b beta]))
+
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."
   ;; note that protocols don't like variadic args, so we convert to regular args
