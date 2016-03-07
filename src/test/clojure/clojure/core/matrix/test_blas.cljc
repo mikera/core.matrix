@@ -17,16 +17,30 @@
         b (m/array [[11 13] [17 19]])
         c (m/array [[1 2] [3 4]])]
     (let [c (m/mutable c)]
-      (is (m/equals [[73 83] [174 198]] (blas/gemm! c 1.0 a b))))
+      (is (m/equals [[73 83] [174 198]] (blas/gemm! 1.0 a b c))))
     (let [c (m/mutable c)]
-      (is (m/equals [[75 87] [180 206]] (blas/gemm! c 1.0 a b 2.0))))))
+      (is (m/equals [[75 87] [180 206]] (blas/gemm! 1.0 a b 2.0 c))))))
 
 (deftest test-gemv!
   (let [a (m/array [[2 3] [5 7]])
         b (m/array [11 17])
         c (m/array [1 2])]
     (let [c (m/mutable c)]
-      (is (m/equals [73 174] (blas/gemv! c 1.0 a b))))
+      (is (m/equals [73 174] (blas/gemv! 1.0 a b c))))
     (let [c (m/mutable c)]
-      (is (m/equals [75 178] (blas/gemv! c 1.0 a b 2.0))))))
+      (is (m/equals [75 178] (blas/gemv! 1.0 a b 2.0 c))))))
+
+(deftest test-gemm
+  (let [a (m/array [[2 3] [5 7]])
+        b (m/array [[11 13] [17 19]])
+        c (m/array [[1 2] [3 4]])]
+    (is (m/equals [[73 83] [174 198]] (blas/gemm 1.0 a b c)))
+    (is (m/equals [[75 87] [180 206]] (blas/gemm 1.0 a b 2.0 c)))))
+
+(deftest test-gemv
+  (let [a (m/array [[2 3] [5 7]])
+        b (m/array [11 17])
+        c (m/array [1 2])]
+    (is (m/equals [73 174] (blas/gemv 1.0 a b c)))
+    (is (m/equals [75 178] (blas/gemv 1.0 a b 2.0 c)))))
 
