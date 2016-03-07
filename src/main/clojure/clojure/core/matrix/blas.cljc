@@ -3,7 +3,7 @@
             [clojure.core.matrix.utils :as u]))
   
 (defn gemm!
-  "Implements the BLAs operation: DEST := alpha*A*B + beta*DEST.
+  "Implements the BLAS operation: DEST := alpha*A*B + beta*DEST.
    Optionally transposes matrices A and B. If beta is not provided, defaults to 0.0."
   ([dest alpha a b]
     (mp/gemm! dest false false alpha a b 0.0))
@@ -13,7 +13,7 @@
     (mp/gemm! dest trans-a? trans-b? alpha a b beta)))
 
 (defn gemv! 
-  "Implements the BLAs operation: DEST := alpha*A*B + beta*DEST
+  "Implements the BLAS operation: DEST := alpha*A*B + beta*DEST
    Optionally transposes matrix A. If beta is not provided, defaults to 0.0."
   ([dest alpha a b]
     (mp/gemv! dest false alpha a b 0.0))
