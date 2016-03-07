@@ -11,7 +11,7 @@
 
   :profiles {:dev
              {:dependencies
-              [[net.mikera/vectorz-clj "0.43.0" :exclusions [net.mikera/core.matrix]]
+              [[net.mikera/vectorz-clj "0.43.1" :exclusions [net.mikera/core.matrix]]
                [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
                [org.clojure/test.check "0.9.0"]
                [net.mikera/cljunit "0.4.0"]
