@@ -63,7 +63,7 @@
   "Calculates the sample standard deviation of a set of values.
    Values may be scalars, vectors or higher-dimensional matrices."
   ([values]
-    (Math/sqrt (variance values))))
+    (m/sqrt (variance values))))
 
 (defn normalise-probabilities
   "Normalises a numerical probability vector, i.e. to a vector where all elements sum to 1.0.
