@@ -7,6 +7,20 @@
 (deftest test-sample-uniform
   (is (= [10] (mat/shape (r/sample-uniform 10))))
   (is (= [10] (mat/shape (r/sample-uniform [10]))))
+  (is (number? (mat/scalar (r/sample-uniform []))))
+  (is (< 0 (mat/emin (r/sample-uniform [10]))))
+  (is (> 1 (mat/emax (r/sample-uniform [10])))))
+
+(deftest test-sample-normal
+  (is (= [10] (mat/shape (r/sample-normal 10))))
+  (is (= [10] (mat/shape (r/sample-normal [10]))))
+  (is (number? (mat/scalar (r/sample-normal []))))
+  (is (> 0 (mat/emin (r/sample-normal [100]))))
+  (is (< 0 (mat/emax (r/sample-normal [100])))))
+
+(deftest test-sample-uniform
+  (is (= [10] (mat/shape (r/sample-uniform 10))))
+  (is (= [10] (mat/shape (r/sample-uniform [10]))))
   (is (number? (mat/scalar (r/sample-uniform [])))))
 
 (deftest test-random-sequence
