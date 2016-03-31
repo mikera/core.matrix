@@ -86,7 +86,7 @@
       (m/compute-matrix
         size
         (fn [& ixs]
-          #?(:clj (.nextDouble r)
+          #?(:clj (.nextGaussian r)
              :cljs (rand)))))))
 
 (defn sample-rand-int
