@@ -651,6 +651,15 @@
     [m a b factor]
     "Adds the inner product of a, b and an optional scalar factor to m"))
 
+(defprotocol PAddOuterProductMutable
+  "Protocol to support the mutable add-outer-product! operation. This is a common operation that may be
+   optimised by the underlying implementation. Implementations should consider extra optimisations for
+   specific constant factors e.g. 0.0 and 1.0 but this is not mandatory."
+  (add-outer-product!
+    [m a b]
+    [m a b factor]
+    "Adds the outer product of a, b and an optional scalar factor to m"))
+
 (defprotocol PSetInnerProductMutable
   "Protocol to support the mutable set-inner-product! operation. This is a common operation that may be
    optimised by the underlying implementation. Implementations should consider extra optimisations for

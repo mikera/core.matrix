@@ -1624,6 +1624,17 @@ elements not-equal to the argument are 0.
     (mp/add-inner-product! m a b factor)
     m))
 
+(defn add-outer-product!
+  "Adds the inner product of two numerical arrays to the first array.
+   Returns the mutated array.
+   This is equivalent to (add! m (outer-product a b)) but may be optimised by the underlying implementation."
+  ([m a b]
+    (mp/add-outer-product! m a b)
+    m)
+  ([m a b factor]
+    (mp/add-outer-product! m a b factor)
+    m))
+
 (defn set-inner-product!
   "Sets an array equal to the inner product of two numerical arrays.
    Returns the mutated first array.

@@ -1101,6 +1101,14 @@
       ([m a b factor]
         (mp/add-scaled! m (mp/inner-product a b) factor))))
 
+(extend-protocol mp/PAddOuterProductMutable
+  #?(:clj Object :cljs object)
+    (add-outer-product!
+      ([m a b]
+        (mp/matrix-add! m (mp/outer-product a b)))
+      ([m a b factor]
+        (mp/add-scaled! m (mp/outer-product a b) factor))))
+
 (extend-protocol mp/PSetInnerProductMutable
   #?(:clj Object :cljs object)
     (set-inner-product!

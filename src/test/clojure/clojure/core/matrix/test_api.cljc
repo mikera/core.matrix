@@ -228,6 +228,11 @@
   (is (m/equals [2 6] (m/scale-add [1 0] 2 [0 2] 3)))
   (is (m/equals [3 7] (m/scale-add [1 0] 2 [0 2] 3 1))))
 
+(deftest test-add-outer-product!
+  (let [m (m/mutable [[1 2] [3 4]])]
+    (m/add-outer-product! m [10 100] [7 9])
+    (is (m/equals [[71 92] [703 904]] m))))
+
 (deftest test-lerp
   (is (m/equals [2 6] (m/lerp [1 0] [3 12] 0.5))))
 
