@@ -802,7 +802,8 @@
             1 (mapv first (sort-by second (map vector (range (mp/element-count m)) (mp/element-seq m))))
             (mapv mp/index-rank (mp/get-major-slice-seq m)))))
       ([m comparator]
-        (let [dims (long (mp/dimensionality m))]
+        (let [comparator (clojure.core/comparator comparator)
+              dims (long (mp/dimensionality m))]
           (case dims
             0 (error "Can't get indexed rank of a scalar value")
             1 (mapv first (sort-by second comparator (map vector (range (mp/element-count m)) (mp/element-seq m))))
