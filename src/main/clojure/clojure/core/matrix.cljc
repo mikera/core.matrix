@@ -606,6 +606,19 @@
     (and (== (long (mp/dimensionality m)) 2)
          (== 1 (dimension-count m 1)))))
 
+(defn rank
+  "Returns the rank of each element in an array, as an array of indexes with 0 being first, in ascending order.
+
+   If passed a higher dimensional array, returns an array of ranks along the last dimension.
+
+   An optional comparator may be provided, otherwise the default comparator will be used. Comparator should
+   support java.util.Comparator on the JVM, although some implementations may support alternative comparator types 
+   e.g. Clojure predicates. Please check the documentation for your core.matrix implementation."
+  ([a]
+    (mp/index-rank a))
+  ([a comparator]
+    (mp/index-rank a comparator)))
+
 (defn shape
   "Returns the shape of an array, i.e. the dimension sizes for all dimensions.
 

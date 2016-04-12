@@ -792,6 +792,22 @@
       ([m dim indices]
         (mp/order (mp/convert-to-nested-vectors m) dim indices))))
 
+(extend-protocol mp/PIndexRank
+  #?(:clj Object :cljs object)
+    (index-rank 
+      ([m] 
+        (let [dims (long (mp/dimensionality m))]
+          (case dims
+            0 (error "Can't get indexed rank of a scalar value")
+            1 (mapv first (sort-by second (map vector (range (mp/element-count m)) (mp/element-seq m))))
+            (mapv mp/index-rank (mp/get-major-slice-seq m)))))
+      ([m comparator]
+        (let [dims (long (mp/dimensionality m))]
+          (case dims
+            0 (error "Can't get indexed rank of a scalar value")
+            1 (mapv first (sort-by second comparator (map vector (range (mp/element-count m)) (mp/element-seq m))))
+            (mapv #(mp/index-rank % comparator) (mp/get-major-slice-seq m)))))))
+
 ;; not possible to remove boxing warning, may be any numeric type
 (extend-protocol mp/PMatrixProducts
   #?(:clj Number :cljs number)

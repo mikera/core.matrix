@@ -805,6 +805,13 @@
   (rank [m]
         "Returns the rank of a matrix"))
 
+(defprotocol PIndexRank
+  "Protocol to support ranking of elements in an array."
+  (index-rank 
+    [m]
+    [m comparator] 
+    "Returns an array of indexed ranks, using an optional comparator"))
+
 (defprotocol PSummable
   "Protocol to support the summing of all elements in an array.
    The array must hold numeric values only, or an exception will be thrown."
