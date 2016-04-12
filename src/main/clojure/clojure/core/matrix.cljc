@@ -616,7 +616,7 @@
    e.g. Clojure predicates. Please check the documentation for your core.matrix implementation."
   ([a]
     (mp/index-rank a))
-  ([a comparator]
+  ([comparator a]
     (mp/index-rank a comparator)))
 
 (defn shape

@@ -345,10 +345,16 @@
   (is (error? (m/logistic! 0.7))))
 
 (deftest test-rank
-  (is (error? (m/rank 1)))
-  (is (= [0 2 1] (m/rank [10 30 20])))
-  (is (= [0 1 2] (sort (m/rank ["a" "a" "a"]))))
-  (is (= [[2 1 0] [0 1 2]] (m/rank [[:z :m :a] [-100 0.0 1000]]))))
+  (testing "default comparators"
+    (is (error? (m/rank 1)))
+    (is (= [0 2 1] (m/rank [10 30 20])))
+    (is (= [0 1 2] (sort (m/rank ["a" "a" "a"]))))
+    (is (= [[2 1 0] [0 1 2]] (m/rank [[:z :m :a] [-100 0.0 1000]]))))
+  (testing "custom comparators"
+    (is (error? (m/rank identity 1)))
+    (is (= [2 0 1] (m/rank > [10 30 20])))
+    (is (= [0 2 1] (m/rank #(< (count %1) (count %2)) ["a" "ccc" "bb"])))
+    (is (= [[0 1 2] [2 1 0]] (m/rank > [[8 7 6] [-1.0 1.0 3.0]])))))
 
 (deftest test-addition
   (testing "matrix addition"

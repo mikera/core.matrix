@@ -792,6 +792,18 @@
       ([m dim indices]
         (mp/order (mp/convert-to-nested-vectors m) dim indices))))
 
+(defn- output-rank
+  "Outputs a vector containing the rank of array elements, given a sorted sequence of [index value] pairs and a length"
+  ([pairs n]
+    (let [^objects dest (object-array n)]
+      (loop [i (long 0)
+             pairs (seq pairs)]
+        (when (< i n)
+          (aset dest (first (first pairs)) (Long/valueOf i))
+          (recur (inc i)
+                 (next pairs))))
+      (vec dest))))
+
 (extend-protocol mp/PIndexRank
   #?(:clj Object :cljs object)
     (index-rank 
@@ -799,15 +811,16 @@
         (let [dims (long (mp/dimensionality m))]
           (case dims
             0 (error "Can't get indexed rank of a scalar value")
-            1 (mapv first (sort-by second (map vector (range (mp/element-count m)) (mp/element-seq m))))
+            1 (let [n (long (mp/element-count m))]
+                (output-rank (sort-by second (map vector (range (mp/element-count m)) (mp/element-seq m))) n))
             (mapv mp/index-rank (mp/get-major-slice-seq m)))))
-      ([m comparator]
-        (let [comparator (clojure.core/comparator comparator)
-              dims (long (mp/dimensionality m))]
+      ([m comp]
+        (let [dims (long (mp/dimensionality m))]
           (case dims
             0 (error "Can't get indexed rank of a scalar value")
-            1 (mapv first (sort-by second comparator (map vector (range (mp/element-count m)) (mp/element-seq m))))
-            (mapv #(mp/index-rank % comparator) (mp/get-major-slice-seq m)))))))
+            1 (let [n (long (mp/element-count m))]
+                (output-rank (sort-by second comp (map vector (range (mp/element-count m)) (mp/element-seq m))) n))
+            (mapv #(mp/index-rank % comp) (mp/get-major-slice-seq m)))))))
 
 ;; not possible to remove boxing warning, may be any numeric type
 (extend-protocol mp/PMatrixProducts
