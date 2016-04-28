@@ -58,6 +58,9 @@
     (is (= (select-rows ds [1 2])
            (dataset [:a :b :c] (matrix [[2 5 9] [3 6 9]]))))))
 
+(deftest test-row-emap
+  (is (equals [2 3] (emap inc (first (slices (dataset [[1 2] [-1 -2]])))))))
+
 (deftest test-to-map
   (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]
     (is (= (to-map ds) {:a [1 2 3] :b [4 5 6]}))))

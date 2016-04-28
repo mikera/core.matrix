@@ -420,7 +420,8 @@
   (let [im-name (mp/implementation-key m)]
     (if (#{:nd-wrapper
            :slice-wrapper
-           :scalar-wrapper} im-name)
+           :scalar-wrapper
+           :dataset} im-name)
       true
       (doseq [proto (u/extract-protocols)]
         (doseq [[_ {:keys [name arglists]}] (:sigs proto)

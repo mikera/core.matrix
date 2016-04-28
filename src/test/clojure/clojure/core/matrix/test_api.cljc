@@ -387,6 +387,19 @@
     (let [m [[1 2] [3 4]]]
       (is (m/e= (m/transpose m) (m/transpose! (m/mutable m)))))))
 
+(deftest test-slice-map
+  (testing "single arity"
+    (is (m/equals [2 3 4] (m/slice-map inc [1 2 3])))
+    (is (m/equals [2 4 6] (m/slice-map m/maximum [[[0 1] [1 2]] 
+                                                  [[4 3] [2 1]] 
+                                                  [[1 2] [5 6]]]))))
+  (testing "double arity"
+    (is (m/equals [2 12 103] (m/slice-map + [1 2 3] [1 10 100])))
+    (is (m/equals [[7 8] [6 7]] (m/slice-map m/sub [[10 11] [12 13]] [3 6]))))
+  (testing "multi arity"
+    (is (m/equals [5 16 108] (m/slice-map + [1 2 3] [1 10 100] [3 4 5])))
+    (is (m/equals [[6 6] [6 6]] (m/slice-map m/sub [[10 11] [12 13]] [3 6] [[1 2] [0 1]])))))
+
 #?(:clj
 (deftest test-det
   (testing "determinant"

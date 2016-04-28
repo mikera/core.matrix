@@ -987,6 +987,14 @@ would often be a numeric base type)."
   (gemm! [c trans-a? trans-b? alpha a b beta])
   (gemv! [c trans-a? alpha a b beta]))
 
+(defprotocol PSliceMap
+  "Maps a function over every slice of one or more arrays."
+  (slice-map
+    [m f]
+    [m f a]
+    [m f a more]
+    "Maps f over all slices of m (and optionally other arrays)"))
+
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."
   ;; note that protocols don't like variadic args, so we convert to regular args

@@ -4,7 +4,7 @@
             [clojure.core.matrix.impl.mathsops :as mops :refer [to-degrees* to-radians*]]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.double-array :as da]
-            [clojure.core.matrix.impl.common :refer [logistic-fn softplus-fn relu-fn
+            [clojure.core.matrix.impl.common :refer [logistic-fn softplus-fn relu-fn construct-matrix
                                                      square? symmetric-matrix-entries? mapmatrix]]
             [clojure.core.matrix.utils :as u])
   #?@(:clj [(:require
@@ -65,7 +65,6 @@
           (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray-double :cljs :aljabr)) m)
         :else
           (mp/coerce-param (imp/get-canonical-object #?(:clj :ndarray :cljs :aljabr)) m)))))
-
 
 ;; ============================================================
 ;; Default implementations
@@ -1395,6 +1394,22 @@
       (dotimes [j (mp/dimension-count column 0)]
         (mp/set-2d! m j i (mp/get-1d column j))))))
 
+;; slice-map
+(extend-protocol mp/PSliceMap
+  #?(:clj Object :cljs object)
+  (slice-map
+    ([m f]
+      (construct-matrix m (mapv f (mp/get-major-slice-seq m))))
+    ([m f a]
+      (construct-matrix m (mapv f 
+                                (mp/get-major-slice-seq m)
+                                (mp/get-major-slice-seq a))))
+    ([m f a more]
+      (construct-matrix m (apply mapv f 
+                                 (mp/get-major-slice-seq m)
+                                 (mp/get-major-slice-seq a)
+                                 (map mp/get-major-slice-seq more))))))
+
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
   #?(:clj Number :cljs number)
@@ -1439,16 +1454,16 @@
           :else (error "Don't know how to create element-seq from: " m))))
     (element-map
       ([m f]
-        (mp/construct-matrix m (mapmatrix f m)))
+        (construct-matrix m (mapmatrix f m)))
       ([m f a]
         (let [[m a] (mp/broadcast-same-shape m a)]
-          (mp/construct-matrix m (mapmatrix f m a))))
+          (construct-matrix m (mapmatrix f m a))))
       ([m f a more]
         (let [arrays (cons m (cons a more))
               shapes (map mp/get-shape arrays)
               sh (or (mp/common-shape shapes) (error "Attempt to do element map with incompatible shapes: " (mapv mp/get-shape arrays)))
               arrays (map #(mp/broadcast % sh) arrays)]
-          (mp/construct-matrix m (apply mapmatrix f arrays)))))
+          (construct-matrix m (apply mapmatrix f arrays)))))
 
     (element-map!
       ([m f]

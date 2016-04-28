@@ -45,6 +45,14 @@
 
 ))
 
+(defn construct-matrix
+  "Constructs an array from the provided data, attempying to use the given implementation.
+   Uses a default implementation if needed"
+  ([impl data]
+    (or (mp/construct-matrix impl data)
+        (mp/construct-matrix mi/*matrix-implementation* data)
+        (mp/construct-matrix [] data))))
+
 (defn mapmatrix
   "Maps a function over all components of a persistent vector matrix. Like mapv but for matrices.
    Assumes correct dimensionality / shape.
@@ -57,7 +65,7 @@
    (let [dims (long (mp/dimensionality m))]
      (cond
        (== 0 dims) (f (scalar-coerce m))
-       (== 1 dims) (mp/construct-matrix m
+       (== 1 dims) (construct-matrix m
                      (map f (mp/element-seq m)))
        :else
        (let [res (map (partial mapmatrix f) (mp/get-major-slice-seq m))]
@@ -67,7 +75,7 @@
     (let [dims (long (mp/dimensionality m1))]
       (cond
         (== 0 dims) (f (scalar-coerce m1) (scalar-coerce m2))
-        (== 1 dims) (mp/construct-matrix m1
+        (== 1 dims) (construct-matrix m1
                       (map f (mp/element-seq m1) (mp/element-seq m2)))
         :else
         (let [res (map (partial mapmatrix f) (mp/get-major-slice-seq m1) (mp/get-major-slice-seq m2))]
@@ -77,7 +85,7 @@
     (let [dims (long (mp/dimensionality m1))]
       (cond
         (== 0 dims) (f (scalar-coerce m1) (scalar-coerce m2) (scalar-coerce m3))
-        (== 1 dims) (mp/construct-matrix m1
+        (== 1 dims) (construct-matrix m1
                       (map f (mp/element-seq m1) (mp/element-seq m2) (mp/element-seq m3)))
         :else
         (let [res (mapv (partial mapmatrix f)
@@ -91,7 +99,7 @@
       (cond
         (== 0 dims) (apply f (scalar-coerce m1) (scalar-coerce m2)
                            (scalar-coerce m3) (map mp/get-0d more))
-        (== 1 dims) (mp/construct-matrix m1
+        (== 1 dims) (construct-matrix m1
                       (apply map f (mp/element-seq m1) (mp/element-seq m2)
                              (mp/element-seq m3) (map mp/element-seq more)))
         :else

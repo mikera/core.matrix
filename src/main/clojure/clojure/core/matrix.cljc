@@ -2048,10 +2048,14 @@ elements not-equal to the argument are 0.
   ([f m a & more]
     (mp/element-map-indexed m f a more)))
 
-;(defn slice-map
-;  "Maps a function over all all slices of an array"
-;  ([f m]
-;    (mp/slice-map m f)))
+(defn slice-map
+  "Maps a function over all slices of one or more array"
+  ([f m]
+    (mp/slice-map m f))
+  ([f m1 m2]
+    (mp/slice-map m1 f m2))
+  ([f m1 m2 & more]
+    (mp/slice-map m1 f m2 more)))
 
 (defn esum
   "Calculates the sum of all the elements in a numerical array."
