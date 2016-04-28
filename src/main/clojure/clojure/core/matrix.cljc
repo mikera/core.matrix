@@ -2068,6 +2068,16 @@ elements not-equal to the argument are 0.
   ([m]
     (mp/element-max m)))
 
+(defn minimum
+  "Gets the minimum element value from a numerical array"
+  ([m]
+    (mp/element-min m)))
+
+(defn maximum
+  "Gets the maximum element value from a numerical array"
+  ([m]
+    (mp/element-max m)))
+
 (defn clamp
   "Clamps each element in a numerical array between lower and upper bounds
   specified by a and b, respectively.
