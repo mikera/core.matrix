@@ -79,8 +79,9 @@
                        clojure.core.matrix.protocols
                        clojure.core.matrix.random
                        clojure.core.matrix.implementations
-                       clojure.core.matrix.select
-                       clojure.core.matrix.stats]
+                       clojure.core.matrix.selection
+                       clojure.core.matrix.stats
+                       clojure.core.matrix.utils]
           :src-dir-uri "https://github.com/mikera/core.matrix/blob/master/"
           :src-linenum-anchor-prefix "L"})
 
