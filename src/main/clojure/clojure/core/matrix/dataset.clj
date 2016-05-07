@@ -142,6 +142,15 @@
           selected (filterv (complement col-names) (column-names ds))]
       (mp/select-columns ds selected))))
 
+(defn ^{:deprecated true} except-columns
+  "Returns new dataset with the specified columns removed.
+
+   DEPRECATED: please use remove-columns instead"
+  ([ds col-names]
+    (let [col-names (into #{} col-names)
+          selected (filterv (complement col-names) (column-names ds))]
+      (mp/select-columns ds selected))))
+
 (defn row-maps
   "Returns vector of maps with row values."
   ([ds]
