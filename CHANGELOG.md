@@ -17,11 +17,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.50.2] - 2016-03-31
 ### Fixed
-- Fixes issue with c.c.m.stats/sample-normal to create proper gaussians
+- Fix issue with c.c.m.stats/sample-normal to create proper gaussians
 
 ## [0.50.1] - 2016-03-31
 ### Fixed
-- Fixes issue with c.c.m.stats/sd
+- Fix issue with c.c.m.stats/sd
 
 ## [0.50.0] - 2016-03-07
 ### Added
