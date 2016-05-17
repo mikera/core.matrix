@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.52.0]
+## [0.52.0] - 2016-05-07
 ### Added
 - minimum and maximum functions
 - Indexed ranking functionality
@@ -11,7 +11,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Add back deprecated except-columns function (was breaking current Incanter release)
 
-## [0.51.0]
+## [0.51.0] - 2016-04-01
 ### Added
 - add-outer-product! API function
 
