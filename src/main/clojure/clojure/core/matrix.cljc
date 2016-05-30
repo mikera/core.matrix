@@ -819,7 +819,8 @@
 (defn get-row
   "Gets a row of a matrix, as a 1D vector.
 
-   May return a mutable view if supported by the implementation."
+   The format of the returned 1D vector is determined by the implementation of the source matrix. 
+   get-row may return a lightweight mutable view if supported by the implementation."
   ([m x]
     (mp/get-row m x)))
 
@@ -827,7 +828,8 @@
 (defn get-column
   "Gets a column of a matrix, as a 1D vector.
 
-   May return a mutable view if supported by the implementation."
+   The format of the returned 1D vector is determined by the implementation of the source matrix. 
+   get-column may return a lightweight mutable view if supported by the implementation."
   ([m y]
      (mp/get-column m y)))
 
@@ -937,8 +939,11 @@
 
 (defn submatrix
   "Gets a view of a submatrix, for a set of index ranges.
+   
    Index ranges should be [start, length] pairs.
-   Index range pairs can be nil (gets the whole range) "
+   Index range pairs can be nil (gets the whole range)
+
+   May be a mutable view if supported by the implementation."
   ([m index-ranges]
     (mp/submatrix m index-ranges))
   ([m dimension index-range]
@@ -947,19 +952,21 @@
     (mp/submatrix m [(list row-start row-length) (list col-start col-length)])))
 
 (defn subvector
-  "Gets a view of part of a vector. The view maintains a reference to the original,
+  "Gets a view of part of a vector, specifed by a start index and length.
+
+   The view maintains a reference to the original,
    so can be used to modify the original vector if it is mutable."
   ([m start length]
     (mp/subvector m start length)))
 
 (defn slice
   "Gets a slice of an array along a specific dimension.
-   The returned array will have one less dimension.
-
-   Slicing a 1D vector will return a scalar.
+   
+   The returned array will have one less dimension, i.e. slicing a matrix will return a vector
+   and slicing a 1D vector will return a scalar.
 
    Slicing on the first dimension (dimension 0) is likely to perform better
-   for many array implementations, and is therefore the default if no
+   for many array implementations. This is the default if no
    dimension is specified."
   ([m index]
     (mp/get-slice m 0 index))
@@ -981,7 +988,7 @@
    otherwise slices along the first dimension. If the matrix implementation supports mutable views, these views
    can be used to mutate portions of the original array.
 
-   The key difference between 'slices' and 'slice-views' is that 'slice-views' must always return views. In order
+   A key difference between 'slices' and 'slice-views' is that 'slice-views' must always return views. In order
    to ensure this behaviour on mutable 1-dimensioanal arrays, it must return a sequence of 0-dimensioanal arrays."
   ([m]
     (mp/get-major-slice-view-seq m))
