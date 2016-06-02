@@ -17,7 +17,7 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>cljunit</artifactId>
-			<version>0.4.0</version>
+			<version>0.4.1</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -46,7 +46,7 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>vectorz-clj</artifactId>
-			<version>0.43.1</version>
+			<version>0.44.1</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -64,7 +64,7 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>clojurescript</artifactId>
-			<version>1.7.228</version>
+			<version>1.9.14</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
