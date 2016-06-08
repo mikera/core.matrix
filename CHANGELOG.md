@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.52.1] - 2016-06-08
+### Added
+- core.matrix now has a CHANGELOG
+
+### Fixed
+- Update dependencies for Clojure 1.9.0 Alpha, latest Clojurescript version
+
 ## [0.52.0] - 2016-05-07
 ### Added
 - minimum and maximum functions
