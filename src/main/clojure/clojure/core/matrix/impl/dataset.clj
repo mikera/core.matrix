@@ -198,13 +198,14 @@
      ds1 (mp/to-map ds2)))
   (rename-columns [ds col-map]
     (reduce
-     (fn [acc [k v]]
-       (let [^List colnames (mp/column-names acc)
-             idx (.indexOf colnames k)]
-         (if (> idx -1)
-           (dataset-from-columns (assoc colnames idx v) (mp/get-columns acc))
-           (error "Column " k " is not found in the dataset"))))
-     ds col-map))
+      (fn [acc [k v]]
+        (let [^List colnames (mp/column-names acc)
+              idx (.indexOf colnames k)]
+          (if (> idx -1)
+            (dataset-from-columns (assoc colnames idx v) (mp/get-columns acc))
+            (error "Column " k " is not found in the dataset"))))
+      ds 
+      col-map))
   (replace-column [ds col-name vs]
     (let [^List col-names (.column-names ds)
           idx (.indexOf col-names col-name)]
