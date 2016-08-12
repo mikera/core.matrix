@@ -33,6 +33,7 @@
    :clatrix 'clatrix.core
    :parallel-colt :TODO
    :ejml :TODO
+   :nd4j 'nd4clj.kiw
    :ujmp :TODO
    :commons-math 'apache-commons-matrix.core
    :mtj 'cav.mtj.core.matrix
