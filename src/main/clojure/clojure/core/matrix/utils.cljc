@@ -39,16 +39,18 @@
              (recur (next vals#) (inc ~index-sym)))
        nil))))
 
-;; this duplicates clojure.core.matrix.utils.macros
-;(defmacro error?
-;  "Returns true if executing body throws an error, false otherwise."
-;  ([& body]
-;    `(try
-;       ~@body
-;       false
-;       (catch #?(:clj Throwable :cljs js/Error) t#
-;         true))))
-;
+; this duplicates clojure.core.matrix.utils.macros
+;; however needed to allow some legacy code to run
+#?(:clj 
+    (defmacro error?
+  "Returns true if executing body throws an error, false otherwise."
+  ([& body]
+    `(try
+       ~@body
+       false
+       (catch #?(:clj Throwable :cljs js/Error) t#
+         true)))))
+
 ;;; this duplicates clojure.core.matrix.utils.macros
 ;(defmacro doseq-indexed
 ;  "loops over a set of values, binding index-sym to the 0-based index of each value"
