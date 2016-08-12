@@ -78,7 +78,7 @@ matrix implementations. The most mature implementations are currently:
  - [**vectorz-clj**](https://github.com/mikera/vectorz-clj) : a fast pure-JVM matrix library for Clojure
  - [**Clatrix**](https://github.com/tel/clatrix) : native code matrix library using BLAS
  - **NDArray** : a general purpose pure Clojure N-dimensional array implementation, included as part of `core.matrix` itself
- - [**nd4clj**](https://github.com/ds923y/nd4clj) : This is a wrapper around the Nd4j api (http://nd4j.org) a native code and GPU accelerated matrix library
+ - [**nd4clj**](https://github.com/ds923y/nd4clj) : This is a wrapper around the [Nd4j](http://nd4j.org) api a native code and GPU accelerated matrix library
 
 For Clojurescript:
 
