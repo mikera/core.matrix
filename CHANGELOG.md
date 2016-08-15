@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.53.1] - 2016-08-12
+### Fixed
+- Improve error messages
+
 ## [0.53.0] - 2016-08-12
 ### Added
 - References to ND4J implementation
