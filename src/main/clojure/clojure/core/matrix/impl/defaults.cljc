@@ -404,10 +404,10 @@
                       (dotimes [i msize] (mp/set-1d! m i value)))
                   (== 1 xdims)
                     (do
-                      (when (not= msize (long (mp/dimension-count x 0))) (error "Mismatched shapes in assign!"))
+                      (when (not= msize (long (mp/dimension-count x 0))) (error "Mismatched shapes in assign to array of shape: " (mp/get-shape m) " with argument of shape: " (mp/get-shape x)))
                       (dotimes [i msize] (mp/set-1d! m i (mp/get-1d x i))))
                   :else
-                    (error "Can't assign! withan argument of higher dimensionality"))))
+                    (error "Can't assign! with an argument of higher dimensionality"))))
 
           (array? m)
             (let [xdims (long (mp/dimensionality x))]
