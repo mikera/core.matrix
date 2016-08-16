@@ -253,13 +253,15 @@
     (mp/block-diagonal-matrix (implementation-check implementation) blocks)))
 
 (defn mutable
-  "Constructs a fully mutable copy of the given array data.
+  "Constructs a fully mutable copy of the given array data. 
 
-   If the implementation does not support mutable matrices, will return a mutable array
+   If the current implementation does not support mutable matrices, will return a mutable array
    from another core.matrix implementation that supports either the same element type or a broader type."
   ([data]
-    (or (mp/mutable-matrix data)
-        (mutable (implementation-check) data)))
+    (try (or (mp/mutable-matrix data)
+            (mutable (implementation-check) data))
+      (catch Throwable t ;; catch error in array construction, attempt to use a default implementation
+        (default/construct-mutable-matrix data))))
   ([implementation data]
     (let [imp (implementation-check implementation)
           r (mp/construct-matrix imp data)]
