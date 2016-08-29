@@ -7,7 +7,9 @@
 
 (defn sum
   "Calculates the sum of a collection of values.
-   Values may be scalars, vectors or higher-dimensional matrices."
+   Values may be:
+    - A vector, in which case the result is a single scalar
+    - A higher-dimensional array, in which case the result is the sum of all slices."
   ([values]
     (if (== 1 (m/dimensionality values))
       (m/esum values)
@@ -19,7 +21,9 @@
 
 (defn sum-of-squares
   "Calculates the sum of squares of a collection of values.
-   Values may be scalars, vectors or higher-dimensional matrices."
+   Values may be:
+   - A vector, in which case the result is a single scalar
+   - A higher-dimensional array, in which case the result is the sum of squares in all slices."
   ([values]
     (if (== 1 (m/dimensionality values))
       (m/inner-product values values)
@@ -34,7 +38,9 @@
 
 (defn mean
   "Calculates the mean of a collection of values.
-   Values may be scalars, vectors or higher-dimensional matrices."
+   Values may be:
+   - A vector, in which case the result is a single scalar
+   - A higher-dimensional array, in which case the result is the mean of all slices."
   ([values]
     (let [values (m/slices values)
           n (m/dimension-count values 0)
