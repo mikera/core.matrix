@@ -332,7 +332,9 @@
           :else 0.0)))
   #?(:clj Object :cljs object)
     (vector-dot [a b]
-      (mp/element-sum (mp/element-multiply a b)))
+      ;; compute dot product if we have two vectors, otherwise return nil
+      (when (and (== 1 (long (mp/dimensionality a))) (== 1 (long (mp/dimensionality b)))) 
+        (mp/element-sum (mp/element-multiply a b))))
     (length [a]
       (Math/sqrt (double (mp/length-squared a))))
     (length-squared [a]

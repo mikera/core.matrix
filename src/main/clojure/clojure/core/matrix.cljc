@@ -1,5 +1,9 @@
 (ns clojure.core.matrix
-  "Main namespace for the core.matrix API.
+  "Main namespace for the core.matrix API. 
+
+   Contains all of the most common array programing functions. Arguments can generally be:
+    - A scalar value, e.g. the double 1.7
+    - A valid core.matrix array, e.g. [[1 2] [3 4]] as a 2D matrix or [1 2 3] as a 1D vector
 
    Functions in this API may be supported by multiple matrix implementations, allowing code that uses
    this API to quickly switch between implementations without significant changes (if any)."
@@ -1745,7 +1749,7 @@ elements not-equal to the argument are 0.
   "Efficiently computes the scalar dot product (1Dx1D inner product) of two numerical vectors. Prefer this API
    function if you are performing a dot product on 1D vectors and want a scalar result.
 
-   If either argument is not a vector, will compute a higher dimensional inner product."
+   If either argument is not a vector, will compute and return a higher dimensional inner-product."
   ([a b]
     (or
       (mp/vector-dot a b) ;; this allows a optimised implementation of 'dot' for vectors, which should be faster
@@ -1806,14 +1810,14 @@ elements not-equal to the argument are 0.
     (mp/cross-product! dest b)))
 
 (defn distance
-  "Calculates the euclidean distance between two numerical vectors.
+  "Calculates the euclidean distance between two numerical vectors, as a single numerical scalar value.
 
    This is equivalent to (norm 2 (sub a b)) but may be optimised by the underlying implementation."
   ([a b]
     (mp/distance a b)))
 
 (defn det
-  "Calculates the determinant of a 2D square numerical matrix."
+  "Calculates the determinant of a 2D square numerical matrix, as a single numerical scalar value."
   ([a]
     (or ;; try the current implementation, if not fall back to best available numeric implementation
       (mp/determinant a)
@@ -1959,18 +1963,24 @@ elements not-equal to the argument are 0.
 ;;
 
 (defn swap-rows
-  "Swap row i with row j in a matrix, returning a new matrix"
+  "Swap row i with row j in a matrix, returning a new matrix
+
+   This is one of the three elementary row operation (see https://en.wikipedia.org/wiki/Elementary_matrix)."
   [m i j]
   (mp/swap-rows m i j))
 
 (defn multiply-row
-  "Multiply row i in a matrix by a constant factor"
+  "Multiply row i in a matrix by a constant factor, returning a new matrix
+
+   This is one of the three elementary row operation (see https://en.wikipedia.org/wiki/Elementary_matrix)."
   [m i factor]
   (mp/multiply-row m i factor))
 
 (defn add-row
   "Add a row j (optionally multiplied by a scalar factor) to a row i
-   and replace row i with the result"
+   and replace row i with the result. Returns a new matrix.
+
+   This is one of the three elementary row operation (see https://en.wikipedia.org/wiki/Elementary_matrix)."
   ([m i j]
     (mp/add-row m i j 1.0))
   ([m i j factor]
@@ -2037,7 +2047,11 @@ elements not-equal to the argument are 0.
 (defn emap
   "Element-wise map over all elements of one or more arrays.
 
-   f must return a result compatible with the element-type of the array m
+   f must return a result compatible with the element-type of the array m. If a more general 
+   type is required, try coercing to a more general array type first, e.g.
+     
+     (emap (fn [x] (str x)) (double-array [1 2 3]))             ;; Throws an error
+     (emap (fn [x] (str x)) (coerce [] (double-array [1 2 3]))) ;; OK!
 
    Returns a new array of the same element-type and shape as the array m."
   ([f m]
