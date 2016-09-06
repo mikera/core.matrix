@@ -135,6 +135,9 @@
       (is (equals [3 7] (mmul m [1 1])))
       (is (equals [2 4] (get-column m 1))))))
 
+(deftest test-filter-slices
+  (is (equals [[1 2] [3 4]] (filter-slices numerical? [[1 2] [2 nil] [3 4]]))))
+
 (deftest test-emap
   (testing "basic"
     (is (equals [2 3] (emap inc [1 2]))))

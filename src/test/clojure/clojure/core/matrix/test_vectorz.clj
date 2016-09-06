@@ -39,6 +39,10 @@
   (is (vectorz? (stats/mean [(array :vectorz [1 2])
                              (array :vectorz [5 4])]))))
 
+(deftest test-filter-slices
+  (is (equals [[1 2] [3 4]] (filter-slices #(< (esum %) 20)
+                                           (array :vectorz [[1 2] [10 20] [3 4]])))))
+
 (deftest test-inner-product
   (let [v (array :vectorz [1 2])]
     (add-inner-product! v [[2 0] [0 3]] [10 20])
