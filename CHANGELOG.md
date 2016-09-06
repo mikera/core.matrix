@@ -4,6 +4,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.55.0] - 2016-09-06
 ### Added
+- Add filter-slices API function
 - Implement generalised N-dimensional transpose functionality
 - Improve broadcasting docs and default implementation
 ### Fixed
