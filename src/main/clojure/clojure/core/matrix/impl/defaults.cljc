@@ -1,4 +1,13 @@
 (ns clojure.core.matrix.impl.defaults
+  "Default implementations for core.matrix protocols
+
+   These should be correct reference implementations for all protocols that work on
+   arbitrary objects. They are not necessarily tuned for performance.
+
+   Default implementations are defined for:
+    - nil (treated as a scalar nil value)
+    - Numbers (treated as scalar numerical values)
+    - Arbitrary arrays for which the protocol is not otherwise defined"
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.impl.mathsops :as mops :refer [to-degrees* to-radians*]]

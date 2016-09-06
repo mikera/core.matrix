@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [0.55.0] - 2016-09-06
 ### Added
 - Implement generalised N-dimensional transpose functionality
+- Improve broadcasting docs and default implementation
 ### Fixed
 - Improve docstrings
 - Fix for default mutable matrix construction
