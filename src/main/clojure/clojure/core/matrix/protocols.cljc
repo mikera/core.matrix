@@ -521,7 +521,8 @@
   "Protocol for general inner and outer products of numerical arrays.
    Products should use + and * as normally defined for numerical types"
   (inner-product [m a] "Returns the inner product of two numerical arrays.")
-  (outer-product [m a] "Returns the outer product of two numerical arrays."))
+  (outer-product [m a] "Returns the outer product of two numerical arrays. Implementation
+                        may return nil to indicate that a default computation should be used."))
 
 (defprotocol PAddProduct
   "Optional protocol for add-product operation.
@@ -791,10 +792,10 @@
      Must throw an error if the matrix is not square (i.e. different number of rows and columns)")
   (determinant [m]
     "Returns the determinant of a matrix. May return nil if the implementation is unable
-     to compute determinants.
+     to compute determinants, in which case a default implementation will be tried.
      Must throw an error if the matrix is not square (i.e. different number of rows and columns)")
   (inverse [m]
-    "Returns the invese of a matrix. Should return nil if m is not invertible."))
+    "Returns the inverse of a matrix. Should return nil if m is not invertible."))
 
 (defprotocol PNegation
   (negate [m]

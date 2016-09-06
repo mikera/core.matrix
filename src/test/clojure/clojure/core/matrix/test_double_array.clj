@@ -184,6 +184,11 @@
     (is (== 8 (emax a)))
     (is (== 25 (esum a)))))
 
+(deftest test-doubles-outer-product
+  (let [a (double-array [1 3]) 
+        b (double-array [1 2])]
+    (is (equals [[1 2] [3 6]] (outer-product a b)))))
+
 (deftest test-maths-ops
   (testing "basic ops"
     (let [da (double-array [1.2 2.3])]

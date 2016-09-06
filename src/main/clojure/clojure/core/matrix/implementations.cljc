@@ -51,6 +51,12 @@
    May be re-bound to temporarily use a different core.matrix implementation."
   DEFAULT-IMPLEMENTATION)
 
+(def ^:dynamic *numeric-implementation*
+  "A dynamic var specifying the current core.matrix numeric implementation in use.
+
+   May be re-bound to temporarily use a different core.matrix implementation."
+  :ndarray-double)
+
 (defonce
   ^{:doc "A dynamic var supporting debugging option for core.matrix implementers.
 

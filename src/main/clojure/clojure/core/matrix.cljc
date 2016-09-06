@@ -1782,7 +1782,8 @@ elements not-equal to the argument are 0.
   ([] 1.0)
   ([a] a)
   ([a b]
-    (mp/outer-product a b))
+    (or (mp/outer-product a b)
+        (mp/outer-product (mp/convert-to-nested-vectors a) b)))
   ([a b & more]
     (reduce outer-product (outer-product a b) more)))
 
@@ -1812,18 +1813,16 @@ elements not-equal to the argument are 0.
     (mp/distance a b)))
 
 (defn det
-  "Calculates the determinant of a 2D square numerical matrix.
-
-   May throw an exception if the implementation does not support computation of determinants."
+  "Calculates the determinant of a 2D square numerical matrix."
   ([a]
-    (or
+    (or ;; try the current implementation, if not fall back to best available numeric implementation
       (mp/determinant a)
-      (TODO "Determinant not supported for array of type: " (class a)))))
+      (mp/determinant (mp/coerce-param imp/*numeric-implementation* a)))))
 
 (defn inverse
   "Calculates the inverse of a 2D numerical matrix.
 
-   Returns nil if the matrix is singular. May throw an exception if the implementation does not support inverses."
+   Returns nil if the matrix is singular."
   ([m]
     (mp/inverse m)))
 
