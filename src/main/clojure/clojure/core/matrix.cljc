@@ -1157,7 +1157,7 @@
    Will throw an exception if broadcast to the target shape is not possible."
   ([m shape]
     (or (mp/broadcast m shape)
-        (error "Broadcast to target shape: " (vec shape) " not possible."))))
+        (mp/broadcast (mp/coerce-param (implementation-check) m) shape))))
 
 (defn broadcast-like
   "Broadcasts the second matrix to the shape of the first. See 'broadcast'."
@@ -1166,8 +1166,10 @@
     (mp/broadcast-like m a)))
 
 (defn broadcast-coerce
-  "Broadcasts and coerces the second matrix to the shape and type of the first.
-   Equivalent to (coerce m (broadcast-like m a))."
+  "Broadcasts and coerces the second matrix to the same shape and type of the first.
+   Equivalent to (coerce m (broadcast-like m a)).
+
+   Useful for converting arrays to the correct shape and type for efficient future operations."
   {:inline (fn ([m a] `(mp/broadcast-coerce ~m ~a)))}
   ([m a]
     (mp/broadcast-coerce m a)))
