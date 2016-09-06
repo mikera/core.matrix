@@ -273,9 +273,9 @@
     (transpose-dims [m ordering]
       (if-let [ordering (seq ordering)]
         (let [dim (long (first ordering))
-              slices (map (fn [i] (mp/get-slice m dim i)) (range (mp/dimension-count m dim)))
-              next-ordering (map (fn [i] (if (< i dim) i (dec i))) (next ordering))]
-          (mapv (fn [slc] (mp/transpose-dims slc next-ordering)) slices))
+              next-ordering (map (fn [i] (if (< i dim) i (dec i))) (next ordering))
+              slice-range (range (mp/dimension-count m dim))]
+          (mapv (fn [si] (mp/transpose-dims (mp/get-slice m dim si) next-ordering)) slice-range))
         m)))
 
 (extend-protocol mp/POrder

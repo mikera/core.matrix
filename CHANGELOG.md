@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.55.0] - 2016-09-06
+### Added
+- Implement generalised N-dimensional transpose functionality
+### Fixed
+- Improve docstrings
+- Fix for default mutable matrix construction
+
+## [0.54.0] - 2016-08-16
+### Fixed
+- Improve error messages
+- Change generation of test jar to output with "tests" classifier
+
 ## [0.53.1] - 2016-08-12
 ### Fixed
 - Improve error messages
