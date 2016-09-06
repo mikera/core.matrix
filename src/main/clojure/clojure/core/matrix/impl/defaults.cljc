@@ -1431,7 +1431,9 @@
 (extend-protocol mp/PFilterSlices
   #?(:clj Object :cljs object)
   (filter-slices [m f] 
-    (filterv f (mp/get-major-slice-seq m))))
+    (let [slcs (filterv f (mp/get-major-slice-seq m))]
+      ;; check for no slices, in which case we must return nil
+      (if (seq slcs) slcs nil))))
 
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations

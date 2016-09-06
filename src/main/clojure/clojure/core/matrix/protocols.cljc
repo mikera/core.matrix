@@ -1010,7 +1010,8 @@ would often be a numeric base type)."
   (filter-slices
     [m f]
     "Runs f on all slices of m. Must return those slices which satisfy (f slice).
-     Should return either a new array containing the filtered slices or a vector or slices
+     Must return nil if no slices meet the predicate.
+     Must return either a new seqable array containing the filtered slices or a vector of slices
      (both of which are valid core.matrix arrays)"))
 
 (defprotocol PFunctionalOperations

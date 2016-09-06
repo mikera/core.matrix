@@ -2093,8 +2093,9 @@ elements not-equal to the argument are 0.
 
 (defn filter-slices
   "Filters the slices of a core.matrix array, returning only those slices where (pred slice) is truthy.
-
-   Note: may result in an empty array (i.e. an array with no elements)"
+   
+   Will result in an nil value if no slices satify the criteria. If not nil, the return value is 
+   guaranteed to be a seqable core.matrix array."
   ([pred m]
     (mp/filter-slices m pred)))
 
