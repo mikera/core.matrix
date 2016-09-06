@@ -2091,6 +2091,13 @@ elements not-equal to the argument are 0.
   ([f m1 m2 & more]
     (mp/slice-map m1 f m2 more)))
 
+(defn filter-slices
+  "Filters the slices of a core.matrix array, returning only those slices where (pred slice) is truthy.
+
+   Note: may result in an empty array (i.e. an array with no elements)"
+  ([pred m]
+    (mp/filter-slices m pred)))
+
 (defn esum
   "Calculates the sum of all the elements in a numerical array."
   ([m]

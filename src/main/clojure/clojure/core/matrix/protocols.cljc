@@ -1005,6 +1005,14 @@ would often be a numeric base type)."
     [m f a more]
     "Maps f over all slices of m (and optionally other arrays)"))
 
+(defprotocol PFilterSlices
+  "Filters the slices of the given array, returning only those which satisfy the given predicate."
+  (filter-slices
+    [m f]
+    "Runs f on all slices of m. Must return those slices which satisfy (f slice).
+     Should return either a new array containing the filtered slices or a vector or slices
+     (both of which are valid core.matrix arrays)"))
+
 (defprotocol PFunctionalOperations
   "Protocol to allow functional-style operations on matrix elements."
   ;; note that protocols don't like variadic args, so we convert to regular args

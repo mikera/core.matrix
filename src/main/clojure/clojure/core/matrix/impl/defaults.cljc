@@ -1427,6 +1427,12 @@
                                  (mp/get-major-slice-seq a)
                                  (map mp/get-major-slice-seq more))))))
 
+;; slice-map
+(extend-protocol mp/PFilterSlices
+  #?(:clj Object :cljs object)
+  (filter-slices [m f] 
+    (filterv f (mp/get-major-slice-seq m))))
+
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
   #?(:clj Number :cljs number)
