@@ -1,6 +1,8 @@
 (ns clojure.core.matrix.impl.object-array
   "Namespace for core.matrix implementation using nested Java object arrays.
 
+   This implementation is useful if you want fast mutable arrays of arbitrary objects.
+
    Array format is defined as:
    - Top level object is a Java Object[] array
    - If the array is 1-dimensional each element is a scalar

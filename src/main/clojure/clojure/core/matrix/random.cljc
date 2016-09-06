@@ -49,7 +49,7 @@
         (+ (double mu) (* (double sigma) z))))))
 
 (defn randoms
-  "Returns a lazy sequence of random samples from a uniform distribution on [0,1).
+  "Returns an infinite lazy sequence of random samples from a uniform distribution on [0,1).
 
    May be given a optional seed that is either an integer value or a java.util.Random instance"
   ([]

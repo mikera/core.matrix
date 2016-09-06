@@ -2,7 +2,9 @@
   "Implementation supporting:
 
    - Java double[] arrays as core.matrix 1D vectors
-   - Java double[][] arrays as core.matrix 2D matrices"
+   - Java double[][] arrays as core.matrix 2D matrices
+
+   This implementation is useful if you want simple mutable numerical arrays or for interop with Java code."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.utils :as u]

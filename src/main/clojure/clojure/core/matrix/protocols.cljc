@@ -1,8 +1,12 @@
 (ns clojure.core.matrix.protocols
   "Namespace for core.matrix protocols. These protocols are intended to be implemented by
-   core.matrix array implemntations.
+   core.matrix array implementations.
 
-   End users should normally avoid using this namespace directly
+   Note to implementers:
+    - Please read the docstrings for the protocols you are implementing!
+    - Protocols should be implemented correctly to achieve a compliant core.matrix implementations
+
+   core.matrix users should normally avoid using this namespace directly
    and instead use the functions in the main clojure.core.matrix API"
   (:require [clojure.core.matrix.utils :refer [same-shape-object?]]
             [clojure.core.matrix.impl.mathsops :as mops])
