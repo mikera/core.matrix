@@ -7,7 +7,8 @@
    Default implementations are defined for:
     - nil (treated as a scalar nil value)
     - Numbers (treated as scalar numerical values)
-    - Arbitrary arrays for which the protocol is not otherwise defined"
+    - Arbitrary arrays for which the protocol is not otherwise defined
+  "
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.impl.mathsops :as mops :refer [to-degrees* to-radians*]]
@@ -99,7 +100,9 @@
     (supports-dimensionality? [m dimensions]
       true)
 
-  ;; keyword implementation looks up implementation by keyword
+  ;; keyword implementation looks up the underlying implementation by keyword
+  ;; this is intended to allow keywords to be used for dispatch rather than concrete
+  ;; instances from the underlying implementation, e.g. (coerce :vectorz some-other-array)
   #?(:clj clojure.lang.Keyword
      :cljs cljs.core.Keyword)
     (implementation-key [m] m)
