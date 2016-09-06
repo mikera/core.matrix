@@ -1181,7 +1181,8 @@
     - The dimension indices are reversed for any shape of a higher order N-dimensional array. 
 
    If ordering is provided, will re-order dimensions according to the provided order. The 
-   provided ordering must be of the same length as the dimensionality of the array."
+   provided ordering must be of the same length as the dimensionality of the array and
+   contain all the integers in the range 0...(dims-1)."
   ([m]
     (mp/transpose m))
   ([m ordering]
