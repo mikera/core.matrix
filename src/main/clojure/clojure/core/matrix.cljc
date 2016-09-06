@@ -2095,7 +2095,9 @@ elements not-equal to the argument are 0.
   "Filters the slices of a core.matrix array, returning only those slices where (pred slice) is truthy.
    
    Will result in an nil value if no slices satify the criteria. If not nil, the return value is 
-   guaranteed to be a seqable core.matrix array."
+   guaranteed to be a seqable core.matrix array, e.g. you can:
+    - use (seq (filter-slices m)) to get a sequence of slices
+    - use (when-let [z (filter-slices m)] ...) to operate on the result as a core.matrix array."
   ([pred m]
     (mp/filter-slices m pred)))
 
