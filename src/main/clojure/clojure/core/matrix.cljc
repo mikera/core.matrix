@@ -1173,15 +1173,19 @@
     (mp/broadcast-coerce m a)))
 
 (defn transpose
-  "Transposes a matrix, returning a new matrix. For 2D matrices, rows and columns are swapped.
-   More generally, the dimension indices are reversed for any shape of array. Note that 1D vectors
-   and scalars will be returned unchanged.
+  "Transposes a matrix, returning a new matrix. 
 
-   If ordering is provided, will re-order dimensions according to the provided order."
+   Assuming no specific ordering is provided:
+    - 1D vectors and scalars will be returned unchanged
+    - For 2D matrices, rows and columns are swapped.
+    - The dimension indices are reversed for any shape of a higher order N-dimensional array. 
+
+   If ordering is provided, will re-order dimensions according to the provided order. The 
+   provided ordering must be of the same length as the dimensionality of the array."
   ([m]
     (mp/transpose m))
   ([m ordering]
-    (TODO)))
+    (mp/transpose-dims m ordering)))
 
 (defn transpose!
   "Transposes a square 2D matrix in-place.

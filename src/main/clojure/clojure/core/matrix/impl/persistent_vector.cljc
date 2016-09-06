@@ -268,6 +268,16 @@
              (vec (concat (subvec m sh c) (subvec m 0 sh)))))
          (mapv (fn [s] (mp/rotate s (dec dim) places)) m)))))
 
+(extend-protocol mp/PTransposeDims
+  #?(:clj IPersistentVector :cljs PersistentVector)
+    (transpose-dims [m ordering]
+      (if-let [ordering (seq ordering)]
+        (let [dim (long (first ordering))
+              slices (map (fn [i] (mp/get-slice m dim i)) (range (mp/dimension-count m dim)))
+              next-ordering (map (fn [i] (if (< i dim) i (dec i))) (next ordering))]
+          (mapv (fn [slc] (mp/transpose-dims slc next-ordering)) slices))
+        m)))
+
 (extend-protocol mp/POrder
   #?(:clj IPersistentVector :cljs PersistentVector)
   (order

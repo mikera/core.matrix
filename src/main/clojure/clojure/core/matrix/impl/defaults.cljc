@@ -685,18 +685,21 @@
     (transpose [m]
       (mp/coerce-param
        m
-       (case (long (mp/dimensionality m))
-         0 m
-         1 m
-         2 (apply mapv vector (mapv
-                               #(mp/convert-to-nested-vectors %)
-                               (mp/get-major-slice-seq m)))
-         (let [ss (mapv mp/transpose (mp/get-major-slice-seq m))]
-           ;; note that function must come second for mp/element-map
-           (case (count ss)
-             1 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector)
-             2 (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss))
-             (mp/element-map (mp/convert-to-nested-vectors (first ss)) vector (second ss) (nnext ss))))))))
+       (let [dims (long (mp/dimensionality m))]
+         (case dims
+           0 m
+           1 m
+           2 (apply mapv vector (mp/convert-to-nested-vectors m))
+           (mp/transpose-dims m (reverse (range dims))))))))
+
+(extend-protocol mp/PTransposeDims
+  nil
+    (transpose-dims [m ordering] m)
+  #?(:clj Number :cljs number)
+    (transpose-dims [m ordering] m)
+  #?(:clj Object :cljs object)
+    (transpose-dims [m ordering]
+      (mp/transpose-dims (mp/convert-to-nested-vectors m) ordering)))
 
 (extend-protocol mp/PTransposeInPlace
   #?(:clj Object :cljs object)

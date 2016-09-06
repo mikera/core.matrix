@@ -689,11 +689,16 @@
 (defprotocol PTranspose
   "Protocol for array transpose operation"
   (transpose [m]
-    "Returns the transpose of a matrix. Equivalent to reversing the \"shape\".
+    "Returns the transpose of an array. Equivalent to reversing the \"shape\".
      Note that:
      - The transpose of a scalar is the same scalar
      - The transpose of a 1D vector is the same 1D vector
      - The transpose of a 2D matrix swaps rows and columns"))
+
+(defprotocol PTransposeDims
+  "Protocol for generalised array transpose operation"
+  (transpose-dims [m order]
+    "Returns the transpose of an array, reordering the dimensions in the specified order."))
 
 (defprotocol PRotate
   "Rotates an array along a specified dimension by the given number of places.
