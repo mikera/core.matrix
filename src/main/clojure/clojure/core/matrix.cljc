@@ -1772,7 +1772,12 @@ elements not-equal to the argument are 0.
 (defn outer-product
   "Computes the outer product of numerical arrays.
 
-   The outer product of two arrays with indexed dimensions {i..j} and {j..k} has dimensions {i..j j..k}, i.e. the dimensioanlity will be the
+   For two vectors of size m and n, the result will be a m x n matrix.
+
+   In general, the outer product fior higher diemnsional arrays is defined as the 
+   tensor product (see https://en.wikipedia.org/wiki/Tensor_product)
+   i.e. The outer product of two arrays with indexed dimensions {i..j} and {j..k} 
+   has dimensions {i..j j..k}. The dimensionality of the result will be the
    sum of the dimensionalities of the two arguments."
   ([] 1.0)
   ([a] a)
