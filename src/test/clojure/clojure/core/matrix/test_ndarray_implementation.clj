@@ -110,6 +110,10 @@
     (is (equals [[9 9] [9 9]] (fill a [9 9])))
     (is (equals [[1 2] [3 4]] a))))
 
+(deftest test-mmul-scalar ;; for issue #287
+  (let [a (array :ndarray [[1 2] [3 4]])]
+    (is (equals a (mmul a 1)))))
+
 (deftest test-contained-vectors
   (let [a (array :ndarray :foo)]
     (mset! a [1 2 3])

@@ -793,7 +793,7 @@
              b-ndims (.ndims b)
              ^ints b-shape (.shape b)]
          (cond
-          (== b-ndims 0) (mp/scale a b)
+          (== b-ndims 0) (mp/scale a (mp/get-0d b))
           (and (== a-ndims 1) (== b-ndims 1))
           (mp/inner-product a b)
           (and (== a-ndims 1) (== b-ndims 2))
@@ -988,34 +988,34 @@
       (let [a (mp/clone m)
             factor (type-cast# factor)]
         (loop-over [a]
-          (aset a-data a-idx (type-cast#
-                              (* (aget a-data a-idx)
-                                 factor))))
+                   (aset a-data a-idx (type-cast#
+                                       (* (aget a-data a-idx)
+                                          factor))))
         a))
     (pre-scale [m factor]
       (let [a (mp/clone m)
             factor (type-cast# factor)]
         (let []
           (loop-over [a]
-           (aset a-data a-idx (type-cast#
-                               (* factor
-                                  (aget a-data a-idx))))))
+                     (aset a-data a-idx (type-cast#
+                                         (* factor
+                                            (aget a-data a-idx))))))
         a))
 
   mp/PMatrixMutableScaling
     (scale! [m factor]
       (let [factor (type-cast# factor)]
         (loop-over [m]
-          (aset m-data m-idx (type-cast#
-                              (* (aget m-data m-idx)
-                                 factor)))))
+                   (aset m-data m-idx (type-cast#
+                                       (* (aget m-data m-idx)
+                                          factor)))))
       m)
     (pre-scale! [m factor]
       (let [factor (type-cast# factor)]
         (loop-over [m]
-         (aset m-data m-idx (type-cast#
-                             (* factor
-                                (aget m-data m-idx))))))
+                   (aset m-data m-idx (type-cast#
+                                       (* factor
+                                          (aget m-data m-idx))))))
       m)
 
   mp/PMatrixAdd
