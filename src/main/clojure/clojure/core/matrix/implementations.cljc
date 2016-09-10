@@ -16,6 +16,7 @@
    keyword type is requested."
   (array-map
    :vectorz 'mikera.vectorz.matrix-api
+   :vectorz-opencl 'mikera.vectorz.opencl-api
    :clojure 'clojure.core.matrix.impl.clojure
    :ndarray 'clojure.core.matrix.impl.ndarray-object
    :ndarray-double 'clojure.core.matrix.impl.ndarray-double
