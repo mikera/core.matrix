@@ -1661,8 +1661,8 @@
     (case (long (mp/dimensionality m))
       0 (error "Can't get columns of a 0-dimensional object")
       1 (error "Can't get columns of a 1-dimensional object")
-      2 (mp/get-slice-seq m 1)
-      (mapcat mp/get-columns (mp/get-major-slice-seq m)))))
+      2 (vec (mp/get-slice-seq m 1))
+      (vec (mapcat mp/get-columns (mp/get-major-slice-seq m))))))
 
 (extend-protocol mp/PMatrixRows
   #?(:clj Object :cljs object)
@@ -1670,8 +1670,8 @@
     (case (long (mp/dimensionality m))
       0 (error "Can't get rows of a 0-dimensional object")
       1 (error "Can't get rows of a 1-dimensional object")
-      2 (mp/get-major-slice-seq m)
-      (mapcat mp/get-rows (mp/get-major-slice-seq m)))))
+      2 (vec (mp/get-major-slice-seq m))
+      (vec (mapcat mp/get-rows (mp/get-major-slice-seq m))))))
 
 (extend-protocol mp/PSliceView
   #?(:clj Object :cljs object)
