@@ -1020,7 +1020,7 @@
     (mp/get-rows m)))
 
 (defn columns
-  "Gets the columns of a matrix, as a sequence of 1D vectors.
+  "Gets the columns of a matrix, as a seqable collection of 1D vectors.
 
    If the array has more than 2 dimensions, will return the columns from all slices in order."
   ([m]
@@ -1489,6 +1489,8 @@ elements not-equal to the argument are 0.
 (defn div!
   "Performs in-place element-wise matrix division for numerical arrays.
 
+   All arguments after the first must be broadcastable to the shape of the first array.
+
    Computes the reciprocal of each element when passed a single argument (similar to clojure.core//)."
   ([a]
      (mp/element-divide! a)
@@ -1504,6 +1506,8 @@ elements not-equal to the argument are 0.
 
 (defn mul!
   "Performs in-place element-wise multiplication of numerical arrays.
+
+   All arguments after the first must be broadcastable to the shape of the first array.
 
    Returns the first argument after mutation."
   ([a] a)
@@ -1562,6 +1566,8 @@ elements not-equal to the argument are 0.
   "Performs element-wise mutable addition on one or more numerical arrays. This is the mutable
    equivalent of `add`.
 
+   All arguments after the first must be broadcastable to the shape of the first array.
+
    When adding many arrays, use of `add!` with a mutable array as the first argument is
    usually faster than repreated use of `add` because it can avoid unnecessary copying.
 
@@ -1588,7 +1594,9 @@ elements not-equal to the argument are 0.
     m))
 
 (defn add-scaled
-  "Adds a numerical array scaled by a given factor to the first array"
+  "Adds a numerical array scaled by a given factor to the first array. 
+
+   Factor should be a scalar numerical value."
   ([m a factor]
     (mp/add-scaled m a factor)))
 
@@ -1623,7 +1631,8 @@ elements not-equal to the argument are 0.
   "Performs linear interpolation between two arrays. If factor is 0.0, result will be equal to the first vector.
    If factor is 1.0, result will be equal to the second vector. Returns a the mutated first array."
   ([a b factor]
-    (mp/lerp! a b factor)))
+    (mp/lerp! a b factor)
+    a))
 
 (defn add-scaled!
   "Adds a numerical array scaled by a given factor to the first array. Returns the mutated array."
@@ -1659,7 +1668,9 @@ elements not-equal to the argument are 0.
 
 (defn add-outer-product!
   "Adds the inner product of two numerical arrays to the first array.
+   
    Returns the mutated array.
+
    This is equivalent to (add! m (outer-product a b)) but may be optimised by the underlying implementation."
   ([m a b]
     (mp/add-outer-product! m a b)
@@ -1831,9 +1842,11 @@ elements not-equal to the argument are 0.
       (mp/determinant (mp/coerce-param imp/*numeric-implementation* a)))))
 
 (defn inverse
-  "Calculates the inverse of a 2D numerical matrix.
+  "Calculates the inverse of a square 2D numerical matrix.
 
-   Returns nil if the matrix is singular."
+   Returns nil if the matrix is singular. 
+
+   Throws an error is the argument is not a sqaure 2D matrix."
   ([m]
     (mp/inverse m)))
 
@@ -2169,7 +2182,7 @@ elements not-equal to the argument are 0.
   (u/base-index-seq-for-shape sh))
 
 (defn index-seq
-  "Returns a sequence of all possible index vectors into a matrix, in row-major order"
+  "Returns a sequence of all possible index vectors into an array, in row-major order."
   [m]
   (index-seq-for-shape (mp/get-shape m)))
 

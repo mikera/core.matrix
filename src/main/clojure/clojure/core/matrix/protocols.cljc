@@ -351,11 +351,11 @@
 
 (defprotocol PMatrixRows
   "Protocol for accessing rows of a matrix"
-  (get-rows [m] "Returns the rows of a matrix, as a sequence"))
+  (get-rows [m] "Returns the rows of a matrix, as a seqable object"))
 
 (defprotocol PMatrixColumns
   "Protocol for accessing columns of a matrix"
-  (get-columns [m] "Returns the columns of a matrix, as a sequence"))
+  (get-columns [m] "Returns the columns of a matrix, as a seqable object"))
 
 (defprotocol PSliceView
   "Protocol for quick view access into a row-major slices of an array. If implemented, must return
