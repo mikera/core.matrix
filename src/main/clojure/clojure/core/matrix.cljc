@@ -1,12 +1,14 @@
 (ns clojure.core.matrix
-  "Main namespace for the core.matrix API. 
+  "Main namespace for the core.matrix array programming API. 
 
    Contains all of the most common array programing functions. Arguments can generally be:
     - A scalar value, e.g. the double 1.7
     - A valid core.matrix array, e.g. [[1 2] [3 4]] as a 2D matrix or [1 2 3] as a 1D vector
 
    Functions in this API may be supported by multiple matrix implementations, allowing code that uses
-   this API to quickly switch between implementations without significant changes (if any)."
+   this API to quickly switch between implementations without significant changes (if any). The precise
+   imnplementation used is generally the first array argument to any API function - this is intended to
+   be consistent with conventions for Clojure protocol dispatch."
   (:require [clojure.core.matrix.impl.defaults :as default]
             [clojure.core.matrix.impl.persistent-vector]
             [clojure.core.matrix.impl.sequence] ;; TODO: figure out if we want this?
