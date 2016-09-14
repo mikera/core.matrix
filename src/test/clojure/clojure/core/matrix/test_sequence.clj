@@ -10,6 +10,12 @@
   (is (e== [-1 -2] (negate '(1 2))))
   (is (= '() (mget '()))))
 
+(deftest test-columns
+  (let [m '(["A" 2] ["B" 3])]
+    (is (e= (columns m) (transpose m)))
+    (with-implementation :vectorz
+      (is (e= (columns m) (transpose m))))))
+
 (deftest test-sequence-shape
   (is (= [2] (shape '(1 2))))
   (is (= [2 2] (shape '((1 2) (3 4))))))
