@@ -29,6 +29,11 @@
     (is (= (columns ds5) [[3 6] [1 4] [2 5]]))
     (is (vector? (first (columns ds6))))))
 
+(deftest test-regressions
+  (testing "Should be possible to create a dataset with element types that the current implementation does not support"
+    (with-implementation :vectorz
+     (dataset [:a :b] '(["A" 2] ["B" 3])))))
+
 (deftest test-column-name
   (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]
     (is (= (column-name ds 0) :a))
