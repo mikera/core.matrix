@@ -12,3 +12,4 @@ bench
 
 .nrepl-port
 
+/.lein-failures
