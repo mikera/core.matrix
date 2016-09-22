@@ -5,11 +5,10 @@
 /classes
 /doc
 
-.lein-*
-
 .DS_Store
 .html
 bench
 .dump
 
 .nrepl-port
+
