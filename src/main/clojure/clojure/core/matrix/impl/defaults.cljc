@@ -2367,7 +2367,7 @@
   (norm [m p]
     (cond
       (= p #?(:clj Double/POSITIVE_INFINITY :cljs js/Number.POSITIVE_INFINITY)) (mp/element-max m)
-      (number? p) (mp/element-sum (mp/element-pow (mp/element-map m mops/abs) p))
+      (number? p) (Math/sqrt (mp/element-sum (mp/element-pow (mp/element-map m mops/abs) p)))
       :else (error "p must be a number"))))
 
 ;; QR decomposition utility functions
