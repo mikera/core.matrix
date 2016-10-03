@@ -4,7 +4,7 @@
            [clojure.lang IPersistentVector]))
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+(set! *unchecked-math* :warn-on-boxed)
 
 (def ^String NL (System/getProperty "line.separator"))
 
@@ -13,24 +13,36 @@
 (defn- format-num [x] (format "%.3f" (double x)))
 
 (defn- default-formatter [x]
-  (if (number? x)
-    (format-num x)
-    (str x)))
+  (cond 
+    (integer? x) (.toString ^Object x)
+    (number? x) (format-num x)
+    :else (str x)))
 
 (defn- column-lengths
   "Finds the longest string length of each column in an array of Strings."
   [m]
-  (let [ss (mp/get-slice-seq m (dec (mp/dimensionality m)))]
+  (let [ss (mp/get-slice-seq m (dec (long (mp/dimensionality m))))]
     (mapv
       (fn [s] (mp/element-reduce s
-                                 (fn [acc ^String e] (max acc (.length e)))
+                                 (fn [acc ^String e] (max (long acc) (.length e)))
                                  0))
       ss)))
 
 (defn- format-array
   "Formats an array according to the given formatter function"
-  ([m formatter]
-    (let [m (mp/ensure-type m String)]
+  ([m {:keys [prefix formatter column-names?] :as options}]
+    (let [formatter (or formatter default-formatter)
+          dims (long (mp/dimensionality m))
+          m (if (or (== dims 0) (= false column-names?))
+              m ;; explicity turned off column names
+              (let [cnames (mp/column-names m)]
+                (if (or column-names? cnames)
+                  (vec (cons (or cnames 
+                                 (vec (range (mp/dimension-count m (dec dims))))) 
+                             (mp/get-major-slice-seq m)))
+                  m)))
+          m (mp/ensure-type m String)
+          ]
       (cond
         (mp/is-scalar? m) (formatter m)
         :else (mp/element-map (mp/convert-to-nested-vectors m) formatter)))))
@@ -78,15 +90,16 @@
   "Pretty-prints an array. Returns a String containing the pretty-printed representation."
   ([a]
     (pm a nil))
-  ([a {:keys [prefix formatter]}]
-    (let [formatter (or formatter default-formatter)
-          m (format-array a formatter)
+  ([a {:keys [prefix formatter column-names?] :as options}]
+    (let [m (format-array a options)
           prefix (or prefix "")
           sb (StringBuilder.)]
+      (.append sb prefix)
       (cond
-        (mp/is-scalar? m) (.append sb (str prefix m))
-        (== 1 (mp/dimensionality m))
+        (mp/is-scalar? m) (.append sb (str m))
+        (== 1 (long (mp/dimensionality m)))
           (append-row sb m (column-lengths m))
         :else
-          (let [clens (column-lengths m)] (rprint sb m prefix clens)))
+          (let [clens (column-lengths m)] 
+            (rprint sb m prefix clens)))
       (.toString sb))))
