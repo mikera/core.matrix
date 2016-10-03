@@ -133,10 +133,16 @@
                (into {} (for [[state rows] groups] [state (stats/sum (mapv second rows))]))))))))
 
 (deftest test-datasetrow
-  (let [ds (dataset [:a :b] [[1 "Bob"] [2 "Mike"]])
+  (let [col-names [:a :b]
+        ds (dataset col-names [[1 "Bob"] [2 "Mike"]])
         dr (clojure.core.matrix.impl.dataset/wrap-row ds 1)]
-    (is (= [2 "Mike"] (vec dr)))
-    (is (= (column-names ds) (column-names dr)))))
+    (testing "Column names"
+      (is (= col-names (column-names dr))))
+    (testing "DataSetRow as vector implementation"
+      (is (= [2 "Mike"] (vec dr)))
+      (is (= "Mike" (nth dr 1)))
+      (is (= :not-found (nth dr 2 :not-found)))
+      (is (= :not-found (nth dr -1 :not-found))))))
 
 (defn- round-trip [x]
   (read-string (pr-str x)))
