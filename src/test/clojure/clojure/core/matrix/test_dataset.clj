@@ -142,6 +142,8 @@
       (is (= "Mike" (column dr :b)))
       (is (= "Mike" (column dr 1)))
       (is (error? (column dr :c))))
+    (testing "Map-like access"
+      (is (= {:a 2 :b "Mike"} (to-map dr))))
     (testing "DataSetRow as vector implementation"
       (is (= [2 "Mike"] (vec dr)))
       (is (= "Mike" (nth dr 1)))

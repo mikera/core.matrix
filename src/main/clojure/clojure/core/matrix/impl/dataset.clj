@@ -220,14 +220,6 @@
   (add-column [ds col-name col]
     (dataset-from-columns (conj (mp/column-names ds) col-name)
                           (conj (mp/get-columns ds) col)))
-  (row-maps [ds]
-    (let [col-names (mp/column-names ds)]
-      (map #(zipmap col-names %)
-           (mp/get-rows ds))))
-  (to-map [ds]
-    (into {} (map (fn [k v] [k v])
-                  (mp/column-names ds)
-                  (mp/get-columns ds))))
   (merge-datasets [ds1 ds2]
     (reduce
      (fn [acc [k v]]
@@ -273,6 +265,31 @@
          (concat (mp/column-names ds1) (mp/column-names ds2))
          (concat (mp/get-columns ds1) (mp/get-columns ds2)))
         (error "Duplicate column names: " intersection)))))
+
+(extend-protocol mp/PDatasetMaps
+  DataSet
+  (row-maps [ds]
+    (let [col-names (mp/column-names ds)]
+      (mapv #(zipmap col-names %)
+            (mp/get-rows ds))))
+  (to-map [ds]
+    (into {} (map (fn [k v] [k v])
+                  (mp/column-names ds)
+                  (mp/get-columns ds))))
+  
+  Object
+  (row-maps [ds]
+    (if-let [col-names (mp/column-names ds)]
+      (mapv #(zipmap col-names (mp/element-seq %))
+            (mp/get-rows ds))
+      (error "No column names available")))
+  (to-map [ds]
+    (if-let [col-names (mp/column-names ds)]
+      (into {} (map (fn [k v] [k v])
+                  (mp/column-names ds)
+                  (mp/get-columns ds)))
+      (error "No column names available"))))
+
 
 (extend-protocol mp/PDimensionLabels
   DataSet

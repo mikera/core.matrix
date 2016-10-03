@@ -1214,13 +1214,15 @@ would often be a numeric base type)."
   (select-columns [ds cols] "Produces a new dataset with the columns in the specified order")
   (select-rows [ds rows] "Produces a new dataset with specified rows")
   (add-column [ds col-name col] "Adds column to the dataset")
-  (to-map [ds] "Returns map of columns with associated list of values")
-  (row-maps [ds] "Returns seq of maps with row values")
   (merge-datasets [ds1 ds2] "Returns a dataset created by combining columns of the given datasets. In case of columns with duplicate names, last-one-wins strategy is applied")
   (rename-columns [ds col-map] "Renames columns based on map of old new column name pairs")
   (replace-column [ds col-name vs] "Replaces column in a dataset with new values")
   (join-rows [ds1 ds2] "Returns a dataset created by combining the rows of the given datasets")
   (join-columns [ds1 ds2] "Returns a dataset created by combining the columns of the given datasets"))
+
+(defprotocol PDatasetMaps
+  (to-map [ds] "Returns map of columns with associated list of values")
+  (row-maps [ds] "Returns seq of maps with row values"))
 
 ;; ============================================================
 ;; Utility functions
