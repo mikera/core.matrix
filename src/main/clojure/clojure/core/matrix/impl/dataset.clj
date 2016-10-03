@@ -268,28 +268,27 @@
 
 (extend-protocol mp/PDatasetMaps
   DataSet
-  (row-maps [ds]
-    (let [col-names (mp/column-names ds)]
-      (mapv #(zipmap col-names %)
-            (mp/get-rows ds))))
-  (to-map [ds]
-    (into {} (map (fn [k v] [k v])
-                  (mp/column-names ds)
-                  (mp/get-columns ds))))
+    (row-maps [ds]
+      (let [col-names (mp/column-names ds)]
+        (mapv #(zipmap col-names %)
+              (mp/get-rows ds))))
+    (to-map [ds]
+      (into {} (map (fn [k v] [k v])
+                    (mp/column-names ds)
+                    (mp/get-columns ds))))
   
   Object
-  (row-maps [ds]
-    (if-let [col-names (mp/column-names ds)]
-      (mapv #(zipmap col-names (mp/element-seq %))
-            (mp/get-rows ds))
-      (error "No column names available")))
-  (to-map [ds]
-    (if-let [col-names (mp/column-names ds)]
-      (into {} (map (fn [k v] [k v])
-                  (mp/column-names ds)
-                  (mp/get-columns ds)))
-      (error "No column names available"))))
-
+    (row-maps [ds]
+      (if-let [col-names (mp/column-names ds)]
+        (mapv #(zipmap col-names (mp/element-seq %))
+              (mp/get-rows ds))
+        (error "No column names available")))
+    (to-map [ds]
+      (if-let [col-names (mp/column-names ds)]
+        (into {} (map (fn [k v] [k v])
+                      (mp/column-names ds)
+                      (mp/get-columns ds)))
+        (error "No column names available"))))
 
 (extend-protocol mp/PDimensionLabels
   DataSet
