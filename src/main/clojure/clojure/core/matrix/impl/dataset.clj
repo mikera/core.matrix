@@ -30,8 +30,9 @@
     (nth [m i]
       (mp/get-1d (nth columns i) index))
     (nth [m i not-found]
-      (when (< -1 i (long (mp/dimension-count (first columns) 0)))
-        (mp/get-1d (nth columns i) index)))
+      (if (< -1 i (long (mp/dimension-count (first columns) 0)))
+        (mp/get-1d (nth columns i) index)
+        not-found))
   clojure.lang.Seqable
     (seq [m]
       (seq (mp/convert-to-nested-vectors m)))

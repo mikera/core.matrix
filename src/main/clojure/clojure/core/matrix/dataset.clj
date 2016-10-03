@@ -89,7 +89,10 @@
          (error "Don't know how to create dataset from data of type " (class data)))))
 
 (defn column-names
-  "Returns a persistent vector containing column names in the same order as they are placed in the dataset."
+  "Gets the column names from a DataSet, DatsetRiow or labelled array
+
+   Returns a persistent vector containing column names in the same order as they are placed in the dataset.
+   Returns nil if no coklumn names are defined (i.e. the array has no column labels) "
   ([ds]
     (mp/column-names ds)))
 
@@ -103,7 +106,7 @@
 (defn column-index
   "Returns column index for a given column name.
 
-   Returns nil if column name does not exist."
+   Returns nil if the column name does not exist."
   ([ds column-name]
     (mp/column-index ds column-name)))
 
