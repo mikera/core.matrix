@@ -39,8 +39,11 @@
                 (if (or column-names? cnames)
                   (vec (cons (or cnames 
                                  (vec (range (mp/dimension-count m (dec dims))))) 
-                             (mp/get-major-slice-seq m)))
-                  m)))
+                             (if (== dims 1)
+                               [(mp/convert-to-nested-vectors m)] ;; 1D = single row
+                               (mp/get-major-slice-seq m))))
+                  m ;; no columns names present and not forced
+                  )))
           m (mp/ensure-type m String)
           ]
       (cond
