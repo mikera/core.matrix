@@ -18,7 +18,7 @@
 		<dependency>
 			<groupId>net.mikera</groupId>
 			<artifactId>cljunit</artifactId>
-			<version>0.4.1</version>
+			<version>0.5.0</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>clojure</artifactId>
-			<version>1.9.0-alpha13</version>
+			<version>1.9.0-alpha9</version>
 		</dependency>
 		<dependency>
 			<groupId>org.clojure</groupId>
@@ -65,7 +65,7 @@
 		<dependency>
 			<groupId>org.clojure</groupId>
 			<artifactId>clojurescript</artifactId>
-			<version>1.9.227</version>
+			<version>1.9.229</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
