@@ -105,22 +105,18 @@
 
    Returns nil if column name does not exist."
   ([ds column-name]
-    (when-let [cnames (mp/column-names ds)]
-      (let [cnames ^IPersistentVector (vec cnames)]
-        (and cnames (utils/find-index cnames column-name))))))
+    (mp/column-index ds column-name)))
 
 (defn column
   "TODO: name may change
 
-   Gets a named column from the dataset. Throws an error if the column does not exist."
+   Gets a named column from the dataset. Throws an error if the column does not exist.
+
+   Works on labelled arrays, datsets or dataset rows."
   ([ds col-name]
-    (if (number? col-name)
-      (get-column ds col-name)
-      (let [cnames (mp/labels ds 1)
-           ix (reduce (fn [i n] (if (= n col-name) (reduced i) (inc i)))
-                      0 cnames)]
-         (when (>= ix (count cnames)) (error "Column name not found: " col-name))
-         (slice ds 1 ix)))))
+    (if-let [ix (if (number? col-name) col-name (mp/column-index ds col-name) )] 
+      (get-column ds ix)
+      (error "Column name not found: " col-name))))
 
 (defn add-column
   "Adds column to the dataset."

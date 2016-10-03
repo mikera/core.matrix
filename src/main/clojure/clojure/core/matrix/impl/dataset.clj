@@ -10,7 +10,7 @@
             [clojure.core.matrix.impl defaults persistent-vector] ;; these are needed during loading
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.macros :refer [error]]
-            [clojure.core.matrix.utils])
+            [clojure.core.matrix.utils :as utils])
   (:import [java.io Writer])
   (:import [clojure.lang IPersistentVector]
            [java.util List]))
@@ -127,12 +127,29 @@
   (get-major-slice [ds i]
     (mp/get-major-slice (mp/get-rows ds) i))
   (get-slice [ds dimension i]
-    (mp/get-slice (mp/get-rows ds) dimension i)))
+    (mp/get-slice (mp/get-rows ds) dimension i))
+  
+  DataSetRow
+  (get-column [ds i]
+    (nth (.columns ds) i))
+  (get-row [ds i]
+    (error "Cannot get rows from a single DataSetRow"))
+  (get-major-slice [ds i]
+    (mp/get-1d (nth (.columns ds) i) (.index ds)))
+  (get-slice [ds dimension i]
+    (if (== (long dimension) 0)
+      (mp/get-1d (nth (.columns ds) i) (.index ds))
+      (error "Cannot get dimension " dimension " from DataSetRow"))))
 
 (extend-protocol mp/PMatrixColumns
   DataSet
     (get-columns [ds]
-      (.columns ds)))
+      (.columns ds))
+  DataSetRow
+    (get-columns [ds]
+      (let [cols (.columns ds)
+            ix (.index ds)]
+        (mapv #(mp/get-1d % ix) cols))))
 
 (extend-protocol mp/PMatrixRows
   DataSet
@@ -141,6 +158,24 @@
         (mapv
           (fn [i] (wrap-row ds i))
           (range row-count)))))
+
+(extend-protocol mp/PConversion
+  DataSet
+    (convert-to-nested-vectors [ds]
+      (let [cols (mapv mp/convert-to-nested-vectors (.columns ds))]
+        (mp/transpose cols)))
+  DataSetRow
+    (convert-to-nested-vectors [ds]
+      (let [cols (.columns ds)
+            ix (.index ds)]
+        (mapv #(mp/get-1d % ix) cols))))
+
+(extend-protocol mp/PColumnIndex
+  Object
+    (column-index [ds column-name]
+      (when-let [cnames (mp/column-names ds)]
+        (let [cnames ^IPersistentVector (vec cnames)]
+          (and cnames (utils/find-index cnames column-name))))))
 
 (extend-protocol mp/PColumnSetting
   DataSet
@@ -372,6 +407,7 @@
     1 (mp/convert-to-nested-vectors a)
     2 (vec (mp/get-columns a))
     (error "Can't broadcast argument of shape " (mp/get-shape a))))
+
 
 (extend-protocol mp/PFunctionalOperations
   DataSet

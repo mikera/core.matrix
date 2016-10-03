@@ -1162,6 +1162,13 @@ would often be a numeric base type)."
   (column-name [m column] "Returns the label at a specific column")
   (column-names [m] "Returns all labels along the columns on an array"))
 
+(defprotocol PColumnIndex
+  "Protocol for getting the index of a named column. Works on any array with labelled columns.
+   If the dimensionality is 1, assumes that columns are the only dimension (i.e. can be applied to
+   dataset rows and Clojure maps in the natural way)
+   Returns an integer index if the column is found, nil otherwise."
+  (column-index [m column-label] "Returns the index of the specified column label"))
+
 ;; ==========================================================
 ;; LINEAR ALGEBRA PROTOCOLS
 
