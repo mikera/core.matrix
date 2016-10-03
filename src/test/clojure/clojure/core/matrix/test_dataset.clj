@@ -116,14 +116,21 @@
 
 (deftest test-emap-columns
   (let [kidneys (dataset ["State" "Charge"] [["FL" "0.4"] ["FL" "0.6"] ["NY" "0.8"]])]
-    (let [kidneys (emap-columns kidneys {"Charge" #(Double/parseDouble %)} )
-          groups (group-by first (slices kidneys))]
-      (is (= {"FL" 0.5, "NY" 0.8}
-             (into {} (for [[state rows] groups] [state (stats/mean (mapv second rows))])))))
-    (let [kidneys (emap-columns kidneys ["Charge"] #(Double/parseDouble %))
-          groups (group-by first (slices kidneys))]
-      (is (= {"FL" 1.0, "NY" 0.8}
-             (into {} (for [[state rows] groups] [state (stats/sum (mapv second rows))])))))))
+    (testing "Using column map"
+      (let [kidneys (emap-columns kidneys {"Charge" #(Double/parseDouble %)} )
+            groups (group-by first (slices kidneys))]
+        (is (= {"FL" 0.5, "NY" 0.8}
+               (into {} (for [[state rows] groups] [state (stats/mean (mapv second rows))]))))))
+    (testing "Single arity"
+      (let [kidneys (emap-columns kidneys ["Charge"] #(Double/parseDouble %))
+            groups (group-by first (slices kidneys))]
+        (is (= {"FL" 1.0, "NY" 0.8}
+               (into {} (for [[state rows] groups] [state (stats/sum (mapv second rows))]))))))
+    (testing "Variable arity"
+      (let [kidneys (emap-columns kidneys ["Charge"] (fn [charge _] (Double/parseDouble charge)) :foo)
+            groups (group-by first (slices kidneys))]
+        (is (= {"FL" 1.0, "NY" 0.8}
+               (into {} (for [[state rows] groups] [state (stats/sum (mapv second rows))]))))))))
 
 (defn- round-trip [x]
   (read-string (pr-str x)))
