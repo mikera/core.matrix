@@ -93,11 +93,12 @@
   ([a {:keys [prefix formatter column-names?] :as options}]
     (let [m (format-array a options)
           prefix (or prefix "")
-          sb (StringBuilder.)]
+          sb (StringBuilder.)
+          dims (long (mp/dimensionality m))]
       (.append sb prefix)
       (cond
-        (mp/is-scalar? m) (.append sb (str m))
-        (== 1 (long (mp/dimensionality m)))
+        (== 0 dims) (.append sb (str (mp/get-0d m)))
+        (== 1 dims)
           (append-row sb m (column-lengths m))
         :else
           (let [clens (column-lengths m)] 
