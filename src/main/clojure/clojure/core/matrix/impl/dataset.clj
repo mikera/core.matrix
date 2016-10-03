@@ -18,8 +18,9 @@
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
 
-;; a column-based DataSet implementation.
-;; columns are arbitrary core.matrix arrays, treated as vectors
+(declare wrap-row)
+
+;; A class to represent a single dataset row, as a reference into a vector of columns
 
 (deftype DataSetRow
   [^IPersistentVector column-names
@@ -54,17 +55,64 @@
     (assocN [m i v]
       (assoc (mp/convert-to-nested-vectors m) i v)))
 
-(defn wrap-row [dataset index]
-  (let [index (long index)
-        cols (mp/get-columns dataset)]
-    (when-not (< -1 index (long (mp/dimension-count (first cols) 0)))
-      (error "Row index does not exist: " index))
-    (DataSetRow. (mp/column-names dataset) cols index)))
+(defn wrap-row
+  "Wraps a row of a datset as a DataSetRow"
+  ([dataset index]
+    (let [index (long index)
+          cols (mp/get-columns dataset)]
+      (when-not (< -1 index (long (mp/dimension-count (first cols) 0)))
+        (error "Row index does not exist: " index))
+      (DataSetRow. (mp/column-names dataset) cols index)))
+  ([dataset index not-found]
+    (let [index (long index)
+          cols (mp/get-columns dataset)]
+      (if (< -1 index (long (mp/dimension-count (first cols) 0)))
+        (DataSetRow. (mp/column-names dataset) cols index)
+        not-found))))
 
-(defrecord DataSet
+;; a column-based DataSet implementation.
+;; columns are arbitrary core.matrix arrays, treated as vectors
+
+(deftype DataSet
   [^IPersistentVector column-names
    ^IPersistentVector columns
-   ^IPersistentVector shape])
+   ^IPersistentVector shape]
+  clojure.lang.IMeta
+    (meta [m]
+      nil)
+  clojure.lang.IObj
+    (withMeta [m meta]
+      (with-meta (mp/convert-to-nested-vectors m) meta))
+  clojure.lang.Indexed
+    (count [m] (first shape))
+    (nth [m i]
+      (wrap-row m i))
+    (nth [m i not-found]
+      (wrap-row m i not-found))
+  clojure.lang.Seqable
+    (seq [m]
+      (map #(wrap-row m %) (range (first shape))))
+  clojure.lang.ILookup
+    (valAt [m i]
+      (wrap-row m i))
+    (valAt [m i not-found]
+      (wrap-row m i not-found))
+  clojure.lang.IFn
+    (invoke [m i]
+      (wrap-row m i))
+    (invoke [m i not-found]
+      (wrap-row m i not-found))
+  clojure.lang.IPersistentCollection
+    (cons [m v]
+      (conj (mp/convert-to-nested-vectors m) v))
+    (empty [m]
+      [])
+    (equiv [m a]
+      (= (mp/convert-to-nested-vectors m) a))
+  clojure.lang.IPersistentVector
+    (length [m] (first shape))
+    (assocN [m i v]
+      (assoc (mp/convert-to-nested-vectors m) i v)))
 
 (defn dataset-from-columns [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
@@ -88,7 +136,9 @@
     (DataSet. col-names cols [rc cc])))
 
 (defn dataset-from-array
-  "Construct a dataset from an array. Uses labels from the array if available."
+  "Construct a dataset from an array. 
+
+   Uses labels from the array as column names if available, or long values 0, 1.... if not."
   ([m]
     (let [dims (long (mp/dimensionality m))]
       (when (not= dims 2)
@@ -110,13 +160,13 @@
       (let [dim (long dim)
             i (long i)]
         (cond
-          (== dim 1) (nth (:column-names m) i)
+          (== dim 1) (nth (.column-names m) i)
           (<= 0 (long i) (dec (long (mp/dimension-count m dim)))) nil
           :else (error "Dimension index out of range: " i))))
     (labels [m dim]
       (let [dim (long dim)]
         (cond
-          (== dim 1) (:column-names m)
+          (== dim 1) (.column-names m)
           (<= 0 (long dim) (dec (long (mp/dimensionality m)))) nil
           :else (error "Dimension out of range: " dim)))))
 
@@ -424,13 +474,17 @@
 
 (defn- broadcast-cols
   "Broadcasts a value to a vector of column values, in the shape specified"
-  ^IPersistentVector [a [rows cols]]
-  (case (long (mp/dimensionality a))
-    0 (vec (repeat cols a))
-    1 (mp/convert-to-nested-vectors a)
-    2 (vec (mp/get-columns a))
-    (error "Can't broadcast argument of shape " (mp/get-shape a))))
-
+  ^IPersistentVector [a [rows cols :as shape]]
+  (let []
+    (case (long (mp/dimensionality a))
+      0 (vec (repeat cols (vec (repeat rows a))))
+      1 (if (== (long cols) (long (mp/dimension-count a 0)))
+          (vec (mapv #(repeat rows %) (mp/element-seq a)))
+          (error "Can't broadcast to shape: " shape))
+      2 (if (== (long rows) (long (mp/dimension-count a 0)))
+          (vec (mp/get-columns a))
+          (error "Can't broadcast to shape: " shape))
+      (error "Can't broadcast argument of shape: " (mp/get-shape a)))))
 
 (extend-protocol mp/PFunctionalOperations
   DataSet
@@ -438,27 +492,21 @@
       (apply concat (mp/get-rows m)))
     (element-map
       ([m f]
-        (reduce
-          (fn [m i]
-            (update-in m [:columns i] mp/element-map f))
-          m
-          (range (.nth ^IPersistentVector (.shape m) 1))))
+        (let [cols (mapv #(mp/element-map % f) (.columns m))]
+          (DataSet. (.column-names m) cols (.shape m))))
       ([m f a]
-        (let [as (broadcast-cols a (mp/get-shape m))]
-          (reduce
-            (fn [m i]
-              (update-in m [:columns i] mp/element-map f (nth as i)))
-            m
-            (range (mp/dimension-count m 1)))))
+        (let [as (broadcast-cols a (mp/get-shape m))
+              cols (mapv #(mp/element-map %1 f %2) (.columns m) as)]
+          (DataSet. (.column-names m) cols (.shape m))))
       ([m f a more]
         (let [shape (.shape m)
               as (broadcast-cols a shape)
-              mores (apply mapv vector (map #(broadcast-cols % shape) more))]
-          (reduce
-            (fn [m i]
-              (update-in m [:columns i] mp/element-map f (nth as i) (nth mores i)))
-            m
-            (range (second shape))))))
+              mores (apply mapv vector (map #(broadcast-cols % shape) more))
+              cols (mapv #(mp/element-map %1 f %2 %3) 
+                         (.columns m) 
+                         as
+                         mores)]
+          (DataSet. (.column-names m) cols (.shape m)))))
     (element-map!
       ([m f]
         (mp/assign! m (mp/element-map m f)))
@@ -518,10 +566,14 @@
 ;; Printing methods for Datasets
 
 (defmethod print-dup DataSet [^clojure.core.matrix.impl.dataset.DataSet x ^Writer writer]
-  (.write writer (str "#dataset/dataset " (into {} x))))
+  (.write writer (str "#dataset/dataset " {:column-names (.column-names x)
+                                           :columns (.columns x)
+                                           :shape (.shape x)})))
 
 (defmethod print-method DataSet [^clojure.core.matrix.impl.dataset.DataSet x ^Writer writer]
-  (.write writer (str "#dataset/dataset " (into {} x))))
+  (.write writer (str "#dataset/dataset " {:column-names (.column-names x)
+                                           :columns (.columns x)
+                                           :shape (.shape x)})))
 
 (defmethod print-dup DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer]
   (.write writer (str "#dataset/row " {:column-names (.column-names x)
