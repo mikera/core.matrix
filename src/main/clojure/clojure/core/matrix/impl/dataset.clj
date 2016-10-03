@@ -12,7 +12,7 @@
             [clojure.core.matrix.macros :refer [error]]
             [clojure.core.matrix.utils :as utils])
   (:import [java.io Writer])
-  (:import [clojure.lang IPersistentVector]
+  (:import [clojure.lang IPersistentVector IPersistentMap]
            [java.util List]))
 
 (set! *warn-on-reflection* true)
@@ -25,6 +25,12 @@
   [^IPersistentVector column-names
    ^IPersistentVector columns
    ^long index]
+  clojure.lang.IMeta
+    (meta [m]
+      nil)
+  clojure.lang.IObj
+    (withMeta [m meta]
+      (with-meta (mp/convert-to-nested-vectors m) meta))
   clojure.lang.Indexed
     (count [m] (count column-names))
     (nth [m i]
@@ -48,7 +54,7 @@
     (assocN [m i v]
       (assoc (mp/convert-to-nested-vectors m) i v)))
 
-(defn- wrap-row [dataset index]
+(defn wrap-row [dataset index]
   (let [index (long index)
         cols (mp/get-columns dataset)]
     (when-not (< -1 index (long (mp/dimension-count (first cols) 0)))

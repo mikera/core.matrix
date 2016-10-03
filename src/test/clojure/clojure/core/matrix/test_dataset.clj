@@ -132,6 +132,12 @@
         (is (= {"FL" 1.0, "NY" 0.8}
                (into {} (for [[state rows] groups] [state (stats/sum (mapv second rows))]))))))))
 
+(deftest test-datasetrow
+  (let [ds (dataset [:a :b] [[1 "Bob"] [2 "Mike"]])
+        dr (clojure.core.matrix.impl.dataset/wrap-row ds 1)]
+    (is (= [2 "Mike"] (vec dr)))
+    (is (= (column-names ds) (column-names dr)))))
+
 (defn- round-trip [x]
   (read-string (pr-str x)))
 
