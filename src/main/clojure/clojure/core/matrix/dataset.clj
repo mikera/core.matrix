@@ -1,8 +1,11 @@
 (ns clojure.core.matrix.dataset
   "Namespace for the core.matrix dataset API. 
 
-   Datasets are similar to 2D matrices, and in addition they support labelled columns and 
-   a set of specialised operations on labelled columns."
+   Datasets can be considered as 2D matrices, and in addition they support labelled columns and 
+   a set of specialised operations on labelled columns.
+
+   Dataset rows are also labelled by columns.
+   "
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.dataset :as impl]
             [clojure.core.matrix :refer :all]
@@ -19,9 +22,10 @@
 ;; Specialised functions for dataset handling
 
 (defn dataset?
-  "Returns true if argument is a dataset, defined as a 2D array with column names"
+  "Returns true if argument is a dataset, defined as a 1D or 2D array with column names"
   (^Boolean [d]
-    (boolean (and (== 2 (mp/dimensionality d)) (mp/column-names d)))))
+    (boolean (and (<= 1 (long (mp/dimensionality d)) 2) 
+                  (mp/column-names d)))))
 
 (defn dataset
   "Creates dataset from on of the following:
