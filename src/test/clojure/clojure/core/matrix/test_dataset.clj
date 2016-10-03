@@ -138,6 +138,10 @@
         dr (clojure.core.matrix.impl.dataset/wrap-row ds 1)]
     (testing "Column names"
       (is (= col-names (column-names dr))))
+    (testing "Column access"
+      (is (= "Mike" (column dr :b)))
+      (is (= "Mike" (column dr 1)))
+      (is (error? (column dr :c))))
     (testing "DataSetRow as vector implementation"
       (is (= [2 "Mike"] (vec dr)))
       (is (= "Mike" (nth dr 1)))

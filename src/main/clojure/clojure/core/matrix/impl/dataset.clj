@@ -138,7 +138,7 @@
   
   DataSetRow
   (get-column [ds i]
-    (nth (.columns ds) i))
+    (mp/get-1d (nth (.columns ds) i) (.index ds)))
   (get-row [ds i]
     (error "Cannot get rows from a single DataSetRow"))
   (get-major-slice [ds i]
