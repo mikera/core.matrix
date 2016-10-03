@@ -470,7 +470,34 @@
       ([m f]
         (reduce f (mp/element-seq m)))
       ([m f init]
-        (reduce f init (mp/element-seq m)))))
+        (reduce f init (mp/element-seq m))))
+    
+  DataSetRow
+    (element-seq [m]
+      m)
+    (element-map
+      ([m f]
+        (mapv f m))
+      ([m f a]
+        (let [as (mp/broadcast a (mp/get-shape m))]
+          (mapv f m (mp/element-seq a))))
+      ([m f a more]
+        (let [shape (mp/get-shape m)
+              as (mp/broadcast a shape)
+              mores (mapv #(mp/element-seq (mp/broadcast % shape)) more)]
+          (apply mapv f m (mp/element-seq a) mores))))
+    (element-map!
+      ([m f]
+        (mp/assign! m (mp/element-map m f)))
+      ([m f a]
+        (mp/assign! m (mp/element-map m f a)))
+      ([m f a more]
+        (mp/assign! m (mp/element-map m f a more))))
+    (element-reduce
+      ([m f]
+        (reduce f m))
+      ([m f init]
+        (reduce f init m))))
 
 (extend-protocol mp/PIndexedSetting
   DataSet

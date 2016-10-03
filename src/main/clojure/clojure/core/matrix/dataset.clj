@@ -16,7 +16,7 @@
            [java.util List]))
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+(set! *unchecked-math* :warn-on-boxed)
 
 ;; ===============================================================
 ;; Specialised functions for dataset handling
