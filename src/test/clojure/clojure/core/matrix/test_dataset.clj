@@ -143,9 +143,9 @@
 
 (deftest instance-tests
   (let [dset (ds/dataset-from-columns [:bar :baz] [["Foo" "Bar"] [1 2]])]
-
     (compliance/instance-test dset)
-    (compliance/instance-test (slice dset 0 1))))
+    (compliance/instance-test (second (slices dset)))
+    (compliance/instance-test (slice dset 1 0))))
 
 (deftest compliance-test
   (compliance/compliance-test ds/CANONICAL-OBJECT))

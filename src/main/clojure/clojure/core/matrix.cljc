@@ -838,8 +838,8 @@
 
    The format of the returned 1D vector is determined by the implementation of the source matrix. 
    get-column may return a lightweight mutable view if supported by the implementation."
-  ([m y]
-     (mp/get-column m y)))
+  ([m col-index]
+    (mp/get-column m col-index)))
 
 (defn- slice-dims
   "Slices along all dimensions where there is a numerical argument"
