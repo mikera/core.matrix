@@ -191,6 +191,20 @@
          ds col-name
          (apply emap f col args)))))
 
+(defn emap-columns
+  "Applies a function to the specified set of columns. Calls emap-column for each column specified.
+
+   Optionally a map of {column name -> function} may be provided."
+  ([ds col-names f]
+    (reduce (fn [ds col] (emap-column ds col f))
+            ds col-names))
+  ([ds col-names f & args]
+    (reduce (fn [ds col] (apply emap-column ds col f args))
+            ds col-names))
+  ([ds col-fn-map]
+    (reduce (fn [ds [col f]] (emap-column ds col f))
+            ds col-fn-map)))
+
 (defn join-rows
   "Returns a dataset created by combining the rows of the given datasets"
   ([ds1 ds2]
