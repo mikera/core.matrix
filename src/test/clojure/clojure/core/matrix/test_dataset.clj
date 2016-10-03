@@ -3,6 +3,7 @@
             [clojure.core.matrix.compliance-tester :as compliance]
             [clojure.test :refer :all]
             [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.stats :as stats]
             [clojure.core.matrix.macros :refer [error]]
             [clojure.core.matrix.macros-clj :refer [error?]]
             [clojure.core.matrix.dataset :refer :all]))
@@ -112,6 +113,17 @@
     (is (equals [[2 12] [4 14]] (emap + ds [1 10])))
     (is (equals [[111 112] [113 114]] (emap + ds 10 100)))
     (is (equals [[102 112] [104 114]] (emap + ds 100 [1 10])))))
+
+(deftest test-emap-columns
+  (let [kidneys (dataset ["State" "Charge"] [["FL" "0.4"] ["FL" "0.6"] ["NY" "0.8"]])]
+    (let [kidneys (emap-columns kidneys {"Charge" #(Double/parseDouble %)} )
+          groups (group-by first (slices kidneys))]
+      (is (= {"FL" 0.5, "NY" 0.8}
+             (into {} (for [[state rows] groups] [state (stats/mean (mapv second rows))])))))
+    (let [kidneys (emap-columns kidneys ["Charge"] #(Double/parseDouble %))
+          groups (group-by first (slices kidneys))]
+      (is (= {"FL" 1.0, "NY" 0.8}
+             (into {} (for [[state rows] groups] [state (stats/sum (mapv second rows))])))))))
 
 (defn- round-trip [x]
   (read-string (pr-str x)))
