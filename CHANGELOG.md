@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.55.0] - 2016-10-03
+### Added
+- Add dataset/emap-columns function
+### Fixed
+- Improve docstrings
+- Fixed issue with p-norm #292
+
 ## [0.55.0] - 2016-09-06
 ### Added
 - Add filter-slices API function
