@@ -17,6 +17,7 @@
   (array-map
    :vectorz 'mikera.vectorz.matrix-api
    :vectorz-opencl 'mikera.vectorz.opencl-api
+   :neanderthal 'uncomplicate.neanderthal.impl.matrix-api
    :clojure 'clojure.core.matrix.impl.clojure
    :ndarray 'clojure.core.matrix.impl.ndarray-object
    :ndarray-double 'clojure.core.matrix.impl.ndarray-double
