@@ -415,7 +415,7 @@
     (apply method im (rest args))
     true
     (catch AbstractMethodError e false)
-    (catch Exception e true)))
+    (catch Throwable e true)))
 
 (defn test-methods-existence [m]
   (let [im-name (mp/implementation-key m)]
