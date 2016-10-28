@@ -157,9 +157,10 @@
   (element-type [m]))
 
 (defprotocol PArrayMetrics
-  "Option protocol for quick determination of array matrics"
+  "Optional protocol for quick determination of array matrics"
   (nonzero-count [m]
-    "Returns the number of non-zero values in a numerical array. May throw an exception if the array is not numerical."))
+    "Returns the number of non-zero elements in a numerical array. 
+     May throw an exception if the array is not numerical."))
 
 (defprotocol PValidateShape
   "Optional protocol to validate the shape of a matrix. If the matrix has an incorrect shape, should

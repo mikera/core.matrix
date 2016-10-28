@@ -48,7 +48,7 @@
 ;; ==================================================================================
 #? (:clj (do
   (set! *warn-on-reflection* true)
-  (set! *unchecked-math* true))
+  (set! *unchecked-math* :warn-on-boxed))
 :cljs (def class type))
 
 ;; (set! *unchecked-math* :warn-on-boxed) ;; use to check for boxing if needed
@@ -410,28 +410,31 @@
 ;; ======================================
 ;; matrix assignment and copying
 
+;; note we would have called this `set!` except for the name clash with clojure.core
 (defn assign!
   "Assigns a new value to an array. Sets the values of the target element-wise, broadcasting where necessary.
    Returns the mutated array. The new value may be either a scalar or a array of compatible (maybe smaller) shape."
-  ([m a]
-    (mp/assign! m a)
-    m))
+  ([dest src]
+    (mp/assign! dest src)
+    dest))
 
 (defn assign-array!
-  "Assigns values to a core.matrix array from a Java array, in element-wise order. Element type of Java array must be compatible.
+  "Assigns values to a destination core.matrix array from a Java array, in element-wise order. 
+   The element type of Java array must be compatible.
    Returns the mutated core.matrix array"
-  ([m arr]
-    (mp/assign-array! m arr)
-    m)
-  ([m arr offset]
-    (mp/assign-array! m arr offset (mp/element-count m))
-    m))
+  ([dest java-array]
+    (mp/assign-array! dest java-array)
+    dest)
+  ([dest java-array offset]
+    (mp/assign-array! dest java-array offset (mp/element-count dest))
+    dest))
 
 (defn assign
-  "Assigns array a element-wise, broadcasting to fill the whole shape of m.
-   Returns a new matrix, of the same shape as the original m."
-  ([m a]
-    (mp/assign m a)))
+  "Copies array src element-wise, broadcasting to fill the whole shape of m.
+   Similar to assign!, except returns a new destination array.
+   Returns a new array, of the same shape and implementation as the original m."
+  ([dest src]
+    (mp/assign dest src)))
 
 (defn clone
   "Constructs a (shallow) clone of the array. This function is intended to
@@ -860,7 +863,7 @@
 
 (defn- normalise-arg
   "Normalises arg to either a number of a sequable list of indexes"
-  [arg dim-count]
+  [arg ^long dim-count]
   (cond
     (number? arg) arg
     (= :all arg) (vec (range dim-count))
@@ -2030,7 +2033,6 @@ elements not-equal to the argument are 0.
   (mp/set-column! m i column)
   m)
 
-
 ;; ===================================
 ;; Sparse matrix functions
 
@@ -2039,13 +2041,14 @@ elements not-equal to the argument are 0.
    May perform a full array scan, but will often be quicker for specialised
    sparse arrays - sometimes as fast as O(1)"
   ([m]
-    (- (ecount m) (zero-count m))))
+    (mp/nonzero-count m)))
 
 (defn non-zero-indices
   "Gets the non-zero indices of an array.
    - For a 1D vector, returns an ordered index list.
    - For a higher dimensional array, returns the non-zero-indices for each slice in row-major order."
-  ([m] (mp/non-zero-indices m)))
+  ([m] 
+    (mp/non-zero-indices m)))
 
 ;; ====================================
 ;; Functional operations
