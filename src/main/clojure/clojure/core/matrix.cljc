@@ -1734,9 +1734,9 @@ elements not-equal to the argument are 0.
 (defn scale!
   "Scales a numerical array by one or more scalar factors (in place). The default implementation supports
    numerical arrays and numbers as scalar values, however matrix implementations may extend this to
-   support other scalar types.
+   support other scalar types (e.g. complex numbers).
 
-   Returns the matrix after it has been mutated."
+   Returns the array after it has been mutated."
   ([m factor]
     (mp/scale! m factor)
     m)
@@ -1800,8 +1800,8 @@ elements not-equal to the argument are 0.
 
    In general, the outer product fior higher diemnsional arrays is defined as the 
    tensor product (see https://en.wikipedia.org/wiki/Tensor_product)
-   i.e. The outer product of two arrays with indexed dimensions {i..j} and {j..k} 
-   has dimensions {i..j j..k}. The dimensionality of the result will be the
+   i.e. The outer product of two arrays with indexed dimensions {i..j} and {k..l} 
+   has dimensions {i..j k..l}. The dimensionality of the result will be the
    sum of the dimensionalities of the two arguments."
   ([] 1.0)
   ([a] a)

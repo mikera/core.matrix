@@ -7,7 +7,7 @@
    - Otherwise each element is an sub-array with identical shape (1 dimensional or more)
 
    Note that this allows for other array implementations to be nested inside persistent vectors,
-   provided all nested arrays have the same shape."
+   provided all nested arrays have the same shape and dimensionality of at least 1."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.common :refer [mapmatrix]]
