@@ -1807,6 +1807,7 @@ elements not-equal to the argument are 0.
   ([a] a)
   ([a b]
     (or (mp/outer-product a b)
+        ;; if outer-product is not supported, fall back to using Clojure persistent vectors
         (mp/outer-product (mp/convert-to-nested-vectors a) b)))
   ([a b & more]
     (reduce outer-product (outer-product a b) more)))

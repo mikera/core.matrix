@@ -29,48 +29,53 @@
 
 (def ^:const OBJECT-ARRAY-CLASS (Class/forName "[Ljava.lang.Object;"))
 
-(defn construct-object-array ^objects [data]
-  (let [dims (long (mp/dimensionality data))]
-    (cond
-      (== dims 1)
-        (object-array (mp/element-seq data))
-      (== dims 0)
-        (mp/get-0d data)
-      :default
-        (object-array (map construct-object-array (mp/get-major-slice-seq data))))))
+(defn construct-object-array 
+  "Contructs a nested Object[] array from the sorce data array"
+  (^objects [data]
+    (let [dims (long (mp/dimensionality data))]
+      (cond
+        (== dims 1)
+          (object-array (mp/element-seq data))
+        (== dims 0)
+          (mp/get-0d data)
+        :default
+          (object-array (map construct-object-array (mp/get-major-slice-seq data)))))))
 
-(defn construct-nd ^objects [shape]
-  (let [dims (long (count shape))]
-        (cond
-          (== 1 dims) (object-array (long (first shape)))
-          (> dims 1)
-            (let [n (long (first shape))
-                  m (object-array n)
-                  ns (next shape)]
-              (dotimes [i n]
-                (aset m i (construct-nd ns)))
-              m)
-          :else (error "Can't make a nested object array of dimensionality: " dims))))
+(defn construct-nd 
+  "Constructs an empty (nil-filled) object array of the given shape."
+  (^objects [shape]
+    (let [dims (long (count shape))]
+          (cond
+            (== 1 dims) (object-array (long (first shape)))
+            (> dims 1)
+              (let [n (long (first shape))
+                    m (object-array n)
+                    ns (next shape)]
+                (dotimes [i n]
+                  (aset m i (construct-nd ns)))
+                m)
+            :else (error "Can't make a nested object array of dimensionality: " dims)))))
 
 (defn object-array-coerce
-  "Coerce to object array format, avoids copying sub-arrays if possible."
+  "Coerce to object array format, avoids copying Object[] sub-arrays if possible."
   ([m]
-  (if (> (long (mp/dimensionality m)) 0)
-    (if (is-object-array? m)
-      (let [^objects m m
-            n (count m)]
-        (loop [ret m i 0]
-          (if (< i n)
-            (let [mv (aget m i)
-                  cmv (object-array-coerce mv)]
-              (if (and (identical? m ret) (identical? mv cmv))
-                (recur ret (inc i))
-                (let [mm (u/copy-object-array m)]
-                  (aset mm i cmv)
-                  (recur mm (inc i)))))
-            ret)))
-      (object-array (map object-array-coerce (mp/get-major-slice-seq m))))
-    (mp/get-0d m))))
+    (let [dims (long (mp/dimensionality m))]
+      (cond 
+        (== dims 0) (mp/get-0d m)
+        :else (if (is-object-array? m)
+                (let [^objects m m
+                      n (count m)]
+                  (loop [ret m i 0]
+                    (if (< i n)
+                      (let [mv (aget ret i)
+                            cmv (object-array-coerce mv)]
+                        (if (identical? mv cmv)
+                          (recur ret (inc i))
+                          (let [ret (if (identical? m ret) (u/copy-object-array m) ret)]
+                            (aset ret i cmv)
+                            (recur ret (inc i)))))
+                      ret)))
+                (object-array (map object-array-coerce (mp/get-major-slice-seq m))))))))
 
 (def ^Double ZERO 0.0)
 
@@ -103,12 +108,12 @@
   (Class/forName "[Ljava.lang.Object;")
     (dimensionality [m]
       (let [^objects m m]
-        (+ 1 (if (empty? m) 0 (long (mp/dimensionality (aget m 0)))))))
+        (if (empty? m) 1 (inc (long (mp/dimensionality (aget m 0)))))))
     (is-vector? [m]
       (let [^objects m m]
         (or
          (== 0 (alength m))
-         (== 0 (long (mp/dimensionality (aget m 0)))))))
+         (mp/is-scalar? (aget m 0)))))
     (is-scalar? [m] false)
     (get-shape [m]
       (let [^objects m m]
@@ -141,7 +146,7 @@
     (get-1d [m x]
       (aget ^objects m (int x)))
     (get-2d [m x y]
-      (mp/get-1d (aget ^objects m (int x)) y))
+      (mp/get-1d (aget ^objects m (long x)) y))
     (get-nd [m indexes]
       (let [^objects m m
             dims (long (count indexes))]

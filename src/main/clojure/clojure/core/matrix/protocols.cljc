@@ -524,7 +524,7 @@
 
 (defprotocol PMatrixProducts
   "Protocol for general inner and outer products of numerical arrays.
-   Products should use + and * as normally defined for numerical types"
+   Products should use + and * as normally defined for numerical types."
   (inner-product [m a] "Returns the inner product of two numerical arrays.")
   (outer-product [m a] "Returns the outer product of two numerical arrays. Implementation
                         may return nil to indicate that a default computation should be used."))
