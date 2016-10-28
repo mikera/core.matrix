@@ -37,6 +37,12 @@
     (is (equals [[6 7] [8 9]] (emap + [[1 2] [3 4]] 5)))
     (is (equals [[6 7] [8 9]] (emap + 5 [[1 2] [3 4]])))))
 
+(deftest vectorz-round-trip ;; regression test for vectorz-clj #61
+  (let [m (matrix :vectorz [[1 2 3][4 5 6]])
+        rs (rows m)
+        m2 (matrix :vectorz (vec rs))]
+    (is (equals m m2))))
+
 (deftest test-assign
   (is (= [[1 2] [1 2]] (assign [[1 2] [3 4]] [1 2])))
   (is (error? (assign [1 2] [[1 2] [3 4]]))))
