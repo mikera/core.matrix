@@ -464,12 +464,34 @@
       (cond
         (is-2d-double-array? param) param
         :else (construct-double-array param))))
-(extend-protocol mp/PCoercion
+
+(extend-protocol mp/PMatrixSlices
   (Class/forName "[[D")
-    (coerce-param [m param]
-      (cond
-        (is-2d-double-array? param) param
-        :else (construct-double-array param))))
+    (get-row [m i]
+      (aget ^"[[D" m (long i)))
+    (get-column [m i]
+      (let [^"[[D" m m
+            i (long i)
+            n (alength m)
+            ^doubles col (double-array n)]
+        (dotimes [ri n]
+          (aset col ri (let [^doubles row (aget m ri)] (aget row i))))
+        col))
+    (get-major-slice [m i]
+      (aget ^"[[D" m (long i)))
+    (get-slice [m dimension i]
+      (let [^"[[D" m m
+            dimension (long dimension)
+            i (long i)]
+        (cond
+          (== dimension 0) (aget m i)
+          (== dimension 1) (mp/get-column m i)
+          :else (error "Can't slice along dimension " dimension " of Java double[][] array")))))
+
+(extend-protocol mp/PMatrixRows
+  (Class/forName "[[D")
+	  (get-rows [m]
+      (vec m)))
 
 (extend-protocol mp/PMatrixCloning
   (Class/forName "[D")
@@ -490,7 +512,7 @@
 (extend-protocol mp/PFunctionalOperations
   (Class/forName "[D")
     (element-seq [m]
-      m)
+      (vec m))
     (element-map
       ([m f]
         (let [m ^doubles m

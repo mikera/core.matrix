@@ -3,6 +3,7 @@
             [clojure.core.matrix.compliance-tester :as compliance]
             [clojure.test :refer :all]
             [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.stats :as stats]
             [clojure.core.matrix.macros :refer [error]]
             [clojure.core.matrix.macros-clj :refer [error?]]
             [clojure.core.matrix.dataset :refer :all]))
@@ -113,6 +114,42 @@
     (is (equals [[111 112] [113 114]] (emap + ds 10 100)))
     (is (equals [[102 112] [104 114]] (emap + ds 100 [1 10])))))
 
+(deftest test-emap-columns
+  (let [kidneys (dataset ["State" "Charge"] [["FL" "0.4"] ["FL" "0.6"] ["NY" "0.8"]])]
+    (testing "Using column map"
+      (let [kidneys (emap-columns kidneys {"Charge" #(Double/parseDouble %)} )
+            groups (group-by first (slices kidneys))]
+        (is (= {"FL" 0.5, "NY" 0.8}
+               (into {} (for [[state rows] groups] [state (stats/mean (mapv second rows))]))))))
+    (testing "Single arity"
+      (let [kidneys (emap-columns kidneys ["Charge"] #(Double/parseDouble %))
+            groups (group-by first (slices kidneys))]
+        (is (= {"FL" 1.0, "NY" 0.8}
+               (into {} (for [[state rows] groups] [state (stats/sum (mapv second rows))]))))))
+    (testing "Variable arity"
+      (let [kidneys (emap-columns kidneys ["Charge"] (fn [charge _] (Double/parseDouble charge)) :foo)
+            groups (group-by first (slices kidneys))]
+        (is (= {"FL" 1.0, "NY" 0.8}
+               (into {} (for [[state rows] groups] [state (stats/sum (mapv second rows))]))))))))
+
+(deftest test-datasetrow
+  (let [col-names [:a :b]
+        ds (dataset col-names [[1 "Bob"] [2 "Mike"]])
+        dr (clojure.core.matrix.impl.dataset/wrap-row ds 1)]
+    (testing "Column names"
+      (is (= col-names (column-names dr))))
+    (testing "Column access"
+      (is (= "Mike" (column dr :b)))
+      (is (= "Mike" (column dr 1)))
+      (is (error? (column dr :c))))
+    (testing "Map-like access"
+      (is (= {:a 2 :b "Mike"} (to-map dr))))
+    (testing "DataSetRow as vector implementation"
+      (is (= [2 "Mike"] (vec dr)))
+      (is (= "Mike" (nth dr 1)))
+      (is (= :not-found (nth dr 2 :not-found)))
+      (is (= :not-found (nth dr -1 :not-found))))))
+
 (defn- round-trip [x]
   (read-string (pr-str x)))
 
@@ -124,9 +161,9 @@
 
 (deftest instance-tests
   (let [dset (ds/dataset-from-columns [:bar :baz] [["Foo" "Bar"] [1 2]])]
-
     (compliance/instance-test dset)
-    (compliance/instance-test (slice dset 0 1))))
+    (compliance/instance-test (second (slices dset)))
+    (compliance/instance-test (slice dset 1 0))))
 
 (deftest compliance-test
   (compliance/compliance-test ds/CANONICAL-OBJECT))

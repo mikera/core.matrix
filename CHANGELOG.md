@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.56.0] - 2016-10-03
+### Changed
+- Improvements to dataset representations. Should be non-breaking if user did not rely on implementation details :-)
+### Added
+- Add dataset/emap-columns function
+- Allow printing of column names in pprint functionality
+### Fixed
+- Improve docstrings
+- Improved implementations for double[][] arrays
+- Fixed Classcast exception on creating dataset #289
+- Fixed issue with p-norm #292
+
 ## [0.55.0] - 2016-09-06
 ### Added
 - Add filter-slices API function

@@ -4,7 +4,7 @@
             [clojure.test :refer :all]))
 
 (deftest test-basic-pprint
-  (is (= "[1.000 2.000]" (pp/pm [1 2]))))
+  (is (= "[1.000 2.000]" (pp/pm [1.0 2.0]))))
 
 (deftest test-vectorz-pm
   (is (pp/pm (array :vectorz [1 2])))

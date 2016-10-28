@@ -838,8 +838,8 @@
 
    The format of the returned 1D vector is determined by the implementation of the source matrix. 
    get-column may return a lightweight mutable view if supported by the implementation."
-  ([m y]
-     (mp/get-column m y)))
+  ([m col-index]
+    (mp/get-column m col-index)))
 
 (defn- slice-dims
   "Slices along all dimensions where there is a numerical argument"
@@ -2193,11 +2193,15 @@ elements not-equal to the argument are 0.
 
 #?(:clj
 (defn pm
-  "Pretty-prints a matrix.
+  "Pretty-prints a matrix or dataset. 
+
+   Column names will be printed if they are defined. The option :column-names? can be used to turn 
+   this on or off explicity.
 
    opts is a map of optional parameters which may include:
 
-      :formatter - a function to format each array element"
+      :formatter     - a function to format each array element
+      :column-names? - true to force printing of column names, false to supress"
   ([m]
     (println (pprint/pm m)))
   ([m opts]

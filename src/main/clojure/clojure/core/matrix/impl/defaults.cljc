@@ -345,7 +345,7 @@
   #?(:clj Object :cljs object)
     (vector-dot [a b]
       ;; compute dot product if we have two vectors, otherwise return nil
-      (when (and (== 1 (long (mp/dimensionality a))) (== 1 (long (mp/dimensionality b)))) 
+      (when (and (== 1 (long (mp/dimensionality a))) (== 1 (long (mp/dimensionality b))))
         (mp/element-sum (mp/element-multiply a b))))
     (length [a]
       (Math/sqrt (double (mp/length-squared a))))
@@ -822,8 +822,8 @@
 
 (extend-protocol mp/PIndexRank
   #?(:clj Object :cljs object)
-    (index-rank 
-      ([m] 
+    (index-rank
+      ([m]
         (let [dims (long (mp/dimensionality m))]
           (case dims
             0 (error "Can't get indexed rank of a scalar value")
@@ -1418,11 +1418,11 @@
     ([m f]
       (construct-matrix m (mapv f (mp/get-major-slice-seq m))))
     ([m f a]
-      (construct-matrix m (mapv f 
+      (construct-matrix m (mapv f
                                 (mp/get-major-slice-seq m)
                                 (mp/get-major-slice-seq a))))
     ([m f a more]
-      (construct-matrix m (apply mapv f 
+      (construct-matrix m (apply mapv f
                                  (mp/get-major-slice-seq m)
                                  (mp/get-major-slice-seq a)
                                  (map mp/get-major-slice-seq more))))))
@@ -1430,7 +1430,7 @@
 ;; slice-map
 (extend-protocol mp/PFilterSlices
   #?(:clj Object :cljs object)
-  (filter-slices [m f] 
+  (filter-slices [m f]
     (let [slcs (filterv f (mp/get-major-slice-seq m))]
       ;; check for no slices, in which case we must return nil
       (if (seq slcs) slcs nil))))
@@ -2366,8 +2366,13 @@
   #?(:clj Object :cljs object)
   (norm [m p]
     (cond
-      (= p #?(:clj Double/POSITIVE_INFINITY :cljs js/Number.POSITIVE_INFINITY)) (mp/element-max m)
-      (number? p) (mp/element-sum (mp/element-pow (mp/element-map m mops/abs) p))
+      (= p #?(:clj Double/POSITIVE_INFINITY :cljs js/Number.POSITIVE_INFINITY)) (mp/element-max (mp/element-map m mops/abs))
+      (number? p) (let [sum-of-element-powers (mp/element-sum (mp/element-pow (mp/element-map m mops/abs) p))]
+                    (condp == p
+                      1 sum-of-element-powers
+                      2 (Math/sqrt sum-of-element-powers)
+                      3 (Math/cbrt sum-of-element-powers)
+                      (Math/pow sum-of-element-powers (/ 1.0 p))))
       :else (error "p must be a number"))))
 
 ;; QR decomposition utility functions
