@@ -447,6 +447,8 @@
         (cond
           (== 0 adims)
             (mp/scale m (mp/get-0d a))
+          (not (== (long (last (mp/get-shape m))) (long (first (mp/get-shape a)))))
+            (error "Incompatible shapes for inner product: " (mp/get-shape m) " and " (mp/get-shape a))
           (== 1 mdims)
             (if (== 1 adims)
               (mp/element-sum (mp/element-multiply m a))

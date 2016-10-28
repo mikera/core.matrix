@@ -1445,12 +1445,9 @@ elements not-equal to the argument are 0.
   ([] 1.0)
   ([a] a)
   ([a b]
-    (cond
-      (number? b) (if (number? a) (* a b) (mp/scale a b))
-      (number? a) (mp/pre-scale b a)
-      :else (mp/element-multiply a b)))
+    (mp/element-multiply a b))
   ([a b & more]
-    (reduce mul (mul a b) more)))
+    (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
 (defn ^{:deprecated true} emul
   "DEPRECATED: please use mul instead."

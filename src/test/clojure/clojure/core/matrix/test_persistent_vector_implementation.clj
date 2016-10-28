@@ -35,7 +35,9 @@
     (is (nil? (coerce [] nil))))
   (testing "broadcast on emap"
     (is (equals [[6 7] [8 9]] (emap + [[1 2] [3 4]] 5)))
-    (is (equals [[6 7] [8 9]] (emap + 5 [[1 2] [3 4]])))))
+    (is (equals [[6 7] [8 9]] (emap + 5 [[1 2] [3 4]]))))
+  (testing "Inner product incompatible shapes"
+    (is (error? (inner-product [1 2] [[3 4]])))))
 
 (deftest vectorz-round-trip ;; regression test for vectorz-clj #61
   (let [m (matrix :vectorz [[1 2 3][4 5 6]])
