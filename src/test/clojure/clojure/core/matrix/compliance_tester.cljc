@@ -497,6 +497,10 @@
   (is (mat/equals (mat/negate m) (mat/outer-product -1.0 m)))
   (is (mat/equals (mat/add 0.0 m) (mat/mul 1 m)))
   (is (mat/equals m (mat/div m 1)))
+  (let [sh (mat/shape m)
+        doubles (mat/to-double-array m)]
+    (is (== (count doubles) (mat/ecount m)))
+    (is (mat/equals m (mat/reshape doubles sh) 0.0001)))
   (let [m (mat/add (mat/square m) 1)]
     (is (mat/equals m (mat/div (mat/square m) m) 0.0001)))
   (is (mat/equals (mat/mul m m) (mat/square m)))

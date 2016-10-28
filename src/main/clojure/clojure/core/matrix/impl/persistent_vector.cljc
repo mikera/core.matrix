@@ -557,33 +557,27 @@
             m
             (error "Can't convert to persistent vector array: inconsistent shape."))))))
 
-(defn- copy-to-double-array [m ^doubles arr ^long off ^long size]
-  (if (vector? m)
-    (let [ct (count m)]
-      (cond
-        ;; m must be a vector from now on
-        (and (== size ct) (not (vector?
-                                 #?(:clj
-                                     (.nth ^IPersistentVector m 0 nil)
-                                    :cljs
-                                     (nth ^PersistentVector m 0 nil)))))
-          (dotimes [i size]
-            (aset arr (+ off i) (double (nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i))))
-        :else
-          (let [skip (quot size ct)]
+(defn- copy-to-double-array 
+  "Copies the elements of array m to a Java double[] array, at the specified position"
+  ([m ^doubles arr ^long off]
+    (if (vector? m)
+      (let [ct (count m)]
+        (cond
+          (== ct 0) arr
+          ;; m must be a non-empty vector from now on
+          (mp/is-scalar? (nth m 0))
             (dotimes [i ct]
-              (copy-to-double-array
-                #?(:clj
-                    (.nth ^IPersistentVector m i)
-                    :cljs
-                    (nth ^PersistentVector m i))
-                 arr (+ off (* i skip)) skip))))
-       arr)
-    (do ;; handle case of non-vector, i.e. could be *any* core.matrix array
-        ;; TODO: consider moving to a protocol operation?
-      (doseq-indexed [v (mp/element-seq m) i]
+              (aset arr (+ off i) (double (nth m i))))
+          :else
+            (let [skip (mp/element-count (nth m 0))]
+              (dotimes [i ct]
+                (copy-to-double-array (nth m i) arr (+ off (* i skip))))))
+         arr)
+      (do ;; handle case of non-vector, i.e. could be *any* core.matrix array
+          ;; TODO: consider moving to a protocol operation?
+        (doseq-indexed [v (mp/element-seq m) i]
            (aset arr (+ off i) (double v)))
-      arr)))
+        arr))))
 
 (extend-protocol mp/PDoubleArrayOutput
   #?(:clj IPersistentVector :cljs PersistentVector)
@@ -591,7 +585,7 @@
       (let [size (long (mp/element-count m))
             arr (double-array size)
             ct (count m)]
-        (copy-to-double-array m arr 0 size)
+        (copy-to-double-array m arr 0)
         arr))
     (as-double-array [m] nil))
 
