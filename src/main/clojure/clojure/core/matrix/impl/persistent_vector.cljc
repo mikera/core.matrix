@@ -558,30 +558,32 @@
             (error "Can't convert to persistent vector array: inconsistent shape."))))))
 
 (defn- copy-to-double-array [m ^doubles arr ^long off ^long size]
-  (let [ct (count m)]
-    (cond
-      ;; we need this to handle the case of non-vectors nested in vectors
-      (not (vector? m))
-        (doseq-indexed [v (mp/element-seq m) i]
-          (aset arr (+ off i) (double v)))
-      ;; m must be a vector from now on
-      (and (== size ct) (not (vector?
-                               #?(:clj
-                                   (.nth ^IPersistentVector m 0 nil)
-                                  :cljs
-                                   (nth ^PersistentVector m 0 nil)))))
-        (dotimes [i size]
-          (aset arr (+ off i) (double (nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i))))
-      :else
-        (let [skip (quot size ct)]
-          (dotimes [i ct]
-            (copy-to-double-array
-              #?(:clj
-                  (.nth ^IPersistentVector m i)
-                  :cljs
-                  (nth ^PersistentVector m i))
-               arr (+ off (* i skip)) skip))))
-    arr))
+  (if (vector? m)
+    (let [ct (count m)]
+      (cond
+        ;; m must be a vector from now on
+        (and (== size ct) (not (vector?
+                                 #?(:clj
+                                     (.nth ^IPersistentVector m 0 nil)
+                                    :cljs
+                                     (nth ^PersistentVector m 0 nil)))))
+          (dotimes [i size]
+            (aset arr (+ off i) (double (nth ^#?(:clj IPersistentVector :cljs PersistentVector) m i))))
+        :else
+          (let [skip (quot size ct)]
+            (dotimes [i ct]
+              (copy-to-double-array
+                #?(:clj
+                    (.nth ^IPersistentVector m i)
+                    :cljs
+                    (nth ^PersistentVector m i))
+                 arr (+ off (* i skip)) skip))))
+       arr)
+    (do ;; handle case of non-vector, i.e. could be *any* core.matrix array
+        ;; TODO: consider moving to a protocol operation?
+      (doseq-indexed [v (mp/element-seq m) i]
+           (aset arr (+ off i) (double v)))
+      arr)))
 
 (extend-protocol mp/PDoubleArrayOutput
   #?(:clj IPersistentVector :cljs PersistentVector)
