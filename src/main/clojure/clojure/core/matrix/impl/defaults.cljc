@@ -52,9 +52,9 @@
 (defn- calc-element-count
   "Returns the total count of elements in an array"
   ([m]
-    (cond
-      (array? m) (reduce * 1 (mp/get-shape m))
-      :else (count m))))
+    (if-let [sh (mp/get-shape m)]
+      (reduce * sh)
+      1)))
 
 ;; TODO: make smarter for different numeric types
 ;; TODO: have this return ndarrays once we have cljs support
@@ -1604,9 +1604,7 @@
   #?(:clj Number :cljs number) (element-count [m] 1)
   #?(:clj Object :cljs object)
     (element-count [m]
-      (if (array? m)
-        (calc-element-count m)
-        1)))
+      (calc-element-count m)))
 
 (extend-protocol mp/PValidateShape
   nil

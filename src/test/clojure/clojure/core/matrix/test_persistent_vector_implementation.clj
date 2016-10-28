@@ -45,6 +45,12 @@
         m2 (matrix :vectorz (vec rs))]
     (is (equals m m2))))
 
+(deftest ndarray-round-trip ;; regression test for object arrays
+  (let [m (matrix :ndarray [[1 2 3][4 :foo 6]])
+        rs (rows m)
+        m2 (matrix :ndarray (vec rs))]
+    (is (e= m m2))))
+
 (deftest test-assign
   (is (= [[1 2] [1 2]] (assign [[1 2] [3 4]] [1 2])))
   (is (error? (assign [1 2] [[1 2] [3 4]]))))
