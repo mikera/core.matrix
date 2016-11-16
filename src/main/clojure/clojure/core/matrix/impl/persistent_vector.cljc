@@ -381,23 +381,23 @@
 (extend-protocol mp/PMatrixEquality
   #?(:clj IPersistentVector :cljs PersistentVector)
     (matrix-equals [a b]
-      (let [bdims (long (mp/dimensionality b))]
+      (let [bdims (long (mp/dimensionality b))
+            acount (long (count a))]
         (cond
           (<= bdims 0)
             false
-          (not= (count a) (mp/dimension-count b 0))
+          (not= acount (mp/dimension-count b 0))
             false
           (== 1 bdims)
             (and (== 1 (long (mp/dimensionality a)))
-                 (let [n (long (count a))]
-                   (loop [i 0]
-                     (if (< i n)
-                       (if (== (mp/get-1d a i) (mp/get-1d b i)) ;; can't avoid boxed warning, may be any sort of number
-                         (recur (inc i))
-                         false)
-                       true))))
+                 (loop [i 0]
+                   (if (< i acount)
+                     (if (== (mp/get-1d a i) (mp/get-1d b i)) ;; can't avoid boxed warning, may be any sort of number
+                       (recur (inc i))
+                       false)
+                     true)))
           (vector? b)
-            (let [n (long (count a))]
+            (let [n acount]
                (loop [i 0]
                      (if (< i n)
                        (if (mp/matrix-equals (a i) (b i))
@@ -405,7 +405,8 @@
                          false)
                        true)))
           :else
-            (loop [sa (seq a) sb (mp/get-major-slice-seq b)]
+            (loop [sa (seq a) 
+                   sb (mp/get-major-slice-seq b)]
               (if sa
                 (if (mp/matrix-equals (first sa) (first sb))
                   (recur (next sa) (next sb))
