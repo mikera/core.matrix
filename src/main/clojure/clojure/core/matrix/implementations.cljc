@@ -37,6 +37,7 @@
    :ejml :TODO
    :nd4j 'nd4clj.kiw
    :ujmp :TODO
+   :weka 'clj-ml.matrix-api
    :commons-math 'apache-commons-matrix.core
    :mtj 'cav.mtj.core.matrix
    :aljabr 'thinktopic.aljabr.core))
