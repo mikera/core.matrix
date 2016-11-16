@@ -35,7 +35,9 @@
     (is (nil? (coerce [] nil))))
   (testing "broadcast on emap"
     (is (equals [[6 7] [8 9]] (emap + [[1 2] [3 4]] 5)))
-    (is (equals [[6 7] [8 9]] (emap + 5 [[1 2] [3 4]])))))
+    (is (equals [[6 7] [8 9]] (emap + 5 [[1 2] [3 4]]))))
+  (testing "coercion to double array") ;; fix for #302
+    (is (equals [17.0] (to-double-array [(double-array [17])]))))
 
 (deftest test-assign
   (is (= [[1 2] [1 2]] (assign [[1 2] [3 4]] [1 2])))
