@@ -2,7 +2,7 @@
   "Namespace providing core.matrix implementations of standard BLAS operations.
 
    Operations may be optimised by underlying implementation: if not then 
-   default core.matrix operations will be used."
+   equivalent default core.matrix operations will be used."
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix :as m]
             [clojure.core.matrix.utils :as u]))
