@@ -1129,7 +1129,7 @@ would often be a numeric base type)."
 
 (defprotocol PIndicesSetting
   "Protocol for setting elements of an array at the specified indices"
-  (set-indices [a indices values] "sets the elements from a at indices to values")
+  (set-indices [a indices values] "sets the elements from a at indices to values. Returns a new array.")
   (set-indices! [a indices values] "destructively sets the elements from a at indices to values"))
 
 (defprotocol PNonZeroIndices

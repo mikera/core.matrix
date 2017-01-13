@@ -948,8 +948,8 @@
 (defn submatrix
   "Gets a view of a submatrix, for a set of index ranges.
    
-   Index ranges should be [start, length] pairs.
-   Index range pairs can be nil (gets the whole range)
+   If Index ranges are used they must be a sequence [start, length] pairs,
+   with the special exception that these pairs can be nil (gets the whole range).
 
    May be a mutable view if supported by the implementation."
   ([m index-ranges]
@@ -974,8 +974,7 @@
    and slicing a 1D vector will return a scalar.
 
    Slicing on the first dimension (dimension 0) is likely to perform better
-   for many array implementations. This is the default if no
-   dimension is specified."
+   for many array implementations. This is the default."
   ([m index]
     (mp/get-slice m 0 index))
   ([m dimension index]
@@ -997,7 +996,7 @@
    can be used to mutate portions of the original array.
 
    A key difference between 'slices' and 'slice-views' is that 'slice-views' must always return views. In order
-   to ensure this behaviour on mutable 1-dimensioanal arrays, it must return a sequence of 0-dimensioanal arrays."
+   to ensure this behaviour on mutable 1-dimensional arrays, it must return a sequence of 0-dimensional arrays."
   ([m]
     (mp/get-major-slice-view-seq m))
   ([m dimension]
@@ -1152,9 +1151,9 @@
 ;; structural change operations
 
 (defn broadcast
-  "Broadcasts a matrix to a specified shape. Returns a new matrix with the shape specified.
-   The broadcasted matrix may be a view over the original matrix: attempting to modify the
-   broadcasted matrix therefore has undefined results.
+  "Broadcasts an array to a specified shape. Returns a new array with the shape specified.
+   The broadcasted array may be a view over the original array: attempting to modify the
+   broadcasted array therefore has implementation-dependent results.
 
    Will throw an exception if broadcast to the target shape is not possible."
   ([m shape]
@@ -1162,13 +1161,13 @@
         (mp/broadcast (mp/coerce-param (implementation-check) m) shape))))
 
 (defn broadcast-like
-  "Broadcasts the second matrix to the shape of the first. See 'broadcast'."
+  "Broadcasts the second array to the shape of the first. See 'broadcast'."
   {:inline (fn ([m a] `(mp/broadcast-like ~m ~a)))}
   ([m a]
     (mp/broadcast-like m a)))
 
 (defn broadcast-coerce
-  "Broadcasts and coerces the second matrix to the same shape and type of the first.
+  "Broadcasts and coerces the second array to the same shape and type of the first.
    Equivalent to (coerce m (broadcast-like m a)).
 
    Useful for converting arrays to the correct shape and type for efficient future operations."
@@ -1177,7 +1176,7 @@
     (mp/broadcast-coerce m a)))
 
 (defn transpose
-  "Transposes a matrix, returning a new matrix. 
+  "Transposes an array, returning a new array. 
 
    Assuming no specific ordering is provided:
     - 1D vectors and scalars will be returned unchanged
