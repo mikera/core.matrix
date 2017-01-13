@@ -170,10 +170,13 @@
     - A known keyword for the implementation e.g. :vectorz
     - An existing instance from the implementation
 
+   Throws an exception if the implementation cannot be loaded.
+
    This is used primarily for functions that construct new matrices, i.e. it determines the
    implementation used for expressions like: (matrix [[1 2] [3 4]])"
   ([m]
-    (when (keyword? m) (try-load-implementation m))
+    (when (keyword? m) 
+      (or (try-load-implementation m) (error "Unable to load matrix implementation: " m)))
     #?(:clj (alter-var-root (var *matrix-implementation*)
                     (fn [_] (get-implementation-key m)))
        :cljs (set! *matrix-implementation* (get-implementation-key m)))))

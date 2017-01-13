@@ -577,6 +577,9 @@
   (is (= [[[1] [1]] [[0 1] [0]] [[0 1] [0 1]]]
          (m/non-zero-indices [[[0.0 2.0][0 4.0]][[5.0 6.0][7.0 0]][[9.0 10.0][11.0 12.0]]]))))
 
+(deftest test-invalid-implementation
+  (is (error? (m/set-current-implementation :non-existent-implementation-name))))
+
 #?(:clj
 (deftest check-examples
   (binding [*out* (StringWriter.)]

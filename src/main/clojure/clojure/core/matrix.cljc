@@ -2245,6 +2245,8 @@ elements not-equal to the argument are 0.
     - A known keyword for the implementation e.g. :vectorz
     - An existing instance from the implementation
 
+   Throws an exception if the implementation cannot be loaded.
+
    This is used primarily for functions that construct new matrices, i.e. it determines the
    implementation used for expressions like: (matrix [[1 2] [3 4]])"
   ([m]
