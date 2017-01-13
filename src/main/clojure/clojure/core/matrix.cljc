@@ -1210,7 +1210,7 @@
     (mp/reshape m shape)))
 
 (defn fill!
-  "Fills a matrix with a single scalar value. The scalar value must be compatible with the element-type
+  "Fills an array with a single scalar value. The scalar value must be compatible with the element-type
    of the array.
 
    Similar to assign!, but only supports scalar values (and may be more efficient)."
@@ -1219,7 +1219,7 @@
     m))
 
 (defn fill
-  "Fills a matrix with a single scalar value. The scalar value must be compatible with the element-type
+  "Fills an array with a single scalar value. The scalar value must be compatible with the element-type
    of the array. Returns a new array.
 
    Functionally similar to `assign!` except only intended for use with a scalar value."
@@ -1480,7 +1480,7 @@ elements not-equal to the argument are 0.
     (reduce e* (e* a b) more)))
 
 (defn div
-  "Performs element-wise matrix division for numerical arrays.
+  "Performs element-wise division on numerical arrays.
 
    Computes the reciprocal of each element when passed a single argument (similar to clojure.core//)."
   ([a] (mp/element-divide a))
