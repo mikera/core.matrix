@@ -1646,11 +1646,11 @@
   (gemm! [c trans-a? trans-b? alpha a b beta]
     (let [a (if trans-a? (mp/transpose a) a)
           b (if trans-b? (mp/transpose b) b)]
-      (mp/scale! c beta)
+      (if-not (== 1.0 (double beta)) (mp/scale! c beta))
       (mp/add-inner-product! c a b alpha)))
   (gemv! [c trans-a? alpha a b beta]
     (let [a (if trans-a? (mp/transpose a) a)]
-      (mp/scale! c beta)
+      (if-not (== 1.0 (double beta)) (mp/scale! c beta))
       (mp/add-inner-product! c a b alpha))))
 
 (extend-protocol mp/PMatrixColumns

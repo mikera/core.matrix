@@ -381,23 +381,23 @@
 (extend-protocol mp/PMatrixEquality
   #?(:clj IPersistentVector :cljs PersistentVector)
     (matrix-equals [a b]
-      (let [bdims (long (mp/dimensionality b))]
+      (let [bdims (long (mp/dimensionality b))
+            acount (long (count a))]
         (cond
           (<= bdims 0)
             false
-          (not= (count a) (mp/dimension-count b 0))
+          (not= acount (mp/dimension-count b 0))
             false
           (== 1 bdims)
             (and (== 1 (long (mp/dimensionality a)))
-                 (let [n (long (count a))]
-                   (loop [i 0]
-                     (if (< i n)
-                       (if (== (mp/get-1d a i) (mp/get-1d b i)) ;; can't avoid boxed warning, may be any sort of number
-                         (recur (inc i))
-                         false)
-                       true))))
+                 (loop [i 0]
+                   (if (< i acount)
+                     (if (== (mp/get-1d a i) (mp/get-1d b i)) ;; can't avoid boxed warning, may be any sort of number
+                       (recur (inc i))
+                       false)
+                     true)))
           (vector? b)
-            (let [n (long (count a))]
+            (let [n acount]
                (loop [i 0]
                      (if (< i n)
                        (if (mp/matrix-equals (a i) (b i))
@@ -405,7 +405,8 @@
                          false)
                        true)))
           :else
-            (loop [sa (seq a) sb (mp/get-major-slice-seq b)]
+            (loop [sa (seq a) 
+                   sb (mp/get-major-slice-seq b)]
               (if sa
                 (if (mp/matrix-equals (first sa) (first sb))
                   (recur (next sa) (next sb))
@@ -559,27 +560,29 @@
             m
             (error "Can't convert to persistent vector array: inconsistent shape."))))))
 
-(defn- copy-to-double-array 
-  "Copies the elements of array m to a Java double[] array, at the specified position"
-  ([m ^doubles arr ^long off]
-    (if (vector? m)
-      (let [ct (count m)]
-        (cond
-          (== ct 0) arr
-          ;; m must be a non-empty vector from now on
-          (mp/is-scalar? (nth m 0))
+(defn- copy-to-double-array! 
+  "Copy an arbitrary array to a region of a double array.
+   Assumes size represents the element count of the array, must be greater than zero."
+  ([m ^doubles arr ^long off ^long size]
+    (cond
+      ;; handle a single numerical value
+      (number? m) (aset arr off (double m))
+      ;; handle a Clojure vector. Could have nested arrays
+      (vector? m)
+        (let [ct (count m)]
+          (let [skip (quot size ct)]
             (dotimes [i ct]
-              (aset arr (+ off i) (double (nth m i))))
-          :else
-            (let [skip (mp/element-count (nth m 0))]
-              (dotimes [i ct]
-                (copy-to-double-array (nth m i) arr (+ off (* i skip))))))
-         arr)
-      (do ;; handle case of non-vector, i.e. could be *any* core.matrix array
-          ;; TODO: consider moving to a protocol operation?
+              (copy-to-double-array!
+                #?(:clj
+                    (.nth ^IPersistentVector m i)
+                    :cljs
+                    (nth ^PersistentVector m i))
+                 arr (+ off (* i skip)) skip))))
+      ;; otherwise, must be some arbitrary core.matrix array
+      ;; TODO think of a faster way to implement this.
+      :else
         (doseq-indexed [v (mp/element-seq m) i]
-           (aset arr (+ off i) (double v)))
-        arr))))
+          (aset arr (+ off i) (double v))))))
 
 (extend-protocol mp/PDoubleArrayOutput
   #?(:clj IPersistentVector :cljs PersistentVector)
@@ -587,7 +590,8 @@
       (let [size (long (mp/element-count m))
             arr (double-array size)
             ct (count m)]
-        (copy-to-double-array m arr 0)
+        (when (> size 0)
+          (copy-to-double-array! m arr 0 size))
         arr))
     (as-double-array [m] nil))
 

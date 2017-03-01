@@ -2,12 +2,22 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.57.0] - 2016-11-17
+### Added
+- Neanderthal implementation reference
+- Weka implementation reference
+
+### Fixed
+- Fixed persistent vector coercion issue #302
+
 ## [0.56.0] - 2016-10-03
 ### Changed
 - Improvements to dataset representations. Should be non-breaking if user did not rely on implementation details :-)
+
 ### Added
 - Add dataset/emap-columns function
 - Allow printing of column names in pprint functionality
+
 ### Fixed
 - Improve docstrings
 - Improved implementations for double[][] arrays
@@ -19,6 +29,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Add filter-slices API function
 - Implement generalised N-dimensional transpose functionality
 - Improve broadcasting docs and default implementation
+
 ### Fixed
 - Improve docstrings
 - Fix for default mutable matrix construction
@@ -35,6 +46,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [0.53.0] - 2016-08-12
 ### Added
 - References to ND4J implementation
+
 ### Fixed
 - Reinstate c.c.m.utils/error? for backwards compatibility
 

@@ -39,6 +39,10 @@
   (testing "Inner product incompatible shapes"
     (is (error? (inner-product [1 2] [[3 4]])))))
 
+(deftest test-double-coercion-302 ;; fix for #302
+  (testing "coercion to double array") 
+    (is (equals [17.0] (to-double-array [(double-array [17])]))))
+
 (deftest vectorz-round-trip ;; regression test for vectorz-clj #61
   (let [m (matrix :vectorz [[1 2 3][4 5 6]])
         rs (rows m)
@@ -147,7 +151,9 @@
       (is (not (mutable? m))) ;; persistent vector should not be mutable, even if components are
       (is (== 2 (dimensionality m)))
       (is (equals [3 7] (mmul m [1 1])))
-      (is (equals [2 4] (get-column m 1))))))
+      (is (equals [2 4] (get-column m 1)))))
+  (testing "nested implementations"
+    (is (equals [(double-array [17])] (array :vectorz [(double-array [17])]) ))))
 
 (deftest test-filter-slices
   (is (equals [[1 2] [3 4]] (filter-slices numerical? [[1 2] [2 nil] [3 4]]))))
@@ -196,7 +202,9 @@
   (testing "double arrays"
     (is (= [1.0 2.0] (coerce [] (double-array [1 2])))))
   (testing "nested sequences"
-    (is (= [[1 2] [3 4]] (coerce [] '((1 2) (3 4)))))))
+    (is (= [[1 2] [3 4]] (coerce [] '((1 2) (3 4))))))
+  (testing "canonical translation to vectors"
+    (is (= [[17.0]] (coerce [] [(double-array [17])])))))
 
 (deftest test-row-operations
     (testing "vector row swap"
