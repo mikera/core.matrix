@@ -8,7 +8,8 @@
    Functions in this API may be supported by multiple matrix implementations, allowing code that uses
    this API to quickly switch between implementations without significant changes (if any). The precise
    imnplementation used is generally the first array argument to any API function - this is intended to
-   be consistent with conventions for Clojure protocol dispatch."
+   be consistent with conventions for Clojure protocol dispatch. The precise results of operations
+   may be implementation-dependent, subject to the constraints stated in the docstrings."
   (:require [clojure.core.matrix.impl.defaults :as default]
             [clojure.core.matrix.impl.persistent-vector]
             [clojure.core.matrix.impl.sequence] ;; TODO: figure out if we want this?
@@ -2058,13 +2059,20 @@ elements not-equal to the argument are 0.
 ;; a matrix in row-major ordering
 
 (defn eseq
-  "Returns all elements of an array as a sequence object in row-major order"
+  "Returns all elements of an array as a Clojure sequence in row-major order.
+   
+   Like clojure.core/seq, Returns nil if the array has no elements."
   ([m]
     ;; note we call seq to convert a seqable object returned by mp/element-seq into a seq
     (seq (mp/element-seq m))))
 
 (defn ereduce
-  "Element-wise reduce on all elements of an array."
+  "Element-wise reduce on all elements of an array. 
+
+   It is *not* guaranteed that the reduction may be stopped early using clojure.core/reduced. If this 
+   behaviour is wanted, please check the details of the specific implementation or use the more generic 
+   Clojure code:
+     (reduce f (eseq m))"
   ([f m]
     (mp/element-reduce m f))
   ([f init m]

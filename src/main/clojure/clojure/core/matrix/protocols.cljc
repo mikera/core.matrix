@@ -1021,7 +1021,9 @@ would often be a numeric base type)."
   ;; also the matrix type must be first for protocol dispatch, so we move it before f
   (element-seq
     [m]
-    "Must return a seqable object containing all elements of the matrix, in row-major order.")
+    "Must return a seqable object containing all elements of the matrix, in row-major order.
+     i.e. it must be possible to call clojure.core/seq on the result. Valid sequable objects may
+     include Java arrays, Clojure vectors/sequences, and any Java object that implement Iterable.")
   (element-map
     [m f]
     [m f a]
@@ -1040,7 +1042,8 @@ would often be a numeric base type)."
   (element-reduce
     [m f]
     [m f init]
-    "Reduces with the function f over all elements of m."))
+    "Reduces with the function f over all elements of m.
+     Implementations do not need to support clojure.core/reduced"))
 
 (defprotocol PMapIndexed
   "Protocol for map-indexed operation on matrices"
@@ -1227,6 +1230,8 @@ would often be a numeric base type)."
 
 ;; ============================================================
 ;; Utility functions
+;;
+;; Intended for use in protocol implementations
 
 (defn persistent-vector-coerce
   "Coerces a data structure to nested persistent vectors"
