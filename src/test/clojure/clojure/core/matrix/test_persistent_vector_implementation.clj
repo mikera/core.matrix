@@ -218,6 +218,15 @@
     (testing "add row j to i and replace i with the result"
       (is (= (matrix [[3 3] [1 1]]) (add-row (matrix [[1 1] [1 1]]) 0 1 2)))))
 
+(deftest test-magnitude
+  (is (== 0 (magnitude [0.0])))
+  (is (== 1 (magnitude [1])))
+  (is (== 1 (magnitude [-1])))
+  (is (== 4 (magnitude-squared [0 2])))
+  (is (== 4 (magnitude-squared [-2 0])))
+  (is (== 5 (magnitude [[0 3] [4 0]])))
+  (is (== 25 (magnitude-squared [[3 0] [0 4]]))))
+
 (deftest test-native
   (is (nil? (native [1 2 3])))
   (is (not (native? [1 2 3]))))

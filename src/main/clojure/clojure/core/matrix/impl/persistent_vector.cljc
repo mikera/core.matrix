@@ -337,19 +337,23 @@
 
           :else (mp/inner-product a b))))
     (length [a]
-      (let [n (long (count a))]
-        (loop [i 0 res 0.0]
-          (if (< i n)
-            (let [x (double (nth a i))]
-              (recur (inc i) (+ res (* x x))))
-            (Math/sqrt res)))))
+      (if (number? (first a))
+        (let [n (long (count a))]
+         (loop [i 0 res 0.0]
+           (if (< i n)
+             (let [x (double (nth a i))]
+               (recur (inc i) (+ res (* x x))))
+             (Math/sqrt res))))
+        (Math/sqrt (mp/length-squared a))))
     (length-squared [a]
-      (let [n (long (count a))]
-        (loop [i 0 res 0.0]
-          (if (< i n)
-            (let [x (double (nth a i))]
-              (recur (inc i) (+ res (* x x))))
-            res))))
+      (if (number? (first a)) 
+        (let [n (long (count a))]
+          (loop [i 0 res 0.0]
+            (if (< i n)
+              (let [x (double (nth a i))]
+                (recur (inc i) (+ res (* x x))))
+              res)))
+        (mp/element-reduce a (fn [^double r ^double x] (+ r (* x x))) 0.0)))
     (normalise [a]
       (mp/scale a (/ 1.0 (Math/sqrt (mp/length-squared a))))))
 

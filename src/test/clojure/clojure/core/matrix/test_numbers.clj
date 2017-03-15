@@ -43,6 +43,13 @@
   (is (== 1 (ecount 13)))
   (is (nil? (shape 13))))
 
+(deftest test-magnitude
+  (is (== 0 (magnitude 0.0)))
+  (is (== 1 (magnitude 1)))
+  (is (== 1 (magnitude -1)))
+  (is (== 4 (magnitude-squared 2)))
+  (is (== 4 (magnitude-squared -2))))
+
 (deftest test-min-max
   (is (== 3 (emin 3)))
   (is (== 2 (emax 2)))

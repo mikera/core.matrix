@@ -334,8 +334,8 @@
 (extend-protocol mp/PVectorOps
   #?(:clj Number :cljs number)
     (vector-dot [a b] (mp/pre-scale b a))
-    (length [a] (double a))
-    (length-squared [a] (Math/sqrt (double a)))
+    (length [a] (Math/abs (double a)))
+    (length-squared [a] (let [a (double a)] (* a a)))
     (normalise [a]
       (let [a (double a)]
         (cond
