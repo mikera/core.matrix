@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.58.0] - 
+## [0.58.0] - 2017-03-15
 ### Enhanced
 - Better implementation for magnitude #309
 - Throw error on failure to set implementation
