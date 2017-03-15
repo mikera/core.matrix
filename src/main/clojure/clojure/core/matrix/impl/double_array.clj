@@ -780,4 +780,4 @@
 
 ;; registration
 
-(imp/register-implementation (double-array [1]))
+(imp/register-implementation (double-array [1 2]))
