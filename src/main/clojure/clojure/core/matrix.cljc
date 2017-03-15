@@ -1871,12 +1871,16 @@ elements not-equal to the argument are 0.
     (mp/trace a)))
 
 (defn magnitude
-  "Calculates the euclidean length (magnitude) of a numerical vector"
+  "Calculates the magnitude over all elements in an array.
+
+   This is the 2-norm: equivalent to the Frobenius norm on matrices, or the Euclidean length on vectors."
   ([m]
     (mp/length m)))
 
 (defn magnitude-squared
-  "Calculates the squared length (squared magnitude) of a numerical vector"
+  "Calculates the squared magnitude over all elements in an array.
+
+   This may be more efficient that computing the magnitude in some implementations."
   ([m]
      (mp/length-squared m)))
 
