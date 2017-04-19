@@ -301,11 +301,10 @@
           col-names-2 (mp/column-names ds2)]
       (if (= (into #{} col-names-1)
              (into #{} col-names-2))
-        (->> (mp/select-columns ds2 col-names-1)
-             (mp/get-rows)
-             (concat (mp/get-rows ds1))
-             (dataset-from-rows col-names-1))
-        (error "Can't join rows of datasets with different columns"))))
+        (let [cols1 (.columns ds1)
+              cols2 (mp/get-columns (mp/select-columns ds2 col-names-1))]
+           (dataset-from-columns col-names-1 (mapv mp/join cols1 cols2)))
+        (error "Can't join rows of datasets with different column names"))))
   (join-columns [ds1 ds2]
     (let [col-set-1 (into #{} (mp/column-names ds1))
           col-set-2 (into #{} (mp/column-names ds2))
