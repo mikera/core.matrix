@@ -4,7 +4,7 @@
    Represents a dataset as a 2D array such that:
    - Each column has an (optional) name as a label
    - Each column is stored as a separate array
-   - Columns may have different types"
+   - Columns are stored as complete vectors and may have different types"
   (:require [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.impl defaults persistent-vector] ;; these are needed during loading
