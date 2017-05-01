@@ -443,6 +443,9 @@
     [m]
     "Returns the number of zeros in the array"))
 
+;; ==========================================================================
+;; Array assignment and conversion operations
+
 (defprotocol PAssignment
   "Protocol for assigning values element-wise to mutable arrays."
   (assign!
@@ -470,8 +473,10 @@
   "Protocol for getting element data as a flattened double array"
   (to-double-array
     [m]
-    "Returns a double array containing the values of m in row-major order. May or may not be
-     the internal double array used by m, depending on the implementation.")
+    "Returns a new double array containing the values of m in row-major order. May or may not be
+     the internal double array used by m, depending on the implementation, but if it is the internal array
+     this should be the same array returned by 'as-double-array'. This should in general be the most
+     efficient way of getting a double array.")
   (as-double-array
     [m]
     "Returns the internal double array used by m. If no such array is used, returns nil.
@@ -487,6 +492,11 @@
     [m]
     "Returns the internal object array used by m. If no such array is used, returns nil.
      Provides an opportunity to avoid copying the internal array."))
+
+;; ============================================================
+;; Equality operations
+;;
+;; Should be implemented for efficient performance on matrix equality checks
 
 (defprotocol PValueEquality
   "Protocol for comparing two arrays, with the semantics of clojure.core/=.
@@ -513,6 +523,12 @@
   (matrix-equals-epsilon
     [a b eps]
     "As matrix-equals, but provides a numerical tolerance for equality testing."))
+
+;; ============================================================
+;; Mathematical operations
+;;
+;; These protocols are generally optional but should be implemented for
+;; optimised performance on the given operations.
 
 (defprotocol PMatrixMultiply
   "Protocol to support matrix multiplication on numerical arrays.

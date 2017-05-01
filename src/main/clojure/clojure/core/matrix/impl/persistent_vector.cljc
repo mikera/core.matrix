@@ -570,18 +570,18 @@
   ([m ^doubles arr ^long off ^long size]
     (cond
       ;; handle a single numerical value
-      (number? m) (aset arr off (double m))
+      (number? m) (if (== size 1)
+                    (aset arr off (double m))
+                    (error "Invalid shape while copying to double array"))
       ;; handle a Clojure vector. Could have nested arrays
       (vector? m)
-        (let [ct (count m)]
-          (let [skip (quot size ct)]
-            (dotimes [i ct]
-              (copy-to-double-array!
-                #?(:clj
-                    (.nth ^IPersistentVector m i)
-                    :cljs
-                    (nth ^PersistentVector m i))
-                 arr (+ off (* i skip)) skip))))
+        (let [m ^IPersistentVector m
+              ct (count m)
+              skip (quot size ct)]
+          (dotimes [i ct]
+            (let [slc #?(:clj (.nth m i)
+                         :cljs (nth m i))]
+              (copy-to-double-array! slc arr (+ off (* i skip)) skip))))
       ;; otherwise, must be some arbitrary core.matrix array
       ;; TODO think of a faster way to implement this.
       :else
