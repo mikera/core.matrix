@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.59.0] - 2017-05-01
+### Added
+- Implemented validate-shape #306
+
+### Fixed
+- Fix for #311 unnecessary coercion of column types in join-rows
+- Improved docs
+
 ## [0.58.0] - 2017-03-15
 ### Enhanced
 - Better implementation for magnitude #309
