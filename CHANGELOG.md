@@ -36,7 +36,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Improve docstrings
-- Improved implementations for double[][] arrays
+- Improved implementations for 2D double arrays
 - Fixed Classcast exception on creating dataset #289
 - Fixed issue with p-norm #292
 
