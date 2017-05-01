@@ -1608,19 +1608,33 @@
 
 (extend-protocol mp/PValidateShape
   nil
-    (validate-shape [m]
-      nil)
+    (validate-shape 
+      ([m] nil)
+      ([m shape] (when-not (nil? shape) (error "Shape validation failed, was scalar but expected: " shape))))
   #?(:clj Object :cljs object)
-    (validate-shape [m]
-      (cond
-        (== 0 (long (mp/dimensionality m)))
-          (if (mp/is-scalar? m) nil [])
-        :else
-          (let [ss (mp/get-major-slice-seq m)
-                shapes (mapv mp/validate-shape ss)]
-            (if (mp/same-shapes? ss)
-              (vec (cons (mp/dimension-count m 0) (first shapes)))
-              (error "Inconsistent shapes for sub arrays in " (#?(:clj class :cljs type) m)))))))
+    (validate-shape 
+      ([m]
+        (mp/validate-shape m (mp/get-shape m)))
+      ([m expected-shape]
+        (cond
+          (== 0 (long (mp/dimensionality m)))
+            (let [sh (mp/get-shape m)]
+              (if (nil? sh)
+                (when-not (nil? expected-shape)
+                  (error "Shape validation failed, was scalar but expected: " expected-shape))
+                (if (= (vec sh) (vec expected-shape)) 
+                  sh 
+                  (error "Shape validation failed, was " sh " but expected: " expected-shape)))
+              )
+          :else
+            (let [sh (mp/get-shape m)
+                  ss (mp/get-major-slice-seq m)
+                  efirst (or (first expected-shape) (error "Shape validation failed, was " sh " but expected: " expected-shape))
+                  enext (next expected-shape) 
+                  shapes (mapv #(mp/validate-shape % enext) ss)]
+              (if (apply = enext shapes)
+                (vec (cons (mp/dimension-count m 0) (first shapes)))
+                (error "Inconsistent shapes for sub arrays in " (#?(:clj class :cljs type) m))))))))
 
 (extend-protocol mp/PMatrixSlices
   #?(:clj Object :cljs object)

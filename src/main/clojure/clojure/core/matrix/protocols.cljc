@@ -166,7 +166,8 @@
   "Optional protocol to validate the shape of a matrix. If the matrix has an incorrect shape, should
    throw an error. Otherwise it should return the correct shape."
   (validate-shape
-    [m]
+    [m] 
+    [m expected-shape]
     "Returns the shape of the array, performing validation and throwing an error if the shape is inconsistent"))
 
 (defprotocol PRowColMatrix

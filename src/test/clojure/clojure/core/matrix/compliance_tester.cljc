@@ -103,6 +103,8 @@
           dims (mat/dimensionality m)]
       (is (u/valid-shape? sh))
       (is (== (count sh) dims))
+      (is (= sh (mat/validate-shape m)))
+      (is (= sh (mat/validate-shape m sh)))
       (is (= (seq sh) ;; we need the seqs to account for empty mat/shapes (need to comapre equal to nil)
              (seq (for [i (range dims)] (mat/dimension-count m i)))))))
   (testing "vectors always have dimensionality == 1"

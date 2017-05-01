@@ -297,10 +297,16 @@
 
 (extend-protocol mp/PValidateShape
   #?(:clj IPersistentVector :cljs PersistentVector)
-    (validate-shape [m]
-      (if (mp/same-shapes? m)
-        (mp/get-shape m)
-        (error "Inconsistent shape for persistent vector array."))))
+    (validate-shape 
+      ([m]
+        (if (mp/same-shapes? m)
+          (mp/get-shape m)
+          (error "Inconsistent shape for persistent vector array.")))
+      ([m shape]
+        (when (empty? shape) (error "Expected empty shape for persistent vector: " m)) 
+        (if (apply = (next shape) (map mp/validate-shape m))
+            shape
+            (error "Inconsistent shape for persistent vector array, expected: " shape " on array " m)))))
 
 (extend-protocol mp/PMatrixAdd
   #?(:clj IPersistentVector :cljs PersistentVector)

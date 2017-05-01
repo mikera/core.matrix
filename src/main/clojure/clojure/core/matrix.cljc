@@ -647,6 +647,17 @@
       (vec sh)
       nil)))
 
+(defn validate-shape
+  "Like shape, but validates the shape of the array and throws an exception if the array does not have the
+   expected shape. Useful for ensuring that mixed implementation arrays or nested Clojure vectors conform to
+   the expected shape.
+
+   Returns the shape of the array if sucessful, or nil if the object is not a core.matrix array."
+  ([m]
+    (mp/validate-shape m))
+  ([m shape]
+    (mp/validate-shape m shape)))
+
 (defn zero-count
   "Returns the number of zeros in an array.
 

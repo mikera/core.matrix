@@ -80,6 +80,22 @@
     (is (not (same-shape? [1 2] [2 3 4])))
     (is (not (same-shape? [1 2] [[0 1] [2 3]])))))
 
+(deftest test-validate-shape
+  (testing "Error cases for invalid shapes"
+    (is (error? (validate-shape [[1] [2 3]])))
+    (is (error? (validate-shape [[1 2] [2]])))
+    (is (error? (validate-shape [[1 2] 4 [2 2]])))
+    (is (error? (validate-shape (object-array [[1 2] 4 [2 2]]))))
+    (is (error? (validate-shape [1 [2 3]]))))
+  (testing "Error cases for unexpected shapes shapes"
+    (is (error? (validate-shape [[1 2] [2 3]] [2 3])))
+    (is (error? (validate-shape [7] [1 1])))
+    (is (error? (validate-shape [7] [])))
+    (is (error? (validate-shape (object-array [7]) [])))
+    (is (error? (validate-shape 1 [1])))
+    (is (error? (validate-shape 1 [])))
+    (is (error? (validate-shape [2 3] nil)))))
+
 (deftest test-as-vector
   (is (e== [1] (as-vector 1))))
 

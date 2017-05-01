@@ -281,12 +281,24 @@
 
 (extend-protocol mp/PValidateShape
   (Class/forName "[Ljava.lang.Object;")
-    (validate-shape [m]
-      (let [^objects m m
-            shapes (map mp/validate-shape (seq m))]
-        (if (mp/same-shapes? shapes)
-          (cons (alength m) (first shapes))
-          (error "Inconsistent shapes for sub arrays in object array")))))
+    (validate-shape 
+      ([m]
+        (let [sh (mp/get-shape m)
+              next-sh (next sh)
+              ^objects m m
+              shapes (map mp/validate-shape (seq m))]
+          (if (apply = next-sh shapes)
+            sh
+            (error "Inconsistent shapes for sub arrays in object array"))))
+      ([m expected-shape]
+        (when (empty? expected-shape) (error "Expected empty shape on object array."))
+        (let [next-sh (next expected-shape)
+              ^objects m m
+              shapes (map #(mp/validate-shape % next-sh) (seq m))]
+          (if (apply = next-sh shapes)
+            expected-shape
+            (error "Inconsistent shapes for sub arrays in object array: " shapes)))))
+    )
 
 (extend-protocol mp/PFunctionalOperations
   (Class/forName "[Ljava.lang.Object;")
