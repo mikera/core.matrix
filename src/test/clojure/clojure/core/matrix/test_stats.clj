@@ -36,3 +36,10 @@
   (is (equals [1.0] (normalise-probabilities [0])))
   (is (equals [0.5 0.5] (normalise-probabilities [0 0])))
   (is (equals [0.25 0.75] (normalise-probabilities [1 3]))))
+
+(deftest test-r-squared
+  (is (= 1.0 (r-squared [1 2 3] [1 2 3])))
+  (is (= 1.0 (r-squared [1 nil 3] [1 nil 3])))
+  (is (= 0.0 (r-squared [2 2 2] [1 2 3])))
+  (is (nil? (r-squared ["" 2] [1 ""])))
+  )

@@ -82,3 +82,21 @@
         (== len 0.0) (m/assign v (/ 1.0 (m/dimension-count v 0)))
         :else (m/scale v (/ 1.0 len))))))
 
+(defn r-squared
+    "Returns the coefficient of determination(R-squared) between 2 vectors, filtering observations where both pairs
+   have numerical values. Returns nil if there are no corresponding values or if the result is a NaN"
+    [pred actl]
+    (let [iseq (filter (fn [[a b]] (and (number? a) (number? b))) 
+                       (map vector pred actl))
+          v1 (mapv first iseq)
+          v2 (mapv second iseq)
+          sse (-> (m/sub v2 v1) m/square m/esum double)]
+        (if (> (count v1) 0)
+          (let [ymean (mean v2)
+                ydiff (m/sub v2 ymean)
+                tss (double (m/esum (m/square ydiff)))
+                res (when (> (count pred) 0) 
+                    (- 1.0 (/ sse tss)))]
+            (if (or  (= res Double/NEGATIVE_INFINITY) (Float/isNaN res ))
+              nil res))
+          nil)))
