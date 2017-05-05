@@ -82,3 +82,13 @@
         (== len 0.0) (m/assign v (/ 1.0 (m/dimension-count v 0)))
         :else (m/scale v (/ 1.0 len))))))
 
+(defn correlation
+  "Returns the Pearson correlation coefficient"
+  [x y]
+  (let [[x2 y2] (mapv m/square [x y])
+        n (count x)
+        xy (m/mul x y)
+        [sx sy sx2 sy2 sxy] (mapv m/esum [x y x2 y2 xy])]
+    (double (/ (-  (* n sxy) (* sx sy))
+       (m/sqrt (* (- (* n sx2) (m/square sx))
+                  (- (* n sy2) (m/square sy))))))))
