@@ -82,6 +82,19 @@
         (== len 0.0) (m/assign v (/ 1.0 (m/dimension-count v 0)))
         :else (m/scale v (/ 1.0 len))))))
 
+(defn correlation
+  "Returns the Pearson correlation coefficient"
+  [x y]
+  (let [x2 (m/square x)
+        y2 (m/square y)
+        n (count x)
+        xy (m/mul x y)
+        sx (m/esum x)
+        sy (m/esum y)]
+    (double (/ (-  (* n (m/esum xy)) (* sx sy))
+       (m/sqrt (* (- (* n (m/esum x2)) (m/square sx))
+                  (- (* n (m/esum y2)) (m/square sy))))))))
+
 (defn r-squared
     "Returns the coefficient of determination(R-squared) between 2 vectors, If filter-nils? is true, the pairs are filtered to have  
    numerical values. Returns nil if there are no corresponding values or if the result is a NaN"
