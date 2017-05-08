@@ -90,13 +90,10 @@
         n (count x)
         xy (m/mul x y)
         sx (m/esum x)
-        sy (m/esum y)
-        sx2 (m/esum x2)
-        sy2 (m/esum y2)
-        sxy (m/esum xy)]
-    (double (/ (-  (* n sxy) (* sx sy))
-       (m/sqrt (* (- (* n sx2) (m/square sx))
-                  (- (* n sy2) (m/square sy))))))))
+        sy (m/esum y)]
+    (double (/ (-  (* n (m/esum xy)) (* sx sy))
+       (m/sqrt (* (- (* n (m/esum x2)) (m/square sx))
+                  (- (* n (m/esum y2)) (m/square sy))))))))
 
 (defn r-squared
     "Returns the coefficient of determination(R-squared) between 2 vectors, If filter-nils? is true, the pairs are filtered to have  
