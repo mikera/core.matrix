@@ -85,10 +85,35 @@
 (defn correlation
   "Returns the Pearson correlation coefficient"
   [x y]
-  (let [[x2 y2] (mapv m/square [x y])
+  (let [x2 (m/square x)
+        y2 (m/square y)
         n (count x)
         xy (m/mul x y)
-        [sx sy sx2 sy2 sxy] (mapv m/esum [x y x2 y2 xy])]
+        sx (m/esum x)
+        sy (m/esum y)
+        sx2 (m/esum x2)
+        sy2 (m/esum y2)
+        sxy (m/esum xy)]
     (double (/ (-  (* n sxy) (* sx sy))
        (m/sqrt (* (- (* n sx2) (m/square sx))
                   (- (* n sy2) (m/square sy))))))))
+
+(defn r-squared
+    "Returns the coefficient of determination(R-squared) between 2 vectors, If filter-nils? is true, the pairs are filtered to have  
+   numerical values. Returns nil if there are no corresponding values or if the result is a NaN"
+    ([actl pred filter-nils?] 
+     (let [iseq (filter (fn [[a b]] (and (number? a) (number? b))) 
+                       (map vector pred actl))
+           v1 (mapv first iseq)
+           v2 (mapv second iseq)]
+       (r-squared v2 v1)))
+    ([actl pred]
+    (let [sse (-> (m/sub actl pred) m/square m/esum double)]
+        (if (> (count pred) 0)
+          (let [ymean (mean actl)
+                ydiff (m/sub actl ymean)
+                tss (double (m/esum (m/square ydiff)))
+                res (- 1.0 (/ sse tss))]
+            (if (or  (= res Double/NEGATIVE_INFINITY) (Float/isNaN res ))
+              nil res))
+          nil))))

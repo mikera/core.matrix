@@ -48,3 +48,10 @@
               (let [x [43 21 25 42 57 59]
                     y [99 65 79 75 87 81]]
                 (correlation x y)))))
+
+(deftest test-r-squared
+  (is (= 1.0 (r-squared [1 2 3] [1 2 3])))
+  (is (= 1.0 (r-squared [1 nil 3] [1 nil 3] true)))
+  (is (= 0.0 (r-squared [1 2 3] [2 2 2])))
+  (is (nil? (r-squared ["" 2] [1 ""] true)))
+  )
