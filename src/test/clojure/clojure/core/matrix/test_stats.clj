@@ -53,5 +53,9 @@
   (is (= 1.0 (r-squared [1 2 3] [1 2 3])))
   (is (= 1.0 (r-squared [1 nil 3] [1 nil 3] true)))
   (is (= 0.0 (r-squared [1 2 3] [2 2 2])))
-  (is (nil? (r-squared ["" 2] [1 ""] true)))
-  )
+  (is (nil? (r-squared ["" 2] [1 ""] true))))
+
+(deftest test-rmse
+  (is (approx 2.915
+              (rmse [7 10 12 10 10 8 7 8 11 13 10 8]
+                    [6 10 14 16 7 5 5 13 12 13 8 5]))))
