@@ -1470,15 +1470,18 @@ elements not-equal to the argument are 0.
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
 (defn mmul
-  "Performs matrix multiplication on matrices or vectors. Equivalent to
-  inner-product when applied to vectors.  Will treat a 1D vector roughly as a
+  "Performs matrix multiplication on matrices or vectors. 
+
+  Equivalent to inner-product when applied to vectors.  Will treat a 1D vector roughly as a
   1xN matrix (row vector) when it's the first argument, or as an Nx1 matrix
   (column vector) when it's the second argument--except that the dimensionality
   of the result will be different from what it would be with matrix arguments."
   ([] 1.0)
   ([a] a)
   ([a b]
-    (mp/matrix-multiply a b))
+    (or (mp/matrix-multiply a b) 
+        ;; fallback to inner product if matrix-multiply does not produce a result
+        (mp/inner-product a b)))
   ([a b & more]
     (reduce mp/matrix-multiply (mp/matrix-multiply a b) more)))
 
