@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.60.0] - 2017-05-16
+### Added
+- Implement rmse, r-squared and person correlation in c.c.m/stats (thanks Kiran!)
+### Fixed
+- Improve default handling of mmul to fall back to inner-product for ND arrays
+
 ## [0.59.0] - 2017-05-01
 ### Added
 - Implemented validate-shape #306
