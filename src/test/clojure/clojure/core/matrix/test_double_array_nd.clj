@@ -170,6 +170,10 @@
              (is (== m
                      (indices-matrix (mp/get-shape default-value))))))
 
+(deftest test-mmul 
+  (is (= 14.0 (mmul (double-array [1 2 3]) (double-array [1 2 3]))))
+  (is (error? (mmul (double-array [1 2 3]) (double-array [1 2 3 4])))))
+
 (deftest test-matrix-divide
   (wrap-test "test div" m
              (is (== (div m golden-ratio)
