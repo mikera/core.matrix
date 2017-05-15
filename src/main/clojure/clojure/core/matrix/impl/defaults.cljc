@@ -899,9 +899,12 @@
              (mp/reshape (mp/matrix-multiply (mp/reshape m [1 arows]) a)
                          [acols]))
          (and (== mdims 2) (== adims 1))
-           (let [[mrows mcols] (mp/get-shape m)]
+           (let [mshape (mp/get-shape m)
+                 [mrows mcols] mshape
+                 acount (mp/element-count a)]
+             (when (not= mcols acount) (error "Can't multiply matrix of shape: " mshape " with a vector of length " acount))
              (mp/reshape (mp/matrix-multiply m (mp/reshape a [mcols 1]))
-                         [mcols]))
+                         [mrows]))
          (and (== mdims 2) (== adims 2))
            (let [mutable (mp/is-mutable? m)
                  [^long mrows ^long mcols] (mp/get-shape m)
