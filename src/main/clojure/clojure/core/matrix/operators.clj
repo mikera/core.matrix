@@ -79,7 +79,7 @@
 ;; ===================================================
 ;; inplace operators
 (defn +=
-  "Inplace matrix addition operator"
+  "In-place matrix addition operator"
   ([a] a)
   ([a b] 
     (m/add! a b))
@@ -89,7 +89,7 @@
       (m/add! a m))))
 
 (defn -=
-  "Inplace matrix subtraction operator"
+  "In-place matrix subtraction operator"
   ([a] a)
   ([a b] 
     (m/sub! a b))
@@ -99,7 +99,7 @@
       (m/sub! a m))))
 
 (defn *=
-  "Inplace matrix multiplication operator"
+  "In-place matrix multiplication operator"
   ([a] a)
   ([a b] 
     (m/mul! a b))
@@ -110,7 +110,7 @@
 
 ;; TODO can't use /= due to clojure namespace issues
 (defn div=
-  "Inplace matrix division operator"
+  "In-place matrix division operator"
   ([a] a)
   ([a b] (m/div! a b))
   ([a b & more] 

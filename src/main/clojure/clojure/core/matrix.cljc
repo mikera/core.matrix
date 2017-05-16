@@ -149,7 +149,8 @@
     (mp/new-vector (implementation-check implementation) length)))
 
 (defn zero-matrix
-  "Constructs a new zero-filled numerical matrix with the given dimensions.
+  "Returns a zero-filled numerical matrix with the given dimensions, for the given implementation or the current
+   implementation if not specified.
 
    May produce a lightweight immutable zero matrix if supported by the implementation."
   ([rows columns]
@@ -1786,12 +1787,13 @@ elements not-equal to the argument are 0.
    If either argument is not a vector, will compute and return a higher dimensional inner-product."
   ([a b]
     (or
-      (mp/vector-dot a b) ;; this allows a optimised implementation of 'dot' for vectors, which should be faster
+      (mp/vector-dot a b) ;; this allows an optimised implementation of 'dot' for vectors, which should be faster
       (let [v (mp/inner-product a b)]
         (cond
           (number? v) v ;; fast path if v is a numerical result
           (== 0 (long (mp/dimensionality v))) (mp/get-0d v) ;; ensure 0 dimensional results are scalar
-          :else v)))))
+          :else v ;; higher dimensional result, OK to return directly as an array
+          )))))
 
 (defn inner-product
   "Computes the inner product of numerical arrays.
