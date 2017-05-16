@@ -8,6 +8,9 @@ core.matrix
 The core.matrix library provides array programming as a language extension for
 Clojure/Clojurescript, with a focus on numerical computing.
 
+core.matrix will become an official part of Clojure Contrib now that the 
+API is mature and proven, at which point this repo will move to org.clojure/core.matrix
+
 The central objective of `core.matrix` is to make matrix and array programming
 idiomatic, productive, elegant and fast in the Clojure environment.
 
@@ -86,8 +89,6 @@ For Clojurescript:
 
 The API is relatively mature but still *subject to some changes* at present (at least up until release 1.0.0),
 so users should be prepared to deal with potential breaking changes when updating to future releases.
-
-The plan is to become an official Clojure Contrib language extension once the API has been well tested.
 
 
 ### Contributing
