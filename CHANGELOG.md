@@ -2,7 +2,21 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.60.0] - 2017-05-16
+## [0.60.2] - 2017-05-17
+### Fixed
+- New upload to Clojars after issue resolved (see: https://github.com/clojars/clojars-web/issues/640)
+
+## [0.60.1] - 2017-05-16
+### Note
+- Partial failure to deploy with Clojars - DO NOT USE
+### Added
+- Implement rmse, r-squared and person correlation in c.c.m/stats (thanks Kiran!)
+### Fixed
+- Improve default handling of mmul to fall back to inner-product for ND arrays
+
+## [0.60.0] - 2017-05-16 
+### Note
+- Partial failure to deploy with Clojars - DO NOT USE
 ### Added
 - Implement rmse, r-squared and person correlation in c.c.m/stats (thanks Kiran!)
 ### Fixed
