@@ -115,13 +115,11 @@
     (mp/column-index ds column-name)))
 
 (defn column
-  "TODO: name may change
-
-   Gets a named column from the dataset. Throws an error if the column does not exist.
+  "Gets a named column from the dataset. Throws an error if the column does not exist.
 
    Works on labelled arrays, datsets or dataset rows."
   ([ds col-name]
-    (if-let [ix (if (number? col-name) col-name (mp/column-index ds col-name) )] 
+    (if-let [ix (mp/column-index ds col-name)] 
       (get-column ds ix)
       (error "Column name not found: " col-name))))
 

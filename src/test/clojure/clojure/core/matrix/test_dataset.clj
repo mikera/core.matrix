@@ -140,7 +140,6 @@
       (is (= col-names (column-names dr))))
     (testing "Column access"
       (is (= "Mike" (column dr :b)))
-      (is (= "Mike" (column dr 1)))
       (is (error? (column dr :c))))
     (testing "Map-like access"
       (is (= {:a 2 :b "Mike"} (to-map dr))))
