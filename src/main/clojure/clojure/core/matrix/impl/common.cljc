@@ -46,11 +46,13 @@
 ))
 
 (defn construct-matrix
-  "Constructs an array from the provided data, attempying to use the given implementation.
+  "Constructs an array from the provided data, attempting to use the given implementation.
    Uses a default implementation if needed"
   ([impl data]
     (or (mp/construct-matrix impl data)
-        (mp/construct-matrix mi/*matrix-implementation* data)
+        (try 
+          (mp/construct-matrix mi/*matrix-implementation* data)
+          (catch ClassCastException t nil)) ;; fix for element type not handled
         (mp/construct-matrix [] data))))
 
 (defn mapmatrix
