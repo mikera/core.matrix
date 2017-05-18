@@ -2,9 +2,14 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.60.2] - 2017-05-17
+## [0.60.3] - 2017-05-18
 ### Fixed
-- New upload to Clojars after issue resolved (see: https://github.com/clojars/clojars-web/issues/640)
+- New upload to Clojars attempting to resolve deployment issue (see: https://github.com/clojars/clojars-web/issues/640)
+- Problem with pm for double arrays see: https://github.com/mikera/core.matrix/issues/317
+
+## [0.60.2] - 2017-05-17
+### Note
+- Partial failure to deploy with Clojars - DO NOT USE
 
 ## [0.60.1] - 2017-05-16
 ### Note
