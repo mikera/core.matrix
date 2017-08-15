@@ -94,7 +94,7 @@
 
    Where
      - U is an unitary matrix
-     - S is a diagonal matrix whose elements are the singular values of the original matrix
+     - S is a sequence whose elements are the singular values of the original matrix
      - V* is an unitary matrix
 
    If :return parameter is specified in options map, it returns only specified keys.
