@@ -59,3 +59,8 @@
   (is (approx 2.915
               (rmse [7 10 12 10 10 8 7 8 11 13 10 8]
                     [6 10 14 16 7 5 5 13 12 13 8 5]))))
+
+(deftest test-cosine-similarity
+  (is (approx 0.93857
+              (cosine-similarity [2 4 3 1 6]
+                                 [3 5 1 2 5]))))
