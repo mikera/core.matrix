@@ -1225,6 +1225,16 @@
   ([m shape]
     (mp/reshape m shape)))
 
+(defn reshape-view
+  "Returns a view over an array with the specified new shape. shape can be any sequence of dimension sizes.
+
+   Preserves the row-major order of matrix elements. Truncates the sequence of elements if the shape is smaller
+   than the original shape.
+
+   Behaviour is currently undefined if the new shape is larger than the original array."
+  ([m shape]
+    (mp/reshape-view m shape)))
+
 (defn fill!
   "Fills an array with a single scalar value. The scalar value must be compatible with the element-type
    of the array.
