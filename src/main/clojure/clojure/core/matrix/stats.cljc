@@ -3,7 +3,8 @@
 
    Previously some of these functions were available in a separate `core.matrix.stats` library,
    they have now been fully integrated into core.matrix."
-  (:require [clojure.core.matrix :as m]))
+  (:require [clojure.core.matrix :as m]
+            [clojure.core.matrix.linear :as lm]))
 
 (defn sum
   "Calculates the sum of a collection of values.
@@ -130,3 +131,8 @@
          diff2  (m/square diff)
          sse  (m/esum diff2)]
     (when  (> n 0)  (Math/sqrt  (double (/ sse n))))))
+
+(defn cosine-similarity
+  "returns the cosine similarity between 2 vectors "
+  [v1 v2]
+  (/ (m/dot v1 v2) (* (lm/norm v1) (lm/norm v2))))
