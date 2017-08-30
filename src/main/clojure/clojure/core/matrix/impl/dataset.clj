@@ -114,7 +114,10 @@
     (assocN [m i v]
       (assoc (mp/convert-to-nested-vectors m) i v)))
 
-(defn dataset-from-columns [col-names cols]
+(defn dataset-from-columns 
+  "Creates a dataset with the given column-names and corresponding columns of data.
+   cols should be a sequence of columns specified as vectors, all of equal length."
+  [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
         cc (long (count col-names))
         ^IPersistentVector cols (vec cols)
