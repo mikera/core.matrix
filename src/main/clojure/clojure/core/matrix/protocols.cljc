@@ -1045,14 +1045,14 @@ would often be a numeric base type)."
     [m f]
     [m f a]
     [m f a more]
-    "Maps f over all elements of m (and optionally other matrices), returning a new matrix.
+    "Maps f over all elements of m (and optionally other arrays), returning a new matrix.
      f is expected to produce elements of a type supported by the implementation of m - failure
      to do so may cause an error.")
   (element-map!
     [m f]
     [m f a]
     [m f a more]
-    "Maps f over all elements of m (and optionally other matrices), mutating the elements of m in place.
+    "Maps f over all elements of m (and optionally other arrays), mutating the elements of m in place.
      Must throw an exception if m is not mutable.
      f is expected to produce elements of a type supported by the implementation of m - failure
      to do so may cause an error.")
@@ -1061,6 +1061,29 @@ would often be a numeric base type)."
     [m f init]
     "Reduces with the function f over all elements of m.
      Implementations do not need to support clojure.core/reduced"))
+
+(defprotocol PAddEmap
+  "Protocol to support the add-emap! API function."
+  (add-emap!
+    [dest f a]
+    [dest f a b]
+    [dest f a b more]
+    "Maps f over all elements of a (and optionally other arrays), adding the result to dest.
+     Must throw an exception if dest is not mutable.
+     f is expected to produce elements of a type supported by the implementation of dest - failure
+     to do so may cause an error."))
+
+(defprotocol PSetEmap
+  "Protocol to support the set-emap! API function."
+  (set-emap!
+    [dest f a]
+    [dest f a b]
+    [dest f a b more]
+    "Maps f over all elements of a (and optionally other arrays), storing the result in dest.
+     Must throw an exception if dest is not mutable.
+     f is expected to produce elements of a type supported by the implementation of dest - failure
+     to do so may cause an error."))
+
 
 (defprotocol PMapIndexed
   "Protocol for map-indexed operation on matrices"

@@ -2196,6 +2196,28 @@ elements not-equal to the argument are 0.
   ([f m a & more]
     (mp/element-map! m f a more) m))
 
+(defn add-emap!
+  "Adds the result of emap to a destination array.
+
+   dest must be a mutable numerical array. Returns dest."
+  ([dest f a]
+    (mp/add-emap! dest f a) dest)
+  ([dest f a b]
+    (mp/add-emap! dest f a b) dest)
+  ([dest f a b & more]
+    (mp/add-emap! dest f a b more) dest))
+
+(defn set-emap!
+  "Sets the destination array to the result of an emap operation.
+
+   dest must be a mutable array. Returns dest."
+  ([dest f a]
+    (mp/set-emap! dest f a) dest)
+  ([dest f a b]
+    (mp/set-emap! dest f a b) dest)
+  ([dest f a b & more]
+    (mp/set-emap! dest f a b more) dest))
+
 (defn emap-indexed!
   "Element-wise map-indexed over all elements of one or more arrays.
 
