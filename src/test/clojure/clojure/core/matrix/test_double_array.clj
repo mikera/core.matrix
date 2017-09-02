@@ -37,11 +37,6 @@
     (is (equals m dm)))
   (is (= 1.0 (array :double-array 1))))
 
-(deftest test-pm 
-  (with-implementation :double-array
-    (let [d (ds/dataset [:A :B] [[1.0 2.0] [3.0 4.0]])]
-      (pm d))))
-
 (deftest test-type
   (is (= Double/TYPE (element-type (double-array [1 2])))))
 
