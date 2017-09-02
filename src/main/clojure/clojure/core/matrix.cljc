@@ -1707,46 +1707,6 @@ elements not-equal to the argument are 0.
     (mp/set-inner-product! m a b factor)
     m))
 
-(defn op 
-  "Computes the specified operation on the array a and returns a new array.
-
-   The operation is implementation specific. Throws an error if the operator is not recognised by the implementation of a, or
-   if the operation is invalid for the given parameters."
-  ([operation a]
-    (TODO))
-  ([operation a & args]
-    (TODO)))
-
-(defn op! 
-  "Computes the specified operation on the array a and mutates the array a.
-
-   The operation is implementation specific. Throws an error if the operator is not recognised by the implementation of a, or
-   if the operation is invalid for the given parameters."
-  ([operation a]
-    (TODO))
-  ([operation a & args]
-    (TODO)))
-
-(defn set-op! 
-  "Computes the specified operation on the array a and stores the result in the destination array, which must be mutable.
-
-   The operation is implementation specific. Throws an error if the operator is not recognised by the implementation of a, or
-   if the operation is invalid for the given parameters."
-  ([operation dest a]
-    (TODO))
-  ([operation dest a & args]
-    (TODO)))
-
-(defn add-op! 
-  "Computes the specified operation on the array a and adds the result to the destination array, which must be mutable.
-
-   The operation is implementation specific. Throws an error if the operator is not recognised by the implementation of a, or
-   if the operation is invalid for the given parameters."
-  ([operation dest a]
-    (TODO))
-  ([operation dest a & args]
-    (TODO)))
-
 (defn sub
   "Performs element-wise subtraction on one or more numerical arrays.
 
