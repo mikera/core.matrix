@@ -1453,6 +1453,9 @@ elements not-equal to the argument are 0.
 (defn mul
   "Performs element-wise multiplication with scalars and numerical arrays.
 
+   Examples: 
+     (mul [1 2] [3 4]) ;=> [3 8]
+
    Behaves like clojure.core/* for scalar values."
   ([] 1.0)
   ([a] a)
@@ -1473,10 +1476,7 @@ elements not-equal to the argument are 0.
 (defn mmul
   "Performs matrix multiplication on matrices or vectors. 
 
-  Equivalent to inner-product when applied to vectors.  Will treat a 1D vector roughly as a
-  1xN matrix (row vector) when it's the first argument, or as an Nx1 matrix
-  (column vector) when it's the second argument--except that the dimensionality
-  of the result will be different from what it would be with matrix arguments."
+   Equivalent to inner-product, but may be more efficient for matrices."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -1784,7 +1784,7 @@ elements not-equal to the argument are 0.
 
 (defn dot
   "Efficiently computes the scalar dot product (1Dx1D inner product) of two numerical vectors. Prefer this API
-   function if you are performing a dot product on 1D vectors and want a scalar result.
+   function if you are performing a dot product on 1D vectors and require a scalar result.
 
    If either argument is not a vector, will compute and return a higher dimensional inner-product."
   ([a b]
