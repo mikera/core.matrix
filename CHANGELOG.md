@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.61.0] - 2017-...
+### Added
+- add-emap! and set-emap! API functions
+
 ## [0.60.3] - 2017-05-18
 ### Fixed
 - New upload to Clojars attempting to resolve deployment issue (see: https://github.com/clojars/clojars-web/issues/640)
