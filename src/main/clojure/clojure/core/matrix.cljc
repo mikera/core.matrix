@@ -2143,6 +2143,9 @@ elements not-equal to the argument are 0.
      (emap (fn [x] (str x)) (double-array [1 2 3]))             ;; Throws an error
      (emap (fn [x] (str x)) (coerce [] (double-array [1 2 3]))) ;; OK!
 
+   Implemenations may *optionally* support custom function types. If this is the case, the
+   parameter m must be a valid array from the given implementation.
+
    Returns a new array of the same element-type and shape as the array m."
   ([f m]
     (mp/element-map m f))
@@ -2152,7 +2155,8 @@ elements not-equal to the argument are 0.
     (mp/element-map m f a more)))
 
 (defn emap-indexed
-  "Element-wise map-indexed over all elements of one or more arrays.
+  "Element-wise map-indexed over all elements of one or more arrays. Like
+   emap, but provides an index as the second argument to the mapping function.
 
    f must accept as first argument the index vector of the current element,
    and return a result compatible with the element-type of the array m
