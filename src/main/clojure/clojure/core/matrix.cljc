@@ -1571,7 +1571,9 @@ elements not-equal to the argument are 0.
     v))
 
 (defn add
-  "Performs element-wise addition on one or more numerical arrays."
+  "Performs element-wise addition on one or more numerical arrays.
+
+   Will broadcast to the smallest shape compatible will addition of all input arrays."
   ([] 0.0)
   ([a] a)
   ([a b]
@@ -1600,12 +1602,15 @@ elements not-equal to the argument are 0.
 
 (defn add-product
   "Adds the element-wise product of two numerical arrays to the first array.
-   Arrays should be the same shape."
+   
+   Arrays should be the same shape, some implementations may support broadcasting."
   ([m a b]
     (mp/add-product m a b)))
 
 (defn add-product!
-  "Adds the product of two numerical arrays to the first array. Returns the mutated array."
+  "Adds the product of two numerical arrays to the first array. Returns the mutated array.
+
+   Arrays should be the same shape, some implementations may support broadcasting."
   ([m a b]
     (mp/add-product! m a b)
     m))
