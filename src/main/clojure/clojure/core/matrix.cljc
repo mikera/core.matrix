@@ -1765,7 +1765,9 @@ elements not-equal to the argument are 0.
     (mp/square m)))
 
 (defn normalise
-  "Normalises a numerical vector (scales to unit length). Returns a new normalised vector.
+  "Normalises a numerical vector (scales to unit length, i.e. the L2 norm). 
+
+   Returns a new normalised vector.
 
    The result is undefined if the initial length of the vector is zero (it is possible the
    implementation may return NaNs or zeros). If this is a concern, it is recommended to check
