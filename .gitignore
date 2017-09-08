@@ -4,7 +4,7 @@
 /.settings
 /classes
 /doc
-
+/out
 .DS_Store
 .html
 bench
