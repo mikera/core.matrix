@@ -11,9 +11,10 @@
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.macros :refer [error]]
             [clojure.core.matrix.utils :as utils])
-  (:import [java.io Writer])
-  (:import [clojure.lang IPersistentVector IPersistentMap]
-           [java.util List]))
+  #?(:clj 
+     (:import [clojure.lang IPersistentVector IPersistentMap]
+              [java.util List]
+              [java.io Writer])))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
@@ -21,39 +22,73 @@
 (declare wrap-row)
 
 ;; A class to represent a single dataset row, as a reference into a vector of columns
+#?(:clj
+   (deftype DataSetRow
+       [^IPersistentVector column-names
+        ^IPersistentVector columns
+        ^long index]
+     clojure.lang.IMeta
+     (meta [m]
+       nil)
+     clojure.lang.IObj
+     (withMeta [m meta]
+       (with-meta (mp/convert-to-nested-vectors m) meta))
+     clojure.lang.Indexed
+     (count [m] (count column-names))
+     (nth [m i]
+       (mp/get-1d (nth columns i) index))
+     (nth [m i not-found]
+       (if (< -1 i (long (mp/dimension-count (first columns) 0)))
+         (mp/get-1d (nth columns i) index)
+         not-found))
+     clojure.lang.Seqable
+     (seq [m]
+       (seq (mp/convert-to-nested-vectors m)))
+     clojure.lang.IPersistentCollection
+     (cons [m v]
+       (conj (mp/convert-to-nested-vectors m) v))
+     (empty [m]
+       [])
+     (equiv [m a]
+       (= (mp/convert-to-nested-vectors m) a))
+     clojure.lang.IPersistentVector
+     (length [m] (count column-names))
+     (assocN [m i v]
+       (assoc (mp/convert-to-nested-vectors m) i v)))
 
-(deftype DataSetRow
-  [^IPersistentVector column-names
-   ^IPersistentVector columns
-   ^long index]
-  clojure.lang.IMeta
-    (meta [m]
-      nil)
-  clojure.lang.IObj
-    (withMeta [m meta]
-      (with-meta (mp/convert-to-nested-vectors m) meta))
-  clojure.lang.Indexed
-    (count [m] (count column-names))
-    (nth [m i]
-      (mp/get-1d (nth columns i) index))
-    (nth [m i not-found]
-      (if (< -1 i (long (mp/dimension-count (first columns) 0)))
-        (mp/get-1d (nth columns i) index)
-        not-found))
-  clojure.lang.Seqable
-    (seq [m]
-      (seq (mp/convert-to-nested-vectors m)))
-  clojure.lang.IPersistentCollection
-    (cons [m v]
-      (conj (mp/convert-to-nested-vectors m) v))
-    (empty [m]
-      [])
-    (equiv [m a]
-      (= (mp/convert-to-nested-vectors m) a))
-  clojure.lang.IPersistentVector
-    (length [m] (count column-names))
-    (assocN [m i v]
-      (assoc (mp/convert-to-nested-vectors m) i v)))
+   :cljs
+   (deftype DataSetRow
+       [column-names
+        columns
+        index]
+     IMeta
+     (meta [m]
+       nil)
+     IWithMeta
+     (withMeta [m meta]
+       (with-meta (mp/convert-to-nested-vectors m) meta))
+     IIndexed
+     (count [m] (count column-names))
+     (nth [m i]
+       (mp/get-1d (nth columns i) index))
+     (nth [m i not-found]
+       (if (< -1 i (long (mp/dimension-count (first columns) 0)))
+         (mp/get-1d (nth columns i) index)
+         not-found))
+     ISeqable
+     (seq [m]
+       (seq (mp/convert-to-nested-vectors m)))
+     ICollection
+     (cons [m v]
+       (conj (mp/convert-to-nested-vectors m) v))
+     (empty [m]
+       [])
+     (equiv [m a]
+       (= (mp/convert-to-nested-vectors m) a))
+     IVector
+     (length [m] (count column-names))
+     (assoc-n [m i v]
+       (assoc (mp/convert-to-nested-vectors m) i v))))
 
 (defn wrap-row
   "Wraps a row of a datset as a DataSetRow"
@@ -73,67 +108,134 @@
 ;; a column-based DataSet implementation.
 ;; columns are arbitrary core.matrix arrays, treated as vectors
 
-(deftype DataSet
-  [^IPersistentVector column-names
-   ^IPersistentVector columns
-   ^IPersistentVector shape]
-  clojure.lang.IMeta
-    (meta [m]
-      nil)
-  clojure.lang.IObj
-    (withMeta [m meta]
-      (with-meta (mp/convert-to-nested-vectors m) meta))
-  clojure.lang.Indexed
-    (count [m] (first shape))
-    (nth [m i]
-      (wrap-row m i))
-    (nth [m i not-found]
-      (wrap-row m i not-found))
-  clojure.lang.Seqable
-    (seq [m]
-      (map #(wrap-row m %) (range (first shape))))
-  clojure.lang.ILookup
-    (valAt [m i]
-      (wrap-row m i))
-    (valAt [m i not-found]
-      (wrap-row m i not-found))
-  clojure.lang.IFn
-    (invoke [m i]
-      (wrap-row m i))
-    (invoke [m i not-found]
-      (wrap-row m i not-found))
-  clojure.lang.IPersistentCollection
-    (cons [m v]
-      (conj (mp/convert-to-nested-vectors m) v))
-    (empty [m]
-      [])
-    (equiv [m a]
-      (= (mp/convert-to-nested-vectors m) a))
-  clojure.lang.IPersistentVector
-    (length [m] (first shape))
-    (assocN [m i v]
-      (assoc (mp/convert-to-nested-vectors m) i v)))
+#?(:clj 
+   (deftype DataSet
+       [^IPersistentVector column-names
+        ^IPersistentVector columns
+        ^IPersistentVector shape]
+     clojure.lang.IMeta
+     (meta [m]
+       nil)
+     clojure.lang.IObj
+     (withMeta [m meta]
+       (with-meta (mp/convert-to-nested-vectors m) meta))
+     clojure.lang.Indexed
+     (count [m] (first shape))
+     (nth [m i]
+       (wrap-row m i))
+     (nth [m i not-found]
+       (wrap-row m i not-found))
+     clojure.lang.Seqable
+     (seq [m]
+       (map #(wrap-row m %) (range (first shape))))
+     clojure.lang.ILookup
+     (valAt [m i]
+       (wrap-row m i))
+     (valAt [m i not-found]
+       (wrap-row m i not-found))
+     clojure.lang.IFn
+     (invoke [m i]
+       (wrap-row m i))
+     (invoke [m i not-found]
+       (wrap-row m i not-found))
+     clojure.lang.IPersistentCollection
+     (cons [m v]
+       (conj (mp/convert-to-nested-vectors m) v))
+     (empty [m]
+       [])
+     (equiv [m a]
+       (= (mp/convert-to-nested-vectors m) a))
+     clojure.lang.IPersistentVector
+     (length [m] (first shape))
+     (assocN [m i v]
+       (assoc (mp/convert-to-nested-vectors m) i v)))
 
-(defn dataset-from-columns [col-names cols]
-  (let [^IPersistentVector col-names (vec col-names)
-        cc (long (count col-names))
-        ^IPersistentVector cols (vec (mp/get-rows (vec cols)))
-        rc (long (mp/dimension-count (first cols) 0))]
-    (when (not= cc (count cols))
-      (error "Mismatched number of columns, have: " cc " column names"))
-    (DataSet. col-names cols [rc cc])))
+   :cljs
+   (deftype DataSet
+       [column-names
+        columns
+        shape]
+     IMeta
+     (meta [m]
+       nil)
+     IWithMeta
+     (withMeta [m meta]
+       (with-meta (mp/convert-to-nested-vectors m) meta))
+     IIndexed
+     (count [m] (first shape))
+     (nth [m i]
+       (wrap-row m i))
+     (nth [m i not-found]
+       (wrap-row m i not-found))
+     Seqable
+     (seq [m]
+       (map #(wrap-row m %) (range (first shape))))
+     ILookup
+     (valAt [m i]
+       (wrap-row m i))
+     (valAt [m i not-found]
+       (wrap-row m i not-found))
+     IFn
+     (invoke [m i]
+       (wrap-row m i))
+     (invoke [m i not-found]
+       (wrap-row m i not-found))
+     ICollection
+     (cons [m v]
+       (conj (mp/convert-to-nested-vectors m) v))
+     (empty [m]
+       [])
+     (equiv [m a]
+       (= (mp/convert-to-nested-vectors m) a))
+     IVector
+     (length [m] (first shape))
+     (assocN [m i v]
+       (assoc (mp/convert-to-nested-vectors m) i v))))
 
-(defn dataset-from-rows [col-names rows]
-  (let [^IPersistentVector col-names (vec col-names)
-        cc (count col-names)
-        rc (long (mp/dimension-count rows 0))
-        ;; _ (println (str "Building dataset from rows with " cc " columns"))
-        ^IPersistentVector cols (if (empty? rows)
-                                  (into [] (repeat cc []))
-                                  (into [] (mp/get-columns rows)))]
-    (when (not= cc (count cols))
-      (error "Mismatched number of columns, have: " cc " column names"))
-    (DataSet. col-names cols [rc cc])))
+#?(:clj 
+   (defn dataset-from-columns [col-names cols]
+     (let [^IPersistentVector col-names (vec col-names)
+           cc (long (count col-names))
+           ^IPersistentVector cols (vec (mp/get-rows (vec cols)))
+           rc (long (mp/dimension-count (first cols) 0))]
+       (when (not= cc (count cols))
+         (error "Mismatched number of columns, have: " cc " column names"))
+       (DataSet. col-names cols [rc cc])))
+   :cljs
+   (defn dataset-from-columns [col-names cols]
+           (let [col-names (vec col-names)
+                 cc (long (count col-names))
+                 cols (vec (mp/get-rows (vec cols)))
+                 rc (long (mp/dimension-count (first cols) 0))]
+             (when (not= cc (count cols))
+               (error "Mismatched number of columns, have: " cc " column names"))
+             (DataSet. col-names cols [rc cc]))))
+
+#?(:clj 
+   (defn dataset-from-rows [col-names rows]
+     (let [^IPersistentVector col-names (vec col-names)
+           cc (count col-names)
+           rc (long (mp/dimension-count rows 0))
+           ;; _ (println (str "Building dataset from rows with " cc " columns"))
+           ^IPersistentVector cols (if (empty? rows)
+                                     (into [] (repeat cc []))
+                                     (into [] (mp/get-columns rows)))]
+       (when (not= cc (count cols))
+         (error "Mismatched number of columns, have: " cc " column names"))
+       (DataSet. col-names cols [rc cc])))
+   :cljs
+   (defn dataset-from-rows [col-names rows]
+     (let [col-names (vec col-names)
+           cc (count col-names)
+           rc (long (mp/dimension-count rows 0))
+           ;; _ (println (str "Building dataset from rows with " cc " columns"))
+           cols (if (empty? rows)
+                                     (into [] (repeat cc []))
+                                     (into [] (mp/get-columns rows)))]
+       (when (not= cc (count cols))
+         (error "Mismatched number of columns, have: " cc " column names"))
+       (DataSet. col-names cols [rc cc])))
+   )
 
 (defn dataset-from-array
   "Construct a dataset from an array. 

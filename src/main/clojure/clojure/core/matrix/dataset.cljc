@@ -11,21 +11,25 @@
             [clojure.core.matrix :refer :all]
             [clojure.core.matrix.macros :refer [error]]
             [clojure.core.matrix.utils :as utils])
-  (:import [clojure.core.matrix.impl.dataset DataSet]
-           [clojure.lang IPersistentVector]
-           [java.util List]))
 
-(set! *warn-on-reflection* true)
-(set! *unchecked-math* :warn-on-boxed)
-
+  #?(:clj (:import [clojure.core.matrix.impl.dataset DataSet]
+                   [clojure.lang IPersistentVector]
+                   [java.util List])))
 ;; ===============================================================
 ;; Specialised functions for dataset handling
+#?(:clj 
+   (defn dataset?
+     "Returns true if argument is a dataset, defined as a 1D or 2D array with column names"
+     (^Boolean [d]
+      (boolean (and (<= 1 (long (mp/dimensionality d)) 2) 
+                    (mp/column-names d)))))
+   :cljs
+   (defn dataset?
+     "Returns true if argument is a dataset, defined as a 1D or 2D array with column names"
+     ([d]
+      (and (<= 1 (long (mp/dimensionality d)) 2) 
+           (mp/column-names d)))))
 
-(defn dataset?
-  "Returns true if argument is a dataset, defined as a 1D or 2D array with column names"
-  (^Boolean [d]
-    (boolean (and (<= 1 (long (mp/dimensionality d)) 2) 
-                  (mp/column-names d)))))
 
 (defn dataset
   "Creates dataset from one of the following:
@@ -47,6 +51,7 @@
                            [] col-names)]
                     (impl/dataset-from-columns col-names cols))
       :else (error "Don't know how to create dataset from shape"  (shape data))))
+
   ([data]
     (cond
       ;; already a dataset, just return as-is
@@ -115,13 +120,11 @@
     (mp/column-index ds column-name)))
 
 (defn column
-  "TODO: name may change
-
-   Gets a named column from the dataset. Throws an error if the column does not exist.
+  "Gets a named column from the dataset. Throws an error if the column does not exist.
 
    Works on labelled arrays, datsets or dataset rows."
   ([ds col-name]
-    (if-let [ix (if (number? col-name) col-name (mp/column-index ds col-name) )] 
+    (if-let [ix (mp/column-index ds col-name)] 
       (get-column ds ix)
       (error "Column name not found: " col-name))))
 
@@ -183,16 +186,29 @@
   ([ds col-name vs]
      (mp/replace-column ds col-name vs)))
 
-(defn emap-column
-  "Applies function f to every element in a column in a dataset.
+#?(:clj 
+   (defn emap-column
+     "Applies function f to every element in a column in a dataset.
 
    Extra args to the function may be supplied."
-  ([ds col-name f & args]
-     (let [^List col-names (mp/column-names ds)
-           col (mp/get-column ds (.indexOf col-names col-name))]
-       (mp/replace-column
+     ([ds col-name f & args]
+      (let [^List col-names (mp/column-names ds)
+            col (mp/get-column ds (.indexOf col-names col-name))]
+        (mp/replace-column
          ds col-name
          (apply emap f col args)))))
+
+   :cljs
+   (defn emap-column
+     "Applies function f to every element in a column in a dataset.
+
+   Extra args to the function may be supplied."
+     ([ds col-name f & args]
+      (let [col-names (mp/column-names ds)
+            col (mp/get-column ds (.indexOf col-names col-name))]
+        (mp/replace-column
+         ds col-name
+         (apply emap f col args))))))
 
 (defn emap-columns
   "Applies a function to the specified set of columns. Calls emap-column for each column specified.
