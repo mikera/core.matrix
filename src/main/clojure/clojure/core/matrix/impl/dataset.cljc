@@ -7,7 +7,8 @@
    - Columns are stored as complete vectors and may have different types"
   (:require [clojure.core.matrix.implementations :as imp]
             [clojure.core.matrix.impl.wrappers :as wrap]
-            [clojure.core.matrix.impl defaults persistent-vector] ;; these are needed during loading
+            [clojure.core.matrix.impl.defaults :as d ] ;; these are needed during loading
+            [clojure.core.matrix.impl.persistent-vector :as pv ] 
             [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.macros :refer [error]]
             [clojure.core.matrix.utils :as utils])

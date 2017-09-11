@@ -8,7 +8,7 @@
    "
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix.impl.dataset :as impl]
-            [clojure.core.matrix :refer :all]
+            [clojure.core.matrix :as cm]
             [clojure.core.matrix.macros :refer [error]]
             [clojure.core.matrix.utils :as utils])
 
