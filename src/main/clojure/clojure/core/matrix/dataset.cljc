@@ -15,6 +15,10 @@
   #?(:clj (:import [clojure.core.matrix.impl.dataset DataSet]
                    [clojure.lang IPersistentVector]
                    [java.util List])))
+
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* :warn-on-boxed)
+
 ;; ===============================================================
 ;; Specialised functions for dataset handling
 #?(:clj 
@@ -124,9 +128,9 @@
 
    Works on labelled arrays, datsets or dataset rows."
   ([ds col-name]
-    (if-let [ix (mp/column-index ds col-name)] 
-      (get-column ds ix)
-      (error "Column name not found: " col-name))))
+   (if-let [ix (if (number? col-name) col-name (mp/column-index ds col-name))]
+     (get-column ds ix)
+     (error "Column name not found: " col-name))))
 
 (defn add-column
   "Adds column to the dataset."
