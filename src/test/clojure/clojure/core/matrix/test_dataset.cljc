@@ -1,12 +1,40 @@
 (ns clojure.core.matrix.test-dataset
   (:require [clojure.core.matrix.impl.dataset :as ds]
             [clojure.core.matrix.compliance-tester :as compliance]
-            [clojure.test :refer :all]
-            [clojure.core.matrix :refer :all]
+            #?(:clj [clojure.test :refer :all])
+            [clojure.core.matrix :as cm :refer [columns label-index
+                                                label labels
+                                                matrix
+                                                equals
+                                                slice
+                                                emap
+                                                rows
+                                                slices
+                                                get-row]]
             [clojure.core.matrix.stats :as stats]
-            [clojure.core.matrix.macros :refer [error]]
-            [clojure.core.matrix.macros-clj :refer [error?]]
-            [clojure.core.matrix.dataset :refer :all]))
+            #?@(:clj [[clojure.core.matrix.macros :refer [error]]
+                      [clojure.core.matrix.macros-clj :refer [error?]]
+                      [clojure.core.matrix :refer [with-implementation]]])
+            [clojure.core.matrix.dataset :as cd :refer [dataset dataset?
+                                                        column-names column-name
+                                                        to-map
+                                                        merge-datasets
+                                                        rename-columns
+                                                        join-rows
+                                                        row-maps
+                                                        column
+                                                        column-index
+                                                        select-rows select-columns
+                                                        replace-column join-columns
+                                                        remove-columns
+                                                        emap-column
+                                                        emap-columns
+                                                        ]])
+  #?(:cljs (:require-macros [clojure.core.matrix :refer [with-implementation]]
+                            [clojure.core.matrix.macros :refer [error]]
+                            [clojure.core.matrix.macros-clj :refer [error?]]
+                            [clojure.test :refer [deftest testing is]])))
+
 
 (deftest test-construct-dataset
   (let [ds1 (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))
