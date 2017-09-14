@@ -48,17 +48,21 @@
                           {:dev {:figwheel true
                                  :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
                                  :compiler {:output-to "resources/public/js/core.matrix.js"
-                                            :asset-path   "js/out"
+                                            :asset-path   "out"
                                             :optimizations :none
+                                            :verbose true
+                                            :warnings true
                                             :parallel-build true
                                             :pretty-print true}}
                            :test {:source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
                                   :compiler {:output-to "resources/public/js/unit-test.js"
                                              :asset-path   "out/"
                                              :main clojure.core.matrix.cljs-runner
-                                             :optimizations :none 
+                                             :optimizations :advanced 
                                              :parallel-build true
-                                             :pretty-print false}}}
+                                             :verbose true
+                                             :warnings true
+                                             :pretty-print true}}}
 
                                         :figwheel {:load-warninged-code true :css-dirs ["resources/public/css"] :server-port 8765}
                           }

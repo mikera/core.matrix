@@ -15,10 +15,12 @@
 
   #?(:clj (:import [clojure.core.matrix.impl.dataset DataSet]
                    [clojure.lang IPersistentVector]
-                   [java.util List])))
+                   [java.util List])
+     :cljs (:require-macros [clojure.core.matrix.macros :refer [error]]
+                            [clojure.core.matrix.macros-clj :refer [error?]])))
 
-(set! *warn-on-reflection* true)
-(set! *unchecked-math* :warn-on-boxed)
+#?(:clj (do (set! *warn-on-reflection* true)
+            (set! *unchecked-math* :warn-on-boxed)))
 
 ;; ===============================================================
 ;; Specialised functions for dataset handling
@@ -100,7 +102,9 @@
             (error "Can't create dataset from incomplete maps")))
 
        :else
-         (error "Don't know how to create dataset from data of type " (class data)))))
+       (error "Don't know how to create dataset from data of type " ( #?(:clj class
+                                                                         :cljs type)
+                                                                     data)))))
 
 (defn column-names
   "Gets the column names from a DataSet, DatsetRiow or labelled array
