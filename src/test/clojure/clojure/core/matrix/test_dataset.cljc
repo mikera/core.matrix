@@ -40,26 +40,6 @@
                             [clojure.core.matrix.macros-cljs :refer [error?]]
                             [cljs.test :refer [deftest testing is]])))
 
-(deftest testa
-  (testing "asdd"
-    (let [ds1 (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))
-          ds2 (dataset (matrix [[1 4] [2 5] [3 6]]))
-          ds3 (dataset (sorted-map :a [1 2 3] :b [4 5 6]))
-          ds4 (dataset [{:a 1 :b 2} {:a 4 :b 5}])
-          ds5 (dataset [:c :a :b] [{:a 1 :b 2 :c 3} {:a 4 :b 5 :c 6}])
-          ds6 (dataset [:vec :ndarray :double-array]
-                       {:vec (matrix :persistent-vector [1 2 3])
-                        :ndarray (matrix :ndarray [4 5 6])
-                        :double-array (matrix :double-array [7 8 9])})]
-      (print (str "-- " ) ds1 "--" (.-shape ds1) ":" (.-columns ds1) "--" (.keys js/Object ds1))
-      (print (str "-- " ) ds1 "--" (column-names ds1) "--" )
-      (print (str "-- " ) ds2)
-      (print (str "-- " ) ds3)
-      (print (str "-- " ) ds4)
-      (print (str "-- " ) ds5)
-      (print (str "-- " ) ds6)
-      (is (= 10 (inc 9))))))
-
 (deftest test-construct-dataset
   (testing "dataset construction"
     (let [ds1 (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))

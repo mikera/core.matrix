@@ -18,7 +18,7 @@
               [java.util List]
               [java.io Writer])
      :cljs (:require-macros [clojure.core.matrix.macros :refer [error]]
-                            [clojure.core.matrix.macros-clj :refer [error?]])))
+                            [clojure.core.matrix.macros-cljs :refer [error?]])))
 
 #?(:clj (do (set! *warn-on-reflection* true)
             (set! *unchecked-math* :warn-on-boxed)))
@@ -194,54 +194,25 @@
      (-assoc-n [m i v]
        (assoc (mp/convert-to-nested-vectors m) i v))))
 
+(defn dataset-from-columns [col-names cols]
+  (let [^IPersistentVector col-names (vec col-names)
+        cc (long (count col-names))
+        ^IPersistentVector cols (vec (mp/get-rows (vec cols)))
+        rc (long (mp/dimension-count (first cols) 0))]
+    (when (not= cc (count cols))
+      (error "Mismatched number of columns, have: " cc " column names"))
+    (DataSet. col-names cols [rc cc])))
 
-(comment
-  )
-
-#?(:clj 
-   (defn dataset-from-columns [col-names cols]
-     (let [^IPersistentVector col-names (vec col-names)
-           cc (long (count col-names))
-           ^IPersistentVector cols (vec (mp/get-rows (vec cols)))
-           rc (long (mp/dimension-count (first cols) 0))]
-       (when (not= cc (count cols))
-         (error "Mismatched number of columns, have: " cc " column names"))
-       (DataSet. col-names cols [rc cc])))
-   :cljs
-   (defn dataset-from-columns [col-names cols]
-           (let [col-names (vec col-names)
-                 cc (long (count col-names))
-                 cols (vec (mp/get-rows (vec cols)))
-                 rc (long (mp/dimension-count (first cols) 0))]
-             (when (not= cc (count cols))
-               (error "Mismatched number of columns, have: " cc " column names"))
-             (DataSet. col-names cols [rc cc]))))
-
-#?(:clj 
-   (defn dataset-from-rows [col-names rows]
-     (let [^IPersistentVector col-names (vec col-names)
-           cc (count col-names)
-           rc (long (mp/dimension-count rows 0))
-           ;; _ (println (str "Building dataset from rows with " cc " columns"))
-           ^IPersistentVector cols (if (empty? rows)
-                                     (into [] (repeat cc []))
-                                     (into [] (mp/get-columns rows)))]
-       (when (not= cc (count cols))
-         (error "Mismatched number of columns, have: " cc " column names"))
-       (DataSet. col-names cols [rc cc])))
-   :cljs
-   (defn dataset-from-rows [col-names rows]
-     (let [col-names (vec col-names)
-           cc (count col-names)
-           rc (long (mp/dimension-count rows 0))
-           _ (println (str "Building dataset from rows with " cc " columns"))
-           cols (if (empty? rows)
-                                     (into [] (repeat cc []))
-                                     (into [] (mp/get-columns rows)))]
-       (when (not= cc (count cols))
-         (error "Mismatched number of columns, have: " cc " column names"))
-       (DataSet. col-names cols [rc cc])))
-   )
+(defn dataset-from-rows [col-names rows]
+  (let [^IPersistentVector col-names (vec col-names)
+        cc (count col-names)
+        rc (long (mp/dimension-count rows 0))
+        ^IPersistentVector cols (if (empty? rows)
+                                  (into [] (repeat cc []))
+                                  (into [] (mp/get-columns rows)))]
+    (when (not= cc (count cols))
+      (error "Mismatched number of columns, have: " cc " column names"))
+    (DataSet. col-names cols [rc cc])))
 
 (defn dataset-from-array
   "Construct a dataset from an array. 
@@ -372,8 +343,6 @@
                               (when (== -1 ix) (error "Column name " name "not found in Dataset"))
                               ix))
                           col-names)
-            c (get-columns ds)
-            _ (print "get-columns " c " indices " indices " -- " ds)
             nthfn (fn[ i j] #?(:clj (.nth ^IPersistentVector i j)
                              :cljs (nth i j)))
             cols (mapv #(nthfn (get-columns ds) (long %)) indices)]
