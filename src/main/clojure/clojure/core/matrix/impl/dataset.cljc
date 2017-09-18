@@ -94,9 +94,6 @@
        (assoc (mp/convert-to-nested-vectors m) i v)))
    )
 
-(comment
-  )
-
 (defn wrap-row
   "Wraps a row of a datset as a DataSetRow"
   ([dataset index]
@@ -245,6 +242,10 @@
   [m]
   ( #?(:clj .shape :cljs .-shape) m))
 
+(defn- get-index0
+  [ds]
+  (#?(:clj .index :cljs .-index) ds))
+
 (extend-protocol mp/PDimensionLabels
   DataSet
     (label [m dim i]
@@ -279,14 +280,14 @@
   
   DataSetRow
   (get-column [ds i]
-    (mp/get-1d (nth (get-columns ds) i) (.index ds)))
+    (mp/get-1d (nth (get-columns ds) i) (get-index0 ds)))
   (get-row [ds i]
     (error "Cannot get rows from a single DataSetRow"))
   (get-major-slice [ds i]
-    (mp/get-1d (nth (get-columns ds) i) (.index ds)))
+    (mp/get-1d (nth (get-columns ds) i) (get-index0 ds)))
   (get-slice [ds dimension i]
     (if (== (long dimension) 0)
-      (mp/get-1d (nth (get-columns ds) i) (.index ds))
+      (mp/get-1d (nth (get-columns ds) i) (get-index0 ds))
       (error (str "Cannot get dimension " dimension " from DataSetRow")))))
 
 (extend-protocol mp/PMatrixColumns
@@ -296,7 +297,7 @@
   DataSetRow
     (get-columns [ds]
       (let [cols (get-columns ds)
-            ix (.index ds)]
+            ix (get-index0 ds)]
         (mapv #(mp/get-1d % ix) cols))))
 
 (extend-protocol mp/PMatrixRows
@@ -315,7 +316,7 @@
   DataSetRow
     (convert-to-nested-vectors [ds]
       (let [cols (get-columns ds)
-            ix (.index ds)]
+            ix (get-index0 ds)]
         (mapv #(mp/get-1d % ix) cols))))
 
 (extend-protocol mp/PColumnIndex
@@ -532,9 +533,12 @@
       false)
     (is-scalar? [m] false)
     (get-shape [m]
-      (.shape m))
+      (#?(:clj .shape :cljs .-shape) m))
     (dimension-count [m dim]
-      (.nth ^IPersistentVector (.shape m) (long dim)))
+      #?(:clj 
+         (.nth ^IPersistentVector (.shape m) (long dim))
+         :cljs 
+         (nth (.-shape m) (long dim))))
 
   DataSetRow
     (dimensionality [m]

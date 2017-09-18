@@ -92,14 +92,6 @@
     (is (= (remove-columns ds1 [:a :b])
            (dataset [:c] (matrix [[9] [9] [9] [9]]))))))
 
-(comment
-
-
-
-
-
-
-
 (deftest test-select-rows
   (let [ds (dataset [:a :b :c] (matrix [[1 4 9] [2 5 9] [3 6 9] [4 7 9]]))]
     (is (= (select-rows ds [1 2])
@@ -111,6 +103,8 @@
 (deftest test-to-map
   (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]
     (is (= (to-map ds) {:a [1 2 3] :b [4 5 6]}))))
+
+(comment
 
 (deftest test-merge-datasets
   (let [ds1 (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))
