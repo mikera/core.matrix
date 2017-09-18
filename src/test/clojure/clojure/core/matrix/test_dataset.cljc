@@ -104,8 +104,6 @@
   (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]
     (is (= (to-map ds) {:a [1 2 3] :b [4 5 6]}))))
 
-(comment
-
 (deftest test-merge-datasets
   (let [ds1 (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))
         ds2 (dataset [:b :c] (matrix [[8 1] [8 9] [8 6]]))]
@@ -144,10 +142,10 @@
 
 (deftest test-emap
   (let [ds (dataset [:a :b] [[1 2] [3 4]])]
-    (is (equals [[2 3] [4 5]] (emap inc ds)))
-    (is (equals [[2 12] [4 14]] (emap + ds [1 10])))
-    (is (equals [[111 112] [113 114]] (emap + ds 10 100)))
-    (is (equals [[102 112] [104 114]] (emap + ds 100 [1 10])))))
+    (is (= (dataset [:a :b] [[2 3] [4 5]]) (emap inc ds)))
+    (is (= (dataset [:a :b] [[2 12] [4 14]]) (emap + ds [1 10])))
+    (is (= (dataset [:a :b] [[111 112] [113 114]]) (emap + ds 10 100)))
+    (is (= (dataset [:a :b] [[102 112] [104 114]]) (emap + ds 100 [1 10])))))
 
 (deftest test-emap-columns
   (let [kidneys (dataset ["State" "Charge"] [["FL" "0.4"] ["FL" "0.6"] ["NY" "0.8"]])
@@ -203,4 +201,5 @@
 
 (deftest compliance-test
   (compliance/compliance-test ds/CANONICAL-OBJECT))
-  )
+
+(comment)

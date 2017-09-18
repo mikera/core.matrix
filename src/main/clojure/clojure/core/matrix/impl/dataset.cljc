@@ -525,6 +525,11 @@
 	  (supports-dimensionality? [m dims]
 	    (<= 1 (long dims) 2)))
 
+(defn- get-length0
+  [m]
+  #?(:clj (.length ^IPersistentVector m)
+     :cljs (alength m)))
+
 (extend-protocol mp/PDimensionInfo
   DataSet
     (dimensionality [m]
@@ -547,11 +552,11 @@
       true)
     (is-scalar? [m] false)
     (get-shape [m]
-      [(.length ^IPersistentVector (get-column-names m))])
+      [(get-length0 (get-column-names m))])
     (dimension-count [m dim]
       (let [dim (long dim)]
         (cond
-          (== dim 0) (.length ^IPersistentVector (get-column-names m))
+          (== dim 0) (get-length0 (get-column-names m))
           :else (error "Invalid dimension for dataset row: " dim)))))
 
 (extend-protocol mp/PIndexedAccess
@@ -600,20 +605,20 @@
     (element-map
       ([m f]
         (let [cols (mapv #(mp/element-map % f) (get-columns m))]
-          (DataSet. (get-column-names m) cols (.shape m))))
+          (DataSet. (get-column-names m) cols (get-shape m))))
       ([m f a]
         (let [as (broadcast-cols a (mp/get-shape m))
               cols (mapv #(mp/element-map %1 f %2) (get-columns m) as)]
-          (DataSet. (get-column-names m) cols (.shape m))))
+          (DataSet. (get-column-names m) cols (get-shape m))))
       ([m f a more]
-        (let [shape (.shape m)
+        (let [shape (get-shape m)
               as (broadcast-cols a shape)
               mores (apply mapv vector (map #(broadcast-cols % shape) more))
               cols (mapv #(mp/element-map %1 f %2 %3) 
                          (get-columns m) 
                          as
                          mores)]
-          (DataSet. (get-column-names m) cols (.shape m)))))
+          (DataSet. (get-column-names m) cols (get-shape m)))))
     (element-map!
       ([m f]
         (mp/assign! m (mp/element-map m f)))
