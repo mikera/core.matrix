@@ -21,34 +21,39 @@
 
 
               :plugins [[lein-codox "0.9.0"]]
-              :source-paths ["src/dev/clojure"]
+              :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
               :java-source-paths  ["src/test/java"]
               :jvm-opts ^:replace []}
+             :clean-targets ^{:protect false} ["resources/public/js" :target]
 
              :test
              {:dependencies [[net.mikera/vectorz-clj "0.43.0" :exclusions [net.mikera/core.matrix]]
                              [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
                              [net.mikera/cljunit "0.4.0"]
                              [criterium/criterium "0.4.3"]
-                             [org.clojure/clojurescript "1.7.228"]
+                             [org.clojure/clojurescript "1.9.908"]
                              [org.clojure/tools.macro "0.1.5"]
                              [org.clojure/test.check "0.9.0"]]}
 
              :cljs
-             {:dependencies [[org.clojure/clojurescript "1.7.228"]
+             {:dependencies [[org.clojure/clojurescript "1.9.908"]
                              [thinktopic/aljabr "0.1.0-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
+                             [figwheel-sidecar "0.5.8"]
+                             [doo "0.1.7"]
+                             [com.cemerick/piggieback "0.2.1"]
                              ]
-
-              :plugins [[lein-figwheel "0.5.0-6"]
+              :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+              :plugins [[lein-figwheel "0.5.13"]
                         [lein-doo "0.1.7"]
-                        [lein-cljsbuild "1.1.7"]
+                        [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
                         ]
 
               :cljsbuild {:builds
                           {:dev {:figwheel true
                                  :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
                                  :compiler {:output-to "resources/public/js/core.matrix.js"
-                                            :asset-path   "out"
+                                            :output-dir "resources/public/js/out"
+                                            :asset-path   "out/"
                                             :optimizations :none
                                             :verbose true
                                             :warnings true
@@ -58,7 +63,8 @@
                                   :compiler {:output-to "resources/public/js/unit-test.js"
                                              :asset-path   "out/"
                                              :main clojure.core.matrix.cljs-runner
-                                             :optimizations :advanced 
+                                             ;:optimizations :advanced 
+                                             :optimizations :none 
                                              :parallel-build true
                                              :verbose true
                                              :warnings true

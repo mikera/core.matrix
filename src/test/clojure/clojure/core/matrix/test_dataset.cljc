@@ -9,7 +9,8 @@
                                                 emap
                                                 rows
                                                 slices
-                                                get-row]]
+                                                get-row
+                                                e= e==]]
             [clojure.core.matrix.stats :as stats]
             #?@(:clj [[clojure.test :refer :all]
                       [clojure.core.matrix.macros :refer [error]]
@@ -21,14 +22,14 @@
                                                         column-names column-name
                                                         to-map
                                                         merge-datasets
-                                                        ;rename-columns
+                                                        rename-columns
                                                         join-rows
                                                         row-maps
                                                         column
                                                         column-index
                                                         select-rows
                                                         ;;TODO: only fails in cljs
-                                                        ;;select-columns
+                                                        select-columns
                                                         replace-column join-columns
                                                         remove-columns
                                                         emap-column
@@ -39,6 +40,25 @@
                             [clojure.core.matrix.macros-clj :refer [error?]]
                             [cljs.test :refer [deftest testing is]])))
 
+(deftest testa
+  (testing "asdd"
+    (let [ds1 (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))
+          ds2 (dataset (matrix [[1 4] [2 5] [3 6]]))
+          ds3 (dataset (sorted-map :a [1 2 3] :b [4 5 6]))
+          ds4 (dataset [{:a 1 :b 2} {:a 4 :b 5}])
+          ds5 (dataset [:c :a :b] [{:a 1 :b 2 :c 3} {:a 4 :b 5 :c 6}])
+          ds6 (dataset [:vec :ndarray :double-array]
+                       {:vec (matrix :persistent-vector [1 2 3])
+                        :ndarray (matrix :ndarray [4 5 6])
+                        :double-array (matrix :double-array [7 8 9])})]
+      (print (str "-- " ) ds1 "--" (.-shape ds1) ":" (.-columns ds1) "--" (.keys js/Object ds1))
+      (print (str "-- " ) ds1 "--" (column-names ds1) "--" )
+      (print (str "-- " ) ds2)
+      (print (str "-- " ) ds3)
+      (print (str "-- " ) ds4)
+      (print (str "-- " ) ds5)
+      (print (str "-- " ) ds6)
+      (is (= 10 (inc 9))))))
 
 (deftest test-construct-dataset
   (testing "dataset construction"
@@ -66,7 +86,7 @@
 (deftest test-regressions
   (testing "Should be possible to create a dataset with element types that the current implementation does not support"
     (with-implementation :vectorz
-     (dataset [:a :b] '(["A" 2] ["B" 3])))))
+      (dataset [:a :b] '(["A" 2] ["B" 3])))))
 
 (deftest test-column-name
   (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]
@@ -83,16 +103,22 @@
     (is (nil? (label-index ds 1 :c)))
     (is (nil? (label-index ds 0 :a)))))
 
-;;TODO: fails for cljs
-#?(:clj 
-   (deftest test-select-columns
-     (let [ds1 (dataset [:a :b :c] (matrix [[1 4 9] [2 5 9] [3 6 9] [4 7 9]]))
-           ds2 (dataset [:a :b :c] [])]
-       (is (= (select-columns ds1 [:a :b])
-              (dataset [:a :b] (matrix [[1 4] [2 5] [3 6] [4 7]]))))
-       (is (= (select-columns ds2 [:a :b]) (dataset [:a :b] [])))
-       (is (= (remove-columns ds1 [:a :b])
-              (dataset [:c] (matrix [[9] [9] [9] [9]])))))))
+(deftest test-select-columns
+  (let [ds1 (dataset [:a :b :c] (matrix [[1 4 9] [2 5 9] [3 6 9] [4 7 9]]))
+        ds2 (dataset [:a :b :c] [])]
+    (is (= (select-columns ds1 [:a :b])
+           (dataset [:a :b] (matrix [[1 4] [2 5] [3 6] [4 7]]))))
+    (is (= (select-columns ds2 [:a :b]) (dataset [:a :b] [])))
+    (is (= (remove-columns ds1 [:a :b])
+           (dataset [:c] (matrix [[9] [9] [9] [9]]))))))
+
+(comment
+
+
+
+
+
+
 
 (deftest test-select-rows
   (let [ds (dataset [:a :b :c] (matrix [[1 4 9] [2 5 9] [3 6 9] [4 7 9]]))]
@@ -113,12 +139,11 @@
                 (dataset [:a :b :c]
                          (matrix [[1 8 1] [2 8 9] [3 8 6]]))))))
 
-#?(:clj 
-   (deftest test-rename-columns
-     (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]
-       (is (= (rename-columns ds {:a :c
-                                  :b :d})
-              (dataset [:c :d] (matrix [[1 4] [2 5] [3 6]])))))))
+(deftest test-rename-columns
+  (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]
+    (is (= (rename-columns ds {:a :c
+                               :b :d})
+           (dataset [:c :d] (matrix [[1 4] [2 5] [3 6]]))))))
 
 (deftest test-replace-column
   (let [ds (dataset [:a :b] (matrix [[1 4] [2 5] [3 6]]))]
@@ -204,3 +229,4 @@
 
 (deftest compliance-test
   (compliance/compliance-test ds/CANONICAL-OBJECT))
+  )

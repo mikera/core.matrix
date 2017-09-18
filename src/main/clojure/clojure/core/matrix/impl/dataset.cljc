@@ -188,7 +188,7 @@
        [])
      IEquiv
      (-equiv [m a]
-       (= (mp/convert-to-nested-vectors m) a))
+       (= (mp/convert-to-nested-vectors m) (mp/convert-to-nested-vectors a)))
      IVector
                                         ;(length [m] (first shape))
      (-assoc-n [m i v]
@@ -234,7 +234,7 @@
      (let [col-names (vec col-names)
            cc (count col-names)
            rc (long (mp/dimension-count rows 0))
-           ;; _ (println (str "Building dataset from rows with " cc " columns"))
+           _ (println (str "Building dataset from rows with " cc " columns"))
            cols (if (empty? rows)
                                      (into [] (repeat cc []))
                                      (into [] (mp/get-columns rows)))]
@@ -262,19 +262,31 @@
                          [] col-names)) m)]
        (dataset-from-rows col-names rows))))
 
+(defn- get-column-names
+  [m]
+  ( #?(:clj .column-names :cljs .-column-names) m))
+
+(defn- get-columns
+  [m]
+  ( #?(:clj .columns :cljs .-columns) m))
+
+(defn- get-shape
+  [m]
+  ( #?(:clj .shape :cljs .-shape) m))
+
 (extend-protocol mp/PDimensionLabels
   DataSet
     (label [m dim i]
       (let [dim (long dim)
             i (long i)]
         (cond
-          (== dim 1) (nth (.column-names m) i)
+          (== dim 1) (nth (get-column-names m) i)
           (<= 0 (long i) (dec (long (mp/dimension-count m dim)))) nil
           :else (error "Dimension index out of range: " i))))
     (labels [m dim]
       (let [dim (long dim)]
         (cond
-          (== dim 1) (.column-names m)
+          (== dim 1) (get-column-names m)
           (<= 0 (long dim) (dec (long (mp/dimensionality m)))) nil
           :else (error "Dimension out of range: " dim)))))
 
@@ -296,23 +308,23 @@
   
   DataSetRow
   (get-column [ds i]
-    (mp/get-1d (nth (.columns ds) i) (.index ds)))
+    (mp/get-1d (nth (get-columns ds) i) (.index ds)))
   (get-row [ds i]
     (error "Cannot get rows from a single DataSetRow"))
   (get-major-slice [ds i]
-    (mp/get-1d (nth (.columns ds) i) (.index ds)))
+    (mp/get-1d (nth (get-columns ds) i) (.index ds)))
   (get-slice [ds dimension i]
     (if (== (long dimension) 0)
-      (mp/get-1d (nth (.columns ds) i) (.index ds))
+      (mp/get-1d (nth (get-columns ds) i) (.index ds))
       (error (str "Cannot get dimension " dimension " from DataSetRow")))))
 
 (extend-protocol mp/PMatrixColumns
   DataSet
     (get-columns [ds]
-      (.columns ds))
+      (get-columns ds))
   DataSetRow
     (get-columns [ds]
-      (let [cols (.columns ds)
+      (let [cols (get-columns ds)
             ix (.index ds)]
         (mapv #(mp/get-1d % ix) cols))))
 
@@ -327,16 +339,16 @@
 (extend-protocol mp/PConversion
   DataSet
     (convert-to-nested-vectors [ds]
-      (let [cols (mapv mp/convert-to-nested-vectors (.columns ds))]
+      (let [cols (mapv mp/convert-to-nested-vectors (get-columns ds))]
         (mp/transpose cols)))
   DataSetRow
     (convert-to-nested-vectors [ds]
-      (let [cols (.columns ds)
+      (let [cols (get-columns ds)
             ix (.index ds)]
         (mapv #(mp/get-1d % ix) cols))))
 
 (extend-protocol mp/PColumnIndex
-  #?(:clj Object :cljs js/object)
+  #?(:clj Object :cljs js/Object)
     (column-index [ds column-name]
       (when-let [cnames (mp/column-names ds)]
         (let [cnames ^IPersistentVector (vec cnames)]
@@ -348,19 +360,23 @@
       (let [scol (mp/get-column ds 0)
             column (mp/broadcast-like scol column)]
         (dataset-from-columns
-          (.column-names ds)
-          (assoc (.columns ds) i column)))))
+          (get-column-names ds)
+          (assoc (get-columns ds) i column)))))
 
 (extend-protocol mp/PDatasetImplementation
   DataSet
     (select-columns [ds col-names]
-      (let [^List all-col-names (.column-names ds)
+      (let [^List all-col-names (get-column-names ds)
             indices (mapv (fn [name]
                             (let [ix (.indexOf all-col-names name)]
                               (when (== -1 ix) (error "Column name " name "not found in Dataset"))
                               ix))
                           col-names)
-            cols (mapv #(.nth ^IPersistentVector (.columns ds) (long %)) indices)]
+            c (get-columns ds)
+            _ (print "get-columns " c " indices " indices " -- " ds)
+            nthfn (fn[ i j] #?(:clj (.nth ^IPersistentVector i j)
+                             :cljs (nth i j)))
+            cols (mapv #(nthfn (get-columns ds) (long %)) indices)]
         (dataset-from-columns col-names cols)))
   (select-rows [ds rows]
     (let [col-names (mp/column-names ds)
@@ -400,7 +416,7 @@
       ds 
       col-map))
   (replace-column [ds col-name vs]
-    (let [^List col-names (.column-names ds)
+    (let [^List col-names (get-column-names ds)
           idx (.indexOf col-names col-name)]
       (if (> idx -1)
         (mp/set-column ds idx vs)
@@ -410,7 +426,7 @@
           col-names-2 (mp/column-names ds2)]
       (if (= (into #{} col-names-1)
              (into #{} col-names-2))
-        (let [cols1 (.columns ds1)
+        (let [cols1 (get-columns ds1)
               cols2 (mp/get-columns (mp/select-columns ds2 col-names-1))]
            (dataset-from-columns col-names-1 (mapv mp/join cols1 cols2)))
         (error "Can't join rows of datasets with different column names"))))
@@ -451,7 +467,7 @@
                     (mp/get-columns ds))))
   
     #?(:clj Object
-       :cljs js/object)
+       :cljs js/Object)
        (row-maps [ds]
                  (row-map-impl ds))
        (to-map [ds]
@@ -463,38 +479,38 @@
     (label [m dim i]
       (let [dim (long dim)]
         (cond
-          (== 1 dim) (nth (.column-names m) i)
+          (== 1 dim) (nth (get-column-names m) i)
           :else nil)))
     (labels [m dim]
       (let [dim (long dim)]
         (cond
-          (== 1 dim) (.column-names m)
+          (== 1 dim) (get-column-names m)
           :else nil)))
 
   DataSetRow
     (label [m dim i]
       (let [dim (long dim)]
         (cond
-          (== 0 dim) (nth (.column-names m) i)
+          (== 0 dim) (nth (get-column-names m) i)
           :else nil)))
     (labels [m dim]
       (let [dim (long dim)]
         (cond
-          (== 0 dim) (.column-names m)
+          (== 0 dim) (get-column-names m)
           :else nil))))
 
 (extend-protocol mp/PColumnNames
   DataSet
     (column-name [m i]
-      (nth (.column-names m) i))
+      (nth (get-column-names m) i))
     (column-names [m]
-      (.column-names m))
+      (get-column-names m))
 
   DataSetRow
     (column-name [m i]
-      (nth (.column-names m) i))
+      (nth (get-column-names m) i))
     (column-names [m]
-      (.column-names m)))
+      (get-column-names m)))
 
 (extend-protocol mp/PImplementation
   DataSet
@@ -558,11 +574,11 @@
       true)
     (is-scalar? [m] false)
     (get-shape [m]
-      [(.length ^IPersistentVector (.column-names m))])
+      [(.length ^IPersistentVector (get-column-names m))])
     (dimension-count [m dim]
       (let [dim (long dim)]
         (cond
-          (== dim 0) (.length ^IPersistentVector (.column-names m))
+          (== dim 0) (.length ^IPersistentVector (get-column-names m))
           :else (error "Invalid dimension for dataset row: " dim)))))
 
 (extend-protocol mp/PIndexedAccess
@@ -570,7 +586,7 @@
     (get-1d [m x]
       (mp/get-row m x))
     (get-2d [m x y]
-      (mp/get-1d (.nth ^IPersistentVector (.columns m) (long y)) x))
+      (mp/get-1d (.nth ^IPersistentVector (get-columns m) (long y)) x))
     (get-nd [m indexes]
       (let [dims (long (count indexes))]
         (cond
@@ -581,13 +597,13 @@
 
   DataSetRow
     (get-1d [m x]
-      (mp/get-1d (.nth ^IPersistentVector (.columns m) (long x)) (.index m)))
+      (mp/get-1d (.nth ^IPersistentVector (get-columns m) (long x)) (.index m)))
     (get-2d [m x y]
       (error "Invalid 2D access on DataSetRow"))
     (get-nd [m indexes]
       (let [dims (long (count indexes))]
         (cond
-          (== 1 dims) (mp/get-1d (.nth ^IPersistentVector (.columns m) (long (first indexes))) (.index m))
+          (== 1 dims) (mp/get-1d (.nth ^IPersistentVector (get-columns m) (long (first indexes))) (.index m))
           :else (error "Invalid ND access on DataSetRow")))))
 
 (defn- broadcast-cols
@@ -610,21 +626,21 @@
       (apply concat (mp/get-rows m)))
     (element-map
       ([m f]
-        (let [cols (mapv #(mp/element-map % f) (.columns m))]
-          (DataSet. (.column-names m) cols (.shape m))))
+        (let [cols (mapv #(mp/element-map % f) (get-columns m))]
+          (DataSet. (get-column-names m) cols (.shape m))))
       ([m f a]
         (let [as (broadcast-cols a (mp/get-shape m))
-              cols (mapv #(mp/element-map %1 f %2) (.columns m) as)]
-          (DataSet. (.column-names m) cols (.shape m))))
+              cols (mapv #(mp/element-map %1 f %2) (get-columns m) as)]
+          (DataSet. (get-column-names m) cols (.shape m))))
       ([m f a more]
         (let [shape (.shape m)
               as (broadcast-cols a shape)
               mores (apply mapv vector (map #(broadcast-cols % shape) more))
               cols (mapv #(mp/element-map %1 f %2 %3) 
-                         (.columns m) 
+                         (get-columns m) 
                          as
                          mores)]
-          (DataSet. (.column-names m) cols (.shape m)))))
+          (DataSet. (get-column-names m) cols (.shape m)))))
     (element-map!
       ([m f]
         (mp/assign! m (mp/element-map m f)))
@@ -687,21 +703,21 @@
    (do
 
    (defmethod print-dup DataSet [^clojure.core.matrix.impl.dataset.DataSet x ^Writer writer]
-     (.write writer (str "#dataset/dataset " {:column-names (.column-names x)
-                                              :columns (.columns x)
+     (.write writer (str "#dataset/dataset " {:column-names (get-column-names x)
+                                              :columns (get-columns x)
                                               :shape (.shape x)})))
 
    (defmethod print-method DataSet [^clojure.core.matrix.impl.dataset.DataSet x ^Writer writer]
-     (.write writer (str "#dataset/dataset " {:column-names (.column-names x)
-                                              :columns (.columns x)
+     (.write writer (str "#dataset/dataset " {:column-names (get-column-names x)
+                                              :columns (get-columns x)
                                               :shape (.shape x)})))
 
    (defmethod print-dup DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer]
-     (.write writer (str "#dataset/row " {:column-names (.column-names x)
+     (.write writer (str "#dataset/row " {:column-names (get-column-names x)
                                           :values (into [] x)})))
 
    (defmethod print-method DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer]
-     (.write writer (str "#dataset/row " {:column-names (.column-names x)
+     (.write writer (str "#dataset/row " {:column-names (get-column-names x)
                                           :values (into [] x)}))))
      )
 
@@ -711,14 +727,14 @@
   "Reader function for a core.matrix DataSet"
   ([a]
     (dataset-from-columns
-      (:column-names a)
+      (get-column-names a)
       (:columns a))))
 
 (defn read-dataset-row
   "Reader function for a core.matrix DataSetRow. Creates a single row backed with persistent vectors"
   ([a]
     (DataSetRow.
-      (vec (:column-names a))
+      (vec (get-column-names a))
       (mapv vector (:values a))
       0)))
 
