@@ -37,7 +37,7 @@
                                                         ]])
   #?(:cljs (:require-macros [clojure.core.matrix :refer [with-implementation]]
                             [clojure.core.matrix.macros :refer [error]]
-                            [clojure.core.matrix.macros-clj :refer [error?]]
+                            [clojure.core.matrix.macros-cljs :refer [error?]]
                             [cljs.test :refer [deftest testing is]])))
 
 (deftest testa
