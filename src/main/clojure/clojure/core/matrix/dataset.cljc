@@ -198,21 +198,6 @@
       ds col-name
       (apply emap f col args)))))
 
-(comment 
-  (:clj 
-   nil 
-   :cljs
-   (defn emap-column
-     "Applies function f to every element in a column in a dataset.
-
-   Extra args to the function may be supplied."
-     ([ds col-name f & args]
-      (let [col-names (mp/column-names ds)
-            col (mp/get-column ds (.indexOf col-names col-name))]
-        (mp/replace-column
-         ds col-name
-         (apply emap f col args)))))))
-
 (defn emap-columns
   "Applies a function to the specified set of columns. Calls emap-column for each column specified.
 
