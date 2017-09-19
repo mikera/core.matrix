@@ -68,6 +68,9 @@
                                              :parallel-build true
                                              :verbose true
                                              :warnings true
+                                             ;;avoids "typeerror: undefined is not an object " error
+                                             ;; see https://github.com/bensu/doo/pull/141#issuecomment-318999398
+                                             :process-shim false
                                              :pretty-print true}}}
 
                                         :figwheel {:load-warninged-code true :css-dirs ["resources/public/css"] :server-port 8765}

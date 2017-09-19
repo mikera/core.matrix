@@ -15,9 +15,12 @@
             #?@(:clj [[clojure.test :refer :all]
                       [clojure.core.matrix.macros :refer [error]]
                       [clojure.core.matrix.macros-clj :refer [error?]]
-                      [clojure.core.matrix :refer [with-implementation]]]
+                      [clojure.core.matrix :refer [with-implementation]]
+                      ]
                 :cljs [[cljs.test :refer [do-report update-current-env!]]
-                       [cljs.reader :refer [read-string]]])
+                       [thinktopic.aljabr.core]
+                       [cljs.reader :refer [read-string]]
+                       ])
             [clojure.core.matrix.dataset :as cd :refer [dataset dataset?
                                                         column-names column-name
                                                         to-map
@@ -28,7 +31,6 @@
                                                         column
                                                         column-index
                                                         select-rows
-                                                        ;;TODO: only fails in cljs
                                                         select-columns
                                                         replace-column join-columns
                                                         remove-columns
@@ -187,19 +189,17 @@
 (defn- round-trip [x]
   (read-string (pr-str x)))
 
-(deftest test-round-trip
-  (let [ds (dataset [:a :b] [[1 2] ["Bob" "Mike"]])]
-    (is (= ds (round-trip ds)))
-    (let [dr (second (rows ds))]
-      (is (= dr (round-trip dr))))))
-
-(deftest instance-tests
-  (let [dset (ds/dataset-from-columns [:bar :baz] [["Foo" "Bar"] [1 2]])]
-    (compliance/instance-test dset)
-    (compliance/instance-test (second (slices dset)))
-    (compliance/instance-test (slice dset 1 0))))
-
-(deftest compliance-test
-  (compliance/compliance-test ds/CANONICAL-OBJECT))
-
-(comment)
+#?(:clj
+   (do
+     (deftest test-round-trip
+       (let [ds (dataset [:a :b] [[1 2] ["Bob" "Mike"]])]
+         (is (= ds (round-trip ds)))
+         (let [dr (second (rows ds))]
+           (is (= dr (round-trip dr))))))    
+     (deftest compliance-test
+       (compliance/compliance-test ds/CANONICAL-OBJECT))
+     (deftest instance-tests
+       (let [dset (ds/dataset-from-columns [:bar :baz] [["Foo" "Bar"] [1 2]])]
+         (compliance/instance-test dset)
+         (compliance/instance-test (second (slices dset)))
+         (compliance/instance-test (slice dset 1 0))))))

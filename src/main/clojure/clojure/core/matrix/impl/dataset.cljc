@@ -705,14 +705,14 @@
   "Reader function for a core.matrix DataSet"
   ([a]
     (dataset-from-columns
-      (get-column-names a)
+      (:column-names a)
       (:columns a))))
 
 (defn read-dataset-row
   "Reader function for a core.matrix DataSetRow. Creates a single row backed with persistent vectors"
   ([a]
     (DataSetRow.
-      (vec (get-column-names a))
+      (vec (:column-names a))
       (mapv vector (:values a))
       0)))
 
