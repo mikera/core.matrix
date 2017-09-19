@@ -4,4 +4,4 @@
             [clojure.core.matrix.test-dataset]))
 
 (doo-tests 'clojure.core.matrix.test-dataset)
-;(doo-tests 'clojure.core.matrix.test-api)
+(doo-tests 'clojure.core.matrix.test-api)

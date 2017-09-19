@@ -39,7 +39,6 @@
              {:dependencies [[org.clojure/clojurescript "1.9.908"]
                              [thinktopic/aljabr "0.1.0-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
                              [figwheel-sidecar "0.5.8"]
-                             [doo "0.1.7"]
                              [com.cemerick/piggieback "0.2.1"]
                              ]
               :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
@@ -63,8 +62,7 @@
                                   :compiler {:output-to "resources/public/js/unit-test.js"
                                              :asset-path   "out/"
                                              :main clojure.core.matrix.cljs-runner
-                                             ;:optimizations :advanced 
-                                             :optimizations :none 
+                                             :optimizations :advanced 
                                              :parallel-build true
                                              :verbose true
                                              :warnings true
@@ -79,6 +77,8 @@
 
   :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
 
+  ;;runs both clj and cljs tests on invocation of "lein test"
+  :aliases {"test" ["do" "clean," "test," "with-profile" "cljs" "doo" "nashorn" "test" "once"]}
   :codox {:namespaces [clojure.core.matrix
                        clojure.core.matrix.dataset
                        clojure.core.matrix.io
