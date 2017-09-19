@@ -24,19 +24,11 @@
 
 ;; ===============================================================
 ;; Specialised functions for dataset handling
-#?(:clj 
-   (defn dataset?
-     "Returns true if argument is a dataset, defined as a 1D or 2D array with column names"
-     (^Boolean [d]
-      (boolean (and (<= 1 (long (mp/dimensionality d)) 2) 
-                    (mp/column-names d)))))
-   :cljs
-   (defn dataset?
-     "Returns true if argument is a dataset, defined as a 1D or 2D array with column names"
-     ([d]
-      (and (<= 1 (long (mp/dimensionality d)) 2) 
-           (mp/column-names d)))))
-
+(defn dataset?
+  "Returns true if argument is a dataset, defined as a 1D or 2D array with column names"
+  (^Boolean [d]
+   ( #?(:clj boolean :cljs and) (and (<= 1 (long (mp/dimensionality d)) 2) 
+                                     (mp/column-names d)))))
 
 (defn dataset
   "Creates dataset from one of the following:
@@ -193,20 +185,22 @@
 (defn replace-column
   "Replaces column in a dataset with new values"
   ([ds col-name vs]
-     (mp/replace-column ds col-name vs)))
+   (mp/replace-column ds col-name vs)))
 
-#?(:clj 
-   (defn emap-column
-     "Applies function f to every element in a column in a dataset.
+(defn emap-column
+  "Applies function f to every element in a column in a dataset.
 
    Extra args to the function may be supplied."
-     ([ds col-name f & args]
-      (let [^List col-names (mp/column-names ds)
-            col (mp/get-column ds (.indexOf col-names col-name))]
-        (mp/replace-column
-         ds col-name
-         (apply emap f col args)))))
+  ([ds col-name f & args]
+   (let [^List col-names (mp/column-names ds)
+         col (mp/get-column ds (.indexOf col-names col-name))]
+     (mp/replace-column
+      ds col-name
+      (apply emap f col args)))))
 
+(comment 
+  (:clj 
+   nil 
    :cljs
    (defn emap-column
      "Applies function f to every element in a column in a dataset.
@@ -217,7 +211,7 @@
             col (mp/get-column ds (.indexOf col-names col-name))]
         (mp/replace-column
          ds col-name
-         (apply emap f col args))))))
+         (apply emap f col args)))))))
 
 (defn emap-columns
   "Applies a function to the specified set of columns. Calls emap-column for each column specified.

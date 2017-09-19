@@ -410,21 +410,6 @@
          (concat (mp/get-columns ds1) (mp/get-columns ds2)))
         (error "Duplicate column names: " isection)))))
 
-(defn row-map-impl
-  [ds]
-  (if-let [col-names (mp/column-names ds)]
-        (mapv #(zipmap col-names (mp/element-seq %))
-              (mp/get-rows ds))
-        (error "No column names available")))
-
-(defn to-map-impl
-  [ds]
-  (if-let [col-names (mp/column-names ds)]
-    (into {} (map (fn [k v] [k v])
-                  (mp/column-names ds)
-                  (mp/get-columns ds)))
-    (error "No column names available")))
-
 (extend-protocol mp/PDatasetMaps
   DataSet
     (row-maps [ds]
@@ -439,10 +424,16 @@
     #?(:clj Object
        :cljs js/Object)
        (row-maps [ds]
-                 (row-map-impl ds))
+         (if-let [col-names (mp/column-names ds)]
+           (mapv #(zipmap col-names (mp/element-seq %))
+                 (mp/get-rows ds))
+           (error "No column names available")))
        (to-map [ds]
-               (to-map-impl ds))
-       )
+         (if-let [col-names (mp/column-names ds)]
+           (into {} (map (fn [k v] [k v])
+                         (mp/column-names ds)
+                         (mp/get-columns ds)))
+           (error "No column names available"))))
 
 (extend-protocol mp/PDimensionLabels
   DataSet
