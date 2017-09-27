@@ -38,11 +38,6 @@
     (is (equals m dm)))
   (is (= 1.0 (array :double-array 1))))
 
-(deftest test-pm 
-  (with-implementation :double-array
-    (let [d (ds/dataset [:A :B] [[1.0 2.0] [3.0 4.0]])]
-      (is (pprint/pm d)))))
-
 (deftest test-type
   (is (= Double/TYPE (element-type (double-array [1 2])))))
 
@@ -200,6 +195,26 @@
   (testing "basic ops"
     (let [da (double-array [1.2 2.3])]
       (is (equals [1.0 2.0] (floor da))))))
+
+(deftest test-add-emap
+  (testing "Unary"
+    (let [dest (double-array [1 10])
+          a (double-array [1.2 2.3])]
+      (is (equals [3.4 14.6] (add-emap! dest (partial * 2) a)))))
+  (testing "Binary"
+    (let [dest (double-array [1 10])
+          a (double-array [1.2 2.3])]
+      (is (equals [3.4 14.6] (add-emap! dest + a a))))))
+
+(deftest test-set-emap
+  (testing "Unary"
+    (let [dest (double-array [1 10])
+          a (double-array [1.2 2.3])]
+      (is (equals [2.4 4.6] (set-emap! dest (partial * 2) a)))))
+  (testing "Binary"
+    (let [dest (double-array [1 10])
+          a (double-array [1.2 2.3])]
+      (is (equals [2.4 4.6] (set-emap! dest + a a))))))
 
 (deftest instance-tests
   (clojure.core.matrix.compliance-tester/instance-test (double-array []))

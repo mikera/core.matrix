@@ -1438,6 +1438,26 @@
       ;; check for no slices, in which case we must return nil
       (if (seq slcs) slcs nil))))
 
+(extend-protocol mp/PAddEmap
+  #?(:clj Object :cljs object)
+  (add-emap!
+    ([dest f a]
+      (mp/matrix-add! dest (mp/element-map a f)))
+    ([dest f a b]
+      (mp/matrix-add! dest (mp/element-map a f b)))
+    ([dest f a b more]
+      (mp/matrix-add! dest (mp/element-map a f b more)))))
+
+(extend-protocol mp/PSetEmap
+  #?(:clj Object :cljs object)
+  (set-emap!
+    ([dest f a]
+      (mp/assign! dest (mp/element-map a f)))
+    ([dest f a b]
+      (mp/assign! dest (mp/element-map a f b)))
+    ([dest f a b more]
+      (mp/assign! dest (mp/element-map a f b more)))))
+
 ;; functional operations
 (extend-protocol mp/PFunctionalOperations
   #?(:clj Number :cljs number)

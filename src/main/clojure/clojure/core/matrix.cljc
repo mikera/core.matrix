@@ -1463,6 +1463,9 @@ elements not-equal to the argument are 0.
 (defn mul
   "Performs element-wise multiplication with scalars and numerical arrays.
 
+   Examples: 
+     (mul [1 2] [3 4]) ;=> [3 8]
+
    Behaves like clojure.core/* for scalar values."
   ([] 1.0)
   ([a] a)
@@ -1483,10 +1486,7 @@ elements not-equal to the argument are 0.
 (defn mmul
   "Performs matrix multiplication on matrices or vectors. 
 
-  Equivalent to inner-product when applied to vectors.  Will treat a 1D vector roughly as a
-  1xN matrix (row vector) when it's the first argument, or as an Nx1 matrix
-  (column vector) when it's the second argument--except that the dimensionality
-  of the result will be different from what it would be with matrix arguments."
+   Equivalent to inner-product, but may be more efficient for matrices."
   ([] 1.0)
   ([a] a)
   ([a b]
@@ -1581,7 +1581,9 @@ elements not-equal to the argument are 0.
     v))
 
 (defn add
-  "Performs element-wise addition on one or more numerical arrays."
+  "Performs element-wise addition on one or more numerical arrays.
+
+   Will broadcast to the smallest shape compatible will addition of all input arrays."
   ([] 0.0)
   ([a] a)
   ([a b]
@@ -1610,12 +1612,15 @@ elements not-equal to the argument are 0.
 
 (defn add-product
   "Adds the element-wise product of two numerical arrays to the first array.
-   Arrays should be the same shape."
+   
+   Arrays should be the same shape, some implementations may support broadcasting."
   ([m a b]
     (mp/add-product m a b)))
 
 (defn add-product!
-  "Adds the product of two numerical arrays to the first array. Returns the mutated array."
+  "Adds the product of two numerical arrays to the first array. Returns the mutated array.
+
+   Arrays should be the same shape, some implementations may support broadcasting."
   ([m a b]
     (mp/add-product! m a b)
     m))
@@ -1717,46 +1722,6 @@ elements not-equal to the argument are 0.
     (mp/set-inner-product! m a b factor)
     m))
 
-(defn op 
-  "Computes the specified operation on the array a and returns a new array.
-
-   The operation is implementation specific. Throws an error if the operator is not recognised by the implementation of a, or
-   if the operation is invalid for the given parameters."
-  ([operation a]
-    (TODO))
-  ([operation a & args]
-    (TODO)))
-
-(defn op! 
-  "Computes the specified operation on the array a and mutates the array a.
-
-   The operation is implementation specific. Throws an error if the operator is not recognised by the implementation of a, or
-   if the operation is invalid for the given parameters."
-  ([operation a]
-    (TODO))
-  ([operation a & args]
-    (TODO)))
-
-(defn set-op! 
-  "Computes the specified operation on the array a and stores the result in the destination array, which must be mutable.
-
-   The operation is implementation specific. Throws an error if the operator is not recognised by the implementation of a, or
-   if the operation is invalid for the given parameters."
-  ([operation dest a]
-    (TODO))
-  ([operation dest a & args]
-    (TODO)))
-
-(defn add-op! 
-  "Computes the specified operation on the array a and adds the result to the destination array, which must be mutable.
-
-   The operation is implementation specific. Throws an error if the operator is not recognised by the implementation of a, or
-   if the operation is invalid for the given parameters."
-  ([operation dest a]
-    (TODO))
-  ([operation dest a & args]
-    (TODO)))
-
 (defn sub
   "Performs element-wise subtraction on one or more numerical arrays.
 
@@ -1815,7 +1780,9 @@ elements not-equal to the argument are 0.
     (mp/square m)))
 
 (defn normalise
-  "Normalises a numerical vector (scales to unit length). Returns a new normalised vector.
+  "Normalises a numerical vector (scales to unit length, i.e. the L2 norm). 
+
+   Returns a new normalised vector.
 
    The result is undefined if the initial length of the vector is zero (it is possible the
    implementation may return NaNs or zeros). If this is a concern, it is recommended to check
@@ -1832,7 +1799,7 @@ elements not-equal to the argument are 0.
 
 (defn dot
   "Efficiently computes the scalar dot product (1Dx1D inner product) of two numerical vectors. Prefer this API
-   function if you are performing a dot product on 1D vectors and want a scalar result.
+   function if you are performing a dot product on 1D vectors and require a scalar result.
 
    If either argument is not a vector, will compute and return a higher dimensional inner-product."
   ([a b]
@@ -2153,6 +2120,9 @@ elements not-equal to the argument are 0.
      (emap (fn [x] (str x)) (double-array [1 2 3]))             ;; Throws an error
      (emap (fn [x] (str x)) (coerce [] (double-array [1 2 3]))) ;; OK!
 
+   Implemenations may *optionally* support custom function types. If this is the case, the
+   parameter m must be a valid array from the given implementation.
+
    Returns a new array of the same element-type and shape as the array m."
   ([f m]
     (mp/element-map m f))
@@ -2162,7 +2132,8 @@ elements not-equal to the argument are 0.
     (mp/element-map m f a more)))
 
 (defn emap-indexed
-  "Element-wise map-indexed over all elements of one or more arrays.
+  "Element-wise map-indexed over all elements of one or more arrays. Like
+   emap, but provides an index as the second argument to the mapping function.
 
    f must accept as first argument the index vector of the current element,
    and return a result compatible with the element-type of the array m
@@ -2241,6 +2212,28 @@ elements not-equal to the argument are 0.
     (mp/element-map! m f a) m)
   ([f m a & more]
     (mp/element-map! m f a more) m))
+
+(defn add-emap!
+  "Adds the result of emap to a destination array.
+
+   dest must be a mutable numerical array. Returns dest."
+  ([dest f a]
+    (mp/add-emap! dest f a) dest)
+  ([dest f a b]
+    (mp/add-emap! dest f a b) dest)
+  ([dest f a b & more]
+    (mp/add-emap! dest f a b more) dest))
+
+(defn set-emap!
+  "Sets the destination array to the result of an emap operation.
+
+   dest must be a mutable array. Returns dest."
+  ([dest f a]
+    (mp/set-emap! dest f a) dest)
+  ([dest f a b]
+    (mp/set-emap! dest f a b) dest)
+  ([dest f a b & more]
+    (mp/set-emap! dest f a b more) dest))
 
 (defn emap-indexed!
   "Element-wise map-indexed over all elements of one or more arrays.
