@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com/shark8me/core.matrix.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/shark8me/core.matrix.git</developerConnection>
-    <tag>bce9ce863afbf9f0a1990b21c433f45ccc731a83
+    <tag>a9224df90ba47bc70769be74268a902e4758d833
 </tag>
     <url>https://github.com/shark8me/core.matrix</url>
   </scm>
