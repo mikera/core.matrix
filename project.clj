@@ -17,7 +17,7 @@
                [net.mikera/cljunit "0.4.0"]
                [criterium/criterium "0.4.3"]
                [org.clojure/tools.macro "0.1.5"]
-               [hiccup "1.0.5"]]
+               ]
 
 
               :plugins [[lein-codox "0.9.0"]]
