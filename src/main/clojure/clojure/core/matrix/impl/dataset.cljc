@@ -191,22 +191,30 @@
      (-assoc-n [m i v]
        (assoc (mp/convert-to-nested-vectors m) i v))))
 
-(defn dataset-from-columns [col-names cols]
+(defn dataset-from-columns 
+  "Creates a dataset with the given column-names and corresponding columns of data.
+   cols should be a sequence of columns specified as vectors, all of equal length."
+  [col-names cols]
   (let [^IPersistentVector col-names (vec col-names)
         cc (long (count col-names))
-        ^IPersistentVector cols (vec (mp/get-rows (vec cols)))
+        ^IPersistentVector cols (vec cols)
         rc (long (mp/dimension-count (first cols) 0))]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
     (DataSet. col-names cols [rc cc])))
 
-(defn dataset-from-rows [col-names rows]
+(defn dataset-from-rows 
+  "Creates a dataset from the given rows of data, using the specified column names.
+
+   rows should be a sequence of data rows, where each row should be a sequence or 
+   vector that has one element for each column." 
+  [col-names rows]
   (let [^IPersistentVector col-names (vec col-names)
         cc (count col-names)
         rc (long (mp/dimension-count rows 0))
         ^IPersistentVector cols (if (empty? rows)
-                                  (into [] (repeat cc []))
-                                  (into [] (mp/get-columns rows)))]
+                                  (vec (repeat cc []))
+                                  (vec (mp/get-columns rows)))]
     (when (not= cc (count cols))
       (error "Mismatched number of columns, have: " cc " column names"))
     (DataSet. col-names cols [rc cc])))

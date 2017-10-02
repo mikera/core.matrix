@@ -322,6 +322,12 @@
    If the new shape requires more elements than the original shape, should throw an exception."
   (reshape [m shape]))
 
+(defprotocol PReshapeView
+  "Protocol to reshape matrices. Guarantees a view over the original data if mutable.
+   If the new shape has less elements than the original shape, must truncate the remaining elements.
+   Behaviour is undefined if the new shape requires more elements than the original shape."
+  (reshape-view [m shape]))
+
 (defprotocol PPack
   "Protocol to efficiently pack an array, according to the most efficient representation for a given
    implementation.
