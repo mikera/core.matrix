@@ -173,10 +173,12 @@
 (defn find-index
   "Returns the index of a value in a vector, or nil if not present" 
   ([^IPersistentVector v value]
-    (let [n (.count v)]
+   (let [countfn (fn[i] (#?(:clj .count :cljs count) i))
+         nthfn (fn[v i] (#?(:clj .nth :cljs nth) v i))
+         n (countfn v)]
       (loop [i 0]
         (when (< i n)
-          (if (= value (.nth v i))
+          (if (= value (nthfn v i))
             i
             (recur (inc i))))))))
 

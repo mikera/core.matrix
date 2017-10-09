@@ -1987,6 +1987,19 @@
                 (mp/construct-matrix [] (take fs parts))))
             (first es))))))
 
+(extend-protocol mp/PReshapeView
+  nil
+    (reshape-view [m shape]
+      (mp/broadcast nil shape))
+  #?(:clj Number :cljs number)
+    (reshape-view [m shape]
+      (mp/broadcast m shape))
+  #?(:clj Object :cljs object)
+    (reshape-view [m shape]
+      (if (mp/is-mutable? m)
+        (TODO "reshape-view not supported on mutable array of type: " (class m))
+        (mp/reshape m shape))))
+
 (extend-protocol mp/PCoercion
   nil
     (coerce-param [m param]

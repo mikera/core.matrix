@@ -17,48 +17,59 @@
                [net.mikera/cljunit "0.4.0"]
                [criterium/criterium "0.4.3"]
                [org.clojure/tools.macro "0.1.5"]
-               [hiccup "1.0.5"]]
+               ]
 
 
               :plugins [[lein-codox "0.9.0"]]
-              :source-paths ["src/dev/clojure"]
+              :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
               :java-source-paths  ["src/test/java"]
               :jvm-opts ^:replace []}
+             :clean-targets ^{:protect false} ["resources/public/js" :target]
 
              :test
              {:dependencies [[net.mikera/vectorz-clj "0.43.0" :exclusions [net.mikera/core.matrix]]
                              [clatrix "0.5.0" :exclusions [net.mikera/core.matrix]]
                              [net.mikera/cljunit "0.4.0"]
                              [criterium/criterium "0.4.3"]
-                             [org.clojure/clojurescript "1.7.228"]
+                             [org.clojure/clojurescript "1.9.908"]
                              [org.clojure/tools.macro "0.1.5"]
                              [org.clojure/test.check "0.9.0"]]}
 
              :cljs
-             {:dependencies [[org.clojure/clojurescript "1.7.228"]
+             {:dependencies [[org.clojure/clojurescript "1.9.908"]
                              [thinktopic/aljabr "0.1.0-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
+                             [figwheel-sidecar "0.5.8"]
+                             [com.cemerick/piggieback "0.2.1"]
                              ]
-
-              :plugins [[lein-figwheel "0.5.0-6"]
+              :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+              :plugins [[lein-figwheel "0.5.13"]
                         [lein-doo "0.1.7"]
-                        [lein-cljsbuild "1.1.7"]
+                        [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
                         ]
 
               :cljsbuild {:builds
                           {:dev {:figwheel true
                                  :source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
                                  :compiler {:output-to "resources/public/js/core.matrix.js"
-                                            :asset-path   "js/out"
+                                            :output-dir "resources/public/js/out"
+                                            :asset-path   "out/"
                                             :optimizations :none
+                                            :verbose true
+                                            :warnings true
                                             :parallel-build true
                                             :pretty-print true}}
                            :test {:source-paths ["src/main/clojure" "src/test/cljs" "src/test/clojure"]
                                   :compiler {:output-to "resources/public/js/unit-test.js"
                                              :asset-path   "out/"
                                              :main clojure.core.matrix.cljs-runner
-                                             :optimizations :none 
+                                             :optimizations :advanced 
                                              :parallel-build true
-                                             :pretty-print false}}}
+                                             :verbose true
+                                             :warnings true
+                                             ;;avoids "typeerror: undefined is not an object " error
+                                             ;; see https://github.com/bensu/doo/pull/141#issuecomment-318999398
+                                             :process-shim false
+                                             :pretty-print true}}}
 
                                         :figwheel {:load-warninged-code true :css-dirs ["resources/public/css"] :server-port 8765}
                           }
@@ -66,6 +77,8 @@
 
   :marginalia {:javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
 
+  ;;runs both clj and cljs tests on invocation of "lein test"
+  :aliases {"test" ["do" "clean," "test," "with-profile" "cljs" "doo" "nashorn" "test" "once"]}
   :codox {:namespaces [clojure.core.matrix
                        clojure.core.matrix.dataset
                        clojure.core.matrix.io
