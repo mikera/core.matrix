@@ -239,19 +239,19 @@
        (dataset-from-rows col-names rows))))
 
 (defn- get-column-names
-  [m]
+  [^DataSet m]
   ( #?(:clj .column-names :cljs .-column-names) m))
 
 (defn- get-columns
-  [m]
+  [^DataSet m]
   ( #?(:clj .columns :cljs .-columns) m))
 
 (defn- get-shape
-  [m]
+  [^DataSet m]
   ( #?(:clj .shape :cljs .-shape) m))
 
 (defn- get-index0
-  [ds]
+  [^DataSetRow ds]
   (#?(:clj .index :cljs .-index) ds))
 
 (extend-protocol mp/PDimensionLabels
@@ -288,14 +288,14 @@
   
   DataSetRow
   (get-column [ds i]
-    (mp/get-1d (nth (get-columns ds) i) (get-index0 ds)))
+    (mp/get-1d (nth ( #?(:clj .columns :cljs .-columns) ds) i) (get-index0 ds)))
   (get-row [ds i]
     (error "Cannot get rows from a single DataSetRow"))
   (get-major-slice [ds i]
-    (mp/get-1d (nth (get-columns ds) i) (get-index0 ds)))
+    (mp/get-1d (nth ( #?(:clj .columns :cljs .-columns) ds) i) (get-index0 ds)))
   (get-slice [ds dimension i]
     (if (== (long dimension) 0)
-      (mp/get-1d (nth (get-columns ds) i) (get-index0 ds))
+      (mp/get-1d (nth ( #?(:clj .columns :cljs .-columns) ds) i) (get-index0 ds))
       (error (str "Cannot get dimension " dimension " from DataSetRow")))))
 
 (extend-protocol mp/PMatrixColumns
@@ -304,7 +304,7 @@
       (get-columns ds))
   DataSetRow
     (get-columns [ds]
-      (let [cols (get-columns ds)
+      (let [cols ( #?(:clj .columns :cljs .-columns) ds)
             ix (get-index0 ds)]
         (mapv #(mp/get-1d % ix) cols))))
 
@@ -323,7 +323,7 @@
         (mp/transpose cols)))
   DataSetRow
     (convert-to-nested-vectors [ds]
-      (let [cols (get-columns ds)
+      (let [cols ( #?(:clj .columns :cljs .-columns) ds)
             ix (get-index0 ds)]
         (mapv #(mp/get-1d % ix) cols))))
 
@@ -460,12 +460,12 @@
     (label [m dim i]
       (let [dim (long dim)]
         (cond
-          (== 0 dim) (nth (get-column-names m) i)
+          (== 0 dim) (nth ( #?(:clj .column-names :cljs .-column-names) m) i)
           :else nil)))
     (labels [m dim]
       (let [dim (long dim)]
         (cond
-          (== 0 dim) (get-column-names m)
+          (== 0 dim) ( #?(:clj .column-names :cljs .-column-names) m)
           :else nil))))
 
 (extend-protocol mp/PColumnNames
@@ -477,9 +477,9 @@
 
   DataSetRow
     (column-name [m i]
-      (nth (get-column-names m) i))
+      (nth ( #?(:clj .column-names :cljs .-column-names) m) i))
     (column-names [m]
-      (get-column-names m)))
+      ( #?(:clj .column-names :cljs .-column-names) m)))
 
 (extend-protocol mp/PImplementation
   DataSet
@@ -551,11 +551,11 @@
       true)
     (is-scalar? [m] false)
     (get-shape [m]
-      [(get-length0 (get-column-names m))])
+      [(get-length0 ( #?(:clj .column-names :cljs .-column-names) m))])
     (dimension-count [m dim]
       (let [dim (long dim)]
         (cond
-          (== dim 0) (get-length0 (get-column-names m))
+          (== dim 0) (get-length0 ( #?(:clj .column-names :cljs .-column-names) m))
           :else (error "Invalid dimension for dataset row: " dim)))))
 
 (extend-protocol mp/PIndexedAccess
@@ -574,13 +574,13 @@
 
   DataSetRow
     (get-1d [m x]
-      (mp/get-1d (.nth ^IPersistentVector (get-columns m) (long x)) (.index m)))
+      (mp/get-1d (.nth ^IPersistentVector ( #?(:clj .columns :cljs .-columns) m) (long x)) (.index m)))
     (get-2d [m x y]
       (error "Invalid 2D access on DataSetRow"))
     (get-nd [m indexes]
       (let [dims (long (count indexes))]
         (cond
-          (== 1 dims) (mp/get-1d (.nth ^IPersistentVector (get-columns m) (long (first indexes))) (.index m))
+          (== 1 dims) (mp/get-1d (.nth ^IPersistentVector ( #?(:clj .columns :cljs .-columns) m) (long (first indexes))) (.index m))
           :else (error "Invalid ND access on DataSetRow")))))
 
 (defn- broadcast-cols
@@ -694,7 +694,7 @@
                                           :values (into [] x)})))
 
    (defmethod print-method DataSetRow [^clojure.core.matrix.impl.dataset.DataSetRow x ^Writer writer]
-     (.write writer (str "#dataset/row " {:column-names (get-column-names x)
+     (.write writer (str "#dataset/row " {:column-names ( #?(:clj .column-names :cljs .-column-names) x )
                                           :values (into [] x)}))))
      )
 
