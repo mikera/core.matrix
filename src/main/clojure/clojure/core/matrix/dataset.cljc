@@ -30,6 +30,35 @@
    ( #?(:clj boolean :cljs and) (and (<= 1 (long (mp/dimensionality d)) 2) 
                                      (mp/column-names d)))))
 
+(defn dataset-row?
+  "Returns true if argument is a datasetrow type, defined as a 1D array with column names"
+  (^Boolean [d]
+   ( #?(:clj boolean :cljs and) (and (= 1 (long (mp/dimensionality d))) 
+                                     (mp/column-names d)))))
+
+(defn- dataset-from-map-seq
+  "Returns a dataset created from a sequence of maps"
+  [data]
+ (let [col-names (keys (first data))
+              col-map (-> (zipmap col-names (repeat []))
+                          (vector)
+                          (#(apply conj % data))
+                          (#(apply merge-with conj %)))]
+          ;; check that there all the maps have the same keys
+          ;; no additional keys in all but the first maps and
+          ;; lengths of rows are equal
+          (if (and (= (into #{} col-names)
+                      (into #{} (keys col-map)))
+                   (->> (vals col-map)
+                        (map count)
+                        (into #{})
+                        (count)
+                        (= 1)))
+            (impl/dataset-from-columns
+              col-names
+              (reduce #(conj %1 (get col-map %2)) [] col-names))
+            (error "Can't create dataset from incomplete maps"))))
+
 (defn dataset
   "Creates dataset from one of the following:
     1. matrix - its columns will be used as dataset columns.
@@ -55,6 +84,11 @@
     (cond
       ;; already a dataset, just return as-is
       (dataset? data) data
+      
+      (dataset-row? (first data))
+      (->> data
+             (mapv #(zipmap (mp/column-names %) (mp/get-columns %)))
+             dataset-from-map-seq)
 
       ;; construct a dataset using 2D matrix data
       (matrix? data) (impl/dataset-from-array data)
@@ -73,26 +107,8 @@
       ;; 1D sequence of maps of column name -> value
       (and (= (mp/dimensionality data) 1)
            (map? (first data)))
-        (let [col-names (keys (first data))
-              col-map (-> (zipmap col-names (repeat []))
-                          (vector)
-                          (#(apply conj % data))
-                          (#(apply merge-with conj %)))]
-          ;; check that there all the maps have the same keys
-          ;; no additional keys in all but the first maps and
-          ;; lengths of rows are equal
-          (if (and (= (into #{} col-names)
-                      (into #{} (keys col-map)))
-                   (->> (vals col-map)
-                        (map count)
-                        (into #{})
-                        (count)
-                        (= 1)))
-            (impl/dataset-from-columns
-              col-names
-              (reduce #(conj %1 (get col-map %2)) [] col-names))
-            (error "Can't create dataset from incomplete maps")))
-
+        (dataset-from-map-seq data) 
+      
        :else
        (error "Don't know how to create dataset from data of type " ( #?(:clj class
                                                                          :cljs type)
