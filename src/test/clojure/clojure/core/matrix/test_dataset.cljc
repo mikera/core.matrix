@@ -36,6 +36,7 @@
                                                         remove-columns
                                                         emap-column
                                                         emap-columns
+                                                        dataset-row?
                                                         ]])
   #?(:cljs (:require-macros [clojure.core.matrix :refer [with-implementation]]
                             [clojure.core.matrix.macros :refer [error]]
@@ -52,7 +53,8 @@
           ds6 (dataset [:vec :ndarray :double-array]
                        {:vec (matrix :persistent-vector [1 2 3])
                         :ndarray (matrix :ndarray [4 5 6])
-                        :double-array (matrix :double-array [7 8 9])})]
+                        :double-array (matrix :double-array [7 8 9])})
+          ds7 (dataset (seq ds5))]
       (is (= (column-names ds1) [:a :b]))
       (is (= (columns ds1) [[1 2 3] [4 5 6]]))
       (is (= (column-names ds2) [0 1]))
@@ -63,7 +65,11 @@
       (is (= (into #{} (columns ds4)) #{[1 4] [2 5]}))
       (is (= (column-names ds5) [:c :a :b]))
       (is (= (columns ds5) [[3 6] [1 4] [2 5]]))
-      (is (vector? (first (columns ds6)))))))
+      (is (vector? (first (columns ds6))))
+      (is (= (column-names ds5) (column-names ds7)))
+      (is (= (columns ds5) (columns ds7))))))
+
+
 
 (deftest test-regressions
   (testing "Should be possible to create a dataset with element types that the current implementation does not support"
@@ -183,7 +189,15 @@
       (is (= [2 "Mike"] (vec dr)))
       (is (= "Mike" (nth dr 1)))
       (is (= :not-found (nth dr 2 :not-found)))
-      (is (= :not-found (nth dr -1 :not-found))))))
+      (is (= :not-found (nth dr -1 :not-found))))
+    (testing "type tests"
+      (is (dataset-row? (first (seq (dataset [:a :b] [[1 2] [3 4]]))))))))
+
+(deftest seq-filtering
+  (let [d1 (dataset [:a :b] [[1 2] [3 4]])]
+    (testing "filtering of dataset" 
+      (is (= (dataset [:a :b] [[3 4]]) (dataset (filter #(= 3 (cd/column % :a)) d1))))
+      (is (= (dataset [:a :b] [[3 4]]) (dataset (remove #(= 1 (cd/column % :a)) d1)))))))
 
 (defn- round-trip [x]
   (read-string (pr-str x)))
@@ -202,3 +216,4 @@
          (compliance/instance-test dset)
          (compliance/instance-test (second (slices dset)))
          (compliance/instance-test (slice dset 1 0))))))
+
