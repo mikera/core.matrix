@@ -2,7 +2,15 @@
 All notable changes to this project will be documented in this file, as of core.matrix 0.50.0
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.61.0] - 2017-...
+## [0.62.0] - 2018-02-06
+### Enhanced
+- Update for Clojure 1.9.0 release
+### Fixed
+- General refactoring and performance oprimisations
+- Fixed CLJS tests to run on Nashorn 
+- Improvements to dataset behaviour
+
+## [0.61.0] - 2017-09-02
 ### Added
 - add-emap! and set-emap! API functions
 
@@ -48,7 +56,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Clarified docstrings
 
 ## [0.57.0] - 2016-11-17
-### Added
+### Enhanced
 - Neanderthal implementation reference
 - Weka implementation reference
 
