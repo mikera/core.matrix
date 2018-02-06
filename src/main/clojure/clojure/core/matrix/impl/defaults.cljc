@@ -1301,7 +1301,7 @@
     (matrix-equals [a b]
       (cond
         (number? b) (== a b)
-        (== 0 (mp/dimensionality b)) (== a (scalar-coerce b))
+        (== 0 (mp/dimensionality b)) (mp/matrix-equals b a) ;; defer to other implementation
         :else false))
   #?(:clj Object :cljs object)
     (matrix-equals [a b]

@@ -402,7 +402,7 @@
             (and (== 1 (long (mp/dimensionality a)))
                  (loop [i 0]
                    (if (< i acount)
-                     (if (== (mp/get-1d a i) (mp/get-1d b i)) ;; can't avoid boxed warning, may be any sort of number
+                     (if (mp/matrix-equals (nth a i) (mp/get-1d b i)) ;; can't avoid boxed warning, may be any sort of number
                        (recur (inc i))
                        false)
                      true)))
@@ -410,7 +410,7 @@
             (let [n acount]
                (loop [i 0]
                      (if (< i n)
-                       (if (mp/matrix-equals (a i) (b i))
+                       (if (mp/matrix-equals (nth a i) (b i))
                          (recur (inc i))
                          false)
                        true)))
