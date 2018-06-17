@@ -328,7 +328,7 @@
         (mapv #(mp/get-1d % ix) cols))))
 
 (extend-protocol mp/PColumnIndex
-  #?(:clj Object :cljs js/Object)
+  #?(:clj Object :cljs object)
     (column-index [ds column-name]
       (when-let [cnames (mp/column-names ds)]
         (let [cnames ^IPersistentVector (vec cnames)]
@@ -363,7 +363,7 @@
         (->> (map #(nth row-maps %) rows)
              (dataset-from-row-maps col-names))
         (catch
-            #?(:clj Exception :cljs js/Object) e
+            #?(:clj Exception :cljs js/object) e
           (let [c (long (count (mp/get-rows ds)))
                 out-of-range (filter #(>= (long %) c) rows)]
             (if (> (long (count out-of-range)) 0)
@@ -430,7 +430,7 @@
                     (mp/get-columns ds))))
   
     #?(:clj Object
-       :cljs js/Object)
+       :cljs object)
        (row-maps [ds]
          (if-let [col-names (mp/column-names ds)]
            (mapv #(zipmap col-names (mp/element-seq %))
