@@ -139,22 +139,47 @@
     (supports-dimensionality? [m dims]
       true))
 
+(defn- split-inner-outer-shape
+  "Splits the target shape into outer-shape containing dimensions to be added and
+   inner-shape containing the existing dimensions or dimensions of size 1 to be inserted"
+  [shape target-shape]
+  (loop [sh shape tsh target-shape inner ()]
+    (if-let [d (peek sh)]
+      (let [td (peek tsh)]
+        (cond
+          (= d td) (recur (pop sh) (pop tsh) (cons td inner))
+          (= td 1) (recur sh (pop tsh) (cons td inner))
+          :else (error "Incompatible shapes, cannot broadcast shape " shape " to " target-shape)))
+      [tsh (vec inner)])))
+
+(defn- broadcast-inner
+  "Inserts dimensions of size 1 into the current array"
+  [m mshape target-shape]
+  (let [[md] mshape
+        [td & tmore] target-shape]
+    (cond
+      (nil? td) m
+      (= md td) (mapv #(broadcast-inner % (next mshape) tmore) m)
+      (= td 1) (broadcast-inner (vector m) (into [1] mshape) target-shape))))
+
+(defn- broadcast-outer
+  "Adds outer-shape to the dimensions of the array"
+  [m outer-shape]
+  (reduce
+    (fn [m dup] (vec (repeat dup m)))
+    m
+    (reverse outer-shape)))
+
 (extend-protocol mp/PBroadcast
   #?(:clj IPersistentVector :cljs PersistentVector)
     (broadcast [m target-shape]
-      (let [mshape (mp/get-shape m)
+      (let [mshape (vec (mp/get-shape m))
             dims (long (count mshape))
             tdims (long (count target-shape))]
-        (cond
-          (> dims tdims)
-            (error "Can't broadcast to a lower dimensional shape")
-          (not (every? identity (map == mshape (take-last dims target-shape))))
-            (error "Incompatible shapes, cannot broadcast shape " (vec mshape) " to " (vec target-shape))
-          :else
-            (reduce
-              (fn [m dup] (vec (repeat dup m)))
-              m
-              (reverse (drop-last dims target-shape)))))))
+        (if (> dims tdims)
+          (error "Can't broadcast to a lower dimensional shape")
+          (let [[outer-shape inner-shape] (split-inner-outer-shape mshape (vec target-shape))]
+            (-> m (broadcast-inner mshape inner-shape) (broadcast-outer outer-shape)))))))
 
 (extend-protocol mp/PBroadcastLike
   #?(:clj IPersistentVector :cljs PersistentVector)

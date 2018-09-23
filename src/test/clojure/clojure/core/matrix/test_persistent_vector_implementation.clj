@@ -80,7 +80,40 @@
     (is (= [[[[1]]]] (transpose [[[[1]]]])))))
 
 (deftest test-broadcast
-  (is (equals [[1 2] [1 2]] (broadcast [1 2] [2 2]))))
+  (is (equals [[1 2] [1 2]] (broadcast [1 2] [2 2])))
+  ;; 1d identity
+  (is (= (broadcast [1] [1]) [1]))
+  (is (= (broadcast [5] [1]) [5]))
+  (is (= (broadcast [10 20] [2]) [10 20]))
+
+  ;; 1d add dim
+  (is (= (broadcast [1] [1 1]) [[1]]))
+  (is (= (broadcast [5] [1 1]) [[5]]))
+  (is (= (broadcast [5] [1 1 1]) [[[5]]]))
+  (is (= (broadcast [1 2] [2 1]) [[1] [2]]))
+  (is (= (broadcast [1 2 3] [3 1]) [[1] [2] [3]]))
+  (is (= (broadcast [1 2 3] [3 1 1]) [[[1]] [[2]] [[3]]]))
+
+  ;; 2d identity
+  (is (= (broadcast [[10]] [1 1]) [[10]]))
+  (is (= (broadcast [[1] [2] [3]] [3 1]) [[1] [2] [3]]))
+  (is (= (broadcast [[1 2] [3 4]] [2 2]) [[1 2] [3 4]]))
+  (is (= (broadcast [[1 2] [3 4]] [2 2]) [[1 2] [3 4]]))
+
+  ;; 2d add dim
+  (is (= (broadcast [[1] [2] [3]] [3 1 1]) [[[1]] [[2]] [[3]]]))
+  (is (= (broadcast [[1 2] [3 4]] [2 2 1]) [[[1] [2]] [[3] [4]]]))
+  (is (= (broadcast [[1 2] [3 4]] [2 1 2]) [[[1 2]] [[3 4]]]))
+  (is (= (broadcast [[1 2] [3 4]] [2 2 1 1]) [[[[1]] [[2]]] [[[3]] [[4]]]]))
+  (is (= (broadcast [[1 2] [3 4]] [2 1 2 1]) [[[[1] [2]]] [[[3] [4]]]]))
+  (is (= (broadcast [[1 2] [3 4]] [2 1 1 2]) [[[[1 2]]] [[[3 4]]]]))
+
+  (let [lm [[[[1 2] [3 4]] [[5 6] [7 8]]]
+            [[[9 10] [11 12]] [[13 14] [15 16]]]]
+        exp (mapv vector lm)]
+    (is (= (shape lm) [2 2 2 2]))
+    (is (= (shape exp) [2 1 2 2 2]))
+    (is (= (broadcast lm [2 1 2 2 2]) exp))))
 
 (deftest test-rows-columns
   (is (equals [[1 2] [3 4]] (rows [[1 2] [3 4]])))
