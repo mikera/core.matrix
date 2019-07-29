@@ -157,6 +157,14 @@
     (div! da 2)
     (is (equals [1 2] da))))
 
+(deftest test-mmul!
+  (let [da (double-array [2 4])]
+    (mmul! da 2 2)
+    (is (equals [8 16] da)))
+  (let [da (double-array [2 4])]
+    (mmul! da da da)
+    (is (equals [40 80] da))))
+
 (deftest test-broadcast-coerce
   (is (= [1.0 2.0] (mp/broadcast-coerce [0 0] (double-array [1 2])))))
 

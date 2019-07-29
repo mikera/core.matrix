@@ -1484,7 +1484,7 @@ elements not-equal to the argument are 0.
     (reduce mp/element-multiply (mp/element-multiply a b) more)))
 
 (defn mmul
-  "Performs matrix multiplication on matrices or vectors. 
+  "Performs matrix multiplication on matrices, vectors or scalar. 
 
    Equivalent to inner-product, but may be more efficient for matrices."
   ([] 1.0)
@@ -1495,6 +1495,16 @@ elements not-equal to the argument are 0.
         (mp/inner-product a b)))
   ([a b & more]
     (reduce mp/matrix-multiply (mp/matrix-multiply a b) more)))
+
+(defn mmul!
+  "Performs in-place matrix multiplication with matrices, vectors or scalars. 
+
+   This is a convenience wrapper. In general, set-inner-product! or add-inner-product! 
+   should be preffered for performance reasons."
+  ([a b]
+    (assign! a (mmul a b)))
+  ([a b & more]
+    (assign! a (apply mmul a b more))))
 
 (defn e*
   "An element-wise multiply operator equivalent to `mul`."
