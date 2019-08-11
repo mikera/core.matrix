@@ -59,6 +59,11 @@
     (set-inner-product! v [[2 0] [0 3]] [10 20] 10.0)
     (is (equals [200 600] v))))
 
+(deftest test-mmul!
+  (let [v (array :vectorz [[2 0] [0 3]])]
+    (mmul! v v) 
+    (is (equals [[4 0] [0 9]] v))))
+
 (deftest test-mutable
   (is (vectorz? (mutable :vectorz [1 2 3])))
   (is (not (vectorz? (mutable [1 2 3]))))
