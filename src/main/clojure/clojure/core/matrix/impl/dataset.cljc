@@ -349,7 +349,7 @@
       (let [^List all-col-names (get-column-names ds)
             indices (mapv (fn [name]
                             (let [ix (.indexOf all-col-names name)]
-                              (when (== -1 ix) (error "Column name " name "not found in Dataset"))
+                              (when (== -1 ix) (error "Column name " name " not found in Dataset"))
                               ix))
                           col-names)
             nthfn (fn[ i j] #?(:clj (.nth ^IPersistentVector i j)

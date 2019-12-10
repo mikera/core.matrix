@@ -97,6 +97,9 @@
     (is (= (select-columns ds1 [:a :b])
            (dataset [:a :b] (matrix [[1 4] [2 5] [3 6] [4 7]]))))
     (is (= (select-columns ds2 [:a :b]) (dataset [:a :b] [])))
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo 
+                          #"Column name :not-there not found in Dataset"
+                          (select-columns ds1 [:not-there]))) 
     (is (= (remove-columns ds1 [:a :b])
            (dataset [:c] (matrix [[9] [9] [9] [9]]))))))
 
