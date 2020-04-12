@@ -215,6 +215,8 @@
          (aset ~ix tdim# (aget ~(vary-meta `(aget ~'index-maps ~isym) assoc :tag 'longs) ~val))))))
 )
 
+(declare ->NDWrapper)
+
 (deftype NDWrapper
   [array ;; source array (any valid core.matrix matrix)
    ^longs shape ;; shape of NDWrapper
@@ -347,11 +349,11 @@
               nsp (u/copy-long-array source-position)
               sdim (long (aget dim-map dim))]
           (aset nsp sdim i)
-          (NDWrapper. array
-                      (abutnth dim shape)
-                      (abutnth dim dim-map)
-                      (abutnth dim index-maps)
-                      nsp)))
+          (->NDWrapper array
+                       (abutnth dim shape)
+                       (abutnth dim dim-map)
+                       (abutnth dim index-maps)
+                       nsp)))
 
   Object
     (toString [m]

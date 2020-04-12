@@ -3,7 +3,7 @@
   :license {:name "Eclipse Public License (EPL)"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[org.clojure/clojure "1.8.0"]]
+  :dependencies [[org.clojure/clojure "1.10.1"]]
 
   :source-paths      ["src/main/clojure"]
   :java-source-paths ["src/main/java"]
