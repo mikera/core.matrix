@@ -815,7 +815,7 @@
       (loop [i (long 0)
              pairs (seq pairs)]
         (when (< i n)
-          (aset dest (first (first pairs)) (Long/valueOf i))
+          (aset dest (first (first pairs)) #?(:clj (Long/valueOf i) :cljs i))
           (recur (inc i)
                  (next pairs))))
       (vec dest))))
@@ -1193,7 +1193,7 @@
 ;; general transformation of a vector
 (extend-protocol mp/PVectorTransform
   #?(:clj clojure.lang.IFn
-     :cljs cljs.core.IFn)
+     :cljs cljs.core/IFn)
     (vector-transform [m a]
       (if
         (vector? m) (mp/matrix-multiply m a)
@@ -1997,7 +1997,7 @@
   #?(:clj Object :cljs object)
     (reshape-view [m shape]
       (if (mp/is-mutable? m)
-        (TODO "reshape-view not supported on mutable array of type: " (class m))
+        (TODO "reshape-view not supported on mutable array of type: " (#?(:clj class :cljs type) m))
         (mp/reshape m shape))))
 
 (extend-protocol mp/PCoercion

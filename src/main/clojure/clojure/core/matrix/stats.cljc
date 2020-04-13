@@ -119,7 +119,10 @@
              ydiff (m/sub actl ymean)
              tss (double (m/esum (m/square ydiff)))
              res (- 1.0 (/ sse tss))]
-         (if (or  (= res Double/NEGATIVE_INFINITY) (Float/isNaN res))
+         (if (or  (= res #?(:clj Double/NEGATIVE_INFINITY
+                           :cljs js/Number.NEGATIVE_INFINITY))
+                  (#?(:clj Float/isNaN
+                     :cljs js/Number.isNaN) res))
            nil res))
        nil))))
 

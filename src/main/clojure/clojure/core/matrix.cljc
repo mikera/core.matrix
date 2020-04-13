@@ -268,7 +268,7 @@
   ([data]
     (try (or (mp/mutable-matrix data)
             (mutable (implementation-check) data))
-      (catch Throwable t ;; catch error in array construction, attempt to use a default implementation
+      (catch #?(:clj Throwable :cljs js/object) t ;; catch error in array construction, attempt to use a default implementation
         (default/construct-mutable-matrix data))))
   ([implementation data]
     (let [imp (implementation-check implementation)
