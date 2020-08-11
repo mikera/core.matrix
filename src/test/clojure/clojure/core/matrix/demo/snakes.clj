@@ -7,7 +7,7 @@
 ;; - Probability 0.0 of being on any other sqquare
 (def start (vec (cons 1.0 (repeat 100 0.0))))
 
-;; Position of snakes, as a map of (position of snake head) -> (position of snake tail)
+;; Position of ladders, as a map of (position of snake head) -> (position of snake tail)
 (def snakes {16 6,
              49 11,
              47 26,
@@ -42,7 +42,7 @@
           (apply add
                 (for [start (range 0 100) ;; do for every position (excluding 100, the winning square)
                       roll (range 1 7)]   ;; do for every dice roll 1-6
-                  (let [;; what is the probability we are at this stating position?
+                  (let [;; what is the probability we are at this starting position?
                         prob (pos start)  
                         
                         ;; what is the chance of being at this position *and* making the roll?
