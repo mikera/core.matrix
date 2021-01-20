@@ -4,8 +4,9 @@
   #?@(:clj [(:require [clojure.reflect :as r])
             (:import [java.util Arrays]
                      [clojure.lang IPersistentVector])])
-  (#?(:clj :require :cljs :require-macros)
-           [clojure.core.matrix.macros :refer [TODO is-long-array?]]))
+  #?(:clj  (:require [clojure.core.matrix.macros :refer [TODO is-long-array?]])
+     :cljs (:require-macros [clojure.core.matrix.macros :refer [TODO]]
+                            [clojure.core.matrix.utils :refer [doseq-indexed]])))
 
 ;; Some of these are copies of methods from the library
 ;;   https://github.com/mikera/clojure-utils
