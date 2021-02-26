@@ -323,7 +323,7 @@
       ;; optimised vector-dot for persistent vectors, handling 1D case
       (let [dims (long (mp/dimensionality b))]
         (cond
-          (and (== dims 1) (== 1 (long (mp/dimensionality b))))
+          (and (== dims 1) (== 1 (long (mp/dimensionality a))))
             (let [n (long (count a))]
               (cond
                 (not= n (long (long (mp/dimension-count b 0)))) (error "Mismatched vector sizes")
