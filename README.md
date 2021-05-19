@@ -71,6 +71,23 @@ To build the Clojurescript unit tests you can run:
     lein with-profile +cljs cljsbuild once
 
 and then load resources/public/test.html in a browser to run the tests.
+### Docker
+A Docker setup is available for quick reproducable envivironment.
+
+#### Sample Commands
+
+To build the dev environment image. This is currently based on `clojure:openjdk-11-lein-buster` image.
+
+    `docker build -f ./docker/Dockerfile . -t core.matrix-dev`
+
+To run the build after the dev image is ready
+
+    `docker run --rm core.matrix-dev`
+
+To run interactive bash shell for adhoc build commands
+
+    `docker run -it --entrypoint bash core.matrix-dev`
+
 
 ### Status
 
