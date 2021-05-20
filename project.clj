@@ -33,13 +33,15 @@
                              [criterium/criterium "0.4.3"]
                              [org.clojure/clojurescript "1.9.908"]
                              [org.clojure/tools.macro "0.1.5"]
-                             [org.clojure/test.check "0.9.0"]]}
+                             [org.clojure/test.check "0.9.0"]
+                             [javax.xml.bind/jaxb-api "2.4.0-b180830.0359"]]}
 
              :cljs
              {:dependencies [[org.clojure/clojurescript "1.9.908"]
                              [thinktopic/aljabr "0.1.0-SNAPSHOT" :exclusions [net.mikera/core.matrix]]
                              [figwheel-sidecar "0.5.8"]
                              [com.cemerick/piggieback "0.2.1"]
+                             [javax.xml.bind/jaxb-api "2.4.0-b180830.0359"]
                              ]
               :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
               :plugins [[lein-figwheel "0.5.13"]
