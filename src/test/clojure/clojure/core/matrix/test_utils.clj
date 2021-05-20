@@ -2,7 +2,7 @@
   (:refer-clojure :exclude [vector?])
   (:require [clojure.core.matrix.protocols :as mp]
             [clojure.core.matrix :refer :all]
-            [clojure.core.matrix.utils :refer [extends-deep? extract-protocols]]
+            [clojure.core.matrix.utils :refer [extract-protocols]]
             [clojure.test :refer :all])
   (:import [clojure.lang PersistentVector]
            [mikera.vectorz Vector]))
@@ -12,10 +12,6 @@
 (deftest test-long-array
   (is (= (type (long-array 0)) (type (long-array nil))))
   (is (= (count (long-array 0)) (count (long-array nil)))))
-
-(deftest test-protocol-extension
-  (is (extends-deep? mp/PImplementation PersistentVector))
-  (is (extends-deep? mp/PImplementation Vector)))
 
 ;; this tests that all protocols have a default implementation for java.lang.Object
 ;; (except for specified known exceptions
