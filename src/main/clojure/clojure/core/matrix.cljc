@@ -2130,7 +2130,7 @@ elements not-equal to the argument are 0.
      (emap (fn [x] (str x)) (double-array [1 2 3]))             ;; Throws an error
      (emap (fn [x] (str x)) (coerce [] (double-array [1 2 3]))) ;; OK!
 
-   Implemenations may *optionally* support custom function types. If this is the case, the
+   Implementations may *optionally* support custom function types. If this is the case, the
    parameter m must be a valid array from the given implementation.
 
    Returns a new array of the same element-type and shape as the array m."
