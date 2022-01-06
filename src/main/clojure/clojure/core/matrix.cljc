@@ -1876,7 +1876,7 @@ elements not-equal to the argument are 0.
 (defn distance
   "Calculates the euclidean distance between two numerical vectors, as a single numerical scalar value.
 
-   This is equivalent to (norm 2 (sub a b)) but may be optimised by the underlying implementation."
+   This is equivalent to (norm (sub a b) 2) but may be optimised by the underlying implementation."
   ([a b]
     (mp/distance a b)))
 
