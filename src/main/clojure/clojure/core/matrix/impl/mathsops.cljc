@@ -1,4 +1,5 @@
 (ns clojure.core.matrix.impl.mathsops
+  (:refer-clojure :exclude [abs])
   #?(:cljs (:require-macros [clojure.core.matrix.impl.mathsops :refer [def-mop def-mops]])))
 
 ;; data structure for code generation of maths operations
