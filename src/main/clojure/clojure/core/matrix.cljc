@@ -18,7 +18,7 @@
             [clojure.core.matrix.impl.mathsops :as mops]
             [clojure.core.matrix.impl.wrappers :as wrap]
             [clojure.core.matrix.utils :as u])
-  (:refer-clojure :exclude [array clone array?])
+  (:refer-clojure :exclude [abs array clone array?])
   #?(:clj (:require
             [clojure.core.matrix.macros :refer [TODO error]]
             [clojure.core.matrix.impl.index]

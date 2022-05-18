@@ -10,7 +10,7 @@
    and instead use the functions in the main clojure.core.matrix API"
   (:require [clojure.core.matrix.utils :refer [same-shape-object?]]
             [clojure.core.matrix.impl.mathsops :as mops])
-  (:refer-clojure :exclude [clone])
+  (:refer-clojure :exclude [abs clone])
   (#?(:clj :require :cljs :require-macros)
            [clojure.core.matrix.macros :refer [error]])
   #?(:clj (:import [java.util List]
