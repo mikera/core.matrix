@@ -2143,7 +2143,7 @@ elements not-equal to the argument are 0.
 
 (defn emap-indexed
   "Element-wise map-indexed over all elements of one or more arrays. Like
-   emap, but provides an index as the second argument to the mapping function.
+   emap, but provides an index as the first argument to the mapping function.
 
    f must accept as first argument the index vector of the current element,
    and return a result compatible with the element-type of the array m
