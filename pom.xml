@@ -74,7 +74,8 @@
 			<version>0.5.0</version>
 			<scope>test</scope>
 			<exclusions>
-				<exclusion>  <!-- No need to include core.matrix itself as a test dependency! -->
+				<exclusion>
+					<!-- No need to include core.matrix itself as a test dependency! -->
 					<groupId>net.mikera</groupId>
 					<artifactId>core.matrix</artifactId>
 				</exclusion>
@@ -112,18 +113,6 @@
 						</execution> -->
 				</executions>
 			</plugin>
-						<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.12</version>
-				<extensions>true</extensions>
-				<configuration>
-					<serverId>ossrh</serverId>
-					<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-					<!-- Set to true for auto release -->
-					<autoReleaseAfterClose>true</autoReleaseAfterClose>
-				</configuration>
-			</plugin>
 		</plugins>
 
 		<resources>
@@ -143,6 +132,17 @@
 
 		<pluginManagement>
 			<plugins>
+				<!--This config stops automatic push to GitHub. -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>2.5.3</version>
+					<configuration>
+						<localCheckout>true</localCheckout>
+						<pushChanges>false</pushChanges>
+					</configuration>
+				</plugin>
+
 				<!--This plugin enables the creation of a test jar file. -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
