@@ -1,4 +1,4 @@
-FROM clojure:openjdk-11-lein-buster
+FROM clojure:openjdk-8-lein-buster
 
 RUN apt-get update -qq
 RUN apt-get install libquadmath0 maven -qq

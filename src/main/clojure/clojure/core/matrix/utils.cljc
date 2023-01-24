@@ -1,8 +1,7 @@
 (ns clojure.core.matrix.utils
   "Namespace for core.matrix utilities. Intended mainly for library and tool writers."
   (:refer-clojure :exclude [update])
-  #?@(:clj [(:require [clojure.reflect :as r])
-            (:import [java.util Arrays]
+  #?@(:clj [(:import [java.util Arrays]
                      [clojure.lang IPersistentVector])])
   #?(:clj  (:require [clojure.core.matrix.macros :refer [TODO is-long-array?]])
      :cljs (:require-macros [clojure.core.matrix.macros :refer [TODO]]
@@ -226,26 +225,6 @@
 
 ;; utilities for protocol introspection
 
-#?(:clj
-(defn extends-deep?
-  "This functions differs from ordinary `extends?` by using `extends?`
-   on all ancestors of given type instead of just type itself. It also
-   skips `java.lang.Object` that serves as a default implementation
-   for all protocols"
-  [proto cls]
-  ;; Here we need a special case to avoid reflecting on primitive type
-  ;; (it will cause an exception)
-  (if (= (Class/forName "[D") cls)
-    (extends? proto cls)
-    (let [bases (-> cls (r/type-reflect :ancestors true) :ancestors)]
-      (->> bases
-           (filter (complement #{'Object 'java.lang.Object}))
-           (map resolve)
-           (cons cls)
-           (map (partial extends? proto))
-           (some true?)))))
-)
-
 (defn protocol?
   "Returns true if an argument is a protocol'"
   [p]
@@ -271,15 +250,6 @@
       (map enhance-protocol-kv)
       (sort-by :line))))
 
-(defn unimplemented
-  "Identifies which protocols are unimplemented for a given array object.
-
-   Unimplemented protocols will fall back to the default implementation (for java.lang.Object) which
-   is likely to be slower than a specialised implementation."
-  [m]
-  (let [protocols (extract-protocols)
-        m (if (class? m) m (class m))]
-    (map :name (filter #(not (#?(:clj extends-deep? :cljs satisfies?) % m)) protocols))))
 ))
 
 (defn update-indexed [xs idxs f]

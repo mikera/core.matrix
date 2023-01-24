@@ -68,12 +68,3 @@
     [:div.pure-g
      [:div.pure-u-1 header]
      [:div.pure-u-1 table]]]))
-
-(defn generate
-  []
-  (let [impl-objs (c/get-impl-objs)
-        protos (c/extract-implementations (u/extract-protocols) impl-objs)
-        git-hash (c/get-git-hash)
-        header (render-header git-hash)
-        table (render-table impl-objs protos git-hash)]
-    (render-page header table)))
